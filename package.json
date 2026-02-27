@@ -1,0 +1,36 @@
+{
+  "name": "tasksgo-ui",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/playground",
+    "storybook": "npm run storybook --workspace=packages/ds",
+    "build": "npm run build --workspace=packages/ds",
+    "test": "npm run test --workspace=packages/ds",
+    "test:ci": "npm run test:ci --workspace=packages/ds",
+    "lint": "npm run lint --workspace=packages/ds",
+    "lint:fix": "npm run lint:fix --workspace=packages/ds",
+    "prepare": "husky"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.2",
+    "@commitlint/config-conventional": "^20.4.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
+  },
+  "lint-staged": {
+    "packages/ds/src/**/*.{ts,tsx}": [
+      "eslint --fix --config packages/ds/eslint.config.js",
+      "prettier --write --config packages/ds/.prettierrc"
+    ],
+    "packages/ds/src/**/*.{css,json,md}": [
+      "prettier --write --config packages/ds/.prettierrc"
+    ]
+  }
+}
