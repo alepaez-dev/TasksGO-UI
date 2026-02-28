@@ -17,6 +17,7 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+      - run: npm rebuild
 
       - run: npx tsc --noEmit --project packages/ds/tsconfig.json
 
