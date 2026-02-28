@@ -1,6 +1,7 @@
 {
   "name": "tasksgo-ui",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*",
     "apps/*"
