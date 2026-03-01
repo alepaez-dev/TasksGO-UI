@@ -36,7 +36,9 @@ const status = {
 
 const badgeTodoBg = '#f3f4f6';
 
-const focusRingColor = 'rgba(79, 111, 143, 0.2)';
+const focus = {
+  ring: 'rgba(79, 111, 143, 0.2)',
+} as const;
 
 export const colors = {
   accent,
@@ -46,6 +48,8 @@ export const colors = {
   text,
 
   border,
+
+  focus,
 
   status,
 
@@ -71,7 +75,7 @@ export const colors = {
   checkbox: {
     border: '#d1d5db',
     active: accent.primary,
-    focusRing: focusRingColor,
+    focusRing: focus.ring,
     completed: text.disabled,
   },
 
@@ -101,5 +105,4 @@ export const colors = {
   },
 } as const;
 
-export { focusRingColor };
 export type ColorGroup = keyof typeof colors;

@@ -9,7 +9,9 @@
   font-weight: var(--ds-text-buttonLabel-fontWeight);
   line-height: var(--ds-text-buttonLabel-lineHeight);
   cursor: pointer;
-  transition: var(--ds-transition-property) var(--ds-transition-duration) ease;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: ease;
 }
 
 .button:focus-visible {

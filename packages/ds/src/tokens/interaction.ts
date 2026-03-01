@@ -1,4 +1,4 @@
-import { colors, focusRingColor } from './colors';
+import { colors } from './colors';
 
 const FOCUS_RING_WIDTH = '3px';
 
@@ -14,7 +14,7 @@ export const interaction = {
   },
   focusRing: {
     width: FOCUS_RING_WIDTH,
-    color: focusRingColor,
-    style: `0 0 0 ${FOCUS_RING_WIDTH} ${focusRingColor}`,
+    color: colors.focus.ring,
+    style: `0 0 0 ${FOCUS_RING_WIDTH} ${colors.focus.ring}`,
   },
 } as const;

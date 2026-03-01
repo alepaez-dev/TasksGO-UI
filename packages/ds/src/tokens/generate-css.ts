@@ -34,6 +34,7 @@ function buildBaseColorMap(): VarMap {
     surface: colors.surface,
     text: colors.text,
     border: colors.border,
+    focus: colors.focus,
     scrollbar: colors.scrollbar,
   };
 
@@ -73,6 +74,7 @@ const BASE_COLOR_GROUPS = new Set([
   'surface',
   'text',
   'border',
+  'focus',
   'scrollbar',
 ]);
 
@@ -222,7 +224,7 @@ export function generateTokensCSS(): string {
 
   lines.push(`  --ds-focus-ring-width: ${interaction.focusRing.width};`);
   lines.push(
-    `  --ds-focus-ring: 0 0 0 var(--ds-focus-ring-width)\n    var(--ds-color-checkbox-focusRing);`,
+    `  --ds-focus-ring: 0 0 0 var(--ds-focus-ring-width)\n    var(--ds-color-focus-ring);`,
   );
 
   lines.push('}');

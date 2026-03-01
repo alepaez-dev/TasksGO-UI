@@ -5,7 +5,6 @@ export { Button, type ButtonProps } from './components/Button';
 
 export {
   colors,
-  focusRingColor,
   fontFamilies,
   fontWeights,
   typographyScale,

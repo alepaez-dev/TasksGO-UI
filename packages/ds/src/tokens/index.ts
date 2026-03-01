@@ -1,4 +1,4 @@
-export { colors, focusRingColor, type ColorGroup } from './colors';
+export { colors, type ColorGroup } from './colors';
 export {
   fontFamilies,
   fontWeights,
