@@ -1,30 +1,105 @@
-// TODO: I am going to change these colors
-export const colors = {
-  primary50: '#eff6ff',
-  primary100: '#dbeafe',
-  primary200: '#bfdbfe',
-  primary300: '#93c5fd',
-  primary400: '#60a5fa',
-  primary500: '#3b82f6',
-  primary600: '#2563eb',
-  primary700: '#1d4ed8',
-  primary800: '#1e40af',
-  primary900: '#1e3a8a',
-
-  neutral50: '#f9fafb',
-  neutral100: '#f3f4f6',
-  neutral200: '#e5e7eb',
-  neutral300: '#d1d5db',
-  neutral400: '#9ca3af',
-  neutral500: '#6b7280',
-  neutral600: '#4b5563',
-  neutral700: '#374151',
-  neutral800: '#1f2937',
-  neutral900: '#111827',
-
-  success500: '#22c55e',
-  warning500: '#f59e0b',
-  error500: '#ef4444',
+const accent = {
+  primary: '#4f6f8f',
+  secondary: '#5e778f',
+  warm: '#d6c583',
+  subtle: '#d9d1b2',
 } as const;
 
-export type ColorToken = keyof typeof colors;
+const text = {
+  primary: '#1a1a1a',
+  secondary: '#737373',
+  disabled: '#a3a3a3',
+} as const;
+
+const border = {
+  default: '#f0f0f0',
+} as const;
+
+const surface = {
+  primary: '#FFFFFF',
+  secondary: '#F8F9FA',
+  hover: '#eff1f3',
+} as const;
+
+const scrollbar = {
+  track: 'transparent',
+  thumb: '#e5e5e5',
+} as const;
+
+const status = {
+  critical: '#dc2626',
+  high: '#ea580c',
+  medium: 'rgba(115, 115, 115, 0.7)',
+  low: text.disabled,
+  info: '#2563eb',
+} as const;
+
+const badgeTodoBg = '#f3f4f6';
+
+const focusRingColor = 'rgba(79, 111, 143, 0.2)';
+
+export const colors = {
+  accent,
+
+  surface,
+
+  text,
+
+  border,
+
+  status,
+
+  badge: {
+    progress: {
+      background: '#eff6ff',
+      text: status.info,
+      border: '#dbeafe',
+    },
+    todo: {
+      background: badgeTodoBg,
+      text: '#4b5563',
+      border: '#e5e7eb',
+    },
+    done: {
+      background: '#f9fafb',
+      text: '#9ca3af',
+      border: badgeTodoBg,
+      opacity: '0.6',
+    },
+  },
+
+  checkbox: {
+    border: '#d1d5db',
+    active: accent.primary,
+    focusRing: focusRingColor,
+    completed: text.disabled,
+  },
+
+  ticketId: {
+    text: '#374151',
+    border: border.default,
+    background: 'transparent',
+  },
+
+  button: {
+    primaryBg: text.primary,
+    primaryText: surface.primary,
+    primaryHoverBg: '#333333',
+    secondaryText: accent.primary,
+    secondaryBorder: accent.primary,
+    secondaryHoverBg: surface.hover,
+    ghostText: text.primary,
+    ghostHoverBg: surface.secondary,
+  },
+
+  scrollbar,
+
+  completedRow: {
+    title: 'rgba(156, 163, 175, 0.6)',
+    metaOpacity: '0.4',
+    metaFilter: 'grayscale(1)',
+  },
+} as const;
+
+export { focusRingColor };
+export type ColorGroup = keyof typeof colors;

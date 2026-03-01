@@ -2,21 +2,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--ds-space-2);
+  gap: var(--ds-space-button-gap);
   border: 1px solid transparent;
   border-radius: var(--ds-radius-md);
-  font-weight: var(--ds-font-weight-medium);
-  line-height: var(--ds-line-height-normal);
+  font-family: var(--ds-text-buttonLabel-fontFamily);
+  font-weight: var(--ds-text-buttonLabel-fontWeight);
+  line-height: var(--ds-text-buttonLabel-lineHeight);
   cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+  transition: var(--ds-transition-property) var(--ds-transition-duration) ease;
 }
 
 .button:focus-visible {
-  outline: 2px solid var(--ds-color-primary-500);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .button:disabled {
@@ -24,50 +22,46 @@
   cursor: not-allowed;
 }
 
-/* Variants */
-
 .primary {
-  background-color: var(--ds-color-primary-600);
-  color: white;
+  background-color: var(--ds-color-button-primaryBg);
+  color: var(--ds-color-button-primaryText);
 }
 
 .primary:hover:not(:disabled) {
-  background-color: var(--ds-color-primary-700);
+  background-color: var(--ds-color-button-primaryHoverBg);
 }
 
 .secondary {
   background-color: transparent;
-  color: var(--ds-color-primary-600);
-  border-color: var(--ds-color-primary-600);
+  color: var(--ds-color-button-secondaryText);
+  border-color: var(--ds-color-button-secondaryBorder);
 }
 
 .secondary:hover:not(:disabled) {
-  background-color: var(--ds-color-primary-50);
+  background-color: var(--ds-color-button-secondaryHoverBg);
 }
 
 .ghost {
   background-color: transparent;
-  color: var(--ds-color-neutral-700);
+  color: var(--ds-color-button-ghostText);
   border-color: transparent;
 }
 
 .ghost:hover:not(:disabled) {
-  background-color: var(--ds-color-neutral-100);
+  background-color: var(--ds-color-button-ghostHoverBg);
 }
 
-/* Sizes */
-
 .sm {
-  padding: var(--ds-space-1) var(--ds-space-3);
-  font-size: var(--ds-font-size-sm);
+  padding: 4px 8px;
+  font-size: 11px;
 }
 
 .md {
-  padding: var(--ds-space-2) var(--ds-space-4);
-  font-size: var(--ds-font-size-md);
+  padding: var(--ds-space-button-paddingY) var(--ds-space-button-paddingX);
+  font-size: var(--ds-text-buttonLabel-fontSize);
 }
 
 .lg {
-  padding: var(--ds-space-3) var(--ds-space-6);
-  font-size: var(--ds-font-size-lg);
+  padding: 10px 20px;
+  font-size: 14px;
 }
