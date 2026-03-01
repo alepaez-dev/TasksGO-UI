@@ -16,7 +16,8 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - run: npm ci
+      - run: rm package-lock.json
+      - run: npm install
 
       - run: npx tsc --noEmit --project packages/ds/tsconfig.json
 
