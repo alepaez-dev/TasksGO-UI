@@ -11,7 +11,7 @@
   cursor: pointer;
   transition-property: var(--ds-transition-property);
   transition-duration: var(--ds-transition-duration);
-  transition-timing-function: ease;
+  transition-timing-function: var(--ds-transition-timing-function);
 }
 
 .button:focus-visible {

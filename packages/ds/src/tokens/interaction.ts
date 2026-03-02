@@ -5,6 +5,7 @@ const FOCUS_RING_WIDTH = '3px';
 export const interaction = {
   transition: {
     duration: '150ms',
+    timingFunction: 'ease',
     property: 'background-color, color, border-color, opacity',
   },
   scrollbar: {

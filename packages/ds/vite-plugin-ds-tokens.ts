@@ -12,6 +12,7 @@
 import type { Plugin, ViteDevServer } from 'vite';
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
+import * as prettier from 'prettier';
 import {
   generateTokensCSS,
   generateTypographyCSS,
@@ -29,10 +30,25 @@ const TOKEN_FILES = [
   '/src/tokens/interaction.ts',
 ];
 
-function writeCSS(root: string, tokensCss: string, typographyCss: string) {
+async function formatCSS(css: string, root: string): Promise<string> {
+  const options = await prettier.resolveConfig(resolve(root, 'src/tokens'));
+  return prettier.format(css, { ...options, parser: 'css' });
+}
+
+async function writeCSS(
+  root: string,
+  tokensCss: string,
+  typographyCss: string,
+) {
   const tokensDir = resolve(root, 'src/tokens');
-  writeFileSync(resolve(tokensDir, 'tokens.css'), tokensCss);
-  writeFileSync(resolve(tokensDir, 'typography.css'), typographyCss);
+  writeFileSync(
+    resolve(tokensDir, 'tokens.css'),
+    await formatCSS(tokensCss, root),
+  );
+  writeFileSync(
+    resolve(tokensDir, 'typography.css'),
+    await formatCSS(typographyCss, root),
+  );
 }
 
 export function dsTokensPlugin(): Plugin {
@@ -47,8 +63,8 @@ export function dsTokensPlugin(): Plugin {
     configureServer(_server) {
       server = _server;
     },
-    buildStart() {
-      writeCSS(root, generateTokensCSS(), generateTypographyCSS());
+    async buildStart() {
+      await writeCSS(root, generateTokensCSS(), generateTypographyCSS());
     },
     async handleHotUpdate({ file }) {
       if (!server) return;
@@ -70,7 +86,7 @@ export function dsTokensPlugin(): Plugin {
 
       try {
         const mod = await server.ssrLoadModule(GENERATE_MODULE);
-        writeCSS(root, mod.generateTokensCSS(), mod.generateTypographyCSS());
+        await writeCSS(root, mod.generateTokensCSS(), mod.generateTypographyCSS());
       } catch (err) {
         console.error('[ds-tokens] Failed to regenerate CSS:', err);
       }

@@ -68,7 +68,6 @@ function buildFontWeightMap(): VarMap {
 function resolve(value: string, map: VarMap): string {
   return map.get(normalize(value)) ?? value;
 }
-
 function flattenColors(
   obj: Record<string, unknown>,
   prefix: string,
@@ -206,6 +205,9 @@ export function generateTokensCSS(): string {
 
   lines.push(`  --ds-transition-duration: ${interaction.transition.duration};`);
   lines.push(`  --ds-transition-property: ${interaction.transition.property};`);
+  lines.push(
+    `  --ds-transition-timing-function: ${interaction.transition.timingFunction};`,
+  );
   lines.push('');
 
   lines.push(`  --ds-scrollbar-width: ${interaction.scrollbar.width};`);
@@ -215,7 +217,7 @@ export function generateTokensCSS(): string {
 
   lines.push(`  --ds-focus-ring-width: ${interaction.focusRing.width};`);
   lines.push(
-    `  --ds-focus-ring: 0 0 0 var(--ds-focus-ring-width)\n    var(--ds-color-focus-ring);`,
+    `  --ds-focus-ring: 0 0 0 var(--ds-focus-ring-width) var(--ds-color-focus-ring);`,
   );
 
   lines.push('}');
