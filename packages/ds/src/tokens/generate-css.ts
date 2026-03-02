@@ -26,19 +26,19 @@ function normalize(value: string): string {
 
 const SKIP_CSS_KEYWORDS = new Set(['transparent', 'none']);
 
+const BASE_COLOR_GROUPS: Record<string, Record<string, string>> = {
+  accent: colors.accent,
+  surface: colors.surface,
+  text: colors.text,
+  border: colors.border,
+  focus: colors.focus,
+  scrollbar: colors.scrollbar,
+};
+
 function buildBaseColorMap(): VarMap {
   const map: VarMap = new Map();
 
-  const baseGroups: Record<string, Record<string, string>> = {
-    accent: colors.accent,
-    surface: colors.surface,
-    text: colors.text,
-    border: colors.border,
-    focus: colors.focus,
-    scrollbar: colors.scrollbar,
-  };
-
-  for (const [group, values] of Object.entries(baseGroups)) {
+  for (const [group, values] of Object.entries(BASE_COLOR_GROUPS)) {
     for (const [name, value] of Object.entries(values)) {
       if (!SKIP_CSS_KEYWORDS.has(value)) {
         map.set(normalize(value), `var(--ds-color-${group}-${name})`);
@@ -68,15 +68,6 @@ function buildFontWeightMap(): VarMap {
 function resolve(value: string, map: VarMap): string {
   return map.get(normalize(value)) ?? value;
 }
-
-const BASE_COLOR_GROUPS = new Set([
-  'accent',
-  'surface',
-  'text',
-  'border',
-  'focus',
-  'scrollbar',
-]);
 
 function flattenColors(
   obj: Record<string, unknown>,
@@ -151,7 +142,7 @@ export function generateTokensCSS(): string {
   ];
 
   for (const [group, values] of Object.entries(colors)) {
-    const isBase = BASE_COLOR_GROUPS.has(group);
+    const isBase = group in BASE_COLOR_GROUPS;
     lines.push(
       ...flattenColors(
         values as Record<string, unknown>,
