@@ -26,6 +26,7 @@ const TOKEN_FILES = [
   '/src/tokens/spacing.ts',
   '/src/tokens/radius.ts',
   '/src/tokens/elevation.ts',
+  '/src/tokens/effects.ts',
   '/src/tokens/iconography.ts',
   '/src/tokens/interaction.ts',
 ];

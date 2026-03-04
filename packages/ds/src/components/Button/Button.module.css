@@ -5,9 +5,9 @@
   gap: var(--ds-space-button-gap);
   border: 1px solid transparent;
   border-radius: var(--ds-radius-md);
-  font-family: var(--ds-text-buttonLabel-fontFamily);
-  font-weight: var(--ds-text-buttonLabel-fontWeight);
-  line-height: var(--ds-text-buttonLabel-lineHeight);
+  font-family: var(--ds-text-button-label-font-family);
+  font-weight: var(--ds-text-button-label-font-weight);
+  line-height: var(--ds-text-button-label-line-height);
   cursor: pointer;
   transition-property: var(--ds-transition-property);
   transition-duration: var(--ds-transition-duration);
@@ -25,32 +25,32 @@
 }
 
 .primary {
-  background-color: var(--ds-color-button-primaryBg);
-  color: var(--ds-color-button-primaryText);
+  background-color: var(--ds-color-button-primary-bg);
+  color: var(--ds-color-button-primary-text);
 }
 
 .primary:hover:not(:disabled) {
-  background-color: var(--ds-color-button-primaryHoverBg);
+  background-color: var(--ds-color-button-primary-hover-bg);
 }
 
 .secondary {
   background-color: transparent;
-  color: var(--ds-color-button-secondaryText);
-  border-color: var(--ds-color-button-secondaryBorder);
+  color: var(--ds-color-button-secondary-text);
+  border-color: var(--ds-color-button-secondary-border);
 }
 
 .secondary:hover:not(:disabled) {
-  background-color: var(--ds-color-button-secondaryHoverBg);
+  background-color: var(--ds-color-button-secondary-hover-bg);
 }
 
 .ghost {
   background-color: transparent;
-  color: var(--ds-color-button-ghostText);
+  color: var(--ds-color-button-ghost-text);
   border-color: transparent;
 }
 
 .ghost:hover:not(:disabled) {
-  background-color: var(--ds-color-button-ghostHoverBg);
+  background-color: var(--ds-color-button-ghost-hover-bg);
 }
 
 .sm {
@@ -60,7 +60,7 @@
 
 .md {
   padding: var(--ds-space-button-paddingY) var(--ds-space-button-paddingX);
-  font-size: var(--ds-text-buttonLabel-fontSize);
+  font-size: var(--ds-text-button-label-font-size);
 }
 
 .lg {

@@ -11,6 +11,7 @@ export {
   spacing,
   radius,
   elevation,
+  effects,
   iconography,
   interaction,
   type ColorGroup,
@@ -21,5 +22,6 @@ export {
   type SpacingGroup,
   type RadiusToken,
   type ElevationToken,
+  type EffectToken,
   type IconSize,
 } from './tokens';

@@ -68,7 +68,6 @@ export const colors = {
       background: '#f9fafb',
       text: '#9ca3af',
       border: badgeTodoBg,
-      opacity: '0.6',
     },
   },
 
@@ -98,10 +97,12 @@ export const colors = {
 
   scrollbar,
 
+  header: {
+    background: 'rgba(255, 255, 255, 0.8)',
+  },
+
   completedRow: {
     title: 'rgba(156, 163, 175, 0.6)',
-    metaOpacity: '0.4',
-    metaFilter: 'grayscale(1)',
   },
 } as const;
 

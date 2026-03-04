@@ -11,5 +11,6 @@ export {
 export { spacing, type SpacingGroup } from './spacing';
 export { radius, type RadiusToken } from './radius';
 export { elevation, type ElevationToken } from './elevation';
+export { effects, type EffectToken } from './effects';
 export { iconography, type IconSize } from './iconography';
 export { interaction } from './interaction';

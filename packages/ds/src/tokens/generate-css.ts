@@ -15,6 +15,7 @@ import { fontFamilies, fontWeights, typographyScale } from './typography';
 import { spacing } from './spacing';
 import { radius } from './radius';
 import { elevation } from './elevation';
+import { effects } from './effects';
 import { iconography } from './iconography';
 import { interaction } from './interaction';
 
@@ -22,6 +23,10 @@ type VarMap = Map<string, string>;
 
 function normalize(value: string): string {
   return value.startsWith('#') ? value.toLowerCase() : value;
+}
+
+function camelToKebab(str: string): string {
+  return str.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
 }
 
 const SKIP_CSS_KEYWORDS = new Set(['transparent', 'none']);
@@ -41,7 +46,10 @@ function buildBaseColorMap(): VarMap {
   for (const [group, values] of Object.entries(BASE_COLOR_GROUPS)) {
     for (const [name, value] of Object.entries(values)) {
       if (!SKIP_CSS_KEYWORDS.has(value)) {
-        map.set(normalize(value), `var(--ds-color-${group}-${name})`);
+        map.set(
+          normalize(value),
+          `var(--ds-color-${camelToKebab(group)}-${camelToKebab(name)})`,
+        );
       }
     }
   }
@@ -52,7 +60,7 @@ function buildBaseColorMap(): VarMap {
 function buildFontFamilyMap(): VarMap {
   const map: VarMap = new Map();
   for (const [name, value] of Object.entries(fontFamilies)) {
-    map.set(value, `var(--ds-font-family-${name})`);
+    map.set(value, `var(--ds-font-family-${camelToKebab(name)})`);
   }
   return map;
 }
@@ -60,7 +68,7 @@ function buildFontFamilyMap(): VarMap {
 function buildFontWeightMap(): VarMap {
   const map: VarMap = new Map();
   for (const [name, value] of Object.entries(fontWeights)) {
-    map.set(String(value), `var(--ds-font-weight-${name})`);
+    map.set(String(value), `var(--ds-font-weight-${camelToKebab(name)})`);
   }
   return map;
 }
@@ -76,7 +84,7 @@ function flattenColors(
 ): string[] {
   const lines: string[] = [];
   for (const [key, value] of Object.entries(obj)) {
-    const varName = `${prefix}-${key}`;
+    const varName = `${prefix}-${camelToKebab(key)}`;
     if (typeof value === 'object' && value !== null) {
       lines.push(
         ...flattenColors(
@@ -145,7 +153,7 @@ export function generateTokensCSS(): string {
     lines.push(
       ...flattenColors(
         values as Record<string, unknown>,
-        `--ds-color-${group}`,
+        `--ds-color-${camelToKebab(group)}`,
         colorMap,
         isBase,
       ),
@@ -154,12 +162,12 @@ export function generateTokensCSS(): string {
   }
 
   for (const [name, value] of Object.entries(fontFamilies)) {
-    lines.push(`  --ds-font-family-${name}: ${value};`);
+    lines.push(`  --ds-font-family-${camelToKebab(name)}: ${value};`);
   }
   lines.push('');
 
   for (const [name, value] of Object.entries(fontWeights)) {
-    lines.push(`  --ds-font-weight-${name}: ${value};`);
+    lines.push(`  --ds-font-weight-${camelToKebab(name)}: ${value};`);
   }
   lines.push('');
 
@@ -171,35 +179,44 @@ export function generateTokensCSS(): string {
       } else if (prop === 'fontWeight') {
         cssValue = resolve(cssValue, fontWeightMap);
       }
-      lines.push(`  --ds-text-${scaleName}-${prop}: ${cssValue};`);
+      lines.push(
+        `  --ds-text-${camelToKebab(scaleName)}-${camelToKebab(prop)}: ${cssValue};`,
+      );
     }
     lines.push('');
   }
 
   for (const [group, values] of Object.entries(spacing)) {
     const prefix =
-      group === 'columnWidths' ? '--ds-column' : `--ds-space-${group}`;
+      group === 'columnWidths'
+        ? '--ds-column'
+        : `--ds-space-${camelToKebab(group)}`;
     for (const [name, value] of Object.entries(
       values as Record<string, string>,
     )) {
-      lines.push(`  ${prefix}-${name}: ${value};`);
+      lines.push(`  ${prefix}-${camelToKebab(name)}: ${value};`);
     }
   }
   lines.push('');
 
   for (const [name, value] of Object.entries(radius)) {
-    lines.push(`  --ds-radius-${name}: ${value};`);
+    lines.push(`  --ds-radius-${camelToKebab(name)}: ${value};`);
   }
   lines.push('');
 
   for (const [name, value] of Object.entries(elevation)) {
-    lines.push(`  --ds-elevation-${name}: ${value};`);
+    lines.push(`  --ds-elevation-${camelToKebab(name)}: ${value};`);
+  }
+  lines.push('');
+
+  for (const [name, value] of Object.entries(effects)) {
+    lines.push(`  --ds-effect-${camelToKebab(name)}: ${value};`);
   }
   lines.push('');
 
   lines.push(`  --ds-icon-family: '${iconography.family}';`);
   for (const [name, value] of Object.entries(iconography.sizes)) {
-    lines.push(`  --ds-icon-size-${name}: ${value};`);
+    lines.push(`  --ds-icon-size-${camelToKebab(name)}: ${value};`);
   }
   lines.push('');
 
@@ -235,11 +252,13 @@ export function generateTypographyCSS(): string {
   for (const scaleName of Object.keys(typographyScale)) {
     const scale = typographyScale[scaleName as keyof typeof typographyScale];
 
-    lines.push(`.ds-text-${scaleName} {`);
+    lines.push(`.ds-text-${camelToKebab(scaleName)} {`);
     for (const prop of TYPOGRAPHY_PROPS) {
       if (prop in scale) {
         const cssProp = CSS_PROP_MAP[prop] ?? prop;
-        lines.push(`  ${cssProp}: var(--ds-text-${scaleName}-${prop});`);
+        lines.push(
+          `  ${cssProp}: var(--ds-text-${camelToKebab(scaleName)}-${camelToKebab(prop)});`,
+        );
       }
     }
     lines.push('}');
