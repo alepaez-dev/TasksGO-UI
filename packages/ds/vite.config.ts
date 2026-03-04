@@ -1,7 +1,9 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { dsTokensPlugin } from './vite-plugin-ds-tokens';
 
 export default defineConfig({
+  plugins: [dsTokensPlugin()],
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
