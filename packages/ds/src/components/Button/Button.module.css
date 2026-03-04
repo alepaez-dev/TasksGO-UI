@@ -20,7 +20,7 @@
 }
 
 .button:disabled {
-  opacity: 0.5;
+  opacity: var(--ds-effect-disabled-opacity);
   cursor: not-allowed;
 }
 
@@ -59,7 +59,7 @@
 }
 
 .md {
-  padding: var(--ds-space-button-paddingY) var(--ds-space-button-paddingX);
+  padding: var(--ds-space-button-padding-y) var(--ds-space-button-padding-x);
   font-size: var(--ds-text-button-label-font-size);
 }
 

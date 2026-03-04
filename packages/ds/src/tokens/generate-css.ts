@@ -76,6 +76,7 @@ function buildFontWeightMap(): VarMap {
 function resolve(value: string, map: VarMap): string {
   return map.get(normalize(value)) ?? value;
 }
+
 function flattenColors(
   obj: Record<string, unknown>,
   prefix: string,

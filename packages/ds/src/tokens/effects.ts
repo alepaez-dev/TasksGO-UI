@@ -1,8 +1,9 @@
 export const effects = {
-  headerBlur: 'blur(12px)',
-  badgeDoneOpacity: '0.6',
-  completedRowMetaOpacity: '0.4',
-  completedRowMetaFilter: 'grayscale(1)',
+  blur: 'blur(12px)',
+  fadedOpacity: '0.6',
+  mutedOpacity: '0.4',
+  disabledOpacity: '0.5',
+  desaturate: 'grayscale(1)',
 } as const;
 
 export type EffectToken = keyof typeof effects;
