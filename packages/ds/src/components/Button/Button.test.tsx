@@ -37,14 +37,24 @@ describe('Button', () => {
     expect(handleClick).not.toHaveBeenCalled();
   });
 
+  it('applies primary variant class by default', () => {
+    render(<Button>Default</Button>);
+    expect(screen.getByRole('button')).toHaveClass('primary');
+  });
+
   it('applies the variant class', () => {
     render(<Button variant="secondary">Secondary</Button>);
     expect(screen.getByRole('button')).toHaveClass('secondary');
   });
 
-  it('applies the size class', () => {
-    render(<Button size="lg">Large</Button>);
-    expect(screen.getByRole('button')).toHaveClass('lg');
+  it('applies sm size class by default', () => {
+    render(<Button>Default</Button>);
+    expect(screen.getByRole('button')).toHaveClass('sm');
+  });
+
+  it('applies the md size class', () => {
+    render(<Button size="md">Mobile</Button>);
+    expect(screen.getByRole('button')).toHaveClass('md');
   });
 
   it('merges custom className', () => {

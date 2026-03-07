@@ -1,5 +1,5 @@
 import type { StorybookConfig } from '@storybook/react-vite';
-import { dsTokensPlugin } from '../vite-plugin-ds-tokens';
+import { dsTokensPlugin } from '../vite-plugin-ds-tokens.ts';
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(ts|tsx)'],

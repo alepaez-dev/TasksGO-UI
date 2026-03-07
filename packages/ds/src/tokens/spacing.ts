@@ -27,9 +27,12 @@ export const spacing = {
     paddingY: '2px',
   },
   button: {
-    paddingX: '12px',
-    paddingY: '6px',
+    smPaddingX: '12px',
+    smPaddingY: '6px',
+    mdPaddingX: '16px',
+    mdPaddingY: '8px',
     gap: '8px',
+    groupGap: '12px',
   },
   columnWidths: {
     priority: '60px',

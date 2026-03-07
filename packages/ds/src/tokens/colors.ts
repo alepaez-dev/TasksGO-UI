@@ -91,8 +91,6 @@ export const colors = {
     secondaryText: accent.primary,
     secondaryBorder: accent.primary,
     secondaryHoverBg: surface.hover,
-    ghostText: text.primary,
-    ghostHoverBg: surface.secondary,
   },
 
   scrollbar,
