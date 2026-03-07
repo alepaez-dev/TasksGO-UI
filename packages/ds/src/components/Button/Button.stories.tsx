@@ -8,11 +8,11 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['primary', 'secondary', 'ghost'],
+      options: ['primary', 'secondary'],
     },
     size: {
       control: 'select',
-      options: ['sm', 'md', 'lg'],
+      options: ['sm', 'md'],
     },
     disabled: { control: 'boolean' },
     children: { control: 'text' },
@@ -31,16 +31,27 @@ export const Secondary: Story = {
   args: { variant: 'secondary' },
 };
 
-export const Ghost: Story = {
-  args: { variant: 'ghost' },
+export const Mobile: Story = {
+  args: { size: 'md' },
 };
 
-export const Small: Story = {
-  args: { size: 'sm' },
-};
-
-export const Large: Story = {
-  args: { size: 'lg' },
+export const MobileAllVariants: Story = {
+  render: () => (
+    <div
+      style={{
+        display: 'flex',
+        gap: 'var(--ds-space-button-group-gap)',
+        alignItems: 'center',
+      }}
+    >
+      <Button size="md" variant="primary">
+        Primary
+      </Button>
+      <Button size="md" variant="secondary">
+        Secondary
+      </Button>
+    </div>
+  ),
 };
 
 export const Disabled: Story = {

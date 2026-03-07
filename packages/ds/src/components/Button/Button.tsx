@@ -1,8 +1,8 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import styles from './Button.module.css';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = 'primary' | 'secondary';
+type ButtonSize = 'sm' | 'md';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -10,7 +10,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', className, children, ...rest }, ref) => {
+  ({ variant = 'primary', size = 'sm', className, children, ...rest }, ref) => {
     const classes = [styles.button, styles[variant], styles[size], className]
       .filter(Boolean)
       .join(' ');
