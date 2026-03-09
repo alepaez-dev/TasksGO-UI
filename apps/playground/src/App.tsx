@@ -16,7 +16,6 @@ function App() {
             Count: {count}
           </Button>
           <Button variant="secondary">Secondary</Button>
-          <Button variant="ghost">Ghost</Button>
         </div>
       </section>
 
@@ -25,7 +24,6 @@ function App() {
         <div className="row">
           <Button size="sm">Small</Button>
           <Button size="md">Medium</Button>
-          <Button size="lg">Large</Button>
         </div>
       </section>
 

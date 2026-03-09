@@ -140,6 +140,11 @@ export const typographyScale = {
   },
   buttonLabel: {
     ...buttonInputBase,
+    fontSize: '14px',
+    fontWeight: fontWeights.bold,
+  },
+  buttonLabelSm: {
+    ...buttonInputBase,
     fontWeight: fontWeights.medium,
   },
   searchInput: {
