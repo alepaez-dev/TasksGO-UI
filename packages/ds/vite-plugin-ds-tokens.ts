@@ -16,7 +16,7 @@ import * as prettier from 'prettier';
 import {
   generateTokensCSS,
   generateTypographyCSS,
-} from './src/tokens/generate-css';
+} from './src/tokens/generate-css.ts';
 
 const GENERATE_MODULE = '/src/tokens/generate-css.ts';
 
