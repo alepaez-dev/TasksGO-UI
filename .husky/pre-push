@@ -4,13 +4,13 @@ if [ "$branch" = "main" ]; then
   exit 0
 fi
 
-pattern="^(feat|fix|chore|docs|refactor|test|style|perf|ci|build|revert)/.+"
+pattern="^(feat|fix|chore|docs|refactor|test|ci|revert|hotfix)/.+"
 
 if ! echo "$branch" | grep -qE "$pattern"; then
   echo ""
   echo "Branch name '$branch' is not allowed."
   echo "Use: <type>/<description>"
-  echo "Types: feat fix chore docs refactor test style perf ci build revert"
+  echo "Types: feat fix chore docs refactor test ci revert hotfix"
   echo "Example: feat/icon-button"
   echo ""
   exit 1

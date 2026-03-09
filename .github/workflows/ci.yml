@@ -16,8 +16,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - run: rm package-lock.json
-      - run: npm install
+      - run: npm ci
 
       - run: npm audit --omit=dev
 
