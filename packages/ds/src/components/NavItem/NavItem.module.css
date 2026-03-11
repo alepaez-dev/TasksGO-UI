@@ -4,6 +4,7 @@
   gap: var(--ds-space-nav-item-gap);
   padding: var(--ds-space-nav-item-padding-y) var(--ds-space-nav-item-padding-x);
   color: var(--ds-color-nav-default-text);
+  font-weight: var(--ds-font-weight-medium);
   text-decoration: none;
   border-radius: var(--ds-radius-lg);
   cursor: pointer;
@@ -32,14 +33,12 @@
 .md {
   font-size: var(--ds-text-nav-label-font-size);
   font-family: var(--ds-text-nav-label-font-family);
-  font-weight: var(--ds-text-nav-label-font-weight);
   line-height: var(--ds-text-nav-label-line-height);
 }
 
 .sm {
   font-size: var(--ds-text-nav-label-sm-font-size);
   font-family: var(--ds-text-nav-label-sm-font-family);
-  font-weight: var(--ds-text-nav-label-sm-font-weight);
   line-height: var(--ds-text-nav-label-sm-line-height);
   padding-top: var(--ds-space-nav-sm-padding-y);
   padding-bottom: var(--ds-space-nav-sm-padding-y);
