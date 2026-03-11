@@ -1,4 +1,4 @@
-import { colors } from './colors';
+import { colors } from './colors.ts';
 
 const FOCUS_RING_WIDTH = '3px';
 

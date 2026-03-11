@@ -1,0 +1,38 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--ds-space-badge-padding-y) var(--ds-space-badge-padding-x);
+  border-radius: var(--ds-radius-full);
+  border: 1px solid transparent;
+  font-size: var(--ds-text-badge-label-font-size);
+  font-family: var(--ds-text-badge-label-font-family);
+  font-weight: var(--ds-text-badge-label-font-weight);
+  letter-spacing: var(--ds-text-badge-label-letter-spacing);
+  text-transform: var(--ds-text-badge-label-text-transform);
+  line-height: var(--ds-text-badge-label-line-height);
+  white-space: nowrap;
+}
+
+.default {
+  background-color: var(--ds-color-badge-default-background);
+  color: var(--ds-color-badge-default-text);
+  border-color: var(--ds-color-badge-default-border);
+}
+
+.progress {
+  background-color: var(--ds-color-badge-progress-background);
+  color: var(--ds-color-badge-progress-text);
+  border-color: var(--ds-color-badge-progress-border);
+}
+
+.todo {
+  background-color: var(--ds-color-badge-todo-background);
+  color: var(--ds-color-badge-todo-text);
+  border-color: var(--ds-color-badge-todo-border);
+}
+
+.done {
+  background-color: var(--ds-color-badge-done-background);
+  color: var(--ds-color-badge-done-text);
+  border-color: var(--ds-color-badge-done-border);
+}

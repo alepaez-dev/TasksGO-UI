@@ -10,14 +10,14 @@
  * cascades to all tokens that depnd on it.
  */
 
-import { colors } from './colors';
-import { fontFamilies, fontWeights, typographyScale } from './typography';
-import { spacing } from './spacing';
-import { radius } from './radius';
-import { elevation } from './elevation';
-import { effects } from './effects';
-import { iconography } from './iconography';
-import { interaction } from './interaction';
+import { colors } from './colors.ts';
+import { fontFamilies, fontWeights, typographyScale } from './typography.ts';
+import { spacing } from './spacing.ts';
+import { radius } from './radius.ts';
+import { elevation } from './elevation.ts';
+import { effects } from './effects.ts';
+import { iconography } from './iconography.ts';
+import { interaction } from './interaction.ts';
 
 type VarMap = Map<string, string>;
 
@@ -216,6 +216,10 @@ export function generateTokensCSS(): string {
   lines.push('');
 
   lines.push(`  --ds-icon-family: '${iconography.family}';`);
+  lines.push(`  --ds-icon-fill: ${iconography.fill};`);
+  lines.push(`  --ds-icon-weight: ${iconography.weight};`);
+  lines.push(`  --ds-icon-grade: ${iconography.grade};`);
+  lines.push(`  --ds-icon-optical-size: ${iconography.opticalSize};`);
   for (const [name, value] of Object.entries(iconography.sizes)) {
     lines.push(`  --ds-icon-size-${camelToKebab(name)}: ${value};`);
   }
