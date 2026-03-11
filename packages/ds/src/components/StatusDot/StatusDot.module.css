@@ -1,0 +1,31 @@
+.dot {
+  display: inline-block;
+  width: var(--ds-space-status-dot-size);
+  height: var(--ds-space-status-dot-size);
+  border-radius: var(--ds-radius-full);
+  flex-shrink: 0;
+}
+
+.active {
+  background-color: var(--ds-color-status-active);
+}
+
+.critical {
+  background-color: var(--ds-color-status-critical);
+}
+
+.high {
+  background-color: var(--ds-color-status-high);
+}
+
+.medium {
+  background-color: var(--ds-color-status-medium);
+}
+
+.low {
+  background-color: var(--ds-color-status-low);
+}
+
+.info {
+  background-color: var(--ds-color-status-info);
+}

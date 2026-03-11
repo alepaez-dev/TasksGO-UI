@@ -1,4 +1,5 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react';
+import { cn } from '../../utils/cn';
 import styles from './Button.module.css';
 
 type ButtonVariant = 'primary' | 'secondary';
@@ -11,9 +12,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'sm', className, children, ...rest }, ref) => {
-    const classes = [styles.button, styles[variant], styles[size], className]
-      .filter(Boolean)
-      .join(' ');
+    const classes = cn(styles.button, styles[variant], styles[size], className);
 
     return (
       <button ref={ref} className={classes} {...rest}>

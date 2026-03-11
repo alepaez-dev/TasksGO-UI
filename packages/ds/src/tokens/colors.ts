@@ -32,6 +32,7 @@ const status = {
   medium: 'rgba(115, 115, 115, 0.7)',
   low: text.disabled,
   info: '#2563eb',
+  active: '#22c55e',
 } as const;
 
 const badgeTodoBg = '#f3f4f6';
@@ -66,9 +67,26 @@ export const colors = {
     },
     done: {
       background: '#f9fafb',
-      text: '#9ca3af',
+      text: '#6b7280',
       border: badgeTodoBg,
     },
+    default: {
+      background: 'transparent',
+      text: text.secondary,
+      border: border.default,
+    },
+  },
+
+  nav: {
+    activeBg: surface.primary,
+    activeText: text.primary,
+    defaultText: text.secondary,
+    hoverBg: surface.hover,
+  },
+
+  avatar: {
+    background: text.primary,
+    text: surface.primary,
   },
 
   checkbox: {

@@ -17,6 +17,7 @@ export const spacing = {
     itemPaddingY: '8px',
     itemGap: '12px',
     listGap: '4px',
+    smPaddingY: '6px',
   },
   badge: {
     paddingX: '8px',
@@ -33,6 +34,19 @@ export const spacing = {
     mdPaddingY: '8px',
     gap: '8px',
     groupGap: '12px',
+  },
+  avatar: {
+    size: '28px',
+  },
+  statusDot: {
+    size: '6px',
+  },
+  scale: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
   },
   columnWidths: {
     priority: '60px',
