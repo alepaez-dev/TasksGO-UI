@@ -41,6 +41,9 @@ export const spacing = {
   statusDot: {
     size: '6px',
   },
+  checkbox: {
+    size: '16px',
+  },
   scale: {
     xs: '4px',
     sm: '8px',

@@ -11,6 +11,14 @@ export {
   SectionHeader,
   type SectionHeaderProps,
 } from './components/SectionHeader';
+export { Checkbox, type CheckboxProps } from './components/Checkbox';
+export { TicketId, type TicketIdProps } from './components/TicketId';
+export {
+  PriorityLabel,
+  type PriorityLabelProps,
+} from './components/PriorityLabel';
+export { DateCell, type DateCellProps } from './components/DateCell';
+export { RefLabel, type RefLabelProps } from './components/RefLabel';
 
 export {
   colors,

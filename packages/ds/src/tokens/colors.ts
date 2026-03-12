@@ -120,6 +120,12 @@ export const colors = {
   completedRow: {
     title: 'rgba(156, 163, 175, 0.6)',
   },
+
+  refLabel: {
+    attachment: text.disabled,
+    doc: accent.subtle,
+    general: text.disabled,
+  },
 } as const;
 
 export type ColorGroup = keyof typeof colors;

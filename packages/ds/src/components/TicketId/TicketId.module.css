@@ -1,0 +1,13 @@
+.ticketId {
+  font-size: var(--ds-text-ticket-id-font-size);
+  font-family: var(--ds-text-ticket-id-font-family);
+  font-weight: var(--ds-text-ticket-id-font-weight);
+  line-height: var(--ds-text-ticket-id-line-height);
+  color: var(--ds-color-ticket-id-text);
+  border: 1px solid var(--ds-color-ticket-id-border);
+  background-color: var(--ds-color-ticket-id-background);
+  padding: var(--ds-space-ticket-id-padding-y)
+    var(--ds-space-ticket-id-padding-x);
+  border-radius: var(--ds-radius-sm);
+  white-space: nowrap;
+}

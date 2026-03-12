@@ -13,7 +13,7 @@
 }
 
 .button:focus-visible {
-  outline: none;
+  outline: var(--ds-focus-ring-width) solid transparent;
   box-shadow: var(--ds-focus-ring);
 }
 

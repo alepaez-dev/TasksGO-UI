@@ -18,15 +18,12 @@
     "isolatedModules": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["src"],
   "exclude": [
     "node_modules",
-    "dist",
-    "**/*.test.tsx",
-    "**/*.test.ts",
-    "**/*.stories.tsx",
-    "**/*.stories.ts"
+    "dist"
   ]
 }
