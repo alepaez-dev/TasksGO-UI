@@ -30,8 +30,8 @@ const scrollbar = {
 const status = {
   critical: '#dc2626',
   high: '#c2410c',
-  medium: 'rgba(115, 115, 115, 0.7)',
-  low: text.disabled,
+  medium: '#737373',
+  low: '#737373',
   info: '#2563eb',
   active: '#22c55e',
 } as const;
@@ -119,7 +119,7 @@ export const colors = {
   },
 
   completedRow: {
-    title: 'rgba(156, 163, 175, 0.6)',
+    title: '#6b7280',
   },
 
   refLabel: {
