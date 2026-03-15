@@ -6,10 +6,10 @@ const meta = {
   component: TicketId,
   tags: ['autodocs'],
   argTypes: {
-    ticketId: { control: 'text' },
+    children: { control: 'text' },
   },
   args: {
-    ticketId: 'ENG-902',
+    children: 'ENG-902',
   },
 } satisfies Meta<typeof TicketId>;
 
@@ -27,10 +27,10 @@ export const AllExamples: Story = {
         alignItems: 'center',
       }}
     >
-      <TicketId ticketId="ENG-902" />
-      <TicketId ticketId="INFRA-441" />
-      <TicketId ticketId="OPS-112" />
-      <TicketId ticketId="DOC-42" />
+      <TicketId>ENG-902</TicketId>
+      <TicketId>INFRA-441</TicketId>
+      <TicketId>OPS-112</TicketId>
+      <TicketId>DOC-42</TicketId>
     </div>
   ),
 };

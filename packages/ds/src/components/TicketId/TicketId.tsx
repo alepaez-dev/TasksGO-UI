@@ -2,16 +2,14 @@ import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '../../utils/cn';
 import styles from './TicketId.module.css';
 
-export interface TicketIdProps extends HTMLAttributes<HTMLSpanElement> {
-  ticketId: string;
-}
+export type TicketIdProps = HTMLAttributes<HTMLSpanElement>;
 
 export const TicketId = forwardRef<HTMLSpanElement, TicketIdProps>(
-  ({ ticketId, className, ...rest }, ref) => {
+  ({ className, children, ...rest }, ref) => {
     const classes = cn(styles.ticketId, className);
     return (
       <span ref={ref} className={classes} {...rest}>
-        {ticketId}
+        {children}
       </span>
     );
   },

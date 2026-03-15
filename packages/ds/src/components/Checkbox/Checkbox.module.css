@@ -27,6 +27,10 @@
   cursor: default;
 }
 
+.checkbox:checked {
+  background-image: var(--_checkmark);
+}
+
 .default {
   border-color: var(--ds-color-checkbox-border);
 }
@@ -34,7 +38,6 @@
 .default:checked {
   background-color: var(--ds-color-checkbox-active);
   border-color: var(--ds-color-checkbox-active);
-  background-image: var(--_checkmark);
 }
 
 .completed {
@@ -44,5 +47,4 @@
 .completed:checked {
   background-color: var(--ds-color-checkbox-completed);
   border-color: var(--ds-color-checkbox-completed);
-  background-image: var(--_checkmark);
 }
