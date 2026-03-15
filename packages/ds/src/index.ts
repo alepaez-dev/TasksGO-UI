@@ -19,6 +19,20 @@ export {
   PriorityLabel,
   type PriorityLabelProps,
 } from './components/PriorityLabel';
+export {
+  Breadcrumb,
+  type BreadcrumbProps,
+  type BreadcrumbSegment,
+} from './components/Breadcrumb';
+export { SearchInput, type SearchInputProps } from './components/SearchInput';
+export { TaskSection, type TaskSectionProps } from './components/TaskSection';
+export {
+  TaskRow,
+  type TaskRowProps,
+  type TaskRowBadge,
+  type TaskRowRef,
+  type TaskRowDate,
+} from './components/TaskRow';
 
 export {
   colors,

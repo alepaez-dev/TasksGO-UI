@@ -127,6 +127,23 @@ export const colors = {
     doc: accent.warmText,
     general: text.secondary,
   },
+
+  searchInput: {
+    border: border.default,
+    focusBorder: accent.primary,
+    icon: text.secondary,
+    placeholder: text.disabled,
+  },
+
+  breadcrumb: {
+    text: text.secondary,
+    separator: text.disabled,
+    activeText: text.primary,
+  },
+
+  taskSection: {
+    chevron: text.secondary,
+  },
 } as const;
 
 export type ColorGroup = keyof typeof colors;

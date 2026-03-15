@@ -156,11 +156,7 @@ export const typographyScale = {
     fontWeight: fontWeights.medium,
   },
   searchInput: {
-    ...buttonInputBase,
-    fontWeight: fontWeights.regular,
-  },
-  searchPlaceholder: {
-    fontSize: '9px',
+    fontSize: '11px',
     fontFamily: fontFamilies.mono,
     fontWeight: fontWeights.bold,
     letterSpacing: '0.1em',
