@@ -29,7 +29,7 @@ const scrollbar = {
 
 const status = {
   critical: '#dc2626',
-  high: '#ea580c',
+  high: '#c2410c',
   medium: 'rgba(115, 115, 115, 0.7)',
   low: text.disabled,
   info: '#2563eb',

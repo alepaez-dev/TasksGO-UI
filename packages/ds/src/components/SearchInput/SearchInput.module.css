@@ -60,7 +60,7 @@
     var(--ds-space-ticket-id-padding-x);
   font-family: var(--ds-font-family-mono);
   font-size: var(--ds-text-metadata-font-size);
-  color: var(--ds-color-text-disabled);
+  color: var(--ds-color-text-secondary);
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-sm);
   line-height: 1;

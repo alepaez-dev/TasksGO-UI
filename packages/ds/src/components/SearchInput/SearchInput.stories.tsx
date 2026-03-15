@@ -32,4 +32,15 @@ export const Disabled: Story = {
     disabled: true,
     shortcutHint: '⌘K',
   },
+  // Disabled components are exempt from WCAG 2.1 SC 1.4.3 contrast requirements:
+  // e.g "User Interface Components that are not available for user interaction"
+  // https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html
+  // disabling storybook a11y color contrast rule for this story to avoid false positive accessibility violation
+  parameters: {
+    a11y: {
+      config: {
+        rules: [{ id: 'color-contrast', enabled: false }],
+      },
+    },
+  },
 };
