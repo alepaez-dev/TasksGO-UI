@@ -1,0 +1,27 @@
+.priorityLabel {
+  font-size: var(--ds-text-priority-label-font-size);
+  font-family: var(--ds-text-priority-label-font-family);
+  font-weight: var(--ds-text-priority-label-font-weight);
+  letter-spacing: var(--ds-text-priority-label-letter-spacing);
+  text-transform: var(--ds-text-priority-label-text-transform);
+  line-height: var(--ds-text-priority-label-line-height);
+  white-space: nowrap;
+}
+
+.critical {
+  color: var(--ds-color-status-critical);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.high {
+  color: var(--ds-color-status-high);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.medium {
+  color: var(--ds-color-status-medium);
+}
+
+.low {
+  color: var(--ds-color-status-low);
+}

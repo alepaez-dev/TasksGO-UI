@@ -7,10 +7,18 @@ export { Avatar, type AvatarProps } from './components/Avatar';
 export { StatusDot, type StatusDotProps } from './components/StatusDot';
 export { Badge, type BadgeProps } from './components/Badge';
 export { NavItem, type NavItemProps } from './components/NavItem';
+export { Checkbox, type CheckboxProps } from './components/Checkbox';
+export { TicketId, type TicketIdProps } from './components/TicketId';
+export { DateCell, type DateCellProps } from './components/DateCell';
+export { RefLabel, type RefLabelProps } from './components/RefLabel';
 export {
   SectionHeader,
   type SectionHeaderProps,
 } from './components/SectionHeader';
+export {
+  PriorityLabel,
+  type PriorityLabelProps,
+} from './components/PriorityLabel';
 
 export {
   colors,

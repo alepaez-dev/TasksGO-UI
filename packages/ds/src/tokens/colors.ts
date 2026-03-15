@@ -3,6 +3,7 @@ const accent = {
   secondary: '#5e778f',
   warm: '#d6c583',
   subtle: '#d9d1b2',
+  warmText: '#856D4A',
 } as const;
 
 const text = {
@@ -119,6 +120,12 @@ export const colors = {
 
   completedRow: {
     title: 'rgba(156, 163, 175, 0.6)',
+  },
+
+  refLabel: {
+    attachment: text.secondary,
+    doc: accent.warmText,
+    general: text.secondary,
   },
 } as const;
 
