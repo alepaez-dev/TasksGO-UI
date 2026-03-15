@@ -72,7 +72,3 @@
   text-decoration: var(--ds-text-task-title-done-text-decoration);
   color: var(--ds-color-completed-row-title);
 }
-
-.completed .meta {
-  opacity: var(--ds-effect-faded-opacity);
-}
