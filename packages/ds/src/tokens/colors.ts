@@ -3,6 +3,7 @@ const accent = {
   secondary: '#5e778f',
   warm: '#d6c583',
   subtle: '#d9d1b2',
+  warmText: '#856D4A',
 } as const;
 
 const text = {
@@ -122,9 +123,9 @@ export const colors = {
   },
 
   refLabel: {
-    attachment: text.disabled,
-    doc: accent.subtle,
-    general: text.disabled,
+    attachment: text.secondary,
+    doc: accent.warmText,
+    general: text.secondary,
   },
 } as const;
 
