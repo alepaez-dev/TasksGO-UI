@@ -90,14 +90,24 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
           )}
         </div>
         <div className={styles.meta}>
-          {priority && <PriorityLabel priority={priority} />}
-          {ticketId && <TicketId>{ticketId}</TicketId>}
+          {priority && (
+            <div className={styles.priorityCol}>
+              <PriorityLabel priority={priority} />
+            </div>
+          )}
+          {ticketId && (
+            <div className={styles.ticketCol}>
+              <TicketId>{ticketId}</TicketId>
+            </div>
+          )}
           {date && (
-            <DateCell
-              date={date.label}
-              dateTime={date.dateTime}
-              urgent={date.urgent}
-            />
+            <div className={styles.dateCol}>
+              <DateCell
+                date={date.label}
+                dateTime={date.dateTime}
+                urgent={date.urgent}
+              />
+            </div>
           )}
         </div>
       </div>

@@ -45,8 +45,22 @@
 .meta {
   display: flex;
   align-items: center;
-  gap: var(--ds-space-scale-md);
   flex-shrink: 0;
+}
+
+.priorityCol {
+  min-width: var(--ds-column-priority);
+  text-align: right;
+}
+
+.ticketCol {
+  min-width: var(--ds-column-ticket-id);
+  text-align: right;
+}
+
+.dateCol {
+  min-width: var(--ds-column-date);
+  text-align: right;
 }
 
 .completed {
