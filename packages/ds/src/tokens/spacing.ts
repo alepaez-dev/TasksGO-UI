@@ -51,6 +51,18 @@ export const spacing = {
     lg: '24px',
     xl: '32px',
   },
+  breadcrumb: {
+    gap: '8px',
+  },
+  searchInput: {
+    paddingX: '12px',
+    paddingY: '8px',
+    iconGap: '8px',
+  },
+  taskSection: {
+    headerGap: '8px',
+    contentPaddingTop: '12px',
+  },
   columnWidths: {
     priority: '60px',
     ticketId: '80px',

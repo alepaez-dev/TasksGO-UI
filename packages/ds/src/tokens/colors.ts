@@ -29,9 +29,9 @@ const scrollbar = {
 
 const status = {
   critical: '#dc2626',
-  high: '#ea580c',
-  medium: 'rgba(115, 115, 115, 0.7)',
-  low: text.disabled,
+  high: '#c2410c',
+  medium: '#737373',
+  low: '#737373',
   info: '#2563eb',
   active: '#22c55e',
 } as const;
@@ -119,13 +119,30 @@ export const colors = {
   },
 
   completedRow: {
-    title: 'rgba(156, 163, 175, 0.6)',
+    title: '#6b7280',
   },
 
   refLabel: {
     attachment: text.secondary,
     doc: accent.warmText,
     general: text.secondary,
+  },
+
+  searchInput: {
+    border: border.default,
+    focusBorder: accent.primary,
+    icon: text.secondary,
+    placeholder: text.disabled,
+  },
+
+  breadcrumb: {
+    text: text.secondary,
+    separator: text.disabled,
+    activeText: text.primary,
+  },
+
+  taskSection: {
+    chevron: text.secondary,
   },
 } as const;
 

@@ -1,0 +1,68 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-search-input-icon-gap);
+  padding: var(--ds-space-search-input-padding-y)
+    var(--ds-space-search-input-padding-x);
+  border: 1px solid var(--ds-color-search-input-border);
+  border-radius: var(--ds-radius-lg);
+  background-color: var(--ds-color-surface-primary);
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.wrapper:has(:disabled) {
+  opacity: var(--ds-effect-disabled-opacity);
+  cursor: default;
+}
+
+.wrapper:focus-within {
+  border-color: var(--ds-color-search-input-focus-border);
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.icon {
+  color: var(--ds-color-search-input-icon);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: var(--ds-text-search-input-font-size);
+  font-family: var(--ds-text-search-input-font-family);
+  font-weight: var(--ds-text-search-input-font-weight);
+  letter-spacing: var(--ds-text-search-input-letter-spacing);
+  text-transform: var(--ds-text-search-input-text-transform);
+  line-height: var(--ds-text-search-input-line-height);
+  color: var(--ds-color-text-primary);
+  min-width: 0;
+}
+
+.input::placeholder {
+  font-size: var(--ds-text-search-input-font-size);
+  font-family: var(--ds-text-search-input-font-family);
+  font-weight: var(--ds-text-search-input-font-weight);
+  letter-spacing: var(--ds-text-search-input-letter-spacing);
+  text-transform: var(--ds-text-search-input-text-transform);
+  color: var(--ds-color-search-input-placeholder);
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ds-space-ticket-id-padding-y)
+    var(--ds-space-ticket-id-padding-x);
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-metadata-font-size);
+  color: var(--ds-color-text-secondary);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-sm);
+  line-height: 1;
+  white-space: nowrap;
+}

@@ -1,0 +1,60 @@
+.taskRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-row-gap-internal);
+  padding: var(--ds-space-row-padding-active) 0;
+  border-bottom: 1px solid var(--ds-color-border-default);
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.taskRow:hover {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+}
+
+.title {
+  font-size: var(--ds-text-task-title-font-size);
+  font-family: var(--ds-text-task-title-font-family);
+  font-weight: var(--ds-text-task-title-font-weight);
+  line-height: var(--ds-text-task-title-line-height);
+  color: var(--ds-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.refs {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  margin-top: var(--ds-space-scale-xs);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-md);
+  flex-shrink: 0;
+}
+
+.completed {
+  padding: var(--ds-space-row-padding-done) 0;
+}
+
+.completed .title {
+  font-weight: var(--ds-text-task-title-done-font-weight);
+  text-decoration: var(--ds-text-task-title-done-text-decoration);
+  color: var(--ds-color-completed-row-title);
+}
