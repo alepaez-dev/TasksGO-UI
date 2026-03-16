@@ -64,9 +64,9 @@ export const spacing = {
     contentPaddingTop: '12px',
   },
   columnWidths: {
-    priority: '60px',
-    ticketId: '80px',
-    date: '60px',
+    priority: '80px',
+    ticketId: '100px',
+    date: '80px',
   },
 } as const;
 
