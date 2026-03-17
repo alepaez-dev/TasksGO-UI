@@ -14,6 +14,10 @@ const meta = {
       options: ['critical', 'high', 'medium', 'low'],
     },
     ticketId: { control: 'text' },
+    layout: {
+      control: 'select',
+      options: ['default', 'compact'],
+    },
   },
 } satisfies Meta<typeof TaskRow>;
 
@@ -79,6 +83,79 @@ export const Minimal: Story = {
   args: {
     title: 'Quick fix for typo in README',
   },
+};
+
+export const Compact: Story = {
+  name: 'Compact (Mobile)',
+  args: {
+    title: 'Implement OAuth2 provider',
+    layout: 'compact',
+    priority: 'high',
+    ticketId: 'T-104',
+    badge: { label: 'In Progress', variant: 'progress' },
+    date: { label: 'Today', dateTime: '2026-03-16' },
+  },
+};
+
+export const CompactCompleted: Story = {
+  name: 'Compact Completed (Mobile)',
+  args: {
+    title: 'Security patch 2.4.1',
+    layout: 'compact',
+    completed: true,
+    checked: true,
+    priority: 'high',
+    ticketId: 'T-098',
+    date: { label: 'Completed yesterday', dateTime: '2026-03-15' },
+  },
+};
+
+export const CompactList: Story = {
+  name: 'Compact List (Mobile)',
+  args: {
+    title: 'Implement OAuth2 provider',
+  },
+  render: () => (
+    <ul
+      style={{
+        listStyle: 'none',
+        margin: 0,
+        padding: 0,
+        maxWidth: '480px',
+      }}
+    >
+      <li>
+        <TaskRow
+          layout="compact"
+          title="Implement OAuth2 provider"
+          priority="high"
+          ticketId="T-104"
+          badge={{ label: 'In Progress', variant: 'progress' }}
+          date={{ label: 'Today', dateTime: '2026-03-16' }}
+        />
+      </li>
+      <li>
+        <TaskRow
+          layout="compact"
+          title="Refactor state management"
+          priority="low"
+          ticketId="T-109"
+          badge={{ label: 'To Do', variant: 'todo' }}
+          date={{ label: 'Monday', dateTime: '2026-03-17' }}
+        />
+      </li>
+      <li>
+        <TaskRow
+          layout="compact"
+          title="Update component library"
+          priority="low"
+          ticketId="T-112"
+          badge={{ label: 'In Progress', variant: 'progress' }}
+          date={{ label: 'Next Week', dateTime: '2026-03-23' }}
+        />
+      </li>
+    </ul>
+  ),
 };
 
 export const TaskList: Story = {

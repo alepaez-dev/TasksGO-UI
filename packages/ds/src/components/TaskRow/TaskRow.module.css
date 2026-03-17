@@ -1,7 +1,6 @@
 .taskRow {
-  display: flex;
+  display: grid;
   align-items: center;
-  gap: var(--ds-space-row-gap-internal);
   padding: var(--ds-space-row-padding-active) 0;
   border-bottom: 1px solid var(--ds-color-border-default);
   transition-property: var(--ds-transition-property);
@@ -13,15 +12,89 @@
   background-color: var(--ds-color-surface-hover);
 }
 
-.content {
-  flex: 1;
-  min-width: 0;
+/* ── Default (desktop) layout ── */
+
+.default {
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  grid-template-areas:
+    'checkbox titleRow priority ticket date'
+    'checkbox refs     .        .      .';
+  column-gap: var(--ds-space-scale-sm);
+  row-gap: var(--ds-space-scale-xs);
+}
+
+.default .checkbox {
+  padding-right: var(--ds-space-scale-sm);
+}
+
+.default .info {
+  display: contents;
+}
+
+.default .separator {
+  display: none;
+}
+
+/* ── Compact (mobile) layout ── */
+
+.compact {
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    'checkbox title priority'
+    '.        info  badge';
+  column-gap: var(--ds-space-scale-sm);
+  row-gap: var(--ds-space-scale-xs);
+}
+
+.compact .titleRow {
+  display: contents;
+}
+
+.compact .title {
+  grid-area: title;
+}
+
+.compact .badge {
+  grid-area: badge;
+  justify-self: end;
+}
+
+.compact .refs {
+  display: none;
+}
+
+.compact .info {
+  grid-area: info;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  justify-self: start;
+}
+
+.compact .ticket {
+  min-width: auto;
+  text-align: left;
+}
+
+.compact .date {
+  min-width: auto;
+  text-align: left;
+}
+
+.compact .priority {
+  min-width: auto;
+}
+
+.checkbox {
+  grid-area: checkbox;
 }
 
 .titleRow {
+  grid-area: titleRow;
   display: flex;
   align-items: center;
   gap: var(--ds-space-scale-sm);
+  min-width: 0;
 }
 
 .title {
@@ -35,32 +108,39 @@
   white-space: nowrap;
 }
 
-.refs {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-scale-sm);
-  margin-top: var(--ds-space-scale-xs);
-}
-
-.meta {
-  display: flex;
-  align-items: center;
+.badge {
   flex-shrink: 0;
 }
 
-.priorityCol {
+.refs {
+  grid-area: refs;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+}
+
+.priority {
+  grid-area: priority;
   min-width: var(--ds-column-priority);
   text-align: right;
 }
 
-.ticketCol {
+.ticket {
+  grid-area: ticket;
   min-width: var(--ds-column-ticket-id);
   text-align: right;
 }
 
-.dateCol {
+.date {
+  grid-area: date;
   min-width: var(--ds-column-date);
   text-align: right;
+}
+
+.separator {
+  color: var(--ds-color-text-disabled);
+  font-size: var(--ds-text-metadata-font-size);
+  line-height: 1;
 }
 
 .completed {

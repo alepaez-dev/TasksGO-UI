@@ -86,14 +86,28 @@ describe('TaskRow', () => {
 
   it('applies completed styles when completed', () => {
     const { container } = render(
-      <TaskRow title="Old task" completed checked onCheckedChange={() => {}} />,
+      <TaskRow
+        title="Old task"
+        completed
+        checked
+        onCheckedChange={() => {
+          /* noop */
+        }}
+      />,
     );
     expect(container.firstElementChild).toHaveClass('completed');
   });
 
   it('uses completed variant on checkbox when completed', () => {
     render(
-      <TaskRow title="Old task" completed checked onCheckedChange={() => {}} />,
+      <TaskRow
+        title="Old task"
+        completed
+        checked
+        onCheckedChange={() => {
+          /* noop */
+        }}
+      />,
     );
     expect(screen.getByRole('checkbox')).toHaveClass('completed');
   });
@@ -109,5 +123,34 @@ describe('TaskRow', () => {
       <TaskRow title="Fix login bug" className="custom" />,
     );
     expect(container.firstElementChild).toHaveClass('custom');
+  });
+
+  it('applies compact layout class', () => {
+    const { container } = render(
+      <TaskRow title="Fix login bug" layout="compact" />,
+    );
+    expect(container.firstElementChild).toHaveClass('compact');
+  });
+
+  it('renders separator between ticket and date in compact', () => {
+    const { container } = render(
+      <TaskRow
+        title="Fix login bug"
+        layout="compact"
+        ticketId="T-104"
+        date={{ label: 'Today', dateTime: '2026-03-16' }}
+      />,
+    );
+    const separator = container.querySelector('[aria-hidden="true"]');
+    expect(separator).toBeInTheDocument();
+    expect(separator).toHaveTextContent('·');
+  });
+
+  it('does not render separator when only ticket is provided', () => {
+    const { container } = render(
+      <TaskRow title="Fix login bug" layout="compact" ticketId="T-104" />,
+    );
+    const separator = container.querySelector('[aria-hidden="true"]');
+    expect(separator).not.toBeInTheDocument();
   });
 });
