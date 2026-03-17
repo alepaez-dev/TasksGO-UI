@@ -1,4 +1,4 @@
-import { forwardRef, type HTMLAttributes, type ChangeEvent } from 'react';
+import { forwardRef, type HTMLAttributes } from 'react';
 import { Checkbox } from '../Checkbox';
 import { Badge } from '../Badge';
 import { RefLabel } from '../RefLabel';
@@ -11,6 +11,7 @@ import styles from './TaskRow.module.css';
 type PriorityLevel = 'critical' | 'high' | 'medium' | 'low';
 type BadgeVariant = 'default' | 'progress' | 'todo' | 'done';
 type RefLabelVariant = 'attachment' | 'doc' | 'general';
+type TaskRowLayout = 'default' | 'compact';
 
 export interface TaskRowBadge {
   label: string;
@@ -33,12 +34,13 @@ export interface TaskRowProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   completed?: boolean;
   checked?: boolean;
-  onCheckedChange?: (event: ChangeEvent<HTMLInputElement>) => void;
+  onCheckedChange?: (checked: boolean) => void;
   priority?: PriorityLevel;
   ticketId?: string;
   date?: TaskRowDate;
   badge?: TaskRowBadge;
   refs?: TaskRowRef[];
+  layout?: TaskRowLayout;
 }
 
 export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
@@ -53,6 +55,7 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
       date,
       badge,
       refs,
+      layout = 'default',
       className,
       ...rest
     },
@@ -60,48 +63,56 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
   ) => {
     const classes = cn(
       styles.taskRow,
+      styles[layout],
       completed && styles.completed,
       className,
     );
     const checkboxVariant = completed ? 'completed' : 'default';
-    const hasRefs = refs && refs.length > 0;
-
     return (
       <div ref={ref} className={classes} {...rest}>
-        <Checkbox
-          variant={checkboxVariant}
-          checked={checked}
-          onChange={onCheckedChange}
-          aria-label={`Toggle ${title}`}
-        />
-        <div className={styles.content}>
-          <div className={styles.titleRow}>
-            <span className={styles.title}>{title}</span>
-            {badge && <Badge variant={badge.variant}>{badge.label}</Badge>}
-          </div>
-          {hasRefs && (
-            <div className={styles.refs}>
-              {refs.map((r, i) => (
-                <RefLabel key={i} variant={r.variant} icon={r.icon}>
-                  {r.label}
-                </RefLabel>
-              ))}
+        <div className={styles.checkbox}>
+          <Checkbox
+            variant={checkboxVariant}
+            checked={checked}
+            onChange={(e) => onCheckedChange?.(e.target.checked)}
+            aria-label={`Toggle ${title}`}
+          />
+        </div>
+        <div className={styles.titleRow}>
+          <span className={styles.title}>{title}</span>
+          {badge && (
+            <div className={styles.badge}>
+              <Badge variant={badge.variant}>{badge.label}</Badge>
             </div>
           )}
         </div>
-        <div className={styles.meta}>
-          {priority && (
-            <div className={styles.priorityCol}>
-              <PriorityLabel priority={priority} />
-            </div>
-          )}
+        {refs && refs.length > 0 && (
+          <div className={styles.refs}>
+            {refs.map((r, i) => (
+              <RefLabel key={i} variant={r.variant} icon={r.icon}>
+                {r.label}
+              </RefLabel>
+            ))}
+          </div>
+        )}
+        {priority && (
+          <div className={styles.priority}>
+            <PriorityLabel priority={priority} />
+          </div>
+        )}
+        <div className={styles.info}>
           {ticketId && (
-            <div className={styles.ticketCol}>
+            <div className={styles.ticket}>
               <TicketId>{ticketId}</TicketId>
             </div>
           )}
+          {ticketId && date && (
+            <span className={styles.separator} aria-hidden="true">
+              ·
+            </span>
+          )}
           {date && (
-            <div className={styles.dateCol}>
+            <div className={styles.date}>
               <DateCell
                 date={date.label}
                 dateTime={date.dateTime}
