@@ -20,6 +20,7 @@
     'checkbox titleRow priority ticket date'
     'checkbox refs     .        .      .';
   column-gap: var(--ds-space-scale-sm);
+  row-gap: var(--ds-space-scale-xs);
 }
 
 .default .checkbox {
