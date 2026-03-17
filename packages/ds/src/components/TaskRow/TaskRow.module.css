@@ -39,10 +39,23 @@
 .compact {
   grid-template-columns: auto 1fr auto;
   grid-template-areas:
-    'checkbox titleRow priority'
-    '.        info     badge';
+    'checkbox title priority'
+    '.        info  badge';
   column-gap: var(--ds-space-scale-sm);
   row-gap: var(--ds-space-scale-xs);
+}
+
+.compact .titleRow {
+  display: contents;
+}
+
+.compact .title {
+  grid-area: title;
+}
+
+.compact .badge {
+  grid-area: badge;
+  justify-self: end;
 }
 
 .compact .refs {
@@ -55,10 +68,6 @@
   align-items: center;
   gap: var(--ds-space-scale-xs);
   justify-self: start;
-}
-
-.compact .badge {
-  justify-self: end;
 }
 
 .compact .ticket {
