@@ -1,6 +1,7 @@
 import { forwardRef, type AnchorHTMLAttributes } from 'react';
 import { Icon } from '../Icon';
 import { cn } from '../../utils/cn';
+import { sanitizeHref } from '../../utils/sanitizeHref';
 import styles from './NavItem.module.css';
 
 type NavItemSize = 'sm' | 'md';
@@ -17,7 +18,10 @@ export interface NavItemProps extends Omit<
 }
 
 export const NavItem = forwardRef<HTMLAnchorElement, NavItemProps>(
-  ({ icon, label, active = false, size = 'md', className, ...rest }, ref) => {
+  (
+    { icon, label, href, active = false, size = 'md', className, ...rest },
+    ref,
+  ) => {
     const classes = cn(
       styles.navItem,
       styles[size],
@@ -28,6 +32,7 @@ export const NavItem = forwardRef<HTMLAnchorElement, NavItemProps>(
     return (
       <a
         ref={ref}
+        href={sanitizeHref(href)}
         className={classes}
         aria-current={active ? 'page' : undefined}
         {...rest}

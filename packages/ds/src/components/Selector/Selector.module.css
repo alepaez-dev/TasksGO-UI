@@ -1,0 +1,156 @@
+.selector {
+  position: relative;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-nav-item-gap);
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.trigger:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-lg);
+}
+
+.triggerPrefix {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.label {
+  flex: 1;
+  text-align: left;
+  font-size: var(--ds-text-project-name-font-size);
+  font-family: var(--ds-text-project-name-font-family);
+  font-weight: var(--ds-text-project-name-font-weight);
+  letter-spacing: var(--ds-text-project-name-letter-spacing);
+  text-transform: var(--ds-text-project-name-text-transform);
+  line-height: var(--ds-text-project-name-line-height);
+  color: var(--ds-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--ds-color-text-secondary);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + var(--ds-space-scale-sm));
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: var(--ds-space-scale-xs) 0;
+  background-color: var(--ds-color-surface-primary);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-2xl);
+  box-shadow: var(--ds-elevation-dropdown);
+  z-index: 50; /* TODO: tokenize z-index scale when more layers exist (modal, overlay) */
+  overflow: hidden;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  padding: var(--ds-space-dropdown-inset);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-nav-item-gap);
+  padding: var(--ds-space-nav-item-padding-x) var(--ds-space-nav-item-padding-x);
+  border-radius: var(--ds-radius-xl);
+  cursor: pointer;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.option:hover {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.optionSelected {
+  background-color: var(--ds-color-sidebar-background);
+}
+
+.dot {
+  width: var(--ds-space-status-dot-size);
+  height: var(--ds-space-status-dot-size);
+  border-radius: var(--ds-radius-full);
+  flex-shrink: 0;
+}
+
+.dotActive {
+  background-color: var(--ds-color-accent-primary);
+}
+
+.dotInactive {
+  background-color: var(--ds-color-text-disabled);
+  opacity: var(--ds-effect-muted-opacity);
+}
+
+.optionLabel {
+  flex: 1;
+  font-size: var(--ds-text-nav-label-font-size);
+  font-family: var(--ds-text-nav-label-font-family);
+  font-weight: var(--ds-text-nav-label-font-weight);
+  line-height: var(--ds-text-nav-label-line-height);
+  color: var(--ds-color-text-secondary);
+}
+
+.optionSelected .optionLabel {
+  font-weight: var(--ds-font-weight-semibold);
+  color: var(--ds-color-text-primary);
+}
+
+.checkIcon {
+  flex-shrink: 0;
+  color: var(--ds-color-accent-primary);
+  --ds-icon-weight: 500;
+  --ds-icon-optical-size: 24;
+}
+
+.actionWrapper {
+  margin-top: var(--ds-space-scale-xs);
+  padding-top: var(--ds-space-scale-xs);
+  border-top: 1px solid var(--ds-color-border-default);
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-nav-item-gap);
+  margin: 0 var(--ds-space-dropdown-inset);
+  width: calc(100% - 2 * var(--ds-space-dropdown-inset));
+  padding: var(--ds-space-nav-item-padding-x) var(--ds-space-nav-item-padding-x);
+  background: none;
+  border: none;
+  border-radius: var(--ds-radius-xl);
+  cursor: pointer;
+  font-size: var(--ds-text-nav-label-font-size);
+  font-family: var(--ds-text-nav-label-font-family);
+  font-weight: var(--ds-font-weight-medium);
+  line-height: var(--ds-text-nav-label-line-height);
+  color: var(--ds-color-text-secondary);
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.action:hover {
+  background-color: var(--ds-color-surface-hover);
+  color: var(--ds-color-text-primary);
+}

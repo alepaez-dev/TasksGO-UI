@@ -24,3 +24,9 @@
   width: var(--ds-icon-size-md);
   height: var(--ds-icon-size-md);
 }
+
+.lg {
+  font-size: var(--ds-icon-size-lg);
+  width: var(--ds-icon-size-lg);
+  height: var(--ds-icon-size-lg);
+}

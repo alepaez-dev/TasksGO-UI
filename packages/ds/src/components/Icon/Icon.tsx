@@ -2,7 +2,7 @@ import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '../../utils/cn';
 import styles from './Icon.module.css';
 
-type IconSize = 'sm' | 'md';
+type IconSize = 'sm' | 'md' | 'lg';
 
 export interface IconProps extends HTMLAttributes<HTMLSpanElement> {
   name: string;
