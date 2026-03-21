@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Selector } from './Selector';
 import { Avatar } from '../Avatar';
+import { useClickOutside } from '../../hooks/useClickOutside';
 
 const projects = [
   { value: 'eng-core', label: 'Engineering Core' },
@@ -32,9 +33,13 @@ type Story = StoryObj<typeof Selector>;
 function DefaultRender() {
   const [value, setValue] = useState('eng-core');
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useClickOutside(ref, close, open);
   const avatar = avatars[value];
   return (
     <Selector
+      ref={ref}
       options={projects}
       value={value}
       onValueChange={setValue}
@@ -54,9 +59,13 @@ export const Default: Story = {
 function WithActionRender() {
   const [value, setValue] = useState('eng-core');
   const [open, setOpen] = useState(true);
+  const ref = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useClickOutside(ref, close, open);
   const avatar = avatars[value];
   return (
     <Selector
+      ref={ref}
       options={projects}
       value={value}
       onValueChange={setValue}
@@ -81,9 +90,13 @@ export const WithAction: Story = {
 function NoSelectionRender() {
   const [value, setValue] = useState<string | undefined>(undefined);
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useClickOutside(ref, close, open);
   const avatar = value ? avatars[value] : undefined;
   return (
     <Selector
+      ref={ref}
       options={projects}
       value={value}
       onValueChange={setValue}

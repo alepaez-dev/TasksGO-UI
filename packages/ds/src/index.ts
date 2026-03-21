@@ -41,6 +41,8 @@ export {
   type SelectorAction,
 } from './components/Selector';
 
+export { useClickOutside } from './hooks/useClickOutside';
+
 export {
   colors,
   fontFamilies,

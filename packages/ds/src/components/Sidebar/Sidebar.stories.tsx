@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Sidebar } from './Sidebar';
 import { Selector } from '../Selector';
 import { NavItem } from '../NavItem';
 import { Avatar } from '../Avatar';
 import { SectionHeader } from '../SectionHeader';
+import { useClickOutside } from '../../hooks/useClickOutside';
 
 const projects = [
   { value: 'eng-core', label: 'Engineering Core' },
@@ -39,6 +40,9 @@ function DefaultRender() {
   const [project, setProject] = useState('eng-core');
   const [open, setOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('tasks');
+  const selectorRef = useRef<HTMLDivElement>(null);
+  const closeSelector = useCallback(() => setOpen(false), []);
+  useClickOutside(selectorRef, closeSelector, open);
   const avatar = avatars[project];
   const navClick = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -48,6 +52,7 @@ function DefaultRender() {
     <Sidebar
       header={
         <Selector
+          ref={selectorRef}
           options={projects}
           value={project}
           onValueChange={setProject}

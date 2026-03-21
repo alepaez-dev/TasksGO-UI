@@ -51,6 +51,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
       triggerPrefix,
       action,
       className,
+      'aria-label': ariaLabel,
       ...rest
     },
     ref,
@@ -120,7 +121,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
               id={listboxId}
               role="listbox"
               className={styles.options}
-              aria-label={rest['aria-label'] ?? 'Options'}
+              aria-label={ariaLabel ?? 'Options'}
             >
               {options.map((option) => {
                 const isSelected = option.value === value;
