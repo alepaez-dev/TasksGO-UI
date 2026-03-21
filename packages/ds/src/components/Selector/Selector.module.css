@@ -70,7 +70,8 @@
   display: flex;
   align-items: center;
   gap: var(--ds-space-nav-item-gap);
-  padding: var(--ds-space-nav-item-padding-x) var(--ds-space-nav-item-padding-x);
+  padding: var(--ds-space-dropdown-option-padding-y)
+    var(--ds-space-nav-item-padding-x);
   border-radius: var(--ds-radius-xl);
   cursor: pointer;
   transition-property: var(--ds-transition-property);
@@ -135,7 +136,8 @@
   gap: var(--ds-space-nav-item-gap);
   margin: 0 var(--ds-space-dropdown-inset);
   width: calc(100% - 2 * var(--ds-space-dropdown-inset));
-  padding: var(--ds-space-nav-item-padding-x) var(--ds-space-nav-item-padding-x);
+  padding: var(--ds-space-dropdown-option-padding-y)
+    var(--ds-space-nav-item-padding-x);
   background: none;
   border: none;
   border-radius: var(--ds-radius-xl);

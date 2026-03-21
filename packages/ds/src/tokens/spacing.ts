@@ -65,6 +65,7 @@ export const spacing = {
   },
   dropdown: {
     inset: '6px',
+    optionPaddingY: '12px',
   },
   sidebar: {
     paddingX: '16px',
