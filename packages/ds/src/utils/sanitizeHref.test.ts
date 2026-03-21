@@ -37,4 +37,10 @@ describe('sanitizeHref', () => {
   it('blocks protocols with embedded null bytes', () => {
     expect(sanitizeHref('java\0script:alert(1)')).toBe('#');
   });
+
+  it('blocks protocols with leading C0 control characters', () => {
+    expect(sanitizeHref('\x01javascript:alert(1)')).toBe('#');
+    expect(sanitizeHref('\x08javascript:alert(1)')).toBe('#');
+    expect(sanitizeHref('\x1fjavascript:alert(1)')).toBe('#');
+  });
 });

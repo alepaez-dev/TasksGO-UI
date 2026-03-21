@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  useRef,
   type HTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
@@ -56,6 +57,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
     },
     ref,
   ) => {
+    const triggerRef = useRef<HTMLButtonElement>(null);
     const selected = options.find((o) => o.value === value);
     const listboxId = rest.id ? `${rest.id}-listbox` : undefined;
 
@@ -79,6 +81,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
             e.preventDefault();
             onValueChange?.(optionValue);
             onOpenChange?.(false);
+            triggerRef.current?.focus();
             break;
           case 'ArrowDown':
             e.preventDefault();
@@ -91,6 +94,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
           case 'Escape':
             e.preventDefault();
             onOpenChange?.(false);
+            triggerRef.current?.focus();
             break;
         }
       };
@@ -98,6 +102,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
     return (
       <div ref={ref} className={cn(styles.selector, className)} {...rest}>
         <button
+          ref={triggerRef}
           type="button"
           className={styles.trigger}
           aria-haspopup="listbox"

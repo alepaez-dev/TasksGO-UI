@@ -171,7 +171,7 @@ describe('Selector', () => {
       expect(onOpenChange).toHaveBeenCalledWith(false);
     });
 
-    it('selects option and closes on Enter', async () => {
+    it('selects option and closes on Enter, returning focus to trigger', async () => {
       const onValueChange = vi.fn();
       const onOpenChange = vi.fn();
       render(
@@ -188,9 +188,10 @@ describe('Selector', () => {
       await userEvent.keyboard('{Enter}');
       expect(onValueChange).toHaveBeenCalledWith('b');
       expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(screen.getByRole('button')).toHaveFocus();
     });
 
-    it('selects option and closes on Space', async () => {
+    it('selects option and closes on Space, returning focus to trigger', async () => {
       const onValueChange = vi.fn();
       const onOpenChange = vi.fn();
       render(
@@ -207,9 +208,10 @@ describe('Selector', () => {
       await userEvent.keyboard('{ }');
       expect(onValueChange).toHaveBeenCalledWith('b');
       expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(screen.getByRole('button')).toHaveFocus();
     });
 
-    it('closes dropdown on Escape from option', async () => {
+    it('closes dropdown on Escape from option, returning focus to trigger', async () => {
       const onOpenChange = vi.fn();
       render(
         <Selector
@@ -223,6 +225,7 @@ describe('Selector', () => {
       opts[0].focus();
       await userEvent.keyboard('{Escape}');
       expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(screen.getByRole('button')).toHaveFocus();
     });
 
     it('moves focus to next option on ArrowDown', async () => {
