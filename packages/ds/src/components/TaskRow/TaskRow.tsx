@@ -13,22 +13,22 @@ type BadgeVariant = 'default' | 'progress' | 'todo' | 'done';
 type RefLabelVariant = 'attachment' | 'doc' | 'general';
 type TaskRowLayout = 'default' | 'compact';
 
-export interface TaskRowBadge {
+export type TaskRowBadge = Readonly<{
   label: string;
   variant?: BadgeVariant;
-}
+}>;
 
-export interface TaskRowRef {
+export type TaskRowRef = Readonly<{
   label: string;
   variant?: RefLabelVariant;
   icon?: string;
-}
+}>;
 
-export interface TaskRowDate {
+export type TaskRowDate = Readonly<{
   label: string;
   dateTime: string;
   urgent?: boolean;
-}
+}>;
 
 export interface TaskRowProps extends HTMLAttributes<HTMLDivElement> {
   title: string;

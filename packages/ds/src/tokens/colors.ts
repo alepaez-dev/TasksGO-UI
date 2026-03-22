@@ -8,7 +8,7 @@ const accent = {
 
 const text = {
   primary: '#1a1a1a',
-  secondary: '#737373',
+  secondary: '#636363',
   disabled: '#a3a3a3',
 } as const;
 
@@ -143,6 +143,11 @@ export const colors = {
 
   taskSection: {
     chevron: text.secondary,
+  },
+
+  sidebar: {
+    background: surface.secondary,
+    border: border.default,
   },
 } as const;
 

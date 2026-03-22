@@ -1,11 +1,12 @@
 import { forwardRef, Fragment, type HTMLAttributes } from 'react';
 import { cn } from '../../utils/cn';
+import { sanitizeHref } from '../../utils/sanitizeHref';
 import styles from './Breadcrumb.module.css';
 
-export interface BreadcrumbSegment {
+export type BreadcrumbSegment = Readonly<{
   label: string;
   href?: string;
-}
+}>;
 
 export interface BreadcrumbProps extends HTMLAttributes<HTMLElement> {
   segments: BreadcrumbSegment[];
@@ -33,7 +34,10 @@ export const Breadcrumb = forwardRef<HTMLElement, BreadcrumbProps>(
                 )}
                 <li>
                   {segment.href && !isLast ? (
-                    <a href={segment.href} className={styles.link}>
+                    <a
+                      href={sanitizeHref(segment.href)}
+                      className={styles.link}
+                    >
                       {segment.label}
                     </a>
                   ) : (

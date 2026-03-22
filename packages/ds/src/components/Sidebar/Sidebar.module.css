@@ -1,0 +1,47 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: var(--ds-space-layout-sidebar-width);
+  height: 100%;
+  background-color: var(--ds-color-sidebar-background);
+  border-right: 1px solid var(--ds-color-sidebar-border);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ds-scrollbar-thumb) var(--ds-scrollbar-track);
+}
+
+.sidebar::-webkit-scrollbar {
+  width: var(--ds-scrollbar-width);
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: var(--ds-scrollbar-track);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--ds-scrollbar-thumb);
+  border-radius: var(--ds-radius-full);
+}
+
+.header {
+  flex-shrink: 0;
+  padding: var(--ds-space-sidebar-padding-y) var(--ds-space-sidebar-padding-x);
+  background-color: var(--ds-color-surface-primary);
+  border-bottom: 1px solid var(--ds-color-sidebar-border);
+  margin-bottom: var(--ds-space-sidebar-section-gap);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-nav-list-gap);
+  flex: 1;
+  padding: 0 var(--ds-space-sidebar-padding-x);
+}
+
+.footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: var(--ds-space-sidebar-padding-y) var(--ds-space-sidebar-padding-x);
+  border-top: 1px solid var(--ds-color-sidebar-border);
+}

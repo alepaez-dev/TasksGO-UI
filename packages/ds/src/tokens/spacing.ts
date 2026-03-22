@@ -63,6 +63,15 @@ export const spacing = {
     headerGap: '8px',
     contentPaddingTop: '12px',
   },
+  dropdown: {
+    inset: '6px',
+    optionPaddingY: '12px',
+  },
+  sidebar: {
+    paddingX: '16px',
+    paddingY: '24px',
+    sectionGap: '24px',
+  },
   columnWidths: {
     priority: '80px',
     ticketId: '100px',

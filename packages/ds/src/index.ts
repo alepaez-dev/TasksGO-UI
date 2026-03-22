@@ -33,6 +33,15 @@ export {
   type TaskRowRef,
   type TaskRowDate,
 } from './components/TaskRow';
+export { Sidebar, type SidebarProps } from './components/Sidebar';
+export {
+  Selector,
+  type SelectorProps,
+  type SelectorOption,
+  type SelectorAction,
+} from './components/Selector';
+
+export { useClickOutside } from './hooks/useClickOutside';
 
 export {
   colors,
