@@ -125,7 +125,7 @@ export const Default: Story = {
   render: () => <DefaultRender />,
 };
 
-export const LeftOnly: Story = {
+export const WithoutSearch: Story = {
   args: {
     left: (
       <Breadcrumb
