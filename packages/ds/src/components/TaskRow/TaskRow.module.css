@@ -138,9 +138,11 @@
 }
 
 .separator {
-  color: var(--ds-color-text-disabled);
-  font-size: var(--ds-text-metadata-font-size);
-  line-height: 1;
+  width: 3px;
+  height: 3px;
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-color-text-disabled);
+  flex-shrink: 0;
 }
 
 .completed {
