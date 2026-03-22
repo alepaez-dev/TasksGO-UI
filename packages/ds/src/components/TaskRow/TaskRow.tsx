@@ -107,9 +107,7 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
             </div>
           )}
           {ticketId && date && (
-            <span className={styles.separator} aria-hidden="true">
-              ·
-            </span>
+            <span className={styles.separator} aria-hidden="true" />
           )}
           {date && (
             <div className={styles.date}>
