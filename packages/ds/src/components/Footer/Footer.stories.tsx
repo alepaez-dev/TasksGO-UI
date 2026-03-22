@@ -18,7 +18,9 @@ export const Default: Story = {
     left: (
       <>
         <span>Focus Mode: Enabled</span>
-        <span style={{ opacity: 0.2 }}>|</span>
+        <span aria-hidden="true" style={{ opacity: 0.2 }}>
+          |
+        </span>
         <span>Task Sync: Active</span>
       </>
     ),
@@ -36,7 +38,9 @@ export const LeftOnly: Story = {
     left: (
       <>
         <span>System Stable</span>
-        <span style={{ opacity: 0.2 }}>|</span>
+        <span aria-hidden="true" style={{ opacity: 0.2 }}>
+          |
+        </span>
         <span>v4.1.0-alpha</span>
       </>
     ),

@@ -2,7 +2,32 @@ import type { Preview } from '@storybook/react';
 import '../src/tokens/tokens.css';
 import '../src/tokens/typography.css';
 
+const mobileViewports = {
+  mobileSmall: {
+    name: 'Small mobile',
+    styles: { width: '320px', height: '568px' },
+  },
+  mobile: {
+    name: 'Large mobile',
+    styles: { width: '375px', height: '812px' },
+  },
+  tablet: {
+    name: 'Tablet',
+    styles: { width: '768px', height: '1024px' },
+  },
+};
+
+const desktopViewports = {
+  responsive: {
+    name: 'Desktop',
+    styles: { width: '100%', height: '100%' },
+  },
+};
+
 const preview: Preview = {
+  initialGlobals: {
+    viewport: { value: 'responsive' },
+  },
   parameters: {
     controls: {
       matchers: {
@@ -10,7 +35,11 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
+    viewport: {
+      options: desktopViewports,
+    },
   },
 };
 
 export default preview;
+export { mobileViewports, desktopViewports };

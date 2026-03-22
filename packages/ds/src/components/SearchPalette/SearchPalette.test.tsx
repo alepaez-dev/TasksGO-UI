@@ -79,7 +79,7 @@ describe('SearchPalette', () => {
       (o) => o.getAttribute('aria-selected') === 'true',
     );
     expect(selected).toBeDefined();
-    expect(selected).toHaveAttribute('id', 'r3');
+    expect(selected).toHaveAttribute('id', 'search-palette-r3');
   });
 
   it('sets aria-selected=false on non-active results', () => {
@@ -152,12 +152,14 @@ describe('SearchPalette', () => {
     expect(screen.queryAllByRole('option')).toHaveLength(0);
   });
 
-  it('assigns result id to DOM element for aria-activedescendant', () => {
-    render(<SearchPalette groups={groups} aria-label="Search results" />);
-    expect(document.getElementById('r1')).toBeInTheDocument();
-    expect(document.getElementById('r2')).toBeInTheDocument();
-    expect(document.getElementById('r3')).toBeInTheDocument();
-    expect(document.getElementById('r4')).toBeInTheDocument();
+  it('assigns namespaced result id to DOM element for aria-activedescendant', () => {
+    render(
+      <SearchPalette id="sp" groups={groups} aria-label="Search results" />,
+    );
+    expect(document.getElementById('sp-r1')).toBeInTheDocument();
+    expect(document.getElementById('sp-r2')).toBeInTheDocument();
+    expect(document.getElementById('sp-r3')).toBeInTheDocument();
+    expect(document.getElementById('sp-r4')).toBeInTheDocument();
   });
 
   it('calls onResultSelect on Enter key', async () => {

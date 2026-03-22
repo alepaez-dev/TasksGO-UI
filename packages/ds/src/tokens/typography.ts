@@ -195,6 +195,14 @@ export const typographyScale = {
     textTransform: 'uppercase',
     lineHeight: DEFAULT_LINE_HEIGHT,
   },
+  headerTitle: {
+    fontSize: '14px',
+    fontFamily: fontFamilies.sans,
+    fontWeight: fontWeights.semibold,
+    letterSpacing: '-0.025em',
+    textTransform: 'none',
+    lineHeight: '1.25',
+  },
 } as const satisfies Record<string, TypographyScale>;
 
 export type TypographyScaleName = keyof typeof typographyScale;

@@ -24,4 +24,15 @@ describe('Avatar', () => {
     render(<Avatar initial="P" aria-label="Project P" className="custom" />);
     expect(screen.getByRole('img')).toHaveClass('custom');
   });
+
+  it('defaults to project variant', () => {
+    render(<Avatar initial="P" aria-label="Project P" />);
+    expect(screen.getByRole('img')).toHaveClass('project');
+  });
+
+  it('applies profile variant', () => {
+    render(<Avatar initial="AD" variant="profile" aria-label="Alejandra D" />);
+    expect(screen.getByRole('img')).toHaveClass('profile');
+    expect(screen.getByText('AD')).toBeInTheDocument();
+  });
 });

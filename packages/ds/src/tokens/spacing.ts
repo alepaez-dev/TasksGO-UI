@@ -76,6 +76,13 @@ export const spacing = {
     paddingY: '24px',
     sectionGap: '24px',
   },
+  floatingSearch: {
+    maxWidth: '448px',
+    height: '48px',
+    paddingX: '16px',
+    iconGap: '12px',
+    bottomOffset: '32px',
+  },
   columnWidths: {
     priority: '80px',
     ticketId: '100px',
