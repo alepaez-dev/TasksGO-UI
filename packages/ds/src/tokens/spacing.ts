@@ -80,7 +80,6 @@ export const spacing = {
     maxWidth: '448px',
     height: '48px',
     paddingX: '16px',
-    iconGap: '12px',
     bottomOffset: '32px',
   },
   columnWidths: {
