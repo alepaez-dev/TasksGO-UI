@@ -1,0 +1,82 @@
+.palette {
+  position: absolute;
+  top: calc(100% + var(--ds-space-scale-sm));
+  left: 0;
+  right: 0;
+  padding: var(--ds-space-scale-xs) 0;
+  background-color: var(--ds-color-surface-primary);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-2xl);
+  box-shadow: var(--ds-elevation-dropdown);
+  z-index: var(--ds-z-dropdown);
+  overflow: hidden;
+}
+
+.groupHeader {
+  padding: var(--ds-space-scale-md) var(--ds-space-nav-item-padding-x)
+    var(--ds-space-scale-xs);
+  font-size: var(--ds-text-section-header-font-size);
+  font-family: var(--ds-text-section-header-font-family);
+  font-weight: var(--ds-text-section-header-font-weight);
+  letter-spacing: var(--ds-text-section-header-letter-spacing);
+  text-transform: var(--ds-text-section-header-text-transform);
+  line-height: var(--ds-text-section-header-line-height);
+  color: var(--ds-color-search-palette-group-header);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-dropdown-option-padding-y)
+    var(--ds-space-nav-item-padding-x);
+  margin: 0 var(--ds-space-dropdown-inset);
+  border-radius: var(--ds-radius-xl);
+  cursor: pointer;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.result:hover {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.resultActive {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.resultLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--ds-text-nav-label-sm-font-size);
+  font-family: var(--ds-text-nav-label-sm-font-family);
+  font-weight: var(--ds-text-nav-label-sm-font-weight);
+  line-height: var(--ds-text-nav-label-sm-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.resultRef {
+  flex-shrink: 0;
+  font-size: var(--ds-text-ticket-id-font-size);
+  font-family: var(--ds-text-ticket-id-font-family);
+  font-weight: var(--ds-text-ticket-id-font-weight);
+  letter-spacing: var(--ds-text-ticket-id-letter-spacing);
+  line-height: var(--ds-text-ticket-id-line-height);
+}
+
+.task {
+  color: var(--ds-color-search-palette-ref-task);
+}
+
+.ticket {
+  color: var(--ds-color-search-palette-ref-ticket);
+}
+
+.doc {
+  color: var(--ds-color-search-palette-ref-doc);
+}

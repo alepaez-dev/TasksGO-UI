@@ -39,7 +39,7 @@ export interface TaskRowProps extends HTMLAttributes<HTMLDivElement> {
   ticketId?: string;
   date?: TaskRowDate;
   badge?: TaskRowBadge;
-  refs?: TaskRowRef[];
+  refs?: readonly TaskRowRef[];
   layout?: TaskRowLayout;
 }
 

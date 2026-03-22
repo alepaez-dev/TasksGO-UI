@@ -8,28 +8,42 @@ const meta = {
   argTypes: {
     placeholder: { control: 'text' },
     shortcutHint: { control: 'text' },
+    size: { control: 'select', options: ['sm', 'md'] },
     disabled: { control: 'boolean' },
   },
   args: {
-    'aria-label': 'Search tasks',
-    placeholder: 'SEARCH TASKS...',
+    'aria-label': 'Search',
   },
+  decorators: [
+    (Story) => (
+      <div style={{ maxWidth: '320px' }}>
+        <Story />
+      </div>
+    ),
+  ],
 } satisfies Meta<typeof SearchInput>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
-
-export const WithShortcutHint: Story = {
+export const Default: Story = {
   args: {
+    placeholder: 'Search or command...',
     shortcutHint: '⌘K',
+  },
+};
+
+export const Small: Story = {
+  args: {
+    placeholder: 'Filter tasks...',
+    size: 'sm',
   },
 };
 
 export const Disabled: Story = {
   args: {
     disabled: true,
+    placeholder: 'Search or command...',
     shortcutHint: '⌘K',
   },
   // Disabled components are exempt from WCAG 2.1 SC 1.4.3 contrast requirements:

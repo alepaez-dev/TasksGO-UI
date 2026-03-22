@@ -3,17 +3,20 @@ import { Icon } from '../Icon';
 import { cn } from '../../utils/cn';
 import styles from './SearchInput.module.css';
 
+type SearchInputSize = 'sm' | 'md';
+
 export interface SearchInputProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
-  'type'
+  'type' | 'size'
 > {
   shortcutHint?: string;
+  size?: SearchInputSize;
 }
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
-  ({ shortcutHint, className, ...inputProps }, ref) => {
+  ({ shortcutHint, size = 'md', className, ...inputProps }, ref) => {
     return (
-      <div className={cn(styles.wrapper, className)}>
+      <div className={cn(styles.wrapper, styles[size], className)}>
         <Icon name="search" size="sm" className={styles.icon} />
         <input
           ref={ref}

@@ -135,6 +135,13 @@ export const colors = {
     placeholder: text.disabled,
   },
 
+  searchPalette: {
+    groupHeader: text.secondary,
+    refTask: accent.primary,
+    refTicket: status.info,
+    refDoc: accent.warmText,
+  },
+
   breadcrumb: {
     text: text.secondary,
     separator: text.disabled,
