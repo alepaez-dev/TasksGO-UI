@@ -9,7 +9,7 @@ export type BreadcrumbSegment = Readonly<{
 }>;
 
 export interface BreadcrumbProps extends HTMLAttributes<HTMLElement> {
-  segments: BreadcrumbSegment[];
+  segments: readonly BreadcrumbSegment[];
 }
 
 export const Breadcrumb = forwardRef<HTMLElement, BreadcrumbProps>(

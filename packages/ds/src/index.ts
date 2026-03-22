@@ -25,6 +25,12 @@ export {
   type BreadcrumbSegment,
 } from './components/Breadcrumb';
 export { SearchInput, type SearchInputProps } from './components/SearchInput';
+export {
+  SearchPalette,
+  type SearchPaletteProps,
+  type SearchPaletteResult,
+  type SearchPaletteGroup,
+} from './components/SearchPalette';
 export { TaskSection, type TaskSectionProps } from './components/TaskSection';
 export {
   TaskRow,
@@ -34,6 +40,8 @@ export {
   type TaskRowDate,
 } from './components/TaskRow';
 export { Sidebar, type SidebarProps } from './components/Sidebar';
+export { Header, type HeaderProps } from './components/Header';
+export { Footer, type FooterProps } from './components/Footer';
 export {
   Selector,
   type SelectorProps,
@@ -54,6 +62,7 @@ export {
   effects,
   iconography,
   interaction,
+  zIndex,
   type ColorGroup,
   type TypographyScale,
   type TypographyScaleName,
@@ -64,4 +73,5 @@ export {
   type ElevationToken,
   type EffectToken,
   type IconSize,
+  type ZIndexToken,
 } from './tokens';

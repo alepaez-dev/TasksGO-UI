@@ -56,7 +56,7 @@
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-2xl);
   box-shadow: var(--ds-elevation-dropdown);
-  z-index: 50; /* TODO: tokenize z-index scale when more layers exist (modal, overlay) */
+  z-index: var(--ds-z-dropdown);
   overflow: hidden;
 }
 

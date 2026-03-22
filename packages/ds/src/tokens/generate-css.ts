@@ -18,6 +18,7 @@ import { elevation } from './elevation.ts';
 import { effects } from './effects.ts';
 import { iconography } from './iconography.ts';
 import { interaction } from './interaction.ts';
+import { zIndex } from './zIndex.ts';
 
 type VarMap = Map<string, string>;
 
@@ -235,6 +236,11 @@ export function generateTokensCSS(): string {
   lines.push(`  --ds-scrollbar-width: ${interaction.scrollbar.width};`);
   lines.push('  --ds-scrollbar-track: var(--ds-color-scrollbar-track);');
   lines.push('  --ds-scrollbar-thumb: var(--ds-color-scrollbar-thumb);');
+  lines.push('');
+
+  for (const [name, value] of Object.entries(zIndex)) {
+    lines.push(`  --ds-z-${camelToKebab(name)}: ${value};`);
+  }
   lines.push('');
 
   lines.push(`  --ds-focus-ring-width: ${interaction.focusRing.width};`);

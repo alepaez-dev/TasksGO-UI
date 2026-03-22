@@ -2,14 +2,18 @@
   display: flex;
   align-items: center;
   gap: var(--ds-space-search-input-icon-gap);
-  padding: var(--ds-space-search-input-padding-y)
-    var(--ds-space-search-input-padding-x);
-  border: 1px solid var(--ds-color-search-input-border);
-  border-radius: var(--ds-radius-lg);
-  background-color: var(--ds-color-surface-primary);
+  border-bottom: 1px solid var(--ds-color-search-input-border);
   transition-property: var(--ds-transition-property);
   transition-duration: var(--ds-transition-duration);
   transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.wrapper:hover {
+  border-bottom-color: var(--ds-color-text-disabled);
+}
+
+.wrapper:focus-within {
+  border-bottom-color: var(--ds-color-search-input-focus-border);
 }
 
 .wrapper:has(:disabled) {
@@ -17,10 +21,16 @@
   cursor: default;
 }
 
-.wrapper:focus-within {
-  border-color: var(--ds-color-search-input-focus-border);
-  outline: var(--ds-focus-ring-width) solid transparent;
-  box-shadow: var(--ds-focus-ring);
+.wrapper:has(:disabled):hover {
+  border-bottom-color: var(--ds-color-search-input-border);
+}
+
+.md {
+  padding: var(--ds-space-search-input-padding-y) 0;
+}
+
+.sm {
+  padding: var(--ds-space-scale-xs) 0;
 }
 
 .icon {
@@ -33,22 +43,29 @@
   border: none;
   background: transparent;
   outline: none;
+  color: var(--ds-color-text-primary);
+  min-width: 0;
+}
+
+.md .input {
   font-size: var(--ds-text-search-input-font-size);
   font-family: var(--ds-text-search-input-font-family);
   font-weight: var(--ds-text-search-input-font-weight);
   letter-spacing: var(--ds-text-search-input-letter-spacing);
   text-transform: var(--ds-text-search-input-text-transform);
   line-height: var(--ds-text-search-input-line-height);
-  color: var(--ds-color-text-primary);
-  min-width: 0;
+}
+
+.sm .input {
+  font-size: var(--ds-text-search-input-sm-font-size);
+  font-family: var(--ds-text-search-input-sm-font-family);
+  font-weight: var(--ds-text-search-input-sm-font-weight);
+  letter-spacing: var(--ds-text-search-input-sm-letter-spacing);
+  text-transform: var(--ds-text-search-input-sm-text-transform);
+  line-height: var(--ds-text-search-input-sm-line-height);
 }
 
 .input::placeholder {
-  font-size: var(--ds-text-search-input-font-size);
-  font-family: var(--ds-text-search-input-font-family);
-  font-weight: var(--ds-text-search-input-font-weight);
-  letter-spacing: var(--ds-text-search-input-letter-spacing);
-  text-transform: var(--ds-text-search-input-text-transform);
   color: var(--ds-color-search-input-placeholder);
 }
 

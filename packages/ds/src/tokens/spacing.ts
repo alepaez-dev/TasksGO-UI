@@ -67,6 +67,10 @@ export const spacing = {
     inset: '6px',
     optionPaddingY: '12px',
   },
+  header: {
+    gap: '48px',
+    searchMaxWidth: '320px',
+  },
   sidebar: {
     paddingX: '16px',
     paddingY: '24px',
