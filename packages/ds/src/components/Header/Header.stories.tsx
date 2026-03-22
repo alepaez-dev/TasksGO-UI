@@ -80,6 +80,7 @@ function DefaultRender() {
       center={
         <>
           <SearchInput
+            role="combobox"
             placeholder="Search or command..."
             shortcutHint="⌘K"
             value={query}
