@@ -17,6 +17,7 @@ const avatars: Record<string, { initial: string; label: string }> = {
 };
 
 const meta: Meta<typeof Selector> = {
+  title: 'Components/Selector',
   component: Selector,
   tags: ['autodocs'],
   decorators: [

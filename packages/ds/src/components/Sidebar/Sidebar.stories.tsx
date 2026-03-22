@@ -20,6 +20,7 @@ const avatars: Record<string, { initial: string; label: string }> = {
 };
 
 const meta: Meta<typeof Sidebar> = {
+  title: 'Components/Sidebar',
   component: Sidebar,
   tags: ['autodocs'],
   parameters: {
