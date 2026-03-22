@@ -13,11 +13,14 @@ const config: TestRunnerConfig = {
       .filter((r: { enabled: boolean }) => r.enabled === false)
       .map((r: { id: string }) => r.id);
 
+    const axeRules = Object.fromEntries(
+      disabledRules.map((id: string) => [id, { enabled: false }]),
+    );
+
     await checkA11y(page, '#storybook-root', {
       axeOptions: {
-        rules: Object.fromEntries(
-          disabledRules.map((id: string) => [id, { enabled: false }]),
-        ),
+        rules: axeRules,
+        resultTypes: ['violations', 'incomplete'],
       },
       detailedReport: true,
       detailedReportOptions: { html: true },

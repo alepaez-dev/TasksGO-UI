@@ -143,7 +143,7 @@ describe('TaskRow', () => {
     );
     const separator = container.querySelector('[aria-hidden="true"]');
     expect(separator).toBeInTheDocument();
-    expect(separator).toHaveTextContent('·');
+    expect(separator).toBeEmptyDOMElement();
   });
 
   it('does not render separator when only ticket is provided', () => {
