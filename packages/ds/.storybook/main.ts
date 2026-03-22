@@ -3,7 +3,7 @@ import { dsTokensPlugin } from '../vite-plugin-ds-tokens.ts';
 
 const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(ts|tsx)'],
-  addons: ['@storybook/addon-a11y'],
+  addons: ['@storybook/addon-a11y', '@storybook/addon-docs'],
   framework: {
     name: '@storybook/react-vite',
     options: {},
