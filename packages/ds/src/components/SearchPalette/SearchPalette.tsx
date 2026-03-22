@@ -16,6 +16,13 @@ export type SearchPaletteGroup = Readonly<{
   results: readonly SearchPaletteResult[];
 }>;
 
+export function getSearchPaletteOptionId(
+  paletteId: string,
+  resultId: string,
+): string {
+  return `${paletteId}-${resultId}`;
+}
+
 export interface SearchPaletteProps extends HTMLAttributes<HTMLDivElement> {
   groups: readonly SearchPaletteGroup[];
   activeResultId?: string;
@@ -23,7 +30,11 @@ export interface SearchPaletteProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const SearchPalette = forwardRef<HTMLDivElement, SearchPaletteProps>(
-  ({ groups, activeResultId, onResultSelect, className, ...rest }, ref) => {
+  ({ groups, activeResultId, onResultSelect, className, id, ...rest }, ref) => {
+    const paletteId = id ?? 'search-palette';
+    const optionId = (resultId: string) =>
+      getSearchPaletteOptionId(paletteId, resultId);
+
     const handleResultKeyDown =
       (result: SearchPaletteResult) => (e: KeyboardEvent<HTMLDivElement>) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -35,6 +46,7 @@ export const SearchPalette = forwardRef<HTMLDivElement, SearchPaletteProps>(
     return (
       <div
         ref={ref}
+        id={id}
         role="listbox"
         className={cn(styles.palette, className)}
         {...rest}
@@ -47,7 +59,7 @@ export const SearchPalette = forwardRef<HTMLDivElement, SearchPaletteProps>(
               return (
                 <div
                   key={result.id}
-                  id={result.id}
+                  id={optionId(result.id)}
                   role="option"
                   tabIndex={-1}
                   aria-selected={isActive}

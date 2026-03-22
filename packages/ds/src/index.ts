@@ -27,6 +27,7 @@ export {
 export { SearchInput, type SearchInputProps } from './components/SearchInput';
 export {
   SearchPalette,
+  getSearchPaletteOptionId,
   type SearchPaletteProps,
   type SearchPaletteResult,
   type SearchPaletteGroup,
@@ -41,6 +42,10 @@ export {
 } from './components/TaskRow';
 export { Sidebar, type SidebarProps } from './components/Sidebar';
 export { Header, type HeaderProps } from './components/Header';
+export {
+  FloatingSearch,
+  type FloatingSearchProps,
+} from './components/FloatingSearch';
 export { Footer, type FooterProps } from './components/Footer';
 export {
   Selector,

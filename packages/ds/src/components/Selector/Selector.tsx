@@ -32,9 +32,11 @@ export interface SelectorProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 function focusSibling(current: EventTarget, direction: 'next' | 'prev') {
-  const el = current as HTMLElement;
+  if (!(current instanceof HTMLElement)) return;
   const sibling =
-    direction === 'next' ? el.nextElementSibling : el.previousElementSibling;
+    direction === 'next'
+      ? current.nextElementSibling
+      : current.previousElementSibling;
   if (sibling instanceof HTMLElement) {
     sibling.focus();
   }

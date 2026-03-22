@@ -88,6 +88,9 @@ export const colors = {
   avatar: {
     background: text.primary,
     text: surface.primary,
+    profileBackground: surface.secondary,
+    profileText: text.primary,
+    profileBorder: border.default,
   },
 
   checkbox: {
@@ -154,6 +157,11 @@ export const colors = {
 
   sidebar: {
     background: surface.secondary,
+    border: border.default,
+  },
+
+  floatingSearch: {
+    background: 'rgba(255, 255, 255, 0.9)',
     border: border.default,
   },
 } as const;
