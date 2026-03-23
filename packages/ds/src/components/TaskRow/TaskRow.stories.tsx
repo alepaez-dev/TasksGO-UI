@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { withDefaultViewport } from '../../../.storybook/decorators';
-import { desktopViewports, mobileViewports } from '../../../.storybook/preview';
+import {
+  desktopViewports,
+  mobileViewportOptions,
+} from '../../../.storybook/preview';
 import { TaskRow } from './TaskRow';
 
 const meta = {
@@ -97,13 +100,7 @@ export const Compact: Story = {
   decorators: [withDefaultViewport('mobile')],
   parameters: {
     viewport: {
-      options: {
-        ...mobileViewports,
-        responsive: {
-          name: 'Default',
-          styles: mobileViewports.mobile.styles,
-        },
-      },
+      options: mobileViewportOptions,
     },
   },
   args: {
@@ -121,13 +118,7 @@ export const CompactCompleted: Story = {
   decorators: [withDefaultViewport('mobile')],
   parameters: {
     viewport: {
-      options: {
-        ...mobileViewports,
-        responsive: {
-          name: 'Default',
-          styles: mobileViewports.mobile.styles,
-        },
-      },
+      options: mobileViewportOptions,
     },
   },
   args: {
@@ -146,13 +137,7 @@ export const CompactList: Story = {
   decorators: [withDefaultViewport('mobile')],
   parameters: {
     viewport: {
-      options: {
-        ...mobileViewports,
-        responsive: {
-          name: 'Default',
-          styles: mobileViewports.mobile.styles,
-        },
-      },
+      options: mobileViewportOptions,
     },
   },
   args: {
