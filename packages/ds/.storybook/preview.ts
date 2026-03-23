@@ -50,4 +50,4 @@ const preview: Preview = {
 };
 
 export default preview;
-export { mobileViewportOptions, desktopViewports };
+export { mobileViewports, mobileViewportOptions, desktopViewports };
