@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { withDefaultViewport } from '../../../.storybook/decorators';
-import { desktopViewports, mobileViewports } from '../../../.storybook/preview';
+import {
+  desktopViewports,
+  mobileViewportOptions,
+} from '../../../.storybook/preview';
 import { FloatingSearch } from './FloatingSearch';
 
 const meta: Meta<typeof FloatingSearch> = {
@@ -37,13 +40,7 @@ export const MobileViewport: Story = {
   decorators: [withDefaultViewport('mobile')],
   parameters: {
     viewport: {
-      options: {
-        ...mobileViewports,
-        responsive: {
-          name: 'Default',
-          styles: mobileViewports.mobile.styles,
-        },
-      },
+      options: mobileViewportOptions,
     },
   },
 };
