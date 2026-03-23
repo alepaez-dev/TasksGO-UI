@@ -1,7 +1,7 @@
 .taskRow {
   display: grid;
   align-items: center;
-  padding: var(--ds-space-row-padding-active) 0;
+  padding: var(--ds-space-row-padding-active) var(--ds-space-scale-md);
   border-bottom: 1px solid var(--ds-color-border-default);
   transition-property: var(--ds-transition-property);
   transition-duration: var(--ds-transition-duration);
@@ -146,7 +146,7 @@
 }
 
 .completed {
-  padding: var(--ds-space-row-padding-done) 0;
+  padding: var(--ds-space-row-padding-done) var(--ds-space-scale-md);
 }
 
 .completed .title {
