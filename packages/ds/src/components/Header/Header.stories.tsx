@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { withDefaultViewport } from '../../../.storybook/decorators';
-import { desktopViewports, mobileViewports } from '../../../.storybook/preview';
+import {
+  desktopViewports,
+  mobileViewportOptions,
+} from '../../../.storybook/preview';
 import { Header } from './Header';
 import { Breadcrumb } from '../Breadcrumb';
 import { SearchInput } from '../SearchInput';
@@ -133,6 +136,7 @@ function DefaultRender() {
 }
 
 const meta: Meta<typeof Header> = {
+  title: 'Components/Header',
   component: Header,
   tags: ['autodocs'],
   parameters: {
@@ -228,13 +232,7 @@ export const Mobile: Story = {
   decorators: [withDefaultViewport('mobile')],
   parameters: {
     viewport: {
-      options: {
-        ...mobileViewports,
-        responsive: {
-          name: 'Default',
-          styles: mobileViewports.mobile.styles,
-        },
-      },
+      options: mobileViewportOptions,
     },
   },
 };

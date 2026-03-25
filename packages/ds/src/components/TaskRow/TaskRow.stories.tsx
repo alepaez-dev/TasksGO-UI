@@ -1,4 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { withDefaultViewport } from '../../../.storybook/decorators';
+import {
+  desktopViewports,
+  mobileViewportOptions,
+} from '../../../.storybook/preview';
 import { TaskRow } from './TaskRow';
 
 const meta = {
@@ -25,6 +30,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  parameters: { viewport: { options: desktopViewports } },
   args: {
     title: 'Fix authentication timeout on mobile devices',
     priority: 'high',
@@ -35,6 +41,7 @@ export const Default: Story = {
 };
 
 export const WithSingleRef: Story = {
+  parameters: { viewport: { options: desktopViewports } },
   args: {
     title: 'Refactor Kubernetes service discovery logic for edge nodes',
     priority: 'high',
@@ -53,6 +60,7 @@ export const WithSingleRef: Story = {
 };
 
 export const WithMultipleRefs: Story = {
+  parameters: { viewport: { options: desktopViewports } },
   args: {
     title: 'Implement OAuth2 PKCE flow for mobile clients',
     priority: 'critical',
@@ -68,6 +76,7 @@ export const WithMultipleRefs: Story = {
 };
 
 export const Completed: Story = {
+  parameters: { viewport: { options: desktopViewports } },
   args: {
     title: 'Update API rate limiting configuration',
     completed: true,
@@ -80,6 +89,7 @@ export const Completed: Story = {
 };
 
 export const Minimal: Story = {
+  parameters: { viewport: { options: desktopViewports } },
   args: {
     title: 'Quick fix for typo in README',
   },
@@ -87,6 +97,12 @@ export const Minimal: Story = {
 
 export const Compact: Story = {
   name: 'Compact (Mobile)',
+  decorators: [withDefaultViewport('mobile')],
+  parameters: {
+    viewport: {
+      options: mobileViewportOptions,
+    },
+  },
   args: {
     title: 'Implement OAuth2 provider',
     layout: 'compact',
@@ -99,6 +115,12 @@ export const Compact: Story = {
 
 export const CompactCompleted: Story = {
   name: 'Compact Completed (Mobile)',
+  decorators: [withDefaultViewport('mobile')],
+  parameters: {
+    viewport: {
+      options: mobileViewportOptions,
+    },
+  },
   args: {
     title: 'Security patch 2.4.1',
     layout: 'compact',
@@ -112,6 +134,12 @@ export const CompactCompleted: Story = {
 
 export const CompactList: Story = {
   name: 'Compact List (Mobile)',
+  decorators: [withDefaultViewport('mobile')],
+  parameters: {
+    viewport: {
+      options: mobileViewportOptions,
+    },
+  },
   args: {
     title: 'Implement OAuth2 provider',
   },
@@ -159,6 +187,7 @@ export const CompactList: Story = {
 };
 
 export const TaskList: Story = {
+  parameters: { viewport: { options: desktopViewports } },
   args: {
     title: 'Fix authentication timeout on mobile devices',
   },

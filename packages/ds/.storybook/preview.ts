@@ -24,6 +24,14 @@ const desktopViewports = {
   },
 };
 
+const mobileViewportOptions = {
+  ...mobileViewports,
+  responsive: {
+    name: 'Default',
+    styles: mobileViewports.mobile.styles,
+  },
+};
+
 const preview: Preview = {
   initialGlobals: {
     viewport: { value: 'responsive' },
@@ -42,4 +50,4 @@ const preview: Preview = {
 };
 
 export default preview;
-export { mobileViewports, desktopViewports };
+export { mobileViewportOptions, desktopViewports };
