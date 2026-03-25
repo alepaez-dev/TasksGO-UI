@@ -7,6 +7,7 @@ import {
 import { FloatingSearch } from './FloatingSearch';
 
 const meta: Meta<typeof FloatingSearch> = {
+  title: 'Components/FloatingSearch',
   component: FloatingSearch,
   tags: ['autodocs'],
   parameters: {

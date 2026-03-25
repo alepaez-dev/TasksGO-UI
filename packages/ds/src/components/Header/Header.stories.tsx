@@ -136,6 +136,7 @@ function DefaultRender() {
 }
 
 const meta: Meta<typeof Header> = {
+  title: 'Components/Header',
   component: Header,
   tags: ['autodocs'],
   parameters: {
