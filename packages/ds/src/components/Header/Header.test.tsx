@@ -58,4 +58,24 @@ describe('Header', () => {
     render(<Header data-testid="my-header" />);
     expect(screen.getByTestId('my-header')).toBeInTheDocument();
   });
+
+  it('renders center inside content in default flow mode', () => {
+    const { container } = render(<Header center={<span>Title</span>} />);
+    const content = container.querySelector('[class*="content"]');
+    const center = container.querySelector('[class*="center"]');
+    expect(content).toContainElement(center as HTMLElement);
+  });
+
+  it('renders center absolutely and applies compact class when compact', () => {
+    const { container } = render(
+      <Header center={<span>Title</span>} compact />,
+    );
+    const header = screen.getByRole('banner');
+    expect(header.className).toContain('compact');
+    const content = container.querySelector('[class*="content"]');
+    const centerAbsolute = container.querySelector('[class*="centerAbsolute"]');
+    expect(centerAbsolute).toBeInTheDocument();
+    expect(content).not.toContainElement(centerAbsolute as HTMLElement);
+    expect(screen.getByText('Title')).toBeInTheDocument();
+  });
 });

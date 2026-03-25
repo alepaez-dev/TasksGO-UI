@@ -4,12 +4,24 @@
   justify-content: center;
   width: var(--ds-space-avatar-size);
   height: var(--ds-space-avatar-size);
-  font-size: var(--ds-text-avatar-initial-font-size);
   font-family: var(--ds-text-avatar-initial-font-family);
+  line-height: 1;
+  user-select: none;
+}
+
+.project {
+  font-size: var(--ds-text-avatar-initial-font-size);
   font-weight: var(--ds-text-avatar-initial-font-weight);
   background-color: var(--ds-color-avatar-background);
   color: var(--ds-color-avatar-text);
   border-radius: var(--ds-radius-md);
-  line-height: 1;
-  user-select: none;
+}
+
+.profile {
+  font-size: var(--ds-text-avatar-profile-initial-font-size);
+  font-weight: var(--ds-text-avatar-profile-initial-font-weight);
+  background-color: var(--ds-color-avatar-profile-background);
+  color: var(--ds-color-avatar-profile-text);
+  border: 1px solid var(--ds-color-avatar-profile-border);
+  border-radius: var(--ds-radius-full);
 }

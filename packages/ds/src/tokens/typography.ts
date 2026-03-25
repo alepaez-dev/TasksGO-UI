@@ -106,6 +106,14 @@ export const typographyScale = {
     textTransform: 'none',
     lineHeight: '1',
   },
+  avatarProfileInitial: {
+    fontSize: '9px',
+    fontFamily: fontFamilies.mono,
+    fontWeight: fontWeights.medium,
+    letterSpacing: 'normal',
+    textTransform: 'none',
+    lineHeight: '1',
+  },
   navLabel: {
     fontSize: '14px',
     fontFamily: fontFamilies.sans,
@@ -194,6 +202,14 @@ export const typographyScale = {
     letterSpacing: '0.25em',
     textTransform: 'uppercase',
     lineHeight: DEFAULT_LINE_HEIGHT,
+  },
+  headerTitle: {
+    fontSize: '14px',
+    fontFamily: fontFamilies.sans,
+    fontWeight: fontWeights.semibold,
+    letterSpacing: '-0.025em',
+    textTransform: 'none',
+    lineHeight: '1.25',
   },
 } as const satisfies Record<string, TypographyScale>;
 
