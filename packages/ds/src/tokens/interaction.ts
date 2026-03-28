@@ -2,9 +2,19 @@ import { colors } from './colors.ts';
 
 const FOCUS_RING_WIDTH = '3px';
 
+export const transitionDurations = {
+  fast: '100ms',
+  normal: '150ms',
+  slow: '250ms',
+  slower: '400ms',
+} as const;
+
+export type TransitionDuration = keyof typeof transitionDurations;
+
 export const interaction = {
   transition: {
-    duration: '150ms',
+    duration: transitionDurations.normal,
+    durations: transitionDurations,
     timingFunction: 'ease',
     property: 'background-color, color, border-color, opacity',
   },

@@ -2,7 +2,26 @@ import './tokens/tokens.css';
 import './tokens/typography.css';
 
 export { Button, type ButtonProps } from './components/Button';
-export { Icon, type IconProps } from './components/Icon';
+export { Icon, type IconProps, type IconName } from './components/Icon';
+export { IconButton, type IconButtonProps } from './components/IconButton';
+export {
+  AddIcon,
+  AttachFileIcon,
+  AttachmentIcon,
+  CheckCircleIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  ConfirmationNumberIcon,
+  DescriptionIcon,
+  HelpIcon,
+  LinkIcon,
+  MenuIcon,
+  SearchIcon,
+  SettingsIcon,
+  TaskAltIcon,
+  UnfoldMoreIcon,
+  iconRegistry,
+} from './icons';
 export { Avatar, type AvatarProps } from './components/Avatar';
 export { StatusDot, type StatusDotProps } from './components/StatusDot';
 export { Badge, type BadgeProps } from './components/Badge';
@@ -53,8 +72,10 @@ export {
   type SelectorOption,
   type SelectorAction,
 } from './components/Selector';
+export { Drawer, type DrawerProps } from './components/Drawer';
 
 export { useClickOutside } from './hooks/useClickOutside';
+export { useFocusTrap } from './hooks/useFocusTrap';
 
 export {
   colors,
@@ -67,6 +88,7 @@ export {
   effects,
   iconography,
   interaction,
+  transitionDurations,
   zIndex,
   type ColorGroup,
   type TypographyScale,
@@ -78,5 +100,6 @@ export {
   type ElevationToken,
   type EffectToken,
   type IconSize,
+  type TransitionDuration,
   type ZIndexToken,
 } from './tokens';

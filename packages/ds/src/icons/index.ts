@@ -1,0 +1,16 @@
+export { iconRegistry, type IconName } from './iconRegistry';
+export { AddIcon } from './add';
+export { AttachFileIcon } from './attachFile';
+export { AttachmentIcon } from './attachment';
+export { CheckCircleIcon } from './checkCircle';
+export { ChevronRightIcon } from './chevronRight';
+export { CloseIcon } from './close';
+export { ConfirmationNumberIcon } from './confirmationNumber';
+export { DescriptionIcon } from './description';
+export { HelpIcon } from './help';
+export { LinkIcon } from './link';
+export { MenuIcon } from './menu';
+export { SearchIcon } from './search';
+export { SettingsIcon } from './settings';
+export { TaskAltIcon } from './taskAlt';
+export { UnfoldMoreIcon } from './unfoldMore';

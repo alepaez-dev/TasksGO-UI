@@ -27,7 +27,6 @@
   color: var(--ds-color-nav-active-text);
   font-weight: var(--ds-font-weight-semibold);
   box-shadow: var(--ds-elevation-nav);
-  --ds-icon-weight: var(--ds-font-weight-regular);
 }
 
 .md {

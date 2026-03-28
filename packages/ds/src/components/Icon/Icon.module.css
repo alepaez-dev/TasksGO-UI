@@ -1,32 +1,28 @@
 .icon {
-  font-family: var(--ds-icon-family);
-  font-weight: normal;
-  font-variation-settings:
-    'FILL' var(--ds-icon-fill),
-    'wght' var(--ds-icon-weight),
-    'GRAD' var(--ds-icon-grade),
-    'opsz' var(--ds-icon-optical-size);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   line-height: 1;
   user-select: none;
 }
 
+.icon > svg {
+  width: 100%;
+  height: 100%;
+}
+
 .sm {
-  font-size: var(--ds-icon-size-sm);
   width: var(--ds-icon-size-sm);
   height: var(--ds-icon-size-sm);
 }
 
 .md {
-  font-size: var(--ds-icon-size-md);
   width: var(--ds-icon-size-md);
   height: var(--ds-icon-size-md);
 }
 
 .lg {
-  font-size: var(--ds-icon-size-lg);
   width: var(--ds-icon-size-lg);
   height: var(--ds-icon-size-lg);
 }

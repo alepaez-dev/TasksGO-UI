@@ -113,6 +113,8 @@ export const colors = {
     secondaryText: accent.primary,
     secondaryBorder: accent.primary,
     secondaryHoverBg: surface.hover,
+    ghostText: text.primary,
+    ghostHoverBg: surface.hover,
   },
 
   scrollbar,
@@ -165,6 +167,10 @@ export const colors = {
     border: border.default,
     icon: text.secondary,
     placeholder: text.disabled,
+  },
+
+  drawer: {
+    overlay: 'rgba(0, 0, 0, 0.5)',
   },
 } as const;
 

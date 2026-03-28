@@ -1,11 +1,13 @@
 import {
   forwardRef,
+  useId,
   useRef,
   type HTMLAttributes,
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
 import { Icon } from '../Icon';
+import type { IconName } from '../../icons';
 import { cn } from '../../utils/cn';
 import styles from './Selector.module.css';
 
@@ -16,7 +18,7 @@ export type SelectorOption = Readonly<{
 
 export type SelectorAction = Readonly<{
   label: string;
-  icon: string;
+  icon: IconName;
   onClick: () => void;
 }>;
 
@@ -59,9 +61,10 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
     },
     ref,
   ) => {
+    const reactId = useId();
     const triggerRef = useRef<HTMLButtonElement>(null);
     const selected = options.find((o) => o.value === value);
-    const listboxId = rest.id ? `${rest.id}-listbox` : undefined;
+    const listboxId = `${rest.id ?? reactId}-listbox`;
 
     const handleTriggerKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {

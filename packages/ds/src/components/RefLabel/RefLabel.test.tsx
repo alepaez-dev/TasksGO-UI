@@ -24,13 +24,13 @@ describe('RefLabel', () => {
   });
 
   it('renders an icon when icon prop is provided', () => {
-    render(<RefLabel icon="link">Label</RefLabel>);
-    expect(screen.getByText('link')).toBeInTheDocument();
+    const { container } = render(<RefLabel icon="link">Label</RefLabel>);
+    expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
   it('does not render an icon when icon is omitted', () => {
-    render(<RefLabel>Label</RefLabel>);
-    expect(screen.queryByText('link')).not.toBeInTheDocument();
+    const { container } = render(<RefLabel>Label</RefLabel>);
+    expect(container.querySelector('svg')).not.toBeInTheDocument();
   });
 
   it('forwards ref to the span element', () => {

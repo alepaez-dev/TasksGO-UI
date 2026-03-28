@@ -5,6 +5,7 @@ import { RefLabel } from '../RefLabel';
 import { PriorityLabel } from '../PriorityLabel';
 import { TicketId } from '../TicketId';
 import { DateCell } from '../DateCell';
+import type { IconName } from '../../icons';
 import { cn } from '../../utils/cn';
 import styles from './TaskRow.module.css';
 
@@ -21,7 +22,7 @@ export type TaskRowBadge = Readonly<{
 export type TaskRowRef = Readonly<{
   label: string;
   variant?: RefLabelVariant;
-  icon?: string;
+  icon?: IconName;
 }>;
 
 export type TaskRowDate = Readonly<{

@@ -17,6 +17,7 @@ import { FloatingSearch } from '../FloatingSearch';
 import { Avatar } from '../Avatar';
 import { Button } from '../Button';
 import { Icon } from '../Icon';
+import { IconButton } from '../IconButton';
 
 const allResults: SearchPaletteGroup[] = [
   {
@@ -186,27 +187,7 @@ function MobileRender() {
     <div style={{ minHeight: '100vh', position: 'relative' }}>
       <Header
         compact
-        left={
-          // TODO: replace with ghost Button variant when available
-          <button
-            aria-label="Menu"
-            style={{
-              width: 40,
-              height: 40,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginLeft: -8,
-              borderRadius: '9999px',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--ds-color-text-primary)',
-            }}
-          >
-            <Icon name="menu" size="md" />
-          </button>
-        }
+        left={<IconButton icon="menu" aria-label="Menu" />}
         center="Project / Infrastructure"
         right={
           <>
