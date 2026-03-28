@@ -85,7 +85,7 @@
 
 .content {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
   height: 100%;
   padding-top: var(--ds-space-icon-button-md-size);
 }
