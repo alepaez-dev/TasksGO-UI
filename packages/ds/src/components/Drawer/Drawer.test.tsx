@@ -146,6 +146,22 @@ describe('Drawer', () => {
     expect(screen.getByTestId('my-drawer')).toBeInTheDocument();
   });
 
+  it('does not call onClose on Escape when a nested handler already prevented default', () => {
+    const onClose = vi.fn();
+    render(
+      <Drawer open onClose={onClose}>
+        <button
+          data-testid="inner"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') e.preventDefault();
+          }}
+        />
+      </Drawer>,
+    );
+    fireEvent.keyDown(screen.getByTestId('inner'), { key: 'Escape' });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('locks body scroll when open', () => {
     const { unmount } = render(
       <Drawer open onClose={vi.fn()}>
