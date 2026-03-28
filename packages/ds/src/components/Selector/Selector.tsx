@@ -112,7 +112,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
           className={styles.trigger}
           aria-haspopup="listbox"
           aria-expanded={open}
-          aria-controls={listboxId}
+          aria-controls={open ? listboxId : undefined}
           onClick={() => onOpenChange?.(!open)}
           onKeyDown={handleTriggerKeyDown}
         >
