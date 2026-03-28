@@ -7,7 +7,8 @@ function formatResults(label: string, results: Result[]): string {
   return results
     .map(
       (r) =>
-        `  - [${r.impact}] ${r.id}: ${r.description} (${r.nodes.length} node(s))`,
+        `  - [${r.impact}] ${r.id}: ${r.description} (${r.nodes.length} node(s))\n` +
+        r.nodes.map((n) => `    HTML: ${n.html}`).join('\n'),
     )
     .join('\n');
 }
