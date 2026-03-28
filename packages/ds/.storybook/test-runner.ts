@@ -1,9 +1,9 @@
 import type { TestRunnerConfig } from '@storybook/test-runner';
 import { getStoryContext } from '@storybook/test-runner';
-import { checkA11y, injectAxe } from 'axe-playwright';
+import { injectAxe } from 'axe-playwright';
 import type { Result } from 'axe-core';
 
-function formatResults(label: string, results: Result[]): string {
+function formatResults(results: Result[]): string {
   return results
     .map(
       (r) =>
@@ -47,13 +47,13 @@ const config: TestRunnerConfig = {
 
     if (results.violations.length > 0) {
       throw new Error(
-        `A11y violations:\n${formatResults('Violations', results.violations)}`,
+        `A11y violations:\n${formatResults(results.violations)}`,
       );
     }
 
     if (results.incomplete.length > 0) {
       throw new Error(
-        `Inconclusive a11y checks:\n${formatResults('Inconclusive', results.incomplete)}`,
+        `Inconclusive a11y checks:\n${formatResults(results.incomplete)}`,
       );
     }
   },
