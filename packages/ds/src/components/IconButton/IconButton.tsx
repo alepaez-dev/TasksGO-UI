@@ -15,18 +15,13 @@ export interface IconButtonProps extends Omit<
   size?: IconButtonSize;
 }
 
-const iconSizeMap = {
-  sm: 'sm',
-  md: 'md',
-} as const;
-
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   ({ icon, size = 'md', className, ...rest }, ref) => {
     const classes = cn(styles.iconButton, styles[size], className);
 
     return (
       <button ref={ref} type="button" className={classes} {...rest}>
-        <Icon name={icon} size={iconSizeMap[size]} />
+        <Icon name={icon} size={size} />
       </button>
     );
   },
