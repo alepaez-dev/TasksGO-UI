@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Icon } from '../Icon';
 import { cn } from '../../utils/cn';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import {
   transitionDurations,
   type TransitionDuration,
@@ -42,15 +43,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
     const panelRef = useRef<HTMLDivElement>(null);
 
     useFocusTrap(panelRef, open);
-
-    useEffect(() => {
-      if (!open) return;
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = prev;
-      };
-    }, [open]);
+    useScrollLock(open);
 
     useEffect(() => {
       if (!open) return;

@@ -11,6 +11,7 @@ import {
   type SearchPaletteResult,
 } from '../SearchPalette';
 import { cn } from '../../utils/cn';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import {
   transitionDurations,
   type TransitionDuration,
@@ -46,10 +47,12 @@ export const MobileSearchSheet = forwardRef<
     },
     ref,
   ) => {
+    useScrollLock(open);
+
     useEffect(() => {
       if (!open) return;
       function handleKeyDown(e: KeyboardEvent) {
-        if (e.key === 'Escape') {
+        if (e.key === 'Escape' && !e.defaultPrevented) {
           onClose();
         }
       }

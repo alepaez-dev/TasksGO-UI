@@ -1,4 +1,7 @@
+import type { JestExpect } from '@jest/expect';
 import type { TestRunnerConfig } from '@storybook/test-runner';
+
+declare const expect: JestExpect;
 import { getStoryContext } from '@storybook/test-runner';
 import { injectAxe } from 'axe-playwright';
 import type { Result } from 'axe-core';
@@ -55,6 +58,13 @@ const config: TestRunnerConfig = {
       throw new Error(
         `Inconclusive a11y checks:\n${formatResults(results.incomplete)}`,
       );
+    }
+
+    if (storyContext.parameters?.scrollLock) {
+      const before = await page.evaluate(() => window.scrollY);
+      await page.mouse.wheel(0, 500);
+      const after = await page.evaluate(() => window.scrollY);
+      expect(after).toBe(before);
     }
   },
 };
