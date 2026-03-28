@@ -138,6 +138,7 @@ export const colors = {
     focusBorder: accent.primary,
     icon: text.secondary,
     placeholder: text.disabled,
+    clearText: text.secondary,
   },
 
   searchPalette: {
@@ -163,12 +164,19 @@ export const colors = {
   },
 
   floatingSearch: {
-    background: 'rgba(255, 255, 255, 0.9)',
+    background: surface.primary,
     border: border.default,
   },
 
   drawer: {
     overlay: 'rgba(0, 0, 0, 0.5)',
+  },
+
+  mobileSearchSheet: {
+    overlay: 'rgba(0, 0, 0, 0.3)',
+    footerBg: 'rgba(255, 255, 255, 0.95)',
+    footerBorder: border.default,
+    resultBorder: '#f3f4f6',
   },
 } as const;
 

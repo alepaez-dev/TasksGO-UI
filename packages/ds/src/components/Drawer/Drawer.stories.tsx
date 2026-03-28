@@ -106,7 +106,12 @@ function SidebarContent() {
   );
 }
 
-function DefaultRender(props: Partial<React.ComponentProps<typeof Drawer>>) {
+function DefaultRender(
+  props: Omit<
+    Partial<React.ComponentProps<typeof Drawer>>,
+    'aria-label' | 'aria-labelledby'
+  >,
+) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -116,7 +121,12 @@ function DefaultRender(props: Partial<React.ComponentProps<typeof Drawer>>) {
         aria-label="Open menu"
         onClick={() => setOpen(true)}
       />
-      <Drawer {...props} open={open} onClose={() => setOpen(false)}>
+      <Drawer
+        {...props}
+        open={open}
+        onClose={() => setOpen(false)}
+        aria-label="Navigation menu"
+      >
         <SidebarContent />
       </Drawer>
     </div>
@@ -127,7 +137,12 @@ export const Default: Story = {
   render: (args) => <DefaultRender {...args} />,
 };
 
-function RightSideRender(props: Partial<React.ComponentProps<typeof Drawer>>) {
+function RightSideRender(
+  props: Omit<
+    Partial<React.ComponentProps<typeof Drawer>>,
+    'aria-label' | 'aria-labelledby'
+  >,
+) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -142,6 +157,7 @@ function RightSideRender(props: Partial<React.ComponentProps<typeof Drawer>>) {
         open={open}
         onClose={() => setOpen(false)}
         side="right"
+        aria-label="Details panel"
       >
         <div style={{ padding: '48px 24px 24px' }}>
           <p>Right-side drawer content</p>
@@ -156,25 +172,8 @@ export const RightSide: Story = {
   render: (args) => <RightSideRender {...args} />,
 };
 
-function MobileRender(props: Partial<React.ComponentProps<typeof Drawer>>) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div style={{ minHeight: '100vh' }}>
-      <IconButton
-        icon="menu"
-        aria-label="Open menu"
-        onClick={() => setOpen(true)}
-      />
-      <Drawer {...props} open={open} onClose={() => setOpen(false)}>
-        <SidebarContent />
-      </Drawer>
-    </div>
-  );
-}
-
 export const Mobile: Story = {
-  render: (args) => <MobileRender {...args} />,
+  render: (args) => <DefaultRender {...args} />,
   decorators: [withDefaultViewport('mobile')],
   parameters: {
     viewport: {

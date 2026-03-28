@@ -86,6 +86,16 @@ export const spacing = {
     smSize: '24px',
     mdSize: '32px',
   },
+  mobileSearchSheet: {
+    height: '55vh',
+    topRadius: '24px',
+    footerPaddingX: '16px',
+    footerPaddingY: '32px',
+    resultPaddingX: '24px',
+    resultPaddingY: '12px',
+    groupHeaderPaddingX: '24px',
+    groupHeaderPaddingY: '8px',
+  },
   drawer: {
     closeButtonInset: '12px',
   },

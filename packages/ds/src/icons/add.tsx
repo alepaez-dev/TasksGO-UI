@@ -1,18 +1,6 @@
-import type { SVGProps } from 'react';
+import { createIcon } from './createIcon';
 
-export function AddIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 -960 960 960"
-      width="1em"
-      height="1em"
-      fill="currentColor"
-      aria-hidden="true"
-      focusable="false"
-      {...props}
-    >
-      <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" />
-    </svg>
-  );
-}
+export const AddIcon = createIcon(
+  'M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z',
+  'AddIcon',
+);

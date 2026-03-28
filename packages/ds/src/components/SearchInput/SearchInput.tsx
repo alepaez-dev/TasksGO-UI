@@ -11,10 +11,11 @@ export interface SearchInputProps extends Omit<
 > {
   shortcutHint?: string;
   size?: SearchInputSize;
+  onClear?: () => void;
 }
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
-  ({ shortcutHint, size = 'md', className, ...inputProps }, ref) => {
+  ({ shortcutHint, size = 'md', onClear, className, ...inputProps }, ref) => {
     return (
       <div className={cn(styles.wrapper, styles[size], className)}>
         <Icon name="search" size="sm" className={styles.icon} />
@@ -24,7 +25,18 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           className={styles.input}
           {...inputProps}
         />
-        {shortcutHint && <kbd className={styles.kbd}>{shortcutHint}</kbd>}
+        {onClear ? (
+          <button
+            type="button"
+            className={styles.clearButton}
+            onClick={onClear}
+            aria-label="Clear search"
+          >
+            Clear
+          </button>
+        ) : shortcutHint ? (
+          <kbd className={styles.kbd}>{shortcutHint}</kbd>
+        ) : null}
       </div>
     );
   },

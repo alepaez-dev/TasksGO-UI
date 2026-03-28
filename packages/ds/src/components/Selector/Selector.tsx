@@ -112,6 +112,8 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
           className={styles.trigger}
           aria-haspopup="listbox"
           aria-expanded={open}
+          // No aria-controls: axe-core reports it as inconclusive even when
+          // the referenced listbox exists. See commit e15655d.
           onClick={() => onOpenChange?.(!open)}
           onKeyDown={handleTriggerKeyDown}
         >

@@ -46,4 +46,18 @@ describe('FloatingSearch', () => {
     expect(input).toHaveAttribute('data-testid', 'float-input');
     expect(input).toHaveAttribute('aria-label', 'Search');
   });
+
+  it('renders clear button when onClear is provided', () => {
+    render(<FloatingSearch onClear={() => {}} />);
+    expect(
+      screen.getByRole('button', { name: 'Clear search' }),
+    ).toBeInTheDocument();
+  });
+
+  it('calls onClear when clear button is clicked', () => {
+    const handleClear = vi.fn();
+    render(<FloatingSearch onClear={handleClear} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
+    expect(handleClear).toHaveBeenCalledOnce();
+  });
 });

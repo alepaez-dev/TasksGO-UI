@@ -23,14 +23,29 @@ export function getSearchPaletteOptionId(
   return `${paletteId}-${resultId}`;
 }
 
+type SearchPaletteVariant = 'default' | 'mobile';
+
 export interface SearchPaletteProps extends HTMLAttributes<HTMLDivElement> {
   groups: readonly SearchPaletteGroup[];
   activeResultId?: string;
   onResultSelect?: (result: SearchPaletteResult) => void;
+  variant?: SearchPaletteVariant;
 }
 
 export const SearchPalette = forwardRef<HTMLDivElement, SearchPaletteProps>(
-  ({ groups, activeResultId, onResultSelect, className, id, ...rest }, ref) => {
+  (
+    {
+      groups,
+      activeResultId,
+      onResultSelect,
+      variant = 'default',
+      className,
+      id,
+      ...rest
+    },
+    ref,
+  ) => {
+    const isMobile = variant === 'mobile';
     const paletteId = id ?? 'search-palette';
     const optionId = (resultId: string) =>
       getSearchPaletteOptionId(paletteId, resultId);
@@ -48,12 +63,19 @@ export const SearchPalette = forwardRef<HTMLDivElement, SearchPaletteProps>(
         ref={ref}
         id={id}
         role="listbox"
-        className={cn(styles.palette, className)}
+        className={cn(styles.palette, isMobile && styles.mobile, className)}
         {...rest}
       >
         {groups.map((group) => (
           <div key={group.title} role="group" aria-label={group.title}>
-            <div className={styles.groupHeader}>{group.title}</div>
+            <div
+              className={cn(
+                styles.groupHeader,
+                isMobile && styles.mobileGroupHeader,
+              )}
+            >
+              {group.title}
+            </div>
             {group.results.map((result) => {
               const isActive = result.id === activeResultId;
               return (
@@ -63,7 +85,11 @@ export const SearchPalette = forwardRef<HTMLDivElement, SearchPaletteProps>(
                   role="option"
                   tabIndex={-1}
                   aria-selected={isActive}
-                  className={cn(styles.result, isActive && styles.resultActive)}
+                  className={cn(
+                    styles.result,
+                    isMobile && styles.mobileResult,
+                    isActive && styles.resultActive,
+                  )}
                   onClick={() => onResultSelect?.(result)}
                   onKeyDown={handleResultKeyDown(result)}
                 >

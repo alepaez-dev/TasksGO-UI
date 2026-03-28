@@ -69,6 +69,28 @@
   color: var(--ds-color-search-input-placeholder);
 }
 
+.clearButton {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: var(--ds-text-search-input-clear-font-size);
+  font-family: var(--ds-text-search-input-clear-font-family);
+  font-weight: var(--ds-text-search-input-clear-font-weight);
+  letter-spacing: var(--ds-text-search-input-clear-letter-spacing);
+  text-transform: var(--ds-text-search-input-clear-text-transform);
+  color: var(--ds-color-search-input-clear-text);
+  line-height: var(--ds-text-search-input-clear-line-height);
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.clearButton:hover {
+  color: var(--ds-color-text-primary);
+}
+
 .kbd {
   display: inline-flex;
   align-items: center;

@@ -51,6 +51,10 @@ export {
   type SearchPaletteResult,
   type SearchPaletteGroup,
 } from './components/SearchPalette';
+export {
+  MobileSearchSheet,
+  type MobileSearchSheetProps,
+} from './components/MobileSearchSheet';
 export { TaskSection, type TaskSectionProps } from './components/TaskSection';
 export {
   TaskRow,
