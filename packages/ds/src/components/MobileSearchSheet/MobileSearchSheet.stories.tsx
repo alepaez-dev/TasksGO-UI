@@ -90,15 +90,15 @@ function DefaultRender() {
       <FloatingSearch
         placeholder="Search tasks or commands..."
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          if (!open) setOpen(true);
+        }}
         onFocus={() => setOpen(true)}
       />
       <MobileSearchSheet
         open={open}
-        onClose={() => {
-          setOpen(false);
-          setQuery('');
-        }}
+        onClose={() => setOpen(false)}
         groups={groups}
         emptyState="No results found"
       />
