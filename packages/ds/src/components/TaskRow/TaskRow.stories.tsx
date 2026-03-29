@@ -19,6 +19,7 @@ const meta = {
       options: ['critical', 'high', 'medium', 'low'],
     },
     ticketId: { control: 'text' },
+    date: { control: 'object' },
     layout: {
       control: 'select',
       options: ['default', 'compact'],

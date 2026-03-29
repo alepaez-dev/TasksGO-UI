@@ -3,6 +3,7 @@ import { cn } from '../../utils/cn';
 import styles from './DateCell.module.css';
 
 export interface DateCellProps extends HTMLAttributes<HTMLTimeElement> {
+  /** Display label — e.g. "Today", "Mar 15", "2 days ago" */
   date: string;
   urgent?: boolean;
   dateTime: string;
