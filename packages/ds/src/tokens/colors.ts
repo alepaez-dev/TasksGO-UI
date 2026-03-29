@@ -174,8 +174,6 @@ export const colors = {
 
   mobileSearchSheet: {
     overlay: 'rgba(0, 0, 0, 0.3)',
-    footerBg: 'rgba(255, 255, 255, 0.95)',
-    footerBorder: border.default,
     resultBorder: '#f3f4f6',
   },
 } as const;

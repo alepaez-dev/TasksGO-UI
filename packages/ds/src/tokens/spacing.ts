@@ -89,8 +89,6 @@ export const spacing = {
   mobileSearchSheet: {
     height: '55vh',
     topRadius: '24px',
-    footerPaddingX: '16px',
-    footerPaddingY: '32px',
     resultPaddingX: '24px',
     resultPaddingY: '12px',
     groupHeaderPaddingX: '24px',
