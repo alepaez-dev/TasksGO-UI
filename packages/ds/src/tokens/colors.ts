@@ -164,7 +164,7 @@ export const colors = {
   },
 
   floatingSearch: {
-    background: surface.primary,
+    background: 'rgba(255, 255, 255, 0.9)',
     border: border.default,
   },
 
