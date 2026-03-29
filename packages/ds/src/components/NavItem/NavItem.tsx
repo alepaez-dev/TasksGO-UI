@@ -1,5 +1,6 @@
 import { forwardRef, type AnchorHTMLAttributes } from 'react';
 import { Icon } from '../Icon';
+import type { IconName } from '../../icons';
 import { cn } from '../../utils/cn';
 import { sanitizeHref } from '../../utils/sanitizeHref';
 import styles from './NavItem.module.css';
@@ -10,7 +11,7 @@ export interface NavItemProps extends Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,
   'href'
 > {
-  icon: string;
+  icon: IconName;
   label: string;
   href: string;
   active?: boolean;

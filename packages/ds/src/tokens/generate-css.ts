@@ -216,17 +216,17 @@ export function generateTokensCSS(): string {
   }
   lines.push('');
 
-  lines.push(`  --ds-icon-family: '${iconography.family}';`);
-  lines.push(`  --ds-icon-fill: ${iconography.fill};`);
-  lines.push(`  --ds-icon-weight: ${iconography.weight};`);
-  lines.push(`  --ds-icon-grade: ${iconography.grade};`);
-  lines.push(`  --ds-icon-optical-size: ${iconography.opticalSize};`);
   for (const [name, value] of Object.entries(iconography.sizes)) {
     lines.push(`  --ds-icon-size-${camelToKebab(name)}: ${value};`);
   }
   lines.push('');
 
   lines.push(`  --ds-transition-duration: ${interaction.transition.duration};`);
+  for (const [name, value] of Object.entries(
+    interaction.transition.durations,
+  )) {
+    lines.push(`  --ds-transition-duration-${name}: ${value};`);
+  }
   lines.push(`  --ds-transition-property: ${interaction.transition.property};`);
   lines.push(
     `  --ds-transition-timing-function: ${interaction.transition.timingFunction};`,

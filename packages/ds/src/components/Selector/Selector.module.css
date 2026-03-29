@@ -120,8 +120,6 @@
 .checkIcon {
   flex-shrink: 0;
   color: var(--ds-color-accent-primary);
-  --ds-icon-weight: 500;
-  --ds-icon-optical-size: 24;
 }
 
 .actionWrapper {

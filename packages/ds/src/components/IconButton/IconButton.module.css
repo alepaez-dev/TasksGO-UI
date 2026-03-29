@@ -1,0 +1,37 @@
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--ds-radius-md);
+  background: none;
+  color: var(--ds-color-button-ghost-text);
+  cursor: pointer;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.iconButton:hover:not(:disabled) {
+  background-color: var(--ds-color-button-ghost-hover-bg);
+}
+
+.iconButton:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.iconButton:disabled {
+  opacity: var(--ds-effect-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.sm {
+  width: var(--ds-space-icon-button-sm-size);
+  height: var(--ds-space-icon-button-sm-size);
+}
+
+.md {
+  width: var(--ds-space-icon-button-md-size);
+  height: var(--ds-space-icon-button-md-size);
+}

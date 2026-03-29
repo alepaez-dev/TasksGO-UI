@@ -113,6 +113,8 @@ export const colors = {
     secondaryText: accent.primary,
     secondaryBorder: accent.primary,
     secondaryHoverBg: surface.hover,
+    ghostText: text.primary,
+    ghostHoverBg: surface.hover,
   },
 
   scrollbar,
@@ -163,6 +165,10 @@ export const colors = {
   floatingSearch: {
     background: 'rgba(255, 255, 255, 0.9)',
     border: border.default,
+  },
+
+  drawer: {
+    overlay: 'rgba(0, 0, 0, 0.5)',
   },
 } as const;
 

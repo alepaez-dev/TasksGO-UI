@@ -82,6 +82,13 @@ export const spacing = {
     paddingX: '16px',
     bottomOffset: '32px',
   },
+  iconButton: {
+    smSize: '24px',
+    mdSize: '32px',
+  },
+  drawer: {
+    closeButtonInset: '12px',
+  },
   columnWidths: {
     priority: '80px',
     ticketId: '100px',

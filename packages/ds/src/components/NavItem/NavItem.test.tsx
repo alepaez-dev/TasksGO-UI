@@ -16,8 +16,10 @@ describe('NavItem', () => {
   });
 
   it('renders the icon', () => {
-    render(<NavItem icon="task_alt" label="Tasks" href="/tasks" />);
-    expect(screen.getByText('task_alt')).toBeInTheDocument();
+    const { container } = render(
+      <NavItem icon="task_alt" label="Tasks" href="/tasks" />,
+    );
+    expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
   it('sets aria-current="page" when active', () => {
