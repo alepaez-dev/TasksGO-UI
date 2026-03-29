@@ -29,6 +29,7 @@ const TOKEN_FILES = [
   '/src/tokens/effects.ts',
   '/src/tokens/iconography.ts',
   '/src/tokens/interaction.ts',
+  '/src/tokens/zIndex.ts',
 ];
 
 async function formatCSS(css: string, root: string): Promise<string> {

@@ -138,6 +138,7 @@ export const colors = {
     focusBorder: accent.primary,
     icon: text.secondary,
     placeholder: text.disabled,
+    clearText: text.secondary,
   },
 
   searchPalette: {
@@ -169,6 +170,11 @@ export const colors = {
 
   drawer: {
     overlay: 'rgba(0, 0, 0, 0.5)',
+  },
+
+  mobileSearchSheet: {
+    overlay: 'rgba(0, 0, 0, 0.3)',
+    resultBorder: '#f3f4f6',
   },
 } as const;
 

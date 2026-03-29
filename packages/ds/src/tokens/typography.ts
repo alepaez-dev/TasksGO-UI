@@ -171,6 +171,14 @@ export const typographyScale = {
     textTransform: 'none',
     lineHeight: DEFAULT_LINE_HEIGHT,
   },
+  searchInputClear: {
+    fontSize: '10px',
+    fontFamily: fontFamilies.mono,
+    fontWeight: fontWeights.semibold,
+    letterSpacing: '0.15em',
+    textTransform: 'uppercase',
+    lineHeight: '1',
+  },
   searchInputSm: {
     fontSize: '12px',
     fontFamily: fontFamilies.sans,

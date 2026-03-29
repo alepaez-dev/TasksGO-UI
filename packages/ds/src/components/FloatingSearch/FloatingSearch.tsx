@@ -8,16 +8,18 @@ export interface FloatingSearchProps extends Omit<
   'type' | 'size'
 > {
   shortcutHint?: string;
+  onClear?: () => void;
 }
 
 export const FloatingSearch = forwardRef<HTMLInputElement, FloatingSearchProps>(
-  ({ shortcutHint, className, ...inputProps }, ref) => {
+  ({ shortcutHint, onClear, className, ...inputProps }, ref) => {
     return (
       <div className={styles.positioner}>
         <div className={cn(styles.bar, className)}>
           <SearchInput
             ref={ref}
             shortcutHint={shortcutHint}
+            onClear={onClear}
             className={styles.searchInput}
             {...inputProps}
           />

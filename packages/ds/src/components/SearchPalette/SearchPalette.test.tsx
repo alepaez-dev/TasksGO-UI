@@ -193,4 +193,24 @@ describe('SearchPalette', () => {
     await user.keyboard(' ');
     expect(handleSelect).toHaveBeenCalledWith(groups[0].results[1]);
   });
+
+  it('applies mobile class when variant is mobile', () => {
+    const { container } = render(
+      <SearchPalette
+        groups={groups}
+        variant="mobile"
+        aria-label="Search results"
+      />,
+    );
+    const palette = container.querySelector('[role="listbox"]');
+    expect(palette).toHaveClass('mobile');
+  });
+
+  it('does not apply mobile class by default', () => {
+    const { container } = render(
+      <SearchPalette groups={groups} aria-label="Search results" />,
+    );
+    const palette = container.querySelector('[role="listbox"]');
+    expect(palette).not.toHaveClass('mobile');
+  });
 });

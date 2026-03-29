@@ -80,3 +80,25 @@
 .doc {
   color: var(--ds-color-search-palette-ref-doc);
 }
+
+.mobile {
+  position: static;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  background-color: transparent;
+}
+
+.mobileGroupHeader {
+  padding: var(--ds-space-mobile-search-sheet-group-header-padding-y)
+    var(--ds-space-mobile-search-sheet-group-header-padding-x);
+}
+
+.mobileResult {
+  margin: 0;
+  border-radius: 0;
+  padding: var(--ds-space-mobile-search-sheet-result-padding-y)
+    var(--ds-space-mobile-search-sheet-result-padding-x);
+  border-bottom: 1px solid var(--ds-color-mobile-search-sheet-result-border);
+}

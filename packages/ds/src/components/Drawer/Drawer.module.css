@@ -1,7 +1,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  z-index: var(--ds-z-overlay);
+  z-index: var(--ds-z-modal);
   background-color: var(--ds-color-drawer-overlay);
   opacity: 0;
   visibility: hidden;

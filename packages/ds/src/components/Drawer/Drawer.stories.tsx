@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
+import { expect, userEvent, waitFor } from 'storybook/test';
 import { withDefaultViewport } from '../../../.storybook/decorators';
 import { mobileViewportOptions } from '../../../.storybook/preview';
 import { Drawer } from './Drawer';
@@ -9,6 +10,9 @@ import { NavItem } from '../NavItem';
 import { Avatar } from '../Avatar';
 import { SectionHeader } from '../SectionHeader';
 import { IconButton } from '../IconButton';
+import { FloatingSearch } from '../FloatingSearch';
+import { MobileSearchSheet } from '../MobileSearchSheet';
+import type { SearchPaletteGroup } from '../SearchPalette';
 import { useClickOutside } from '../../hooks/useClickOutside';
 
 const projects = [
@@ -106,7 +110,12 @@ function SidebarContent() {
   );
 }
 
-function DefaultRender(props: Partial<React.ComponentProps<typeof Drawer>>) {
+function DefaultRender(
+  props: Omit<
+    Partial<React.ComponentProps<typeof Drawer>>,
+    'aria-label' | 'aria-labelledby'
+  >,
+) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -116,7 +125,12 @@ function DefaultRender(props: Partial<React.ComponentProps<typeof Drawer>>) {
         aria-label="Open menu"
         onClick={() => setOpen(true)}
       />
-      <Drawer {...props} open={open} onClose={() => setOpen(false)}>
+      <Drawer
+        {...props}
+        open={open}
+        onClose={() => setOpen(false)}
+        aria-label="Navigation menu"
+      >
         <SidebarContent />
       </Drawer>
     </div>
@@ -127,7 +141,12 @@ export const Default: Story = {
   render: (args) => <DefaultRender {...args} />,
 };
 
-function RightSideRender(props: Partial<React.ComponentProps<typeof Drawer>>) {
+function RightSideRender(
+  props: Omit<
+    Partial<React.ComponentProps<typeof Drawer>>,
+    'aria-label' | 'aria-labelledby'
+  >,
+) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -142,6 +161,7 @@ function RightSideRender(props: Partial<React.ComponentProps<typeof Drawer>>) {
         open={open}
         onClose={() => setOpen(false)}
         side="right"
+        aria-label="Details panel"
       >
         <div style={{ padding: '48px 24px 24px' }}>
           <p>Right-side drawer content</p>
@@ -156,29 +176,144 @@ export const RightSide: Story = {
   render: (args) => <RightSideRender {...args} />,
 };
 
-function MobileRender(props: Partial<React.ComponentProps<typeof Drawer>>) {
-  const [open, setOpen] = useState(false);
+export const Mobile: Story = {
+  render: (args) => <DefaultRender {...args} />,
+  decorators: [withDefaultViewport('mobile')],
+  parameters: {
+    viewport: {
+      options: mobileViewportOptions,
+    },
+  },
+};
+
+const searchGroups: SearchPaletteGroup[] = [
+  {
+    title: 'Jump to Task',
+    results: [
+      {
+        id: 'r1',
+        label: 'Refactor Kubernetes service discovery',
+        refId: 'T-104',
+        type: 'task',
+      },
+      {
+        id: 'r2',
+        label: 'Implement Redis cache for metadata',
+        refId: 'T-42',
+        type: 'task',
+      },
+    ],
+  },
+  {
+    title: 'Jump to Ticket',
+    results: [
+      {
+        id: 'r3',
+        label: 'Audit IAM permissions for staging',
+        refId: 'ENG-902',
+        type: 'ticket',
+      },
+    ],
+  },
+];
+
+function filterGroups(query: string): SearchPaletteGroup[] {
+  const q = query.toLowerCase();
+  return searchGroups
+    .map((group) => ({
+      ...group,
+      results: group.results.filter(
+        (r) =>
+          r.label.toLowerCase().includes(q) ||
+          r.refId.toLowerCase().includes(q),
+      ),
+    }))
+    .filter((group) => group.results.length > 0);
+}
+
+function WithFloatingSearchRender(
+  props: Omit<
+    Partial<React.ComponentProps<typeof Drawer>>,
+    'aria-label' | 'aria-labelledby'
+  >,
+) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const groups = query.length > 0 ? filterGroups(query) : searchGroups;
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div style={{ minHeight: '200vh', position: 'relative' }}>
       <IconButton
         icon="menu"
         aria-label="Open menu"
-        onClick={() => setOpen(true)}
+        onClick={() => setDrawerOpen(true)}
       />
-      <Drawer {...props} open={open} onClose={() => setOpen(false)}>
+      <div style={{ padding: '64px 16px' }}>
+        {Array.from({ length: 30 }, (_, i) => (
+          <p
+            key={i}
+            style={{
+              margin: '16px 0',
+              color: 'var(--ds-color-text-secondary)',
+            }}
+          >
+            Scrollable content line {i + 1}
+          </p>
+        ))}
+      </div>
+      <FloatingSearch
+        placeholder="Search tasks..."
+        shortcutHint="⌘K"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          if (!sheetOpen) setSheetOpen(true);
+        }}
+        onFocus={() => setSheetOpen(true)}
+      />
+      <MobileSearchSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        groups={groups}
+        emptyState="No results found"
+      />
+      <Drawer
+        {...props}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        aria-label="Navigation menu"
+      >
         <SidebarContent />
       </Drawer>
     </div>
   );
 }
 
-export const Mobile: Story = {
-  render: (args) => <MobileRender {...args} />,
+export const WithFloatingSearch: Story = {
+  render: (args) => <WithFloatingSearchRender {...args} />,
   decorators: [withDefaultViewport('mobile')],
   parameters: {
     viewport: {
       options: mobileViewportOptions,
     },
+    scrollLock: true,
+  },
+  play: async ({ canvasElement }) => {
+    const searchInput = canvasElement.querySelector<HTMLInputElement>(
+      'input[placeholder="Search tasks..."]',
+    );
+    if (!searchInput) throw new Error('Search input not found');
+    await userEvent.click(searchInput);
+
+    await waitFor(() => {
+      const sheet = canvasElement.ownerDocument.querySelector(
+        '[aria-label="Search results"]',
+      );
+      expect(sheet).toBeTruthy();
+    });
+
+    const doc = canvasElement.ownerDocument;
+    expect(doc.body.style.overflow).toBe('hidden');
   },
 };

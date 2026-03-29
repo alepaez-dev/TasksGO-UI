@@ -4,6 +4,7 @@ export const elevation = {
   dropdown: '0 10px 30px -10px rgba(0, 0, 0, 0.05)',
   floatingSearch: '0 25px 50px -12px rgba(0, 0, 0, 0.05)',
   drawer: '4px 0 24px rgba(0, 0, 0, 0.12)',
+  mobileSearchSheet: '0 -10px 15px -3px rgba(0, 0, 0, 0.05)',
 } as const;
 
 export type ElevationToken = keyof typeof elevation;

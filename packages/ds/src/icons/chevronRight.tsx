@@ -1,18 +1,6 @@
-import type { SVGProps } from 'react';
+import { createIcon } from './createIcon';
 
-export function ChevronRightIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 -960 960 960"
-      width="1em"
-      height="1em"
-      fill="currentColor"
-      aria-hidden="true"
-      focusable="false"
-      {...props}
-    >
-      <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z" />
-    </svg>
-  );
-}
+export const ChevronRightIcon = createIcon(
+  'M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z',
+  'ChevronRightIcon',
+);

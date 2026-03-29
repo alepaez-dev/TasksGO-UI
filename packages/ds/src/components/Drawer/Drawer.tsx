@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Icon } from '../Icon';
 import { cn } from '../../utils/cn';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import {
   transitionDurations,
   type TransitionDuration,
@@ -11,13 +12,18 @@ import styles from './Drawer.module.css';
 
 type DrawerSide = 'left' | 'right';
 
-export interface DrawerProps extends HTMLAttributes<HTMLDivElement> {
-  open: boolean;
-  onClose: () => void;
-  side?: DrawerSide;
-  closeLabel?: string;
-  speed?: TransitionDuration;
-}
+type DrawerLabelProps =
+  | { 'aria-label': string; 'aria-labelledby'?: never }
+  | { 'aria-label'?: never; 'aria-labelledby': string };
+
+export type DrawerProps = DrawerLabelProps &
+  Omit<HTMLAttributes<HTMLDivElement>, 'aria-label' | 'aria-labelledby'> & {
+    open: boolean;
+    onClose: () => void;
+    side?: DrawerSide;
+    closeLabel?: string;
+    duration?: TransitionDuration;
+  };
 
 export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
   (
@@ -26,7 +32,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       onClose,
       side = 'left',
       closeLabel = 'Close',
-      speed = 'normal',
+      duration = 'normal',
       children,
       className,
       style,
@@ -37,15 +43,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
     const panelRef = useRef<HTMLDivElement>(null);
 
     useFocusTrap(panelRef, open);
-
-    useEffect(() => {
-      if (!open) return;
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = prev;
-      };
-    }, [open]);
+    useScrollLock(open);
 
     useEffect(() => {
       if (!open) return;
@@ -67,7 +65,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
     if (typeof document === 'undefined') return null;
 
     const durationStyle = {
-      '--drawer-duration': transitionDurations[speed],
+      '--drawer-duration': transitionDurations[duration],
     } as React.CSSProperties;
 
     return createPortal(

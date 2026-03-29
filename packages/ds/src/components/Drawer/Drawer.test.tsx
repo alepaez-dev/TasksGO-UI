@@ -5,7 +5,7 @@ import { Drawer } from './Drawer';
 describe('Drawer', () => {
   it('renders a dialog with aria-modal when open', () => {
     render(
-      <Drawer open onClose={vi.fn()}>
+      <Drawer open onClose={vi.fn()} aria-label="Navigation">
         content
       </Drawer>,
     );
@@ -15,7 +15,7 @@ describe('Drawer', () => {
 
   it('renders children inside the panel', () => {
     render(
-      <Drawer open onClose={vi.fn()}>
+      <Drawer open onClose={vi.fn()} aria-label="Navigation">
         Hello Drawer
       </Drawer>,
     );
@@ -25,7 +25,7 @@ describe('Drawer', () => {
   it('calls onClose when backdrop is clicked', () => {
     const onClose = vi.fn();
     render(
-      <Drawer open onClose={onClose}>
+      <Drawer open onClose={onClose} aria-label="Test">
         content
       </Drawer>,
     );
@@ -38,7 +38,7 @@ describe('Drawer', () => {
   it('does not call onClose when panel is clicked', () => {
     const onClose = vi.fn();
     render(
-      <Drawer open onClose={onClose}>
+      <Drawer open onClose={onClose} aria-label="Test">
         content
       </Drawer>,
     );
@@ -49,7 +49,7 @@ describe('Drawer', () => {
   it('calls onClose when Escape is pressed', () => {
     const onClose = vi.fn();
     render(
-      <Drawer open onClose={onClose}>
+      <Drawer open onClose={onClose} aria-label="Test">
         content
       </Drawer>,
     );
@@ -60,7 +60,7 @@ describe('Drawer', () => {
   it('does not call onClose on Escape when closed', () => {
     const onClose = vi.fn();
     render(
-      <Drawer open={false} onClose={onClose}>
+      <Drawer open={false} onClose={onClose} aria-label="Test">
         content
       </Drawer>,
     );
@@ -70,7 +70,7 @@ describe('Drawer', () => {
 
   it('renders close button with correct aria-label', () => {
     render(
-      <Drawer open onClose={vi.fn()}>
+      <Drawer open onClose={vi.fn()} aria-label="Navigation">
         content
       </Drawer>,
     );
@@ -79,7 +79,7 @@ describe('Drawer', () => {
 
   it('uses custom closeLabel', () => {
     render(
-      <Drawer open onClose={vi.fn()} closeLabel="Cerrar">
+      <Drawer open onClose={vi.fn()} closeLabel="Cerrar" aria-label="Test">
         content
       </Drawer>,
     );
@@ -89,7 +89,7 @@ describe('Drawer', () => {
   it('calls onClose when close button is clicked', () => {
     const onClose = vi.fn();
     render(
-      <Drawer open onClose={onClose}>
+      <Drawer open onClose={onClose} aria-label="Test">
         content
       </Drawer>,
     );
@@ -99,7 +99,7 @@ describe('Drawer', () => {
 
   it('applies left side class by default', () => {
     render(
-      <Drawer open onClose={vi.fn()}>
+      <Drawer open onClose={vi.fn()} aria-label="Navigation">
         content
       </Drawer>,
     );
@@ -109,7 +109,7 @@ describe('Drawer', () => {
 
   it('applies right side class', () => {
     render(
-      <Drawer open onClose={vi.fn()} side="right">
+      <Drawer open onClose={vi.fn()} side="right" aria-label="Navigation">
         content
       </Drawer>,
     );
@@ -120,7 +120,7 @@ describe('Drawer', () => {
   it('forwards ref to the panel element', () => {
     const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
     render(
-      <Drawer ref={ref} open onClose={vi.fn()}>
+      <Drawer ref={ref} open onClose={vi.fn()} aria-label="Test">
         content
       </Drawer>,
     );
@@ -129,7 +129,7 @@ describe('Drawer', () => {
 
   it('merges custom className on panel', () => {
     render(
-      <Drawer open onClose={vi.fn()} className="custom">
+      <Drawer open onClose={vi.fn()} className="custom" aria-label="Test">
         content
       </Drawer>,
     );
@@ -139,7 +139,7 @@ describe('Drawer', () => {
 
   it('spreads additional HTML attributes', () => {
     render(
-      <Drawer open onClose={vi.fn()} data-testid="my-drawer">
+      <Drawer open onClose={vi.fn()} data-testid="my-drawer" aria-label="Test">
         content
       </Drawer>,
     );
@@ -149,7 +149,7 @@ describe('Drawer', () => {
   it('does not call onClose on Escape when a nested handler already prevented default', () => {
     const onClose = vi.fn();
     render(
-      <Drawer open onClose={onClose}>
+      <Drawer open onClose={onClose} aria-label="Test">
         <button
           data-testid="inner"
           onKeyDown={(e) => {
@@ -164,7 +164,7 @@ describe('Drawer', () => {
 
   it('locks body scroll when open', () => {
     const { unmount } = render(
-      <Drawer open onClose={vi.fn()}>
+      <Drawer open onClose={vi.fn()} aria-label="Navigation">
         content
       </Drawer>,
     );
