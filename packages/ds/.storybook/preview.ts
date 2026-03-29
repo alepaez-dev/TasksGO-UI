@@ -46,6 +46,15 @@ const preview: Preview = {
     viewport: {
       options: desktopViewports,
     },
+    a11y: {
+      config: {
+        rules: [
+          // Component stories render in isolation without page landmarks —
+          // the consuming app provides <main>/<nav>/etc.
+          { id: 'region', enabled: false },
+        ],
+      },
+    },
   },
 };
 
