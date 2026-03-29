@@ -13,7 +13,7 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['primary', 'secondary'],
+      options: ['primary', 'secondary', 'ghost', 'ai'],
     },
     size: {
       control: 'select',
@@ -70,8 +70,24 @@ export const MobileAllVariants: Story = {
       <Button size="md" variant="secondary">
         Secondary
       </Button>
+      <Button size="md" variant="ghost">
+        Ghost
+      </Button>
+      <Button size="md" variant="ai">
+        AI
+      </Button>
     </div>
   ),
+};
+
+export const Ghost: Story = {
+  parameters: { viewport: { options: desktopViewports } },
+  args: { variant: 'ghost' },
+};
+
+export const AI: Story = {
+  parameters: { viewport: { options: desktopViewports } },
+  args: { variant: 'ai', children: 'Generate with AI' },
 };
 
 export const Disabled: Story = {

@@ -41,6 +41,16 @@
   background-color: var(--ds-color-button-secondary-hover-bg);
 }
 
+.ghost {
+  background-color: transparent;
+  color: var(--ds-color-button-ghost-text);
+  border-color: transparent;
+}
+
+.ghost:hover:not(:disabled) {
+  background-color: var(--ds-color-button-ghost-hover-bg);
+}
+
 .sm {
   padding: var(--ds-space-button-sm-padding-y)
     var(--ds-space-button-sm-padding-x);
@@ -55,4 +65,18 @@
   font-size: var(--ds-text-button-label-font-size);
   font-weight: var(--ds-text-button-label-font-weight);
   border-radius: var(--ds-radius-xl);
+}
+
+.ai {
+  background-color: var(--ds-color-button-ai-bg);
+  color: var(--ds-color-button-ai-text);
+  border-color: var(--ds-color-button-ai-border);
+  font-size: var(--ds-text-button-ai-label-font-size);
+  font-weight: var(--ds-text-button-ai-label-font-weight);
+  text-transform: var(--ds-text-button-ai-label-text-transform);
+  letter-spacing: var(--ds-text-button-ai-label-letter-spacing);
+}
+
+.ai:hover:not(:disabled) {
+  background-color: var(--ds-color-button-ai-hover-bg);
 }

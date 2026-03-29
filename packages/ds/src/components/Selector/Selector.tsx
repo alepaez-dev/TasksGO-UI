@@ -11,10 +11,24 @@ import type { IconName } from '../../icons';
 import { cn } from '../../utils/cn';
 import styles from './Selector.module.css';
 
-export type SelectorOption = Readonly<{
-  value: string;
-  label: string;
-}>;
+type OptionBase = Readonly<{ value: string; label: string }>;
+type DotOption = OptionBase & {
+  icon?: never;
+  iconColor?: never;
+  prefix?: never;
+};
+type IconOption = OptionBase & {
+  icon: IconName;
+  iconColor?: string;
+  prefix?: never;
+};
+type PrefixOption = OptionBase & {
+  prefix: string;
+  icon?: never;
+  iconColor?: never;
+};
+
+export type SelectorOption = DotOption | IconOption | PrefixOption;
 
 export type SelectorAction = Readonly<{
   label: string;
@@ -22,15 +36,25 @@ export type SelectorAction = Readonly<{
   onClick: () => void;
 }>;
 
+type DropdownAlign = 'stretch' | 'end';
+
+type SelectorOptions =
+  | readonly DotOption[]
+  | readonly IconOption[]
+  | readonly PrefixOption[];
+
 export interface SelectorProps extends HTMLAttributes<HTMLDivElement> {
-  options: readonly SelectorOption[];
+  options: SelectorOptions;
   value?: string;
   onValueChange?: (value: string) => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   placeholder?: string;
   triggerPrefix?: ReactNode;
+  header?: ReactNode;
+  emptyState?: ReactNode;
   action?: SelectorAction;
+  dropdownAlign?: DropdownAlign;
 }
 
 function focusSibling(current: EventTarget, direction: 'next' | 'prev') {
@@ -54,7 +78,10 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
       onOpenChange,
       placeholder = 'Select…',
       triggerPrefix,
+      header,
+      emptyState,
       action,
+      dropdownAlign = 'stretch',
       className,
       'aria-label': ariaLabel,
       ...rest
@@ -65,6 +92,9 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
     const triggerRef = useRef<HTMLButtonElement>(null);
     const selected = options.find((o) => o.value === value);
     const listboxId = `${rest.id ?? reactId}-listbox`;
+    const hasIcons = options.some((o) => o.icon !== undefined);
+    const hasPrefixes = options.some((o) => o.prefix !== undefined);
+    const hasCustomIndicator = hasIcons || hasPrefixes || header !== undefined;
 
     const handleTriggerKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
@@ -104,30 +134,95 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
         }
       };
 
+    function renderTriggerLabel() {
+      if (!selected) return placeholder;
+      if (hasPrefixes && selected.prefix) {
+        return `${selected.prefix} · ${selected.label}`;
+      }
+      return selected.label;
+    }
+
+    function renderOptionIndicator(option: SelectorOption) {
+      if (option.icon) {
+        return (
+          <Icon
+            name={option.icon}
+            size="sm"
+            className={styles.optionIcon}
+            style={
+              option.iconColor
+                ? ({
+                    '--selector-icon-color': option.iconColor,
+                  } as React.CSSProperties)
+                : undefined
+            }
+          />
+        );
+      }
+      if (option.prefix) {
+        return <span className={styles.optionPrefix}>{option.prefix}</span>;
+      }
+      const isSelected = option.value === value;
+      return (
+        <span
+          className={cn(
+            styles.dot,
+            isSelected ? styles.dotActive : styles.dotInactive,
+          )}
+        />
+      );
+    }
+
     return (
       <div ref={ref} className={cn(styles.selector, className)} {...rest}>
         <button
           ref={triggerRef}
           type="button"
-          className={styles.trigger}
+          className={cn(
+            styles.trigger,
+            hasCustomIndicator && styles.iconTrigger,
+          )}
           aria-haspopup="listbox"
           aria-expanded={open}
-          // No aria-controls: axe-core reports it as inconclusive even when
-          // the referenced listbox exists. See commit e15655d.
           onClick={() => onOpenChange?.(!open)}
           onKeyDown={handleTriggerKeyDown}
         >
           {triggerPrefix && (
             <span className={styles.triggerPrefix}>{triggerPrefix}</span>
           )}
-          <span className={styles.label}>
-            {selected ? selected.label : placeholder}
-          </span>
-          <Icon name="unfold_more" size="md" className={styles.chevron} />
+          {hasIcons && selected?.icon && (
+            <Icon
+              name={selected.icon}
+              size="sm"
+              className={styles.optionIcon}
+              style={
+                selected.iconColor
+                  ? ({
+                      '--selector-icon-color': selected.iconColor,
+                    } as React.CSSProperties)
+                  : undefined
+              }
+            />
+          )}
+          <span className={styles.label}>{renderTriggerLabel()}</span>
+          <Icon
+            name={hasCustomIndicator ? 'expand_more' : 'unfold_more'}
+            size={hasCustomIndicator ? 'sm' : 'md'}
+            className={styles.chevron}
+          />
         </button>
 
         {open && (
-          <div className={styles.dropdown}>
+          <div
+            className={cn(
+              styles.dropdown,
+              dropdownAlign === 'end' && styles.dropdownEnd,
+            )}
+          >
+            {header && <div className={styles.header}>{header}</div>}
+            {options.length === 0 && emptyState && (
+              <div className={styles.emptyState}>{emptyState}</div>
+            )}
             <div
               id={listboxId}
               role="listbox"
@@ -152,17 +247,12 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
                     }}
                     onKeyDown={handleOptionKeyDown(option.value)}
                   >
-                    <span
-                      className={cn(
-                        styles.dot,
-                        isSelected ? styles.dotActive : styles.dotInactive,
-                      )}
-                    />
+                    {renderOptionIndicator(option)}
                     <span className={styles.optionLabel}>{option.label}</span>
                     {isSelected && (
                       <Icon
                         name="check_circle"
-                        size="md"
+                        size={hasCustomIndicator ? 'sm' : 'md'}
                         className={styles.checkIcon}
                       />
                     )}

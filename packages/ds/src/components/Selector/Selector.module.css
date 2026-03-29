@@ -45,6 +45,20 @@
   color: var(--ds-color-text-secondary);
 }
 
+.iconTrigger {
+  width: auto;
+  gap: var(--ds-space-scale-xs);
+}
+
+.iconTrigger .label {
+  flex: 0 1 auto;
+  font-size: var(--ds-text-property-row-value-font-size);
+  font-family: var(--ds-text-property-row-value-font-family);
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .dropdown {
   position: absolute;
   top: calc(100% + var(--ds-space-scale-sm));
@@ -60,10 +74,37 @@
   overflow: hidden;
 }
 
+.dropdownEnd {
+  left: auto;
+  right: 0;
+  width: var(--ds-space-dropdown-end-width);
+}
+
+.header {
+  padding: var(--ds-space-scale-sm) var(--ds-space-nav-item-padding-x);
+  border-bottom: 1px solid var(--ds-color-border-default);
+}
+
+.header > div {
+  border-bottom: none;
+}
+
 .options {
   display: flex;
   flex-direction: column;
   padding: var(--ds-space-dropdown-inset);
+}
+
+.options:empty {
+  display: none;
+}
+
+.emptyState {
+  padding: var(--ds-space-scale-md) var(--ds-space-nav-item-padding-x);
+  font-size: var(--ds-text-nav-label-sm-font-size);
+  font-family: var(--ds-text-nav-label-sm-font-family);
+  color: var(--ds-color-text-secondary);
+  text-align: center;
 }
 
 .option {
@@ -98,6 +139,21 @@
   background-color: var(--ds-color-accent-primary);
 }
 
+.optionIcon {
+  flex-shrink: 0;
+  color: var(--selector-icon-color, currentColor);
+}
+
+.optionPrefix {
+  flex-shrink: 0;
+  font-size: var(--ds-text-ticket-id-font-size);
+  font-family: var(--ds-text-ticket-id-font-family);
+  font-weight: var(--ds-font-weight-bold);
+  line-height: var(--ds-text-ticket-id-line-height);
+  color: var(--ds-color-text-secondary);
+  white-space: nowrap;
+}
+
 .dotInactive {
   background-color: var(--ds-color-text-disabled);
   opacity: var(--ds-effect-muted-opacity);
@@ -110,6 +166,9 @@
   font-weight: var(--ds-text-nav-label-font-weight);
   line-height: var(--ds-text-nav-label-line-height);
   color: var(--ds-color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .optionSelected .optionLabel {
@@ -123,7 +182,6 @@
 }
 
 .actionWrapper {
-  margin-top: var(--ds-space-scale-xs);
   padding-top: var(--ds-space-scale-xs);
   border-top: 1px solid var(--ds-color-border-default);
 }

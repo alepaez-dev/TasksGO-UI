@@ -123,10 +123,9 @@ All components must pass `axe` checks. Use semantic HTML; reach for ARIA only wh
    - `<Name>.test.tsx`
    - `index.ts`
 2. Export from `packages/ds/src/index.ts`.
-3. Write stories: at minimum `Default`, `Disabled`, and key variants.
-4. Write tests using RTL queries (`getByRole`, `getByText`) — test behaviour, not implementation.
-5. Stage files and commit — Husky lints automatically.
-6. Create a changeset: `npm run changeset`.
+3. Write tests using RTL queries (`getByRole`, `getByText`) — test behaviour, not implementation.
+4. Stage files and commit — Husky lints automatically.
+5. Create a changeset: `npm run changeset`.
 
 ## Releases
 

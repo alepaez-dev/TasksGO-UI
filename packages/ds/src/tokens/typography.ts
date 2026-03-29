@@ -219,6 +219,38 @@ export const typographyScale = {
     textTransform: 'none',
     lineHeight: '1.25',
   },
+  drawerTitle: {
+    fontSize: '18px',
+    fontFamily: fontFamilies.sans,
+    fontWeight: fontWeights.semibold,
+    letterSpacing: '-0.025em',
+    textTransform: 'none',
+    lineHeight: '1.25',
+  },
+  propertyRowLabel: {
+    fontSize: '12px',
+    fontFamily: fontFamilies.sans,
+    fontWeight: fontWeights.regular,
+    letterSpacing: 'normal',
+    textTransform: 'none',
+    lineHeight: DEFAULT_LINE_HEIGHT,
+  },
+  propertyRowValue: {
+    fontSize: '12px',
+    fontFamily: fontFamilies.sans,
+    fontWeight: fontWeights.regular,
+    letterSpacing: 'normal',
+    textTransform: 'none',
+    lineHeight: DEFAULT_LINE_HEIGHT,
+  },
+  buttonAiLabel: {
+    fontSize: '10px',
+    fontFamily: fontFamilies.sans,
+    fontWeight: fontWeights.bold,
+    letterSpacing: '-0.025em',
+    textTransform: 'uppercase',
+    lineHeight: DEFAULT_LINE_HEIGHT,
+  },
 } as const satisfies Record<string, TypographyScale>;
 
 export type TypographyScaleName = keyof typeof typographyScale;

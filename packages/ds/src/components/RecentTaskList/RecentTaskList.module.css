@@ -1,0 +1,54 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ds-space-scale-sm) var(--ds-space-scale-xs);
+  margin: 0 calc(-1 * var(--ds-space-scale-xs));
+  border-bottom: 1px solid var(--ds-color-border-default);
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-md);
+  overflow: hidden;
+}
+
+.ticketId {
+  font-size: var(--ds-text-ticket-id-font-size);
+  font-family: var(--ds-text-ticket-id-font-family);
+  font-weight: var(--ds-text-ticket-id-font-weight);
+  line-height: var(--ds-text-ticket-id-line-height);
+  color: var(--ds-color-text-secondary);
+  white-space: nowrap;
+  min-width: var(--ds-column-ticket-id);
+}
+
+.title {
+  font-size: var(--ds-text-property-row-value-font-size);
+  font-family: var(--ds-text-property-row-value-font-family);
+  font-weight: var(--ds-text-property-row-value-font-weight);
+  line-height: var(--ds-text-property-row-value-line-height);
+  color: var(--ds-color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.time {
+  font-size: var(--ds-text-ticket-id-font-size);
+  font-family: var(--ds-text-ticket-id-font-family);
+  font-weight: var(--ds-text-ticket-id-font-weight);
+  line-height: var(--ds-text-ticket-id-line-height);
+  color: var(--ds-color-text-secondary);
+  white-space: nowrap;
+  padding-left: var(--ds-space-scale-sm);
+}
