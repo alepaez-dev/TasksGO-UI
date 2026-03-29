@@ -21,6 +21,8 @@ const config: TestRunnerConfig = {
     await injectAxe(page);
   },
   async postVisit(page, context) {
+    await page.waitForLoadState('networkidle');
+
     const storyContext = await getStoryContext(page, context);
     const a11yRules = storyContext.parameters?.a11y?.config?.rules ?? [];
     const disabledRules = a11yRules
