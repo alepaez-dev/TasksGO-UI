@@ -83,7 +83,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
       emptyState,
       action,
       dropdownAlign = 'stretch',
-      size = 'md',
+      size,
       className,
       'aria-label': ariaLabel,
       ...rest
@@ -96,7 +96,8 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
     const listboxId = `${rest.id ?? reactId}-listbox`;
     const hasIcons = options.some((o) => o.icon !== undefined);
     const hasPrefixes = options.some((o) => o.prefix !== undefined);
-    const isSmall = size === 'sm';
+    const isSmall =
+      size === 'sm' || (size === undefined && (hasIcons || hasPrefixes));
 
     const handleTriggerKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
