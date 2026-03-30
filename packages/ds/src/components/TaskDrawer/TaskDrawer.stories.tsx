@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { expect, userEvent, waitFor } from 'storybook/test';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import { Drawer } from '../Drawer';
 import { TaskDrawer, TaskDrawerField, TaskDrawerSection } from './TaskDrawer';
 import { PropertyRow } from '../PropertyRow';
@@ -93,10 +94,17 @@ function DefaultRender() {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('high');
   const [priorityOpen, setPriorityOpen] = useState(false);
+  const priorityRef = useRef<HTMLDivElement>(null);
+  const closePriority = useCallback(() => setPriorityOpen(false), []);
+  useClickOutside(priorityRef, closePriority, priorityOpen);
+
   const [linkedTicket, setLinkedTicket] = useState<string | undefined>(
     undefined,
   );
   const [ticketOpen, setTicketOpen] = useState(false);
+  const ticketRef = useRef<HTMLDivElement>(null);
+  const closeTicket = useCallback(() => setTicketOpen(false), []);
+  useClickOutside(ticketRef, closeTicket, ticketOpen);
 
   const openPriority = (v: boolean) => {
     setPriorityOpen(v);
@@ -160,6 +168,7 @@ function DefaultRender() {
 
             <PropertyRow icon="signal_cellular_alt" label="Priority">
               <Selector
+                ref={priorityRef}
                 options={priorityOptions}
                 value={priority}
                 onValueChange={setPriority}
@@ -172,6 +181,7 @@ function DefaultRender() {
 
             <PropertyRow icon="confirmation_number" label="Linked Ticket">
               <Selector
+                ref={ticketRef}
                 options={
                   ticketQuery
                     ? ticketOptions.filter(
@@ -201,6 +211,7 @@ function DefaultRender() {
                     size="sm"
                   />
                 }
+                size="sm"
                 dropdownAlign="end"
                 action={{
                   label: 'Create new ticket',

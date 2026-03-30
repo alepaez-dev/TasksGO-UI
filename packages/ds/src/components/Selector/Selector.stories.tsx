@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Selector } from './Selector';
+import { Selector, type SelectorProps } from './Selector';
 import { Avatar } from '../Avatar';
 import { SearchInput } from '../SearchInput';
 import { useClickOutside } from '../../hooks/useClickOutside';
@@ -21,6 +21,10 @@ const meta: Meta<typeof Selector> = {
   title: 'Components/Selector',
   component: Selector,
   tags: ['autodocs'],
+  argTypes: {
+    options: { control: 'object' },
+    action: { control: 'object' },
+  },
   decorators: [
     (Story) => (
       <div style={{ width: '256px', padding: '24px' }}>
@@ -33,7 +37,9 @@ export default meta;
 
 type Story = StoryObj<typeof Selector>;
 
-function DefaultRender() {
+type RenderProps = Pick<SelectorProps, 'options' | 'action'>;
+
+function DefaultRender({ options }: RenderProps) {
   const [value, setValue] = useState('eng-core');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -43,7 +49,7 @@ function DefaultRender() {
   return (
     <Selector
       ref={ref}
-      options={projects}
+      options={options}
       value={value}
       onValueChange={setValue}
       open={open}
@@ -56,10 +62,11 @@ function DefaultRender() {
 }
 
 export const Default: Story = {
-  render: () => <DefaultRender />,
+  args: { options: projects },
+  render: (args) => <DefaultRender options={args.options} />,
 };
 
-function WithActionRender() {
+function WithActionRender({ options, action }: RenderProps) {
   const [value, setValue] = useState('eng-core');
   const [open, setOpen] = useState(true);
   const ref = useRef<HTMLDivElement>(null);
@@ -69,7 +76,7 @@ function WithActionRender() {
   return (
     <Selector
       ref={ref}
-      options={projects}
+      options={options}
       value={value}
       onValueChange={setValue}
       open={open}
@@ -77,20 +84,26 @@ function WithActionRender() {
       triggerPrefix={
         <Avatar initial={avatar.initial} aria-label={avatar.label} />
       }
-      action={{
-        label: 'Add project',
-        icon: 'add',
-        onClick: () => {},
-      }}
+      action={action}
     />
   );
 }
 
 export const WithAction: Story = {
-  render: () => <WithActionRender />,
+  args: {
+    options: projects,
+    action: {
+      label: 'Add project',
+      icon: 'add',
+      onClick: () => {},
+    },
+  },
+  render: (args) => (
+    <WithActionRender options={args.options} action={args.action} />
+  ),
 };
 
-function NoSelectionRender() {
+function NoSelectionRender({ options }: RenderProps) {
   const [value, setValue] = useState<string | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -100,7 +113,7 @@ function NoSelectionRender() {
   return (
     <Selector
       ref={ref}
-      options={projects}
+      options={options}
       value={value}
       onValueChange={setValue}
       open={open}
@@ -118,7 +131,8 @@ function NoSelectionRender() {
 }
 
 export const NoSelection: Story = {
-  render: () => <NoSelectionRender />,
+  args: { options: projects },
+  render: (args) => <NoSelectionRender options={args.options} />,
 };
 
 const priorityOptions = [
@@ -148,7 +162,7 @@ const priorityOptions = [
   },
 ];
 
-function IconOptionsRender() {
+function IconOptionsRender({ options }: RenderProps) {
   const [value, setValue] = useState('high');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -157,19 +171,19 @@ function IconOptionsRender() {
   return (
     <Selector
       ref={ref}
-      options={priorityOptions}
+      options={options}
       value={value}
       onValueChange={setValue}
       open={open}
       onOpenChange={setOpen}
-      dropdownAlign="end"
       aria-label="Select priority"
     />
   );
 }
 
 export const IconOptions: Story = {
-  render: () => <IconOptionsRender />,
+  args: { options: priorityOptions },
+  render: (args) => <IconOptionsRender options={args.options} />,
 };
 
 const allTickets = [
@@ -226,6 +240,7 @@ function SearchableRender() {
         icon: 'add' as const,
         onClick: () => {},
       }}
+      size="sm"
       emptyState="No results found"
       aria-label="Linked ticket"
     />

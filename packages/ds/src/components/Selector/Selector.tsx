@@ -55,6 +55,7 @@ export interface SelectorProps extends HTMLAttributes<HTMLDivElement> {
   emptyState?: ReactNode;
   action?: SelectorAction;
   dropdownAlign?: DropdownAlign;
+  size?: 'sm' | 'md';
 }
 
 function focusSibling(current: EventTarget, direction: 'next' | 'prev') {
@@ -82,6 +83,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
       emptyState,
       action,
       dropdownAlign = 'stretch',
+      size,
       className,
       'aria-label': ariaLabel,
       ...rest
@@ -94,7 +96,8 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
     const listboxId = `${rest.id ?? reactId}-listbox`;
     const hasIcons = options.some((o) => o.icon !== undefined);
     const hasPrefixes = options.some((o) => o.prefix !== undefined);
-    const hasCustomIndicator = hasIcons || hasPrefixes || header !== undefined;
+    const isSmall =
+      size === 'sm' || (size === undefined && (hasIcons || hasPrefixes));
 
     const handleTriggerKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
@@ -178,10 +181,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
         <button
           ref={triggerRef}
           type="button"
-          className={cn(
-            styles.trigger,
-            hasCustomIndicator && styles.iconTrigger,
-          )}
+          className={cn(styles.trigger, isSmall && styles.iconTrigger)}
           aria-haspopup="listbox"
           aria-expanded={open}
           onClick={() => onOpenChange?.(!open)}
@@ -206,8 +206,8 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
           )}
           <span className={styles.label}>{renderTriggerLabel()}</span>
           <Icon
-            name={hasCustomIndicator ? 'expand_more' : 'unfold_more'}
-            size={hasCustomIndicator ? 'sm' : 'md'}
+            name={isSmall ? 'expand_more' : 'unfold_more'}
+            size={isSmall ? 'sm' : 'md'}
             className={styles.chevron}
           />
         </button>
@@ -252,7 +252,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
                     {isSelected && (
                       <Icon
                         name="check_circle"
-                        size={hasCustomIndicator ? 'sm' : 'md'}
+                        size={isSmall ? 'sm' : 'md'}
                         className={styles.checkIcon}
                       />
                     )}
