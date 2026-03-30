@@ -71,6 +71,9 @@
   background-color: var(--ds-color-button-ai-bg);
   color: var(--ds-color-button-ai-text);
   border-color: var(--ds-color-button-ai-border);
+}
+
+.button.ai {
   font-size: var(--ds-text-button-ai-label-font-size);
   font-weight: var(--ds-text-button-ai-label-font-weight);
   text-transform: var(--ds-text-button-ai-label-text-transform);
