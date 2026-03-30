@@ -33,7 +33,7 @@ const config: TestRunnerConfig = {
     const disabledRuleIds = new Set([...disabledRules, 'region']);
 
     const results = await page.evaluate(
-      ({ selector, disabledIds }) => {
+      async ({ selector, disabledIds }) => {
         type AxeRun = (
           context: string,
           options: Record<string, unknown>,
@@ -43,10 +43,31 @@ const config: TestRunnerConfig = {
         const rules = Object.fromEntries(
           (disabledIds as string[]).map((id) => [id, { enabled: false }]),
         );
-        return axe.run(selector, {
-          rules,
-          resultTypes: ['violations', 'incomplete'],
-        });
+        const opts = { rules, resultTypes: ['violations', 'incomplete'] };
+
+        // Wait up to 5s for any in-progress addon axe run to finish before starting ours
+        const maxWaitMs = 5000;
+        const intervalMs = 100;
+        let waited = 0;
+
+        while (waited < maxWaitMs) {
+          try {
+            return await axe.run(selector, opts);
+          } catch (e) {
+            if (
+              e instanceof Error &&
+              e.message.includes('already running') &&
+              waited + intervalMs <= maxWaitMs
+            ) {
+              await new Promise((r) => setTimeout(r, intervalMs));
+              waited += intervalMs;
+              continue;
+            }
+            throw e;
+          }
+        }
+
+        return axe.run(selector, opts);
       },
       { selector: 'body', disabledIds: [...disabledRuleIds] },
     );
