@@ -176,6 +176,7 @@ function IconOptionsRender({ options }: RenderProps) {
       onValueChange={setValue}
       open={open}
       onOpenChange={setOpen}
+      size="sm"
       aria-label="Select priority"
     />
   );
