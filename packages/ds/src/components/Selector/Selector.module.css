@@ -146,6 +146,8 @@
 
 .optionPrefix {
   flex-shrink: 0;
+  min-width: var(--ds-space-ticket-id-min-width);
+  text-align: right;
   font-size: var(--ds-text-ticket-id-font-size);
   font-family: var(--ds-text-ticket-id-font-family);
   font-weight: var(--ds-font-weight-bold);

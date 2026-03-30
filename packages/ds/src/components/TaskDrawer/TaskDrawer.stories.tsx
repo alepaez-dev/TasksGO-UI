@@ -175,6 +175,7 @@ function DefaultRender() {
                 open={priorityOpen}
                 onOpenChange={openPriority}
                 dropdownAlign="end"
+                size="sm"
                 aria-label="Select priority"
               />
             </PropertyRow>

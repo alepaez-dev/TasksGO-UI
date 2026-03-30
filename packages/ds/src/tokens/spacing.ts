@@ -26,6 +26,7 @@ export const spacing = {
   ticketId: {
     paddingX: '6px',
     paddingY: '2px',
+    minWidth: '3.5em',
   },
   button: {
     smPaddingX: '12px',
