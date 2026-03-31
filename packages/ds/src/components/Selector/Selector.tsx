@@ -233,6 +233,11 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
                 return (
                   <div
                     key={option.value}
+                    ref={
+                      isSelected
+                        ? (el) => el?.scrollIntoView?.({ block: 'nearest' })
+                        : undefined
+                    }
                     role="option"
                     tabIndex={0}
                     aria-selected={isSelected}

@@ -12,6 +12,8 @@ import { Avatar } from '../Avatar';
 import { Icon } from '../Icon';
 import { Button } from '../Button';
 import type { RecentTaskItem } from '../RecentTaskList';
+import { withDefaultViewport } from '../../../.storybook/decorators';
+import { mobileViewportOptions } from '../../../.storybook/preview';
 
 const ticketOptions = [
   {
@@ -301,4 +303,12 @@ function LongContentRender() {
 
 export const LongContent: Story = {
   render: () => <LongContentRender />,
+};
+
+export const Mobile: Story = {
+  render: () => <DefaultRender />,
+  decorators: [withDefaultViewport('mobile')],
+  parameters: {
+    viewport: { options: mobileViewportOptions },
+  },
 };

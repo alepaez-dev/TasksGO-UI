@@ -127,3 +127,20 @@
   margin: 0;
   padding: 0;
 }
+
+@media (max-width: 480px) {
+  .taskDrawer {
+    width: 100%;
+  }
+
+  .header,
+  .footer {
+    padding-left: var(--ds-space-scale-md);
+    padding-right: var(--ds-space-scale-md);
+  }
+
+  .body {
+    padding-left: var(--ds-space-scale-md);
+    padding-right: var(--ds-space-scale-md);
+  }
+}

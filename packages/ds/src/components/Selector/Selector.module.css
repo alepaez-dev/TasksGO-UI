@@ -93,6 +93,8 @@
   display: flex;
   flex-direction: column;
   padding: var(--ds-space-dropdown-inset);
+  max-height: 240px;
+  overflow-y: auto;
 }
 
 .options:empty {
@@ -213,4 +215,12 @@
 .action:hover {
   background-color: var(--ds-color-surface-hover);
   color: var(--ds-color-text-primary);
+}
+
+@media (max-width: 480px) {
+  .dropdownEnd {
+    width: calc(100vw - 2 * var(--ds-space-scale-md));
+    left: auto;
+    right: 0;
+  }
 }
