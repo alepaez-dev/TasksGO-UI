@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  useCallback,
   useId,
   useRef,
   type HTMLAttributes,
@@ -55,7 +56,8 @@ export interface SelectorProps extends HTMLAttributes<HTMLDivElement> {
   emptyState?: ReactNode;
   action?: SelectorAction;
   dropdownAlign?: DropdownAlign;
-  size?: 'sm' | 'md';
+  variant?: 'default' | 'inline';
+  renderTriggerLabel?: (option: SelectorOption) => ReactNode;
 }
 
 function focusSibling(current: EventTarget, direction: 'next' | 'prev') {
@@ -77,13 +79,14 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
       onValueChange,
       open = false,
       onOpenChange,
-      placeholder = 'Select…',
+      placeholder = 'Select\u2026',
       triggerPrefix,
       header,
       emptyState,
       action,
       dropdownAlign = 'stretch',
-      size = 'md',
+      variant = 'default',
+      renderTriggerLabel: renderTriggerLabelProp,
       className,
       'aria-label': ariaLabel,
       ...rest
@@ -96,7 +99,22 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
     const listboxId = `${rest.id ?? reactId}-listbox`;
     const hasIcons = options.some((o) => o.icon !== undefined);
     const hasPrefixes = options.some((o) => o.prefix !== undefined);
-    const isSmall = size === 'sm';
+    const isInline = variant === 'inline';
+
+    const handleDropdownMount = useCallback((el: HTMLDivElement | null) => {
+      if (!el) return;
+      const selectedEl = el.querySelector<HTMLElement>(
+        '[aria-selected="true"]',
+      );
+      if (selectedEl) selectedEl.scrollIntoView?.({ block: 'nearest' });
+
+      const activeElement = el.ownerDocument.activeElement;
+      if (activeElement && el.contains(activeElement)) return;
+
+      const headerInput = el.querySelector<HTMLElement>('input, textarea');
+      const first = el.querySelector<HTMLElement>('[role="option"]');
+      (headerInput ?? selectedEl ?? first)?.focus();
+    }, []);
 
     const handleTriggerKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
       if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
@@ -138,8 +156,9 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
 
     function renderTriggerLabel() {
       if (!selected) return placeholder;
+      if (renderTriggerLabelProp) return renderTriggerLabelProp(selected);
       if (hasPrefixes && selected.prefix) {
-        return `${selected.prefix} · ${selected.label}`;
+        return `${selected.prefix} \u00b7 ${selected.label}`;
       }
       return selected.label;
     }
@@ -180,9 +199,11 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
         <button
           ref={triggerRef}
           type="button"
-          className={cn(styles.trigger, isSmall && styles.iconTrigger)}
+          className={cn(styles.trigger, isInline && styles.inlineTrigger)}
           aria-haspopup="listbox"
           aria-expanded={open}
+          aria-controls={open ? listboxId : undefined}
+          aria-label={ariaLabel}
           onClick={() => onOpenChange?.(!open)}
           onKeyDown={handleTriggerKeyDown}
         >
@@ -205,14 +226,15 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
           )}
           <span className={styles.label}>{renderTriggerLabel()}</span>
           <Icon
-            name={isSmall ? 'expand_more' : 'unfold_more'}
-            size={isSmall ? 'sm' : 'md'}
+            name={isInline ? 'expand_more' : 'unfold_more'}
+            size={isInline ? 'sm' : 'md'}
             className={styles.chevron}
           />
         </button>
 
         {open && (
           <div
+            ref={handleDropdownMount}
             className={cn(
               styles.dropdown,
               dropdownAlign === 'end' && styles.dropdownEnd,
@@ -233,11 +255,6 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
                 return (
                   <div
                     key={option.value}
-                    ref={
-                      isSelected
-                        ? (el) => el?.scrollIntoView?.({ block: 'nearest' })
-                        : undefined
-                    }
                     role="option"
                     tabIndex={0}
                     aria-selected={isSelected}
@@ -256,7 +273,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
                     {isSelected && (
                       <Icon
                         name="check_circle"
-                        size={isSmall ? 'sm' : 'md'}
+                        size={isInline ? 'sm' : 'md'}
                         className={styles.checkIcon}
                       />
                     )}
@@ -269,7 +286,10 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
                 <button
                   type="button"
                   className={styles.action}
-                  onClick={action.onClick}
+                  onClick={() => {
+                    action.onClick();
+                    onOpenChange?.(false);
+                  }}
                 >
                   <Icon name={action.icon} size="sm" />
                   <span>{action.label}</span>

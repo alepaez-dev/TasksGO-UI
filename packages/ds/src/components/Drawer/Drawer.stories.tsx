@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { expect, userEvent, waitFor } from 'storybook/test';
 import { withDefaultViewport } from '../../../.storybook/decorators';
@@ -13,7 +13,7 @@ import { IconButton } from '../IconButton';
 import { FloatingSearch } from '../FloatingSearch';
 import { MobileSearchSheet } from '../MobileSearchSheet';
 import type { SearchPaletteGroup } from '../SearchPalette';
-import { useClickOutside } from '../../hooks/useClickOutside';
+import { useSelectorState } from '../../hooks/useSelector';
 
 const projects = [
   { value: 'eng-core', label: 'Engineering Core' },
@@ -41,11 +41,8 @@ type Story = StoryObj<typeof Drawer>;
 
 function SidebarContent() {
   const [project, setProject] = useState('eng-core');
-  const [selectorOpen, setSelectorOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('tasks');
-  const selectorRef = useRef<HTMLDivElement>(null);
-  const closeSelector = useCallback(() => setSelectorOpen(false), []);
-  useClickOutside(selectorRef, closeSelector, selectorOpen);
+  const { ref, open, onOpenChange } = useSelectorState();
   const avatar = avatars[project];
   const navClick = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -56,12 +53,12 @@ function SidebarContent() {
     <Sidebar
       header={
         <Selector
-          ref={selectorRef}
+          ref={ref}
           options={projects}
           value={project}
           onValueChange={setProject}
-          open={selectorOpen}
-          onOpenChange={setSelectorOpen}
+          open={open}
+          onOpenChange={onOpenChange}
           triggerPrefix={
             <Avatar initial={avatar.initial} aria-label={avatar.label} />
           }

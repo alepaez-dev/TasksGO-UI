@@ -1,7 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { expect, userEvent, waitFor } from 'storybook/test';
-import { useClickOutside } from '../../hooks/useClickOutside';
+import { useSelectorGroup } from '../../hooks/useSelector';
 import { Drawer } from '../Drawer';
 import { TaskDrawer, TaskDrawerField, TaskDrawerSection } from './TaskDrawer';
 import { PropertyRow } from '../PropertyRow';
@@ -95,27 +95,20 @@ function DefaultRender() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('high');
-  const [priorityOpen, setPriorityOpen] = useState(false);
-  const priorityRef = useRef<HTMLDivElement>(null);
-  const closePriority = useCallback(() => setPriorityOpen(false), []);
-  useClickOutside(priorityRef, closePriority, priorityOpen);
-
   const [linkedTicket, setLinkedTicket] = useState<string | undefined>(
     undefined,
   );
-  const [ticketOpen, setTicketOpen] = useState(false);
-  const ticketRef = useRef<HTMLDivElement>(null);
-  const closeTicket = useCallback(() => setTicketOpen(false), []);
-  useClickOutside(ticketRef, closeTicket, ticketOpen);
-
-  const openPriority = (v: boolean) => {
-    setPriorityOpen(v);
-    if (v) setTicketOpen(false);
-  };
-  const openTicket = (v: boolean) => {
-    setTicketOpen(v);
-    if (v) setPriorityOpen(false);
-  };
+  const selectors = useSelectorGroup('priority', 'ticket');
+  const {
+    ref: priorityRef,
+    open: priorityOpen,
+    onOpenChange: onPriorityChange,
+  } = selectors.priority;
+  const {
+    ref: ticketRef,
+    open: ticketOpen,
+    onOpenChange: onTicketChange,
+  } = selectors.ticket;
   const [ticketQuery, setTicketQuery] = useState('');
 
   return (
@@ -175,9 +168,9 @@ function DefaultRender() {
                 value={priority}
                 onValueChange={setPriority}
                 open={priorityOpen}
-                onOpenChange={openPriority}
+                onOpenChange={onPriorityChange}
                 dropdownAlign="end"
-                size="sm"
+                variant="inline"
                 aria-label="Select priority"
               />
             </PropertyRow>
@@ -204,7 +197,7 @@ function DefaultRender() {
                   setTicketQuery('');
                 }}
                 open={ticketOpen}
-                onOpenChange={openTicket}
+                onOpenChange={onTicketChange}
                 placeholder="Search ticket..."
                 header={
                   <SearchInput
@@ -214,7 +207,7 @@ function DefaultRender() {
                     size="sm"
                   />
                 }
-                size="sm"
+                variant="inline"
                 dropdownAlign="end"
                 action={{
                   label: 'Create new ticket',

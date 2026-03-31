@@ -112,6 +112,21 @@ describe('Selector', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
+  it('closes dropdown when action is clicked', async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <Selector
+        options={options}
+        value="a"
+        open
+        onOpenChange={onOpenChange}
+        action={{ label: 'Add item', icon: 'add', onClick: () => {} }}
+      />,
+    );
+    await userEvent.click(screen.getByText('Add item'));
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
   it('sets aria-expanded on trigger', () => {
     const { rerender } = render(<Selector options={options} value="a" />);
     expect(screen.getByRole('button')).toHaveAttribute(
@@ -120,6 +135,26 @@ describe('Selector', () => {
     );
     rerender(<Selector options={options} value="a" open />);
     expect(screen.getByRole('button')).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('sets aria-controls on trigger when open', () => {
+    const { rerender } = render(
+      <Selector options={options} value="a" id="test" />,
+    );
+    expect(screen.getByRole('button')).not.toHaveAttribute('aria-controls');
+    rerender(<Selector options={options} value="a" id="test" open />);
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'aria-controls',
+      'test-listbox',
+    );
+  });
+
+  it('sets aria-label on trigger button', () => {
+    render(<Selector options={options} value="a" aria-label="Choose option" />);
+    expect(screen.getByRole('button')).toHaveAttribute(
+      'aria-label',
+      'Choose option',
+    );
   });
 
   it('forwards ref to container div', () => {
@@ -133,6 +168,18 @@ describe('Selector', () => {
       <Selector options={options} value="a" className="custom" />,
     );
     expect(container.firstChild).toHaveClass('custom');
+  });
+
+  it('focuses selected option when dropdown opens', () => {
+    render(<Selector options={options} value="b" open />);
+    const selected = screen.getByRole('option', { selected: true });
+    expect(selected).toHaveFocus();
+  });
+
+  it('focuses first option when dropdown opens with no selection', () => {
+    render(<Selector options={options} open />);
+    const opts = screen.getAllByRole('option');
+    expect(opts[0]).toHaveFocus();
   });
 
   describe('keyboard navigation', () => {
@@ -321,6 +368,36 @@ describe('Selector', () => {
     });
 
     it('shows prefix · label in trigger', () => {
+      render(<Selector options={prefixOptions} value="T-42" />);
+      expect(
+        screen.getByText('T-42 · Implement edge-caching'),
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('renderTriggerLabel', () => {
+    const prefixOptions = [
+      { value: 'T-42', label: 'Implement edge-caching', prefix: 'T-42' },
+    ];
+
+    it('uses custom render when provided', () => {
+      render(
+        <Selector
+          options={prefixOptions}
+          value="T-42"
+          renderTriggerLabel={(opt) =>
+            'prefix' in opt && opt.prefix
+              ? `${opt.prefix}: ${opt.label}`
+              : opt.label
+          }
+        />,
+      );
+      expect(
+        screen.getByText('T-42: Implement edge-caching'),
+      ).toBeInTheDocument();
+    });
+
+    it('falls back to default format when not provided', () => {
       render(<Selector options={prefixOptions} value="T-42" />);
       expect(
         screen.getByText('T-42 · Implement edge-caching'),
