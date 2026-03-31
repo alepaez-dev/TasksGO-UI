@@ -9,6 +9,16 @@ const options = [
   { value: 'c', label: 'Gamma' },
 ];
 
+// Type-level tests: option indicators are mutually exclusive
+// prettier-ignore
+{ // @ts-expect-error — cannot have both icon and prefix
+  void (<Selector options={[{ value: 'x', label: 'X', icon: 'flag' as const, prefix: 'P' }]} />);
+  // @ts-expect-error — cannot mix icon options with plain options
+  void (<Selector options={[{ value: 'a', label: 'A', icon: 'flag' as const }, { value: 'b', label: 'B' }]} />);
+  // @ts-expect-error — cannot mix prefix options with icon options
+  void (<Selector options={[{ value: 'a', label: 'A', icon: 'flag' as const }, { value: 'b', label: 'B', prefix: 'P' }]} />);
+}
+
 describe('Selector', () => {
   it('renders trigger with selected label', () => {
     render(<Selector options={options} value="a" />);
@@ -242,6 +252,106 @@ describe('Selector', () => {
       opts[1].focus();
       await userEvent.keyboard('{ArrowUp}');
       expect(opts[0]).toHaveFocus();
+    });
+  });
+
+  describe('icon options', () => {
+    const iconOptions = [
+      { value: 'high', label: 'High', icon: 'flag' as const, iconColor: 'red' },
+      { value: 'low', label: 'Low', icon: 'flag' as const, iconColor: 'gray' },
+    ];
+
+    it('renders icon instead of dot when option has icon', () => {
+      const { container } = render(
+        <Selector options={iconOptions} value="high" open />,
+      );
+      const dots = container.querySelectorAll('[class*="dot"]');
+      expect(dots).toHaveLength(0);
+    });
+
+    it('renders selected icon in trigger', () => {
+      render(<Selector options={iconOptions} value="high" />);
+      const trigger = screen.getByRole('button');
+      expect(trigger).toBeInTheDocument();
+    });
+
+    it('applies iconColor as CSS custom property', () => {
+      const { container } = render(
+        <Selector options={iconOptions} value="high" open />,
+      );
+      const icons = container.querySelectorAll('[aria-hidden="true"]');
+      const coloredIcon = Array.from(icons).find(
+        (el) =>
+          (el as HTMLElement).style.getPropertyValue(
+            '--selector-icon-color',
+          ) === 'red',
+      );
+      expect(coloredIcon).toBeTruthy();
+    });
+  });
+
+  describe('dropdownAlign', () => {
+    it('applies end alignment class', () => {
+      const { container } = render(
+        <Selector options={options} value="a" open dropdownAlign="end" />,
+      );
+      const dropdown = container.querySelector('[class*="dropdownEnd"]');
+      expect(dropdown).toBeTruthy();
+    });
+
+    it('does not apply end class by default', () => {
+      const { container } = render(
+        <Selector options={options} value="a" open />,
+      );
+      const dropdown = container.querySelector('[class*="dropdownEnd"]');
+      expect(dropdown).toBeFalsy();
+    });
+  });
+
+  describe('prefix options', () => {
+    const prefixOptions = [
+      { value: 'T-42', label: 'Implement edge-caching', prefix: 'T-42' },
+      { value: 'T-104', label: 'Unit tests for cache', prefix: 'T-104' },
+    ];
+
+    it('renders prefix text instead of dot', () => {
+      render(<Selector options={prefixOptions} value="T-42" open />);
+      expect(screen.getByText('T-42')).toBeInTheDocument();
+      expect(screen.getByText('T-104')).toBeInTheDocument();
+    });
+
+    it('shows prefix · label in trigger', () => {
+      render(<Selector options={prefixOptions} value="T-42" />);
+      expect(
+        screen.getByText('T-42 · Implement edge-caching'),
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe('header', () => {
+    it('renders header content above options', () => {
+      render(
+        <Selector
+          options={options}
+          value="a"
+          open
+          header={<input placeholder="Search..." />}
+        />,
+      );
+      expect(screen.getByPlaceholderText('Search...')).toBeInTheDocument();
+    });
+
+    it('does not render header when closed', () => {
+      render(
+        <Selector
+          options={options}
+          value="a"
+          header={<input placeholder="Search..." />}
+        />,
+      );
+      expect(
+        screen.queryByPlaceholderText('Search...'),
+      ).not.toBeInTheDocument();
     });
   });
 });

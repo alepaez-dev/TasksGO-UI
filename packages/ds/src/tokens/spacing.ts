@@ -26,6 +26,7 @@ export const spacing = {
   ticketId: {
     paddingX: '6px',
     paddingY: '2px',
+    minWidth: '3.5em',
   },
   button: {
     smPaddingX: '12px',
@@ -66,6 +67,7 @@ export const spacing = {
   dropdown: {
     inset: '6px',
     optionPaddingY: '12px',
+    endWidth: '320px',
   },
   header: {
     gap: '48px',
@@ -96,6 +98,17 @@ export const spacing = {
   },
   drawer: {
     closeButtonInset: '12px',
+    width: '480px',
+  },
+  taskDrawer: {
+    paddingX: '32px',
+    paddingY: '24px',
+    bodyPaddingY: '32px',
+    bodyGap: '24px',
+    fieldGap: '8px',
+    sectionMarginTop: '16px',
+    textareaMinHeight: '120px',
+    textareaLineHeight: '1.6',
   },
   columnWidths: {
     priority: '80px',

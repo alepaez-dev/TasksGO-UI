@@ -29,8 +29,8 @@ const scrollbar = {
 
 const status = {
   critical: '#dc2626',
-  high: '#c2410c',
-  medium: '#737373',
+  high: '#b45309',
+  medium: '#7560c2',
   low: '#737373',
   info: '#2563eb',
   active: '#22c55e',
@@ -115,6 +115,10 @@ export const colors = {
     secondaryHoverBg: surface.hover,
     ghostText: text.primary,
     ghostHoverBg: surface.hover,
+    aiBg: '#faf5ff',
+    aiText: '#9333ea',
+    aiBorder: '#f3e8ff',
+    aiHoverBg: '#f3e8ff',
   },
 
   scrollbar,
@@ -170,6 +174,10 @@ export const colors = {
 
   drawer: {
     overlay: 'rgba(0, 0, 0, 0.5)',
+  },
+
+  taskDrawer: {
+    footerBg: 'rgba(248, 249, 250, 0.3)',
   },
 
   mobileSearchSheet: {

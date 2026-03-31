@@ -29,7 +29,8 @@ const config: TestRunnerConfig = {
       .filter((r: { enabled: boolean }) => r.enabled === false)
       .map((r: { id: string }) => r.id);
 
-    const disabledRuleIds = new Set(disabledRules);
+    // region: component stories render without page landmarks — the app provides those
+    const disabledRuleIds = new Set([...disabledRules, 'region']);
 
     const results = await page.evaluate(
       async ({ selector, disabledIds }) => {
@@ -68,7 +69,7 @@ const config: TestRunnerConfig = {
 
         return axe.run(selector, opts);
       },
-      { selector: '#storybook-root', disabledIds: [...disabledRuleIds] },
+      { selector: 'body', disabledIds: [...disabledRuleIds] },
     );
 
     if (results.violations.length > 0) {

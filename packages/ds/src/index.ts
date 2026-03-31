@@ -8,16 +8,22 @@ export {
   AddIcon,
   AttachFileIcon,
   AttachmentIcon,
+  AutoAwesomeIcon,
   CheckCircleIcon,
   ChevronRightIcon,
   CloseIcon,
   ConfirmationNumberIcon,
   DescriptionIcon,
+  ExpandMoreIcon,
+  FlagIcon,
   HelpIcon,
   LinkIcon,
   MenuIcon,
+  PersonIcon,
   SearchIcon,
   SettingsIcon,
+  SignalCellularAltIcon,
+  TagIcon,
   TaskAltIcon,
   UnfoldMoreIcon,
   iconRegistry,
@@ -77,6 +83,20 @@ export {
   type SelectorAction,
 } from './components/Selector';
 export { Drawer, type DrawerProps } from './components/Drawer';
+export {
+  TaskDrawer,
+  TaskDrawerField,
+  TaskDrawerSection,
+  type TaskDrawerProps,
+  type TaskDrawerFieldProps,
+  type TaskDrawerSectionProps,
+} from './components/TaskDrawer';
+export { PropertyRow, type PropertyRowProps } from './components/PropertyRow';
+export {
+  RecentTaskList,
+  type RecentTaskListProps,
+  type RecentTaskItem,
+} from './components/RecentTaskList';
 
 export { useClickOutside } from './hooks/useClickOutside';
 export { useFocusTrap } from './hooks/useFocusTrap';

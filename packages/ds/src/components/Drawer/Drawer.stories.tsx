@@ -28,7 +28,7 @@ const avatars: Record<string, { initial: string; label: string }> = {
 };
 
 const meta: Meta<typeof Drawer> = {
-  title: 'Components/Drawer',
+  title: 'Compositions/Drawer',
   component: Drawer,
   tags: ['autodocs'],
   parameters: {
