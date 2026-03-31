@@ -96,3 +96,9 @@
     transition: none;
   }
 }
+
+@media (max-width: 480px) {
+  .panel {
+    width: 100%;
+  }
+}

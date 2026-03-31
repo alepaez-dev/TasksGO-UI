@@ -251,3 +251,32 @@ function SearchableRender() {
 export const Searchable: Story = {
   render: () => <SearchableRender />,
 };
+
+const manyOptions = Array.from({ length: 20 }, (_, i) => ({
+  value: `opt-${i + 1}`,
+  label: `Option ${i + 1}`,
+}));
+
+function ManyOptionsRender({ options }: RenderProps) {
+  const [value, setValue] = useState('opt-1');
+  const [open, setOpen] = useState(true);
+  const ref = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useClickOutside(ref, close, open);
+  return (
+    <Selector
+      ref={ref}
+      options={options}
+      value={value}
+      onValueChange={setValue}
+      open={open}
+      onOpenChange={setOpen}
+      aria-label="Many options"
+    />
+  );
+}
+
+export const ManyOptions: Story = {
+  args: { options: manyOptions },
+  render: (args) => <ManyOptionsRender options={args.options} />,
+};
