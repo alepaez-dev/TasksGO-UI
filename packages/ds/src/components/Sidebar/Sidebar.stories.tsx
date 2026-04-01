@@ -1,11 +1,11 @@
-import { useCallback, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Sidebar } from './Sidebar';
 import { Selector } from '../Selector';
 import { NavItem } from '../NavItem';
 import { Avatar } from '../Avatar';
 import { SectionHeader } from '../SectionHeader';
-import { useClickOutside } from '../../hooks/useClickOutside';
+import { useSelectorState } from '../../hooks/useSelector';
 
 const projects = [
   { value: 'eng-core', label: 'Engineering Core' },
@@ -40,11 +40,8 @@ type Story = StoryObj<typeof Sidebar>;
 
 function DefaultRender() {
   const [project, setProject] = useState('eng-core');
-  const [open, setOpen] = useState(false);
   const [activeNav, setActiveNav] = useState('tasks');
-  const selectorRef = useRef<HTMLDivElement>(null);
-  const closeSelector = useCallback(() => setOpen(false), []);
-  useClickOutside(selectorRef, closeSelector, open);
+  const { ref, open, onOpenChange } = useSelectorState();
   const avatar = avatars[project];
   const navClick = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -54,12 +51,12 @@ function DefaultRender() {
     <Sidebar
       header={
         <Selector
-          ref={selectorRef}
+          ref={ref}
           options={projects}
           value={project}
           onValueChange={setProject}
           open={open}
-          onOpenChange={setOpen}
+          onOpenChange={onOpenChange}
           triggerPrefix={
             <Avatar initial={avatar.initial} aria-label={avatar.label} />
           }

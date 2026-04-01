@@ -100,6 +100,12 @@ export {
 
 export { useClickOutside } from './hooks/useClickOutside';
 export { useFocusTrap } from './hooks/useFocusTrap';
+export {
+  useSelectorState,
+  useSelectorGroup,
+  type UseSelectorStateReturn,
+  type SelectorGroupEntry,
+} from './hooks/useSelector';
 
 export {
   colors,

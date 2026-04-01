@@ -1,9 +1,9 @@
-import { useCallback, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Selector, type SelectorProps } from './Selector';
 import { Avatar } from '../Avatar';
 import { SearchInput } from '../SearchInput';
-import { useClickOutside } from '../../hooks/useClickOutside';
+import { useSelectorState } from '../../hooks/useSelector';
 
 const projects = [
   { value: 'eng-core', label: 'Engineering Core' },
@@ -21,6 +21,17 @@ const meta: Meta<typeof Selector> = {
   title: 'Components/Selector',
   component: Selector,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: [
+          'Selector is fully controlled — pair it with a state hook:',
+          '- **`useSelectorState`** — standalone selector with click-outside detection.',
+          '- **`useSelectorGroup`** — multiple selectors with mutual exclusion (only one open at a time). Use `useSelectorState` instead when selectors are independent and may open simultaneously.',
+        ].join('\n'),
+      },
+    },
+  },
   argTypes: {
     options: { control: 'object' },
     action: { control: 'object' },
@@ -41,10 +52,7 @@ type RenderProps = Pick<SelectorProps, 'options' | 'action'>;
 
 function DefaultRender({ options }: RenderProps) {
   const [value, setValue] = useState('eng-core');
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const close = useCallback(() => setOpen(false), []);
-  useClickOutside(ref, close, open);
+  const { ref, open, onOpenChange } = useSelectorState();
   const avatar = avatars[value];
   return (
     <Selector
@@ -53,7 +61,7 @@ function DefaultRender({ options }: RenderProps) {
       value={value}
       onValueChange={setValue}
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
       triggerPrefix={
         <Avatar initial={avatar.initial} aria-label={avatar.label} />
       }
@@ -68,10 +76,7 @@ export const Default: Story = {
 
 function WithActionRender({ options, action }: RenderProps) {
   const [value, setValue] = useState('eng-core');
-  const [open, setOpen] = useState(true);
-  const ref = useRef<HTMLDivElement>(null);
-  const close = useCallback(() => setOpen(false), []);
-  useClickOutside(ref, close, open);
+  const { ref, open, onOpenChange } = useSelectorState();
   const avatar = avatars[value];
   return (
     <Selector
@@ -80,7 +85,7 @@ function WithActionRender({ options, action }: RenderProps) {
       value={value}
       onValueChange={setValue}
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
       triggerPrefix={
         <Avatar initial={avatar.initial} aria-label={avatar.label} />
       }
@@ -105,10 +110,7 @@ export const WithAction: Story = {
 
 function NoSelectionRender({ options }: RenderProps) {
   const [value, setValue] = useState<string | undefined>(undefined);
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const close = useCallback(() => setOpen(false), []);
-  useClickOutside(ref, close, open);
+  const { ref, open, onOpenChange } = useSelectorState();
   const avatar = value ? avatars[value] : undefined;
   return (
     <Selector
@@ -117,7 +119,7 @@ function NoSelectionRender({ options }: RenderProps) {
       value={value}
       onValueChange={setValue}
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
       placeholder="Choose project…"
       triggerPrefix={
         avatar ? (
@@ -164,10 +166,7 @@ const priorityOptions = [
 
 function IconOptionsRender({ options }: RenderProps) {
   const [value, setValue] = useState('high');
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const close = useCallback(() => setOpen(false), []);
-  useClickOutside(ref, close, open);
+  const { ref, open, onOpenChange } = useSelectorState();
   return (
     <Selector
       ref={ref}
@@ -175,8 +174,8 @@ function IconOptionsRender({ options }: RenderProps) {
       value={value}
       onValueChange={setValue}
       open={open}
-      onOpenChange={setOpen}
-      size="sm"
+      onOpenChange={onOpenChange}
+      variant="inline"
       aria-label="Select priority"
     />
   );
@@ -203,11 +202,8 @@ const allTickets = [
 
 function SearchableRender() {
   const [value, setValue] = useState('T-42');
-  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const ref = useRef<HTMLDivElement>(null);
-  const close = useCallback(() => setOpen(false), []);
-  useClickOutside(ref, close, open);
+  const { ref, open, onOpenChange } = useSelectorState();
 
   const filtered = query
     ? allTickets.filter(
@@ -227,7 +223,7 @@ function SearchableRender() {
         setQuery('');
       }}
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
       header={
         <SearchInput
           value={query}
@@ -241,7 +237,7 @@ function SearchableRender() {
         icon: 'add' as const,
         onClick: () => {},
       }}
-      size="sm"
+      variant="inline"
       emptyState="No results found"
       aria-label="Linked ticket"
     />
@@ -259,10 +255,7 @@ const manyOptions = Array.from({ length: 20 }, (_, i) => ({
 
 function ManyOptionsRender({ options }: RenderProps) {
   const [value, setValue] = useState('opt-1');
-  const [open, setOpen] = useState(true);
-  const ref = useRef<HTMLDivElement>(null);
-  const close = useCallback(() => setOpen(false), []);
-  useClickOutside(ref, close, open);
+  const { ref, open, onOpenChange } = useSelectorState();
   return (
     <Selector
       ref={ref}
@@ -270,7 +263,7 @@ function ManyOptionsRender({ options }: RenderProps) {
       value={value}
       onValueChange={setValue}
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
       aria-label="Many options"
     />
   );

@@ -45,12 +45,12 @@
   color: var(--ds-color-text-secondary);
 }
 
-.iconTrigger {
+.inlineTrigger {
   width: auto;
   gap: var(--ds-space-scale-xs);
 }
 
-.iconTrigger .label {
+.inlineTrigger .label {
   flex: 0 1 auto;
   font-size: var(--ds-text-property-row-value-font-size);
   font-family: var(--ds-text-property-row-value-font-family);
@@ -81,11 +81,11 @@
 }
 
 .header {
-  padding: var(--ds-space-scale-sm) var(--ds-space-nav-item-padding-x);
+  padding: var(--ds-space-scale-sm) var(--ds-space-nav-item-padding-x) 0;
   border-bottom: 1px solid var(--ds-color-border-default);
 }
 
-.header > div {
+.header > :last-child {
   border-bottom: none;
 }
 
@@ -149,7 +149,7 @@
 .optionPrefix {
   flex-shrink: 0;
   min-width: var(--ds-space-ticket-id-min-width);
-  text-align: right;
+  text-align: left;
   font-size: var(--ds-text-ticket-id-font-size);
   font-family: var(--ds-text-ticket-id-font-family);
   font-weight: var(--ds-font-weight-bold);
