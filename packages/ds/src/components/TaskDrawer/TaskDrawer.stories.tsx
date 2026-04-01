@@ -15,6 +15,13 @@ import type { RecentTaskItem } from '../RecentTaskList';
 import { withDefaultViewport } from '../../../.storybook/decorators';
 import { mobileViewportOptions } from '../../../.storybook/preview';
 
+const assigneeOptions = [
+  { value: 'ale', label: 'Ale H.', initial: 'AH', color: '#7D9B84' },
+  { value: 'cleo', label: 'Cleo H.', initial: 'CH', color: '#C38E70' },
+  { value: 'vader', label: 'Vader P.', initial: 'VP', color: '#6C89A8' },
+  { value: 'loki', label: 'Loki P.', initial: 'LP', color: '#7B6FA0' },
+];
+
 const ticketOptions = [
   {
     value: 'T-42',
@@ -94,11 +101,17 @@ function DefaultRender() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [assignee, setAssignee] = useState('ale');
   const [priority, setPriority] = useState('high');
   const [linkedTicket, setLinkedTicket] = useState<string | undefined>(
     undefined,
   );
-  const selectors = useSelectorGroup('priority', 'ticket');
+  const selectors = useSelectorGroup('assignee', 'priority', 'ticket');
+  const {
+    ref: assigneeRef,
+    open: assigneeOpen,
+    onOpenChange: onAssigneeChange,
+  } = selectors.assignee;
   const {
     ref: priorityRef,
     open: priorityOpen,
@@ -109,6 +122,7 @@ function DefaultRender() {
     open: ticketOpen,
     onOpenChange: onTicketChange,
   } = selectors.ticket;
+  const [assigneeQuery, setAssigneeQuery] = useState('');
   const [ticketQuery, setTicketQuery] = useState('');
 
   return (
@@ -156,9 +170,71 @@ function DefaultRender() {
           </TaskDrawerField>
 
           <TaskDrawerSection label="Properties">
-            <PropertyRow icon="person" label="Assignee" onClick={() => {}}>
-              <Avatar initial="AD" aria-label="Alex D." variant="profile" />
-              <span>Alex D.</span>
+            <PropertyRow icon="person" label="Assignee">
+              <Selector
+                ref={assigneeRef}
+                options={
+                  assigneeQuery
+                    ? assigneeOptions.filter((m) =>
+                        m.label
+                          .toLowerCase()
+                          .includes(assigneeQuery.toLowerCase()),
+                      )
+                    : assigneeOptions
+                }
+                value={assignee}
+                onValueChange={(v) => {
+                  setAssignee(v);
+                  setAssigneeQuery('');
+                }}
+                open={assigneeOpen}
+                onOpenChange={onAssigneeChange}
+                dropdownAlign="end"
+                variant="inline"
+                aria-label="Select assignee"
+                header={
+                  <SearchInput
+                    value={assigneeQuery}
+                    onChange={(e) => setAssigneeQuery(e.target.value)}
+                    placeholder="Search members..."
+                    size="sm"
+                  />
+                }
+                emptyState="No members found"
+                triggerPrefix={
+                  <Avatar
+                    variant="profile"
+                    initial={
+                      assigneeOptions.find((m) => m.value === assignee)
+                        ?.initial ?? '?'
+                    }
+                    aria-label={
+                      assigneeOptions.find((m) => m.value === assignee)
+                        ?.label ?? 'No assignee'
+                    }
+                    style={{
+                      backgroundColor: assigneeOptions.find(
+                        (m) => m.value === assignee,
+                      )?.color,
+                    }}
+                  />
+                }
+                renderTriggerLabel={(opt) => opt.label}
+                renderOptionIndicator={(opt) => {
+                  const member = assigneeOptions.find(
+                    (m) => m.value === opt.value,
+                  );
+                  return member ? (
+                    <Avatar
+                      variant="profile"
+                      size="sm"
+                      initial={member.initial}
+                      aria-label={member.label}
+                      style={{ backgroundColor: member.color }}
+                    />
+                  ) : null;
+                }}
+              />
             </PropertyRow>
 
             <PropertyRow icon="signal_cellular_alt" label="Priority">

@@ -38,6 +38,7 @@ export const spacing = {
   },
   avatar: {
     size: '28px',
+    sizeSm: '20px',
   },
   statusDot: {
     size: '6px',

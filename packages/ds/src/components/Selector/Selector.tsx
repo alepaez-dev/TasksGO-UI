@@ -58,6 +58,7 @@ export interface SelectorProps extends HTMLAttributes<HTMLDivElement> {
   dropdownAlign?: DropdownAlign;
   variant?: 'default' | 'inline';
   renderTriggerLabel?: (option: SelectorOption) => ReactNode;
+  renderOptionIndicator?: (option: SelectorOption) => ReactNode;
 }
 
 function focusSibling(current: EventTarget, direction: 'next' | 'prev') {
@@ -87,6 +88,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
       dropdownAlign = 'stretch',
       variant = 'default',
       renderTriggerLabel: renderTriggerLabelProp,
+      renderOptionIndicator: renderOptionIndicatorProp,
       className,
       'aria-label': ariaLabel,
       ...rest
@@ -163,7 +165,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
       return selected.label;
     }
 
-    function renderOptionIndicator(option: SelectorOption) {
+    function defaultRenderOptionIndicator(option: SelectorOption) {
       if (option.icon) {
         return (
           <Icon
@@ -239,6 +241,13 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
               styles.dropdown,
               dropdownAlign === 'end' && styles.dropdownEnd,
             )}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                onOpenChange?.(false);
+                triggerRef.current?.focus();
+              }
+            }}
           >
             {header && <div className={styles.header}>{header}</div>}
             {options.length === 0 && emptyState && (
@@ -268,7 +277,9 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
                     }}
                     onKeyDown={handleOptionKeyDown(option.value)}
                   >
-                    {renderOptionIndicator(option)}
+                    {(
+                      renderOptionIndicatorProp ?? defaultRenderOptionIndicator
+                    )(option)}
                     <span className={styles.optionLabel}>{option.label}</span>
                     {isSelected && (
                       <Icon
