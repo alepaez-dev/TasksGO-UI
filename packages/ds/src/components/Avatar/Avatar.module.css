@@ -9,6 +9,12 @@
   user-select: none;
 }
 
+.sm {
+  width: var(--ds-space-avatar-size-sm);
+  height: var(--ds-space-avatar-size-sm);
+  font-size: var(--ds-text-avatar-sm-initial-font-size);
+}
+
 .project {
   font-size: var(--ds-text-avatar-initial-font-size);
   font-weight: var(--ds-text-avatar-initial-font-weight);
