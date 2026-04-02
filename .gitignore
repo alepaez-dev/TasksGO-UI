@@ -32,6 +32,10 @@ npm-debug.log*
 # Coverage
 coverage/
 
+# Playwright
+playwright-report/
+test-results/
+
 # Claude
 CLAUDE.md
 .claude/

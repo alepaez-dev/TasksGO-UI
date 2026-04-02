@@ -89,6 +89,17 @@ export const Completed: Story = {
   },
 };
 
+export const WithoutTicket: Story = {
+  parameters: { viewport: { options: desktopViewports } },
+  args: {
+    title: 'Address memory leak in production API cluster',
+    badge: { label: 'In Progress', variant: 'progress' },
+    refs: [{ label: 'heap-dump-analysis' }],
+    priority: 'critical',
+    date: { label: 'Today', dateTime: '2026-03-16', urgent: true },
+  },
+};
+
 export const Minimal: Story = {
   parameters: { viewport: { options: desktopViewports } },
   args: {

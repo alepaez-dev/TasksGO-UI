@@ -58,6 +58,17 @@ export default tseslint.config(
     },
   },
   {
+    files: ['e2e/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.e2e.json',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
+    },
+  },
+  {
     ignores: ['dist/', 'storybook-static/', 'eslint-rules/'],
   },
 );
