@@ -9,12 +9,6 @@
   user-select: none;
 }
 
-.sm {
-  width: var(--ds-space-avatar-size-sm);
-  height: var(--ds-space-avatar-size-sm);
-  font-size: var(--ds-text-avatar-sm-initial-font-size);
-}
-
 .project {
   font-size: var(--ds-text-avatar-initial-font-size);
   font-weight: var(--ds-text-avatar-initial-font-weight);
@@ -30,4 +24,14 @@
   color: var(--ds-color-avatar-profile-text);
   border: 1px solid var(--ds-color-avatar-profile-border);
   border-radius: var(--ds-radius-full);
+}
+
+.sm {
+  width: var(--ds-space-avatar-size-sm);
+  height: var(--ds-space-avatar-size-sm);
+}
+
+.project.sm,
+.profile.sm {
+  font-size: var(--ds-text-avatar-sm-initial-font-size);
 }
