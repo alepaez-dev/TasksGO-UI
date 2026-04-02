@@ -174,6 +174,7 @@ export const CompactList: Story = {
   },
   args: {
     title: 'Implement OAuth2 provider',
+    refId: 'T-104',
   },
   render: () => (
     <ul
@@ -222,6 +223,7 @@ export const TaskList: Story = {
   parameters: { viewport: { options: desktopViewports } },
   args: {
     title: 'Fix authentication timeout on mobile devices',
+    refId: 'ENG-902',
   },
   render: () => (
     <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
