@@ -300,6 +300,43 @@ describe('Selector', () => {
       await userEvent.keyboard('{ArrowUp}');
       expect(opts[0]).toHaveFocus();
     });
+
+    it('closes dropdown on Escape from header input, returning focus to trigger', async () => {
+      const onOpenChange = vi.fn();
+      render(
+        <Selector
+          options={options}
+          value="a"
+          open
+          onOpenChange={onOpenChange}
+          header={<input placeholder="Search..." />}
+        />,
+      );
+      screen.getByPlaceholderText('Search...').focus();
+      await userEvent.keyboard('{Escape}');
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(screen.getByRole('button')).toHaveFocus();
+    });
+
+    it('does not propagate Escape to parent when dropdown is open', async () => {
+      const parentKeyDown = vi.fn();
+      render(
+        <div onKeyDown={parentKeyDown}>
+          <Selector
+            options={options}
+            value="a"
+            open
+            header={<input placeholder="Search..." />}
+          />
+        </div>,
+      );
+      screen.getByPlaceholderText('Search...').focus();
+      await userEvent.keyboard('{Escape}');
+      const escapeCall = parentKeyDown.mock.calls.find(
+        (call) => (call[0] as KeyboardEvent).key === 'Escape',
+      );
+      expect((escapeCall?.[0] as KeyboardEvent).defaultPrevented).toBe(true);
+    });
   });
 
   describe('icon options', () => {
@@ -402,6 +439,30 @@ describe('Selector', () => {
       expect(
         screen.getByText('T-42 · Implement edge-caching'),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('renderOptionIndicator', () => {
+    it('uses custom indicator when provided', () => {
+      render(
+        <Selector
+          options={options}
+          value="a"
+          open
+          renderOptionIndicator={(opt) => (
+            <span data-testid={`ind-${opt.value}`} />
+          )}
+        />,
+      );
+      expect(screen.getByTestId('ind-a')).toBeInTheDocument();
+      expect(screen.getByTestId('ind-b')).toBeInTheDocument();
+      expect(screen.getByTestId('ind-c')).toBeInTheDocument();
+    });
+
+    it('falls back to default indicator when not provided', () => {
+      render(<Selector options={options} value="a" open />);
+      expect(screen.queryByTestId('ind-a')).not.toBeInTheDocument();
+      expect(screen.getAllByRole('option')).toHaveLength(options.length);
     });
   });
 

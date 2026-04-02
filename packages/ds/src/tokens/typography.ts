@@ -114,6 +114,14 @@ export const typographyScale = {
     textTransform: 'none',
     lineHeight: '1',
   },
+  avatarSmInitial: {
+    fontSize: '8px',
+    fontFamily: fontFamilies.mono,
+    fontWeight: fontWeights.bold,
+    letterSpacing: 'normal',
+    textTransform: 'none',
+    lineHeight: '1',
+  },
   navLabel: {
     fontSize: '14px',
     fontFamily: fontFamilies.sans,

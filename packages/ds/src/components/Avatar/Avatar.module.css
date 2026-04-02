@@ -25,3 +25,13 @@
   border: 1px solid var(--ds-color-avatar-profile-border);
   border-radius: var(--ds-radius-full);
 }
+
+.sm {
+  width: var(--ds-space-avatar-size-sm);
+  height: var(--ds-space-avatar-size-sm);
+}
+
+.project.sm,
+.profile.sm {
+  font-size: var(--ds-text-avatar-sm-initial-font-size);
+}

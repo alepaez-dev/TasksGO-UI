@@ -273,3 +273,74 @@ export const ManyOptions: Story = {
   args: { options: manyOptions },
   render: (args) => <ManyOptionsRender options={args.options} />,
 };
+
+const members = [
+  { value: 'ale', label: 'Ale H.', initial: 'AH', color: '#7D9B84' },
+  { value: 'cleo', label: 'Cleo H.', initial: 'CH', color: '#C38E70' },
+  { value: 'vader', label: 'Vader P.', initial: 'VP', color: '#6C89A8' },
+  { value: 'loki', label: 'Loki P.', initial: 'LP', color: '#7B6FA0' },
+];
+
+function AvatarOptionsRender() {
+  const [value, setValue] = useState('ale');
+  const [query, setQuery] = useState('');
+  const { ref, open, onOpenChange } = useSelectorState();
+
+  const filtered = query
+    ? members.filter((m) => m.label.toLowerCase().includes(query.toLowerCase()))
+    : members;
+
+  const selected = members.find((m) => m.value === value);
+
+  return (
+    <Selector
+      ref={ref}
+      options={filtered}
+      value={value}
+      onValueChange={(v) => {
+        setValue(v);
+        setQuery('');
+      }}
+      open={open}
+      onOpenChange={onOpenChange}
+      header={
+        <SearchInput
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search members..."
+          size="sm"
+        />
+      }
+      triggerPrefix={
+        <Avatar
+          variant="profile"
+          initial={selected?.initial ?? '?'}
+          aria-label={selected?.label ?? 'No assignee'}
+          style={
+            selected?.color ? { backgroundColor: selected.color } : undefined
+          }
+        />
+      }
+      renderTriggerLabel={(opt) => opt.label}
+      renderOptionIndicator={(opt) => {
+        const member = members.find((m) => m.value === opt.value);
+        return member ? (
+          <Avatar
+            variant="profile"
+            size="sm"
+            initial={member.initial}
+            aria-label={member.label}
+            style={{ backgroundColor: member.color }}
+          />
+        ) : null;
+      }}
+      variant="inline"
+      emptyState="No members found"
+      aria-label="Select assignee"
+    />
+  );
+}
+
+export const AvatarOptions: Story = {
+  render: () => <AvatarOptionsRender />,
+};
