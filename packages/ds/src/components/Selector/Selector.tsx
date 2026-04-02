@@ -242,7 +242,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
               dropdownAlign === 'end' && styles.dropdownEnd,
             )}
             onKeyDown={(e) => {
-              if (e.key === 'Escape') {
+              if (e.key === 'Escape' && !e.defaultPrevented) {
                 e.preventDefault();
                 onOpenChange?.(false);
                 triggerRef.current?.focus();
