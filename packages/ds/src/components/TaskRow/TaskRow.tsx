@@ -49,7 +49,7 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
     {
       title,
       completed = false,
-      checked,
+      checked = false,
       onCheckedChange,
       priority,
       ticketId,
