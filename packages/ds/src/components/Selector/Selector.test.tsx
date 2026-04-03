@@ -321,7 +321,7 @@ describe('Selector', () => {
     it('does not propagate Escape to parent when dropdown is open', async () => {
       const parentKeyDown = vi.fn();
       render(
-        <div onKeyDown={parentKeyDown}>
+        <div role="presentation" onKeyDown={parentKeyDown}>
           <Selector
             options={options}
             value="a"

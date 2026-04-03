@@ -5,12 +5,12 @@ import { TaskRow } from './TaskRow';
 
 describe('TaskRow', () => {
   it('renders the title', () => {
-    render(<TaskRow title="Fix login bug" />);
+    render(<TaskRow title="Fix login bug" refId="TSK-1" />);
     expect(screen.getByText('Fix login bug')).toBeInTheDocument();
   });
 
   it('renders a checkbox with accessible label derived from title', () => {
-    render(<TaskRow title="Fix login bug" />);
+    render(<TaskRow title="Fix login bug" refId="TSK-1" />);
     expect(
       screen.getByRole('checkbox', { name: 'Toggle Fix login bug' }),
     ).toBeInTheDocument();
@@ -20,6 +20,7 @@ describe('TaskRow', () => {
     render(
       <TaskRow
         title="Fix login bug"
+        refId="TSK-1"
         badge={{ label: 'In Progress', variant: 'progress' }}
       />,
     );
@@ -27,12 +28,12 @@ describe('TaskRow', () => {
   });
 
   it('renders priority label when provided', () => {
-    render(<TaskRow title="Fix login bug" priority="critical" />);
+    render(<TaskRow title="Fix login bug" refId="TSK-1" priority="critical" />);
     expect(screen.getByText('critical')).toBeInTheDocument();
   });
 
-  it('renders ticket id when provided', () => {
-    render(<TaskRow title="Fix login bug" ticketId="ENG-902" />);
+  it('renders refId', () => {
+    render(<TaskRow title="Fix login bug" refId="ENG-902" />);
     expect(screen.getByText('ENG-902')).toBeInTheDocument();
   });
 
@@ -40,6 +41,7 @@ describe('TaskRow', () => {
     render(
       <TaskRow
         title="Fix login bug"
+        refId="TSK-1"
         date={{ label: 'Mar 15', dateTime: '2026-03-15' }}
       />,
     );
@@ -50,6 +52,7 @@ describe('TaskRow', () => {
     render(
       <TaskRow
         title="Fix login bug"
+        refId="TSK-1"
         refs={[
           { label: 'spec.pdf', variant: 'attachment', icon: 'attach_file' },
         ]}
@@ -62,6 +65,7 @@ describe('TaskRow', () => {
     render(
       <TaskRow
         title="Fix login bug"
+        refId="TSK-1"
         refs={[
           { label: 'spec.pdf', variant: 'attachment', icon: 'attach_file' },
           { label: 'RFC-12', variant: 'doc', icon: 'description' },
@@ -73,13 +77,21 @@ describe('TaskRow', () => {
   });
 
   it('does not render refs container when refs is empty', () => {
-    const { container } = render(<TaskRow title="Fix login bug" refs={[]} />);
+    const { container } = render(
+      <TaskRow title="Fix login bug" refId="TSK-1" refs={[]} />,
+    );
     expect(container.querySelector('.refs')).not.toBeInTheDocument();
   });
 
   it('calls onCheckedChange when checkbox is clicked', async () => {
     const handleChange = vi.fn();
-    render(<TaskRow title="Fix login bug" onCheckedChange={handleChange} />);
+    render(
+      <TaskRow
+        title="Fix login bug"
+        refId="TSK-1"
+        onCheckedChange={handleChange}
+      />,
+    );
     await userEvent.click(screen.getByRole('checkbox'));
     expect(handleChange).toHaveBeenCalledTimes(1);
   });
@@ -88,6 +100,7 @@ describe('TaskRow', () => {
     const { container } = render(
       <TaskRow
         title="Old task"
+        refId="TSK-1"
         completed
         checked
         onCheckedChange={() => {
@@ -102,6 +115,7 @@ describe('TaskRow', () => {
     render(
       <TaskRow
         title="Old task"
+        refId="TSK-1"
         completed
         checked
         onCheckedChange={() => {
@@ -114,20 +128,20 @@ describe('TaskRow', () => {
 
   it('forwards ref to the div element', () => {
     const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
-    render(<TaskRow ref={ref} title="Fix login bug" />);
+    render(<TaskRow ref={ref} title="Fix login bug" refId="TSK-1" />);
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });
 
   it('merges custom className', () => {
     const { container } = render(
-      <TaskRow title="Fix login bug" className="custom" />,
+      <TaskRow title="Fix login bug" refId="TSK-1" className="custom" />,
     );
     expect(container.firstElementChild).toHaveClass('custom');
   });
 
   it('applies compact layout class', () => {
     const { container } = render(
-      <TaskRow title="Fix login bug" layout="compact" />,
+      <TaskRow title="Fix login bug" refId="TSK-1" layout="compact" />,
     );
     expect(container.firstElementChild).toHaveClass('compact');
   });
@@ -137,7 +151,7 @@ describe('TaskRow', () => {
       <TaskRow
         title="Fix login bug"
         layout="compact"
-        ticketId="T-104"
+        refId="T-104"
         date={{ label: 'Today', dateTime: '2026-03-16' }}
       />,
     );
@@ -148,7 +162,7 @@ describe('TaskRow', () => {
 
   it('does not render separator when only ticket is provided', () => {
     const { container } = render(
-      <TaskRow title="Fix login bug" layout="compact" ticketId="T-104" />,
+      <TaskRow title="Fix login bug" layout="compact" refId="T-104" />,
     );
     const separator = container.querySelector('[aria-hidden="true"]');
     expect(separator).not.toBeInTheDocument();

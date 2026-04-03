@@ -37,7 +37,7 @@ export interface TaskRowProps extends HTMLAttributes<HTMLDivElement> {
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   priority?: PriorityLevel;
-  ticketId?: string;
+  refId: string;
   date?: TaskRowDate;
   badge?: TaskRowBadge;
   refs?: readonly TaskRowRef[];
@@ -49,10 +49,10 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
     {
       title,
       completed = false,
-      checked,
+      checked = false,
       onCheckedChange,
       priority,
-      ticketId,
+      refId,
       date,
       badge,
       refs,
@@ -66,16 +66,22 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
       styles.taskRow,
       styles[layout],
       completed && styles.completed,
+      rest.onClick && styles.clickable,
       className,
     );
     const checkboxVariant = completed ? 'completed' : 'default';
     return (
       <div ref={ref} className={classes} {...rest}>
-        <div className={styles.checkbox}>
+        <div
+          className={styles.checkbox}
+          role="presentation"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <Checkbox
             variant={checkboxVariant}
             checked={checked}
-            onChange={(e) => onCheckedChange?.(e.target.checked)}
+            onChange={() => onCheckedChange?.(!checked)}
             aria-label={`Toggle ${title}`}
           />
         </div>
@@ -96,29 +102,25 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
             ))}
           </div>
         )}
-        {priority && (
-          <div className={styles.priority}>
-            <PriorityLabel priority={priority} />
-          </div>
-        )}
+        <div className={styles.priority}>
+          {priority && <PriorityLabel priority={priority} />}
+        </div>
         <div className={styles.info}>
-          {ticketId && (
-            <div className={styles.ticket}>
-              <TicketId>{ticketId}</TicketId>
-            </div>
-          )}
-          {ticketId && date && (
+          <div className={styles.ticket}>
+            {refId && <TicketId>{refId}</TicketId>}
+          </div>
+          {refId && date && (
             <span className={styles.separator} aria-hidden="true" />
           )}
-          {date && (
-            <div className={styles.date}>
+          <div className={styles.date}>
+            {date && (
               <DateCell
                 date={date.label}
                 dateTime={date.dateTime}
                 urgent={date.urgent}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     );

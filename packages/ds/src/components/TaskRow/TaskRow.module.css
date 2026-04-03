@@ -12,6 +12,10 @@
   background-color: var(--ds-color-surface-hover);
 }
 
+.clickable {
+  cursor: pointer;
+}
+
 /* ── Default (desktop) layout ── */
 
 .default {
@@ -122,19 +126,19 @@
 .priority {
   grid-area: priority;
   min-width: var(--ds-column-priority);
-  text-align: right;
+  text-align: center;
 }
 
 .ticket {
   grid-area: ticket;
   min-width: var(--ds-column-ticket-id);
-  text-align: right;
+  text-align: center;
 }
 
 .date {
   grid-area: date;
   min-width: var(--ds-column-date);
-  text-align: right;
+  text-align: center;
 }
 
 .separator {
@@ -153,4 +157,8 @@
   font-weight: var(--ds-text-task-title-done-font-weight);
   text-decoration: var(--ds-text-task-title-done-text-decoration);
   color: var(--ds-color-completed-row-title);
+}
+
+.completed .priority {
+  filter: saturate(0.3);
 }

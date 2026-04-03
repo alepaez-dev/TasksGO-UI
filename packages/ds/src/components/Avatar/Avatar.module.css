@@ -34,4 +34,5 @@
 .project.sm,
 .profile.sm {
   font-size: var(--ds-text-avatar-sm-initial-font-size);
+  font-weight: var(--ds-text-avatar-sm-initial-font-weight);
 }

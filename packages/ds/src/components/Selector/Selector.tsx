@@ -196,6 +196,9 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
       );
     }
 
+    const renderIndicator =
+      renderOptionIndicatorProp ?? defaultRenderOptionIndicator;
+
     return (
       <div ref={ref} className={cn(styles.selector, className)} {...rest}>
         <button
@@ -237,6 +240,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
         {open && (
           <div
             ref={handleDropdownMount}
+            role="presentation"
             className={cn(
               styles.dropdown,
               dropdownAlign === 'end' && styles.dropdownEnd,
@@ -277,9 +281,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
                     }}
                     onKeyDown={handleOptionKeyDown(option.value)}
                   >
-                    {(
-                      renderOptionIndicatorProp ?? defaultRenderOptionIndicator
-                    )(option)}
+                    {renderIndicator(option)}
                     <span className={styles.optionLabel}>{option.label}</span>
                     {isSelected && (
                       <Icon

@@ -49,3 +49,35 @@ jobs:
           npx http-server packages/ds/storybook-static --port 6006 --silent &
           npx wait-on http://127.0.0.1:6006 --timeout 30000
           npm run test:a11y -w packages/ds -- --url http://127.0.0.1:6006
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: validate
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run build-storybook -w packages/ds
+
+      - name: Serve Storybook and run e2e tests
+        run: |
+          npx http-server packages/ds/storybook-static --port 6006 --silent &
+          npx wait-on http://127.0.0.1:6006 --timeout 30000
+          npm run test:e2e -w packages/ds
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: packages/ds/playwright-report/
+          retention-days: 14
