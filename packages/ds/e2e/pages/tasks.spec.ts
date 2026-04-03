@@ -134,6 +134,51 @@ test.describe('Tasks page — selector mutual exclusion', () => {
   });
 });
 
+test.describe('Tasks page — order by', () => {
+  test.beforeEach(async ({ page }) => {
+    await loadStory(page);
+  });
+
+  test('sort selector does not collapse the section', async ({ page }) => {
+    const sortButton = page.getByRole('button', { name: 'Sort tasks by' });
+    await sortButton.click();
+    await expect(page.getByRole('listbox', { name: 'Sort tasks by' })).toBeVisible();
+
+    // Close by clicking the trigger again — section should stay open
+    await sortButton.click();
+    await expect(page.getByText('Refactor Kubernetes')).toBeVisible();
+  });
+
+  test('sorting by priority shows critical before medium', async ({ page }) => {
+    const priorities = page.getByText(/^(critical|high|medium|low)$/i);
+    const labels = await priorities.allTextContents();
+    const criticalIndex = labels.findIndex((l) => l.toLowerCase() === 'critical');
+    const mediumIndex = labels.findIndex((l) => l.toLowerCase() === 'medium');
+    expect(criticalIndex).toBeLessThan(mediumIndex);
+  });
+
+  test('sorting by due date shows latest date first', async ({ page }) => {
+    const sortButton = page.getByRole('button', { name: 'Sort tasks by' });
+    await sortButton.click();
+    await page.getByRole('option', { name: 'Due date' }).click();
+
+    const activeSection = page.locator('details', { hasText: 'Active Tasks' });
+    const times = activeSection.getByRole('time');
+
+    // Web-first wait: ensure the sort has flushed before reading all values
+    await expect(times.first()).toHaveAttribute('datetime', '2026-04-03');
+
+    const dateTimes = await times.evaluateAll((els) =>
+      els.map((el) => el.getAttribute('datetime')),
+    );
+    expect(dateTimes.length).toBeGreaterThan(1);
+    const isSortedDesc = dateTimes.every(
+      (d, i) => i === 0 || (d ?? '') <= (dateTimes[i - 1] ?? ''),
+    );
+    expect(isSortedDesc).toBe(true);
+  });
+});
+
 test.describe('Tasks page — focus trap', () => {
   test('Tab cycles within drawer and Escape returns focus to trigger', async ({ page }) => {
     await loadStory(page);

@@ -30,6 +30,11 @@ import {
 import { PropertyRow } from '../../components/PropertyRow';
 import { RecentTaskList } from '../../components/RecentTaskList';
 import type { RecentTaskItem } from '../../components/RecentTaskList';
+import {
+  orderByLabelStyle,
+  orderByPrefixStyle,
+  orderByValueStyle,
+} from '../helpers/orderByStyles';
 import styles from './TasksPage.module.css';
 
 type TaskItem = Pick<
@@ -48,7 +53,7 @@ const SEED_TASKS: readonly TaskItem[] = [
     refs: [{ label: 'architecture-spec-v2.md', variant: 'doc' }],
     priority: 'high',
     ticketId: 'ENG-902',
-    date: { label: 'Oct 28', dateTime: '2025-10-28' },
+    date: { label: 'Mar 28', dateTime: '2026-03-28' },
   },
   {
     id: 'TSK-2',
@@ -57,7 +62,7 @@ const SEED_TASKS: readonly TaskItem[] = [
     refs: [{ label: 'iam-policy-draft.json', variant: 'attachment' }],
     priority: 'medium',
     ticketId: 'INFRA-441',
-    date: { label: 'Oct 30', dateTime: '2025-10-30' },
+    date: { label: 'Mar 30', dateTime: '2026-03-30' },
   },
   {
     id: 'TSK-3',
@@ -66,7 +71,7 @@ const SEED_TASKS: readonly TaskItem[] = [
     refs: [{ label: 'incident artifact' }],
     priority: 'high',
     ticketId: 'OPS-112',
-    date: { label: 'Today', dateTime: '2025-11-01', urgent: true },
+    date: { label: 'Today', dateTime: '2026-04-03', urgent: true },
   },
   {
     id: 'TSK-4',
@@ -74,7 +79,7 @@ const SEED_TASKS: readonly TaskItem[] = [
     badge: { label: 'Todo', variant: 'todo' },
     refs: [{ label: 'pipeline-config.yaml', variant: 'attachment' }],
     priority: 'medium',
-    date: { label: 'Nov 2', dateTime: '2025-11-02' },
+    date: { label: 'Apr 1', dateTime: '2026-04-01' },
   },
   {
     id: 'TSK-5',
@@ -82,7 +87,7 @@ const SEED_TASKS: readonly TaskItem[] = [
     badge: { label: 'In Progress', variant: 'progress' },
     refs: [{ label: 'heap-dump-analysis' }],
     priority: 'critical',
-    date: { label: 'Today', dateTime: '2025-11-01', urgent: true },
+    date: { label: 'Today', dateTime: '2026-04-03', urgent: true },
   },
 ];
 
@@ -93,7 +98,7 @@ const SEED_COMPLETED: readonly TaskItem[] = [
     badge: { label: 'Done', variant: 'done' },
     priority: 'low',
     ticketId: 'SEC-22',
-    date: { label: 'Jan 12', dateTime: '2025-01-12' },
+    date: { label: 'Jan 12', dateTime: '2026-01-12' },
   },
 ];
 
@@ -200,6 +205,39 @@ function filterSearchResults(query: string): SearchPaletteGroup[] {
     .filter((group) => group.results.length > 0);
 }
 
+const sortOptions = [
+  { value: 'priority', label: 'Priority' },
+  { value: 'due-date', label: 'Due date' },
+];
+
+const PRIORITY_ORDER: Record<string, number> = {
+  critical: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+};
+
+function sortTasks(
+  tasks: readonly TaskItem[],
+  by: string,
+): readonly TaskItem[] {
+  const sorted = [...tasks];
+  switch (by) {
+    case 'priority':
+      return sorted.sort(
+        (a, b) =>
+          (PRIORITY_ORDER[a.priority ?? 'low'] ?? 4) -
+          (PRIORITY_ORDER[b.priority ?? 'low'] ?? 4),
+      );
+    case 'due-date':
+      return sorted.sort((a, b) =>
+        (b.date?.dateTime ?? '').localeCompare(a.date?.dateTime ?? ''),
+      );
+    default:
+      return sorted;
+  }
+}
+
 interface DrawerFormState {
   title: string;
   description: string;
@@ -237,6 +275,12 @@ function TasksPageRender({
     searchQuery.length > 0 ? filterSearchResults(searchQuery) : [];
 
   const [filterQuery, setFilterQuery] = useState('');
+  const [sortBy, setSortBy] = useState('priority');
+  const {
+    ref: sortRef,
+    open: sortOpen,
+    onOpenChange: onSortChange,
+  } = useSelectorState();
   const [completedIds, setCompletedIds] = useState<ReadonlySet<string>>(
     () =>
       new Set(
@@ -272,11 +316,14 @@ function TasksPageRender({
 
   const activeTasks = useMemo(() => {
     const q = filterQuery.toLowerCase();
-    return allTasks
+    const filtered = allTasks
       .filter((t) => !completedIds.has(t.id))
       .filter((t) => (q ? t.title.toLowerCase().includes(q) : true));
-  }, [allTasks, completedIds, filterQuery]);
+    return sortTasks(filtered, sortBy);
+  }, [allTasks, completedIds, filterQuery, sortBy]);
 
+  // Completed tasks are not sorted here — the consumer will usually want to
+  // apply a default sort like most-recently-completed-first.
   const completedTasks = useMemo(() => {
     const q = filterQuery.toLowerCase();
     return allTasks
@@ -482,6 +529,25 @@ function TasksPageRender({
                   count={activeTasks.length}
                   badgeVariant="progress"
                   open
+                  trailing={
+                    <Selector
+                      ref={sortRef}
+                      variant="inline"
+                      options={sortOptions}
+                      value={sortBy}
+                      onValueChange={setSortBy}
+                      open={sortOpen}
+                      onOpenChange={onSortChange}
+                      renderTriggerLabel={(opt) => (
+                        <span style={orderByLabelStyle}>
+                          <span style={orderByPrefixStyle}>Order by: </span>
+                          <span style={orderByValueStyle}>{opt.label}</span>
+                        </span>
+                      )}
+                      renderOptionIndicator={() => null}
+                      aria-label="Sort tasks by"
+                    />
+                  }
                 >
                   {activeTasks.map((task) => (
                     <TaskRow

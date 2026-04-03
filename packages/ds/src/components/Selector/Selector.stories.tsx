@@ -4,6 +4,11 @@ import { Selector, type SelectorProps } from './Selector';
 import { Avatar } from '../Avatar';
 import { SearchInput } from '../SearchInput';
 import { useSelectorState } from '../../hooks/useSelector';
+import {
+  orderByLabelStyle,
+  orderByPrefixStyle,
+  orderByValueStyle,
+} from '../../stories/helpers/orderByStyles';
 
 const projects = [
   { value: 'eng-core', label: 'Engineering Core' },
@@ -343,4 +348,45 @@ function AvatarOptionsRender() {
 
 export const AvatarOptions: Story = {
   render: () => <AvatarOptionsRender />,
+};
+
+function OrderByRender() {
+  const options = [
+    { value: 'priority', label: 'Priority' },
+    { value: 'due-date', label: 'Due date' },
+  ];
+  const [value, setValue] = useState('priority');
+  const { ref, open, onOpenChange } = useSelectorState();
+  return (
+    <Selector
+      ref={ref}
+      options={options}
+      value={value}
+      onValueChange={setValue}
+      open={open}
+      onOpenChange={onOpenChange}
+      variant="inline"
+      renderTriggerLabel={(opt) => (
+        <span style={orderByLabelStyle}>
+          <span style={orderByPrefixStyle}>Order by: </span>
+          <span style={orderByValueStyle}>{opt.label}</span>
+        </span>
+      )}
+      renderOptionIndicator={() => null}
+      aria-label="Sort tasks by"
+    />
+  );
+}
+
+export const OrderBy: Story = {
+  decorators: [
+    (Story) => (
+      <div
+        style={{ display: 'flex', justifyContent: 'center', padding: '24px' }}
+      >
+        <Story />
+      </div>
+    ),
+  ],
+  render: () => <OrderByRender />,
 };

@@ -1,4 +1,4 @@
-import { forwardRef, type DetailsHTMLAttributes } from 'react';
+import { forwardRef, type DetailsHTMLAttributes, type ReactNode } from 'react';
 import { Icon } from '../Icon';
 import { Badge } from '../Badge';
 import { cn } from '../../utils/cn';
@@ -10,17 +10,30 @@ export interface TaskSectionProps extends DetailsHTMLAttributes<HTMLDetailsEleme
   title: string;
   count?: number;
   badgeVariant?: BadgeVariant;
+  trailing?: ReactNode;
 }
 
 export const TaskSection = forwardRef<HTMLDetailsElement, TaskSectionProps>(
   (
-    { title, count, badgeVariant = 'default', className, children, ...rest },
+    {
+      title,
+      count,
+      badgeVariant = 'default',
+      trailing,
+      className,
+      children,
+      ...rest
+    },
     ref,
   ) => {
-    return (
+    const details = (
       <details
         ref={ref}
-        className={cn(styles.taskSection, className)}
+        className={cn(
+          styles.taskSection,
+          !!trailing && styles.hasTrailing,
+          className,
+        )}
         {...rest}
       >
         <summary className={styles.summary}>
@@ -30,6 +43,15 @@ export const TaskSection = forwardRef<HTMLDetailsElement, TaskSectionProps>(
         </summary>
         <div className={styles.content}>{children}</div>
       </details>
+    );
+
+    if (!trailing) return details;
+
+    return (
+      <div className={styles.wrapper}>
+        {details}
+        <div className={styles.trailing}>{trailing}</div>
+      </div>
     );
   },
 );
