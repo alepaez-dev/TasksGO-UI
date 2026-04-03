@@ -34,9 +34,10 @@ import styles from './TasksPage.module.css';
 
 type TaskItem = Pick<
   TaskRowProps,
-  'title' | 'badge' | 'refs' | 'priority' | 'ticketId' | 'date'
+  'title' | 'badge' | 'refs' | 'priority' | 'date'
 > & {
   id: string;
+  ticketId?: string;
 };
 
 const SEED_TASKS: readonly TaskItem[] = [
@@ -494,7 +495,7 @@ function TasksPageRender({
                       badge={task.badge}
                       refs={task.refs}
                       priority={task.priority}
-                      ticketId={task.ticketId ?? task.id}
+                      refId={task.ticketId ?? task.id}
                       date={task.date}
                     />
                   ))}
@@ -519,7 +520,7 @@ function TasksPageRender({
                       badge={{ label: 'Done', variant: 'done' }}
                       refs={task.refs}
                       priority={task.priority}
-                      ticketId={task.ticketId ?? task.id}
+                      refId={task.ticketId ?? task.id}
                       date={task.date}
                     />
                   ))}
@@ -539,12 +540,7 @@ function TasksPageRender({
               <span>Task Sync: Active</span>
             </>
           }
-          right={
-            <>
-              <a href="/archive">Archive</a>
-              <a href="/shortcuts">Keyboard Shortcuts</a>
-            </>
-          }
+          right={<a href="/shortcuts">Keyboard Shortcuts</a>}
         />
       </div>
 

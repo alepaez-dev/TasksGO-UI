@@ -37,7 +37,7 @@ export interface TaskRowProps extends HTMLAttributes<HTMLDivElement> {
   checked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
   priority?: PriorityLevel;
-  ticketId?: string;
+  refId: string;
   date?: TaskRowDate;
   badge?: TaskRowBadge;
   refs?: readonly TaskRowRef[];
@@ -52,7 +52,7 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
       checked = false,
       onCheckedChange,
       priority,
-      ticketId,
+      refId,
       date,
       badge,
       refs,
@@ -107,9 +107,9 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
         </div>
         <div className={styles.info}>
           <div className={styles.ticket}>
-            {ticketId && <TicketId>{ticketId}</TicketId>}
+            {refId && <TicketId>{refId}</TicketId>}
           </div>
-          {ticketId && date && (
+          {refId && date && (
             <span className={styles.separator} aria-hidden="true" />
           )}
           <div className={styles.date}>

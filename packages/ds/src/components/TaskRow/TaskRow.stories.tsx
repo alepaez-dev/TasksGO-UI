@@ -18,7 +18,7 @@ const meta = {
       control: 'select',
       options: ['critical', 'high', 'medium', 'low'],
     },
-    ticketId: { control: 'text' },
+    refId: { control: 'text' },
     date: { control: 'object' },
     layout: {
       control: 'select',
@@ -35,7 +35,7 @@ export const Default: Story = {
   args: {
     title: 'Fix authentication timeout on mobile devices',
     priority: 'high',
-    ticketId: 'ENG-902',
+    refId: 'ENG-902',
     badge: { label: 'In Progress', variant: 'progress' },
     date: { label: 'Mar 15', dateTime: '2026-03-15' },
   },
@@ -46,7 +46,7 @@ export const WithSingleRef: Story = {
   args: {
     title: 'Refactor Kubernetes service discovery logic for edge nodes',
     priority: 'high',
-    ticketId: 'ENG-902',
+    refId: 'ENG-902',
     badge: { label: 'In Progress', variant: 'progress' },
     date: { label: 'Oct 28', dateTime: '2026-10-28' },
     checked: true,
@@ -65,7 +65,7 @@ export const WithMultipleRefs: Story = {
   args: {
     title: 'Implement OAuth2 PKCE flow for mobile clients',
     priority: 'critical',
-    ticketId: 'ENG-1024',
+    refId: 'ENG-1024',
     badge: { label: 'In Progress', variant: 'progress' },
     date: { label: 'Nov 5', dateTime: '2026-11-05', urgent: true },
     refs: [
@@ -83,18 +83,37 @@ export const Completed: Story = {
     completed: true,
     checked: true,
     priority: 'medium',
-    ticketId: 'INFRA-441',
+    refId: 'INFRA-441',
     badge: { label: 'Done', variant: 'done' },
     date: { label: 'Mar 10', dateTime: '2026-03-10' },
   },
 };
 
-export const WithoutTicket: Story = {
+export const WithTaskId: Story = {
   parameters: { viewport: { options: desktopViewports } },
   args: {
     title: 'Address memory leak in production API cluster',
+    refId: 'TSK-5',
     badge: { label: 'In Progress', variant: 'progress' },
     refs: [{ label: 'heap-dump-analysis' }],
+    priority: 'critical',
+    date: { label: 'Today', dateTime: '2026-03-16', urgent: true },
+  },
+};
+
+export const WithTaskIdCompact: Story = {
+  name: 'With Task ID (Mobile)',
+  decorators: [withDefaultViewport('mobile')],
+  parameters: {
+    viewport: {
+      options: mobileViewportOptions,
+    },
+  },
+  args: {
+    title: 'Address memory leak in production API cluster',
+    refId: 'TSK-5',
+    layout: 'compact',
+    badge: { label: 'In Progress', variant: 'progress' },
     priority: 'critical',
     date: { label: 'Today', dateTime: '2026-03-16', urgent: true },
   },
@@ -104,6 +123,7 @@ export const Minimal: Story = {
   parameters: { viewport: { options: desktopViewports } },
   args: {
     title: 'Quick fix for typo in README',
+    refId: 'TSK-99',
   },
 };
 
@@ -119,7 +139,7 @@ export const Compact: Story = {
     title: 'Implement OAuth2 provider',
     layout: 'compact',
     priority: 'high',
-    ticketId: 'T-104',
+    refId: 'T-104',
     badge: { label: 'In Progress', variant: 'progress' },
     date: { label: 'Today', dateTime: '2026-03-16' },
   },
@@ -139,7 +159,7 @@ export const CompactCompleted: Story = {
     completed: true,
     checked: true,
     priority: 'high',
-    ticketId: 'T-098',
+    refId: 'T-098',
     date: { label: 'Completed yesterday', dateTime: '2026-03-15' },
   },
 };
@@ -169,7 +189,7 @@ export const CompactList: Story = {
           layout="compact"
           title="Implement OAuth2 provider"
           priority="high"
-          ticketId="T-104"
+          refId="T-104"
           badge={{ label: 'In Progress', variant: 'progress' }}
           date={{ label: 'Today', dateTime: '2026-03-16' }}
         />
@@ -179,7 +199,7 @@ export const CompactList: Story = {
           layout="compact"
           title="Refactor state management"
           priority="low"
-          ticketId="T-109"
+          refId="T-109"
           badge={{ label: 'To Do', variant: 'todo' }}
           date={{ label: 'Monday', dateTime: '2026-03-17' }}
         />
@@ -189,7 +209,7 @@ export const CompactList: Story = {
           layout="compact"
           title="Update component library"
           priority="low"
-          ticketId="T-112"
+          refId="T-112"
           badge={{ label: 'In Progress', variant: 'progress' }}
           date={{ label: 'Next Week', dateTime: '2026-03-23' }}
         />
@@ -209,7 +229,7 @@ export const TaskList: Story = {
         <TaskRow
           title="Refactor Kubernetes service discovery logic for edge nodes"
           priority="critical"
-          ticketId="ENG-902"
+          refId="ENG-902"
           badge={{ label: 'In Progress', variant: 'progress' }}
           date={{ label: 'Oct 28', dateTime: '2026-10-28', urgent: true }}
           checked
@@ -226,7 +246,7 @@ export const TaskList: Story = {
         <TaskRow
           title="Add dark mode support to dashboard"
           priority="medium"
-          ticketId="ENG-815"
+          refId="ENG-815"
           badge={{ label: 'To Do', variant: 'todo' }}
           date={{ label: 'Mar 20', dateTime: '2026-03-20' }}
         />
@@ -235,7 +255,7 @@ export const TaskList: Story = {
         <TaskRow
           title="Implement OAuth2 PKCE flow for mobile clients"
           priority="high"
-          ticketId="ENG-1024"
+          refId="ENG-1024"
           badge={{ label: 'In Progress', variant: 'progress' }}
           date={{ label: 'Nov 5', dateTime: '2026-11-05' }}
           refs={[
@@ -258,7 +278,7 @@ export const TaskList: Story = {
           completed
           checked
           priority="low"
-          ticketId="INFRA-441"
+          refId="INFRA-441"
           badge={{ label: 'Done', variant: 'done' }}
           date={{ label: 'Mar 10', dateTime: '2026-03-10' }}
         />

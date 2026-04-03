@@ -31,8 +31,8 @@ describe('TaskRow', () => {
     expect(screen.getByText('critical')).toBeInTheDocument();
   });
 
-  it('renders ticket id when provided', () => {
-    render(<TaskRow title="Fix login bug" ticketId="ENG-902" />);
+  it('renders refId when provided', () => {
+    render(<TaskRow title="Fix login bug" refId="ENG-902" />);
     expect(screen.getByText('ENG-902')).toBeInTheDocument();
   });
 
@@ -137,7 +137,7 @@ describe('TaskRow', () => {
       <TaskRow
         title="Fix login bug"
         layout="compact"
-        ticketId="T-104"
+        refId="T-104"
         date={{ label: 'Today', dateTime: '2026-03-16' }}
       />,
     );
@@ -148,7 +148,7 @@ describe('TaskRow', () => {
 
   it('does not render separator when only ticket is provided', () => {
     const { container } = render(
-      <TaskRow title="Fix login bug" layout="compact" ticketId="T-104" />,
+      <TaskRow title="Fix login bug" layout="compact" refId="T-104" />,
     );
     const separator = container.querySelector('[aria-hidden="true"]');
     expect(separator).not.toBeInTheDocument();
