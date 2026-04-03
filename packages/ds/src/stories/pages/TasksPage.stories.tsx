@@ -530,18 +530,7 @@ function TasksPageRender({
           </div>
         </div>
 
-        <Footer
-          left={
-            <>
-              <span>Focus Mode: Enabled</span>
-              <span aria-hidden="true" style={{ opacity: 0.2 }}>
-                |
-              </span>
-              <span>Task Sync: Active</span>
-            </>
-          }
-          right={<a href="/shortcuts">Keyboard Shortcuts</a>}
-        />
+        <Footer left={<span>Task Sync: Active</span>} />
       </div>
 
       <Drawer
