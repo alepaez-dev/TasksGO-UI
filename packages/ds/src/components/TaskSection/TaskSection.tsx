@@ -10,6 +10,8 @@ export interface TaskSectionProps extends DetailsHTMLAttributes<HTMLDetailsEleme
   title: string;
   count?: number;
   badgeVariant?: BadgeVariant;
+  /** Rendered outside `<details>` via absolute positioning.
+   *  The forwarded ref always points to the `<details>` element. */
   trailing?: ReactNode;
 }
 
@@ -29,11 +31,8 @@ export const TaskSection = forwardRef<HTMLDetailsElement, TaskSectionProps>(
     const details = (
       <details
         ref={ref}
-        className={cn(
-          styles.taskSection,
-          !!trailing && styles.hasTrailing,
-          className,
-        )}
+        className={cn(styles.taskSection, className)}
+        aria-label={title}
         {...rest}
       >
         <summary className={styles.summary}>

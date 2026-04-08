@@ -158,15 +158,18 @@ test.describe('Tasks page — order by', () => {
   });
 
   test('sorting by due date shows latest date first', async ({ page }) => {
+    const activeSection = page.getByRole('group', { name: 'Active Tasks' });
+    const times = activeSection.getByRole('time');
+
+    // Capture second item before sort — it will change when sort applies
+    const preSortSecond = await times.nth(1).getAttribute('datetime');
+
     const sortButton = page.getByRole('button', { name: 'Sort tasks by' });
     await sortButton.click();
     await page.getByRole('option', { name: 'Due date' }).click();
 
-    const activeSection = page.locator('details', { hasText: 'Active Tasks' });
-    const times = activeSection.getByRole('time');
-
-    // Web-first wait: ensure the sort has flushed before reading all values
-    await expect(times.first()).toHaveAttribute('datetime', '2026-04-03');
+    // Web-first wait: second date changes after sort flushes
+    await expect(times.nth(1)).not.toHaveAttribute('datetime', preSortSecond ?? '');
 
     const dateTimes = await times.evaluateAll((els) =>
       els.map((el) => el.getAttribute('datetime')),

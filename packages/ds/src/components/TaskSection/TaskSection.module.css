@@ -1,5 +1,8 @@
 .taskSection {
   border: none;
+}
+
+.wrapper {
   position: relative;
 }
 
