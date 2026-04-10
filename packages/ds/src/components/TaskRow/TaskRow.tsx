@@ -107,11 +107,9 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
         </div>
         <div className={styles.info}>
           <div className={styles.ticket}>
-            {refId && <TicketId>{refId}</TicketId>}
+            <TicketId>{refId}</TicketId>
           </div>
-          {refId && date && (
-            <span className={styles.separator} aria-hidden="true" />
-          )}
+          {date && <span className={styles.separator} aria-hidden="true" />}
           <div className={styles.date}>
             {date && (
               <DateCell

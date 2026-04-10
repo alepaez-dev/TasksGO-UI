@@ -2,6 +2,10 @@
   border: none;
 }
 
+.wrapper {
+  position: relative;
+}
+
 .summary {
   display: flex;
   align-items: center;
@@ -39,6 +43,15 @@
   text-transform: var(--ds-text-section-header-text-transform);
   line-height: var(--ds-text-section-header-line-height);
   color: var(--ds-color-text-secondary);
+}
+
+.trailing {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  height: var(--ds-text-section-header-line-height);
 }
 
 .content {

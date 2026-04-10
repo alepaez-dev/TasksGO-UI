@@ -160,5 +160,5 @@
 }
 
 .completed .priority {
-  filter: saturate(0.3);
+  filter: var(--ds-effect-completed-saturate);
 }

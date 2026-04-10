@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import userEvent from '@testing-library/user-event';
 import { TaskSection } from './TaskSection';
 
 describe('TaskSection', () => {
@@ -67,5 +68,26 @@ describe('TaskSection', () => {
       </TaskSection>,
     );
     expect(container.querySelector('details')).toHaveClass('custom');
+  });
+
+  it('renders trailing slot content', () => {
+    render(
+      <TaskSection title="ACTIVE TASKS" trailing={<button>Sort</button>}>
+        <p>Content</p>
+      </TaskSection>,
+    );
+    expect(screen.getByRole('button', { name: 'Sort' })).toBeInTheDocument();
+  });
+
+  it('trailing click does not toggle section', async () => {
+    const { container } = render(
+      <TaskSection title="ACTIVE TASKS" open trailing={<button>Sort</button>}>
+        <p>Content</p>
+      </TaskSection>,
+    );
+    const details = container.querySelector('details');
+    expect(details).toHaveAttribute('open');
+    await userEvent.click(screen.getByRole('button', { name: 'Sort' }));
+    expect(details).toHaveAttribute('open');
   });
 });

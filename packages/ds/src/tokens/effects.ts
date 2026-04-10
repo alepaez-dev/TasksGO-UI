@@ -4,6 +4,7 @@ export const effects = {
   mutedOpacity: '0.4',
   disabledOpacity: '0.5',
   desaturate: 'grayscale(1)',
+  completedSaturate: 'saturate(0.3)',
 } as const;
 
 export type EffectToken = keyof typeof effects;
