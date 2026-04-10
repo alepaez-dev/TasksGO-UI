@@ -98,7 +98,8 @@ export const spacing = {
     groupHeaderPaddingY: '8px',
   },
   drawer: {
-    closeButtonInset: '12px',
+    closeButtonInsetTop: '3px',
+    closeButtonInsetRight: '3px',
     width: '480px',
   },
   taskDrawer: {

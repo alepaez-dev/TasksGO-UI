@@ -93,15 +93,17 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
           style={{ ...durationStyle, ...style }}
           {...rest}
         >
-          <button
-            type="button"
-            className={styles.closeButton}
-            aria-label={closeLabel}
-            onClick={onClose}
-          >
-            <Icon name="close" size="sm" />
-          </button>
-          <div className={styles.content}>{children}</div>
+          <div className={styles.content}>
+            <button
+              type="button"
+              className={styles.closeButton}
+              aria-label={closeLabel}
+              onClick={onClose}
+            >
+              <Icon name="close" size="sm" />
+            </button>
+            {children}
+          </div>
         </div>
       </div>,
       document.body,

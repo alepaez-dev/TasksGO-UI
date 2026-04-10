@@ -62,8 +62,8 @@
 
 .closeButton {
   position: absolute;
-  top: var(--ds-space-drawer-close-button-inset);
-  right: var(--ds-space-drawer-close-button-inset);
+  top: var(--ds-space-drawer-close-button-inset-top);
+  right: var(--ds-space-drawer-close-button-inset-right);
   z-index: 1;
   display: flex;
   align-items: center;
@@ -84,10 +84,11 @@
 }
 
 .content {
+  position: relative;
   flex: 1;
   overflow-y: auto;
   height: 100%;
-  padding-top: var(--ds-space-icon-button-md-size);
+  padding-top: var(--ds-space-scale-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -98,7 +99,7 @@
 }
 
 @media (max-width: 480px) {
-  .panel {
+  .right {
     width: 100%;
   }
 }

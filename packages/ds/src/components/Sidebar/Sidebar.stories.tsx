@@ -93,7 +93,7 @@ function DefaultRender() {
         </>
       }
     >
-      <SectionHeader title="Project Artifacts" />
+      <SectionHeader>Project Artifacts</SectionHeader>
       <NavItem
         icon="task_alt"
         label="Tasks"

@@ -49,6 +49,23 @@ test.describe('Tasks page — drawer lifecycle', () => {
     await page.keyboard.press('Escape');
     await expect(dialog).not.toBeVisible();
   });
+
+  test('close button remains clickable after scrolling drawer content', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 300 });
+    await page.getByRole('button', { name: /new task/i }).click();
+    const dialog = page.getByRole('dialog', { name: 'New task' });
+    await expect(dialog).toBeVisible();
+
+    // Scroll the drawer content down
+    const content = dialog.locator('div').first();
+    await content.evaluate((el) => el.scrollTop = el.scrollHeight);
+
+    // Close button should still be visible and clickable
+    const closeButton = dialog.getByRole('button', { name: 'Close' });
+    await expect(closeButton).toBeVisible();
+    await closeButton.click();
+    await expect(dialog).not.toBeVisible();
+  });
 });
 
 test.describe('Tasks page — checkbox completion', () => {
