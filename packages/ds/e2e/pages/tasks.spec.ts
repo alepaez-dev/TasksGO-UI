@@ -56,9 +56,8 @@ test.describe('Tasks page — drawer lifecycle', () => {
     const dialog = page.getByRole('dialog', { name: 'New task' });
     await expect(dialog).toBeVisible();
 
-    // Scroll the drawer content down
-    const content = dialog.locator('div').first();
-    await content.evaluate((el) => el.scrollTop = el.scrollHeight);
+    // Scroll the TaskDrawer body (the actual overflow container) via a bottom element
+    await dialog.getByText('Properties').scrollIntoViewIfNeeded();
 
     // Close button should still be visible and clickable
     const closeButton = dialog.getByRole('button', { name: 'Close' });
