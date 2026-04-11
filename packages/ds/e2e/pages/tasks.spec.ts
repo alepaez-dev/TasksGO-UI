@@ -49,6 +49,28 @@ test.describe('Tasks page — drawer lifecycle', () => {
     await page.keyboard.press('Escape');
     await expect(dialog).not.toBeVisible();
   });
+
+  test('close button remains clickable after scrolling drawer content', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 200 });
+    await page.getByRole('button', { name: /new task/i }).click();
+    const dialog = page.getByRole('dialog', { name: 'New task' });
+    await expect(dialog).toBeVisible();
+
+    // Verify the form top is initially in view
+    await expect(dialog.getByLabel('Task title')).toBeInViewport();
+
+    // Scroll a bottom element into view to force the TaskDrawer body to scroll
+    await dialog.getByText('Properties').scrollIntoViewIfNeeded();
+
+    // Confirm scroll actually happened — top of form is no longer in viewport
+    await expect(dialog.getByLabel('Task title')).not.toBeInViewport();
+
+    // Close button should still be visible and clickable
+    const closeButton = dialog.getByRole('button', { name: 'Close' });
+    await expect(closeButton).toBeVisible();
+    await closeButton.click();
+    await expect(dialog).not.toBeVisible();
+  });
 });
 
 test.describe('Tasks page — checkbox completion', () => {

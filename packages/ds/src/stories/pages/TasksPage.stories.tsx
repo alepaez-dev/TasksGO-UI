@@ -8,6 +8,7 @@ import { Selector } from '../../components/Selector';
 import { NavItem } from '../../components/NavItem';
 import { Avatar } from '../../components/Avatar';
 import { SectionHeader } from '../../components/SectionHeader';
+import { StatusDot } from '../../components/StatusDot';
 import { Header } from '../../components/Header';
 import { Breadcrumb } from '../../components/Breadcrumb';
 import { SearchInput } from '../../components/SearchInput';
@@ -381,18 +382,69 @@ function TasksPageRender({
     <div className={styles.shell}>
       <Sidebar
         header={
-          <Selector
-            ref={projectRef}
-            options={projects}
-            value={project}
-            onValueChange={setProject}
-            open={projectOpen}
-            onOpenChange={onProjectChange}
-            triggerPrefix={
-              <Avatar initial={avatar.initial} aria-label={avatar.label} />
-            }
-            action={{ label: 'Add project', icon: 'add', onClick: () => {} }}
-          />
+          <>
+            <Selector
+              ref={projectRef}
+              options={projects}
+              value={project}
+              onValueChange={setProject}
+              open={projectOpen}
+              onOpenChange={onProjectChange}
+              triggerPrefix={
+                <Avatar initial={avatar.initial} aria-label={avatar.label} />
+              }
+              action={{ label: 'Add project', icon: 'add', onClick: () => {} }}
+            />
+            <div style={{ marginTop: 'var(--ds-space-sidebar-section-gap)' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--ds-text-section-header-font-family)',
+                  fontSize: 'var(--ds-text-section-header-font-size)',
+                  fontWeight: 'var(--ds-font-weight-medium)',
+                  letterSpacing: 'var(--ds-text-section-header-letter-spacing)',
+                  textTransform: 'uppercase' as const,
+                  color: 'var(--ds-color-text-secondary)',
+                }}
+              >
+                Active Workspace
+              </span>
+              <p
+                style={{
+                  margin: 'var(--ds-space-scale-sm) 0 var(--ds-space-scale-sm)',
+                  fontFamily: 'var(--ds-font-family-sans)',
+                  fontSize: 'var(--ds-text-page-title-font-size)',
+                  fontWeight: 'var(--ds-font-weight-bold)',
+                  color: 'var(--ds-color-text-primary)',
+                  lineHeight: 'var(--ds-text-page-title-line-height)',
+                }}
+              >
+                Project / {avatar.label}
+              </p>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 'var(--ds-space-scale-sm)',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'var(--ds-font-family-mono)',
+                    fontSize: 'var(--ds-text-section-header-font-size)',
+                    color: 'var(--ds-color-text-secondary)',
+                    letterSpacing: '0.05em',
+                    padding:
+                      'var(--ds-space-badge-padding-y) var(--ds-space-badge-padding-x)',
+                    borderRadius: 'var(--ds-radius-lg)',
+                    backgroundColor: 'var(--ds-color-border-default)',
+                  }}
+                >
+                  v4.1.0-alpha
+                </span>
+                <StatusDot variant="active" label="Healthy" />
+              </span>
+            </div>
+          </>
         }
         footer={
           <>
@@ -420,7 +472,7 @@ function TasksPageRender({
           </>
         }
       >
-        <SectionHeader title="Project Artifacts" />
+        <SectionHeader>Project Artifacts</SectionHeader>
         <NavItem
           icon="task_alt"
           label="Tasks"

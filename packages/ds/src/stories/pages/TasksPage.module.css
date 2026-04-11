@@ -10,6 +10,7 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+  border-left: 1px solid var(--ds-color-border-default);
 }
 
 .scrollArea {
