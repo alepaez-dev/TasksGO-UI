@@ -66,4 +66,70 @@ describe('NavItem', () => {
     render(<NavItem icon="task_alt" label="Tasks" href="/tasks" />);
     expect(screen.getByRole('link')).toHaveAttribute('href', '/tasks');
   });
+
+  it('does not apply vertical class by default', () => {
+    render(<NavItem icon="task_alt" label="Tasks" href="/tasks" />);
+    expect(screen.getByRole('link')).not.toHaveClass('vertical');
+  });
+
+  it('applies vertical orientation class', () => {
+    render(
+      <NavItem
+        icon="task_alt"
+        label="Tasks"
+        href="/tasks"
+        orientation="vertical"
+      />,
+    );
+    expect(screen.getByRole('link')).toHaveClass('vertical');
+  });
+
+  it('sets aria-current="page" in vertical active state', () => {
+    render(
+      <NavItem
+        icon="task_alt"
+        label="Tasks"
+        href="/tasks"
+        orientation="vertical"
+        active
+      />,
+    );
+    expect(screen.getByRole('link')).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('swaps to activeIcon when active', () => {
+    const { container } = render(
+      <NavItem
+        icon="task_alt"
+        activeIcon="check_circle"
+        label="Tasks"
+        href="/tasks"
+        active
+      />,
+    );
+    const svg = container.querySelector('svg');
+    expect(svg).toBeInTheDocument();
+    expect(svg?.querySelector('path')?.getAttribute('d')).toMatch(/^m424-296/);
+  });
+
+  it('uses icon (not activeIcon) when inactive', () => {
+    const { container } = render(
+      <NavItem
+        icon="task_alt"
+        activeIcon="check_circle"
+        label="Tasks"
+        href="/tasks"
+      />,
+    );
+    const svg = container.querySelector('svg');
+    expect(svg?.querySelector('path')?.getAttribute('d')).toMatch(/^M480-80/);
+  });
+
+  it('falls back to icon when activeIcon is omitted and active', () => {
+    const { container } = render(
+      <NavItem icon="task_alt" label="Tasks" href="/tasks" active />,
+    );
+    const svg = container.querySelector('svg');
+    expect(svg?.querySelector('path')?.getAttribute('d')).toMatch(/^M480-80/);
+  });
 });

@@ -42,3 +42,41 @@
   padding-top: var(--ds-space-nav-sm-padding-y);
   padding-bottom: var(--ds-space-nav-sm-padding-y);
 }
+
+.vertical {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-nav-vertical-gap);
+  min-width: 0;
+}
+
+.vertical .label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vertical.md,
+.vertical.sm {
+  padding-top: var(--ds-space-nav-vertical-padding-y);
+  padding-bottom: var(--ds-space-nav-vertical-padding-y);
+}
+
+.vertical:hover {
+  background-color: transparent;
+  color: var(--ds-color-nav-active-text);
+}
+
+.vertical.active:not(:focus-visible),
+.vertical.active:hover:not(:focus-visible) {
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--ds-color-nav-active-text);
+}
+
+.vertical.active:focus-visible {
+  background-color: transparent;
+  color: var(--ds-color-nav-active-text);
+}
