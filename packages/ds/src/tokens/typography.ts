@@ -48,6 +48,15 @@ const buttonInputBase = {
   lineHeight: DEFAULT_LINE_HEIGHT,
 };
 
+const bodyRegularSans13 = {
+  fontSize: '13px',
+  fontFamily: fontFamilies.sans,
+  fontWeight: fontWeights.regular,
+  letterSpacing: 'normal',
+  textTransform: 'none',
+  lineHeight: DEFAULT_LINE_HEIGHT,
+};
+
 export const typographyScale = {
   sectionHeader: {
     fontSize: '10px',
@@ -57,6 +66,7 @@ export const typographyScale = {
     textTransform: 'uppercase',
     lineHeight: DEFAULT_LINE_HEIGHT,
   },
+  sectionHeaderSubtitle: bodyRegularSans13,
   microLabel: {
     fontSize: '9px',
     fontFamily: fontFamilies.mono,
@@ -171,14 +181,7 @@ export const typographyScale = {
     ...buttonInputBase,
     fontWeight: fontWeights.medium,
   },
-  searchInput: {
-    fontSize: '13px',
-    fontFamily: fontFamilies.sans,
-    fontWeight: fontWeights.regular,
-    letterSpacing: 'normal',
-    textTransform: 'none',
-    lineHeight: DEFAULT_LINE_HEIGHT,
-  },
+  searchInput: bodyRegularSans13,
   searchInputClear: {
     fontSize: '10px',
     fontFamily: fontFamilies.mono,
