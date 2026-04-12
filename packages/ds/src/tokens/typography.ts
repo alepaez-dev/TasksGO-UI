@@ -61,7 +61,7 @@ export const typographyScale = {
   sectionHeader: {
     fontSize: '10px',
     fontFamily: fontFamilies.mono,
-    fontWeight: fontWeights.extrabold,
+    fontWeight: fontWeights.bold,
     letterSpacing: '0.25em',
     textTransform: 'uppercase',
     lineHeight: DEFAULT_LINE_HEIGHT,
