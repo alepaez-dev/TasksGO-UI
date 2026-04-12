@@ -1,0 +1,42 @@
+.fab {
+  position: fixed;
+  /* TODO: tokenize bottom offset when BottomTabBar is implemented */
+  bottom: var(--ds-space-fab-offset);
+  right: var(--ds-space-fab-offset);
+  z-index: var(--ds-z-fab);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-space-fab-size);
+  height: var(--ds-space-fab-size);
+
+  border: none;
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-color-button-primary-bg);
+  color: var(--ds-color-button-primary-text);
+  box-shadow: var(--ds-elevation-fab);
+  cursor: pointer;
+
+  transition-property: var(--ds-transition-property), transform;
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.fab:hover:not(:disabled) {
+  background-color: var(--ds-color-button-primary-hover-bg);
+}
+
+.fab:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.fab:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-elevation-fab), var(--ds-focus-ring);
+}
+
+.fab:disabled {
+  opacity: var(--ds-effect-disabled-opacity);
+  cursor: not-allowed;
+}

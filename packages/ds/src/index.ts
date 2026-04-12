@@ -4,6 +4,7 @@ import './tokens/typography.css';
 export { Button, type ButtonProps } from './components/Button';
 export { Icon, type IconProps, type IconName } from './components/Icon';
 export { IconButton, type IconButtonProps } from './components/IconButton';
+export { Fab, type FabProps } from './components/Fab';
 export {
   AddIcon,
   AttachFileIcon,
