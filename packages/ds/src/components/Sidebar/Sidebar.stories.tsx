@@ -49,6 +49,7 @@ function DefaultRender() {
   };
   return (
     <Sidebar
+      aria-label="Sidebar navigation"
       header={
         <Selector
           ref={ref}

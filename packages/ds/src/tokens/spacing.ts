@@ -116,7 +116,11 @@ export const spacing = {
   },
   fab: {
     size: '48px',
-    offset: '24px',
+    rightOffset: '24px',
+    bottomOffset: '24px',
+  },
+  bottomTabBar: {
+    height: '64px',
   },
   columnWidths: {
     priority: '80px',
