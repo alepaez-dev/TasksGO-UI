@@ -7,12 +7,15 @@ import { CheckCircleIcon } from './checkCircle';
 import { ChevronRightIcon } from './chevronRight';
 import { CloseIcon } from './close';
 import { ConfirmationNumberIcon } from './confirmationNumber';
+import { ConfirmationNumberFilledIcon } from './confirmationNumberFilled';
 import { DescriptionIcon } from './description';
+import { DescriptionFilledIcon } from './descriptionFilled';
 import { ExpandMoreIcon } from './expandMore';
 import { FlagIcon } from './flag';
 import { HelpIcon } from './help';
 import { LinkIcon } from './link';
 import { MenuIcon } from './menu';
+import { MoreHorizIcon } from './moreHoriz';
 import { PersonIcon } from './person';
 import { SearchIcon } from './search';
 import { SettingsIcon } from './settings';
@@ -30,12 +33,15 @@ export const iconRegistry = {
   chevron_right: ChevronRightIcon,
   close: CloseIcon,
   confirmation_number: ConfirmationNumberIcon,
+  confirmation_number_filled: ConfirmationNumberFilledIcon,
   description: DescriptionIcon,
+  description_filled: DescriptionFilledIcon,
   expand_more: ExpandMoreIcon,
   flag: FlagIcon,
   help: HelpIcon,
   link: LinkIcon,
   menu: MenuIcon,
+  more_horiz: MoreHorizIcon,
   person: PersonIcon,
   search: SearchIcon,
   settings: SettingsIcon,

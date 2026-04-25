@@ -13,6 +13,10 @@ const meta = {
       control: 'select',
       options: ['sm', 'md'],
     },
+    orientation: {
+      control: 'select',
+      options: ['horizontal', 'vertical'],
+    },
     href: { control: 'text' },
   },
   args: {
@@ -37,6 +41,69 @@ export const Small: Story = {
 
 export const SmallActive: Story = {
   args: { icon: 'settings', label: 'Settings', size: 'sm', active: true },
+};
+
+export const Vertical: Story = {
+  args: { icon: 'task_alt', label: 'Tasks', orientation: 'vertical' },
+};
+
+export const VerticalActive: Story = {
+  args: {
+    icon: 'task_alt',
+    activeIcon: 'check_circle',
+    label: 'Tasks',
+    orientation: 'vertical',
+    active: true,
+  },
+};
+
+export const VerticalLongLabel: Story = {
+  render: () => (
+    <div style={{ display: 'flex', width: '72px' }}>
+      <NavItem
+        icon="task_alt"
+        label="Notifications"
+        href="#"
+        orientation="vertical"
+      />
+    </div>
+  ),
+};
+
+export const VerticalRow: Story = {
+  render: () => (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-around',
+        width: '360px',
+      }}
+    >
+      <NavItem
+        icon="task_alt"
+        activeIcon="check_circle"
+        label="Tasks"
+        href="#"
+        orientation="vertical"
+        active
+      />
+      <NavItem
+        icon="confirmation_number"
+        activeIcon="confirmation_number_filled"
+        label="Tickets"
+        href="#"
+        orientation="vertical"
+      />
+      <NavItem
+        icon="description"
+        activeIcon="description_filled"
+        label="Docs"
+        href="#"
+        orientation="vertical"
+      />
+      <NavItem icon="more_horiz" label="More" href="#" orientation="vertical" />
+    </div>
+  ),
 };
 
 export const AllStates: Story = {

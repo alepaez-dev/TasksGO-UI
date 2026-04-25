@@ -18,6 +18,8 @@ export const spacing = {
     itemGap: '12px',
     listGap: '4px',
     smPaddingY: '6px',
+    verticalGap: '4px',
+    verticalPaddingY: '8px',
   },
   badge: {
     paddingX: '8px',
