@@ -112,6 +112,10 @@ export const spacing = {
     textareaMinHeight: '120px',
     textareaLineHeight: '1.6',
   },
+  fab: {
+    size: '48px',
+    offset: '24px',
+  },
   columnWidths: {
     priority: '80px',
     ticketId: '100px',

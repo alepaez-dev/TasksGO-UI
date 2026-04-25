@@ -1,5 +1,6 @@
 export const zIndex = {
   header: '30',
+  fab: '35',
   dropdown: '40',
   overlay: '50',
   floatingSearch: '60',
