@@ -9,6 +9,7 @@ const config: StorybookConfig = {
     options: {},
   },
   viteFinal(config) {
+    config.base = process.env.STORYBOOK_BASE_PATH || '/';
     config.plugins = config.plugins || [];
     config.plugins.push(dsTokensPlugin());
     return config;
