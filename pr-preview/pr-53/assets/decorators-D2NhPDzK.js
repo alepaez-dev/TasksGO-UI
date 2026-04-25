@@ -1,1 +1,0 @@
-import{j as u}from"./jsx-runtime-u17CrQMm.js";import{r as o}from"./iframe-QUOITM-w.js";const{useGlobals:i}=__STORYBOOK_MODULE_PREVIEW_API__,f=r=>(a,c)=>{const[,t]=i(),e=o.useRef(!1),s=c.viewMode==="docs";return o.useEffect(()=>{!e.current&&!s&&(e.current=!0,t({viewport:{value:r}}))},[t,s]),u.jsx(a,{})};export{f as w};
