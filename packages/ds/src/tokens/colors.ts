@@ -150,6 +150,7 @@ export const colors = {
     refTask: accent.primary,
     refTicket: status.info,
     refDoc: accent.warmText,
+    mobileResultBorder: '#f3f4f6',
   },
 
   breadcrumb: {
@@ -178,11 +179,6 @@ export const colors = {
 
   taskDrawer: {
     footerBg: 'rgba(248, 249, 250, 0.3)',
-  },
-
-  mobileSearchSheet: {
-    overlay: 'rgba(0, 0, 0, 0.3)',
-    resultBorder: '#f3f4f6',
   },
 } as const;
 

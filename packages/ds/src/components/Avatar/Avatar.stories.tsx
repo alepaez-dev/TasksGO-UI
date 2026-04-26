@@ -35,7 +35,7 @@ export const AllVariants: Story = {
       <Avatar initial="P" aria-label="Project P" />
       <Avatar initial="H" aria-label="Project H" />
       <Avatar initial="AP" variant="profile" aria-label="Alejandra Paez" />
-      <Avatar initial="CH" variant="profile" aria-label="Cleo Hernandez" />
+      <Avatar initial="CP" variant="profile" aria-label="Cleo Paez" />
     </div>
   ),
 };

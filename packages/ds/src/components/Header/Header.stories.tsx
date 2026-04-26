@@ -170,11 +170,7 @@ export const LeftOnly: Story = {
           <Icon name="add" size="sm" />
           New task
         </Button>
-        <Avatar
-          initial="AH"
-          variant="profile"
-          aria-label="Alejandra Hernandez"
-        />
+        <Avatar initial="AP" variant="profile" aria-label="Alejandra Paez" />
       </>
     ),
   },
