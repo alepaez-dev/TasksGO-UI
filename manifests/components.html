@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">1/31 prop type error</a><a class="filter-pill info" data-k="infos" href="#filter-infos">31/31 infos</a><span class="filter-pill ok" aria-disabled="true">123 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">1/31 prop type error</a><a class="filter-pill info" data-k="infos" href="#filter-infos">31/31 infos</a><span class="filter-pill ok" aria-disabled="true">124 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -3299,9 +3299,9 @@ variant?: &#39;default&#39; | &#39;mobile&#39; = &#39;default&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> SectionHeader</h2>
       <div class="badges">
-        
+        <label for="c-22-components-sectionheader-props" class="badge ok as-toggle">2 prop types</label>
         <label for="c-22-components-sectionheader-info" class="badge info as-toggle">1 info</label>
-        <label for="c-22-components-sectionheader-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-22-components-sectionheader-stories" class="badge ok as-toggle">4 stories</label>
         
       </div>
     </div>
@@ -3316,7 +3316,7 @@ variant?: &#39;default&#39; | &#39;mobile&#39; = &#39;default&#39;</code></pre>
   <input id="c-22-components-sectionheader-info" class="tg tg-info" type="checkbox" hidden />
   <input id="c-22-components-sectionheader-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  
+  <input id="c-22-components-sectionheader-props" class="tg tg-props" type="checkbox" hidden />
 
   <div class="panels">
     
@@ -3329,6 +3329,19 @@ variant?: &#39;default&#39; | &#39;mobile&#39; = &#39;default&#39;</code></pre>
     </div>
         </div>
     
+        <div class="panel panel-props">
+          <div class="note ok">
+            <div class="row">
+              <span class="ex-name">Prop types <small>(react-docgen)</small></span>
+              <span class="badge ok">2 prop types</span>
+            </div>
+            <pre><code>Component: src/components/SectionHeader/SectionHeader.tsx::SectionHeader</code></pre>
+            <pre><code>Props:</code></pre>
+            <pre><code>headingLevel?: 2 | 3 | 4 | 5 | 6 = 3
+
+subtitle?: ReactNode</code></pre>
+          </div>
+        </div>
     
         <div class="panel panel-stories">
           
@@ -3350,6 +3363,15 @@ variant?: &#39;default&#39; | &#39;mobile&#39; = &#39;default&#39;</code></pre>
               
               
               <pre><code>const Default = () =&gt; &lt;SectionHeader&gt;Project Artifacts&lt;/SectionHeader&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">With Subtitle</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithSubtitle = () =&gt; &lt;SectionHeader subtitle=&quot;12 open · 3 in progress&quot; headingLevel={2}&gt;My tasks&lt;/SectionHeader&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
