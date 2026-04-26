@@ -74,6 +74,10 @@ export {
   type TaskRowDate,
 } from './components/TaskRow';
 export { Sidebar, type SidebarProps } from './components/Sidebar';
+export {
+  BottomTabBar,
+  type BottomTabBarProps,
+} from './components/BottomTabBar';
 export { Header, type HeaderProps } from './components/Header';
 export {
   FloatingSearch,

@@ -381,6 +381,7 @@ function TasksPageRender({
   return (
     <div className={styles.shell}>
       <Sidebar
+        aria-label="Sidebar navigation"
         header={
           <>
             <Selector
