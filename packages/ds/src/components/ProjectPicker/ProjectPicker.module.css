@@ -70,6 +70,10 @@
   background-color: var(--ds-color-surface-hover);
 }
 
+.selected {
+  font-weight: var(--ds-font-weight-semibold);
+}
+
 .label {
   flex: 1;
   min-width: 0;

@@ -28,7 +28,7 @@ export interface UseDragToDismissReturn {
 // useEffect — tracked as a future enhancement.
 
 function isInsideScrolledContent(target: EventTarget | null): boolean {
-  let el = (target as HTMLElement | null)?.parentElement ?? null;
+  let el = target as HTMLElement | null;
   while (el) {
     const { overflowY } = getComputedStyle(el);
     if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollTop > 0) {
@@ -47,6 +47,10 @@ export function useDragToDismiss({
   const [dragY, setDragY] = useState(0);
   const startY = useRef<number | null>(null);
   const lastDragY = useRef(0);
+
+  if (!enabled && dragY !== 0) {
+    setDragY(0);
+  }
 
   const onTouchStart = useCallback(
     (e: TouchEvent<HTMLElement>) => {
