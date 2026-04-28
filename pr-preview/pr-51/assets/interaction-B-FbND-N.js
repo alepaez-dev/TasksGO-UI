@@ -1,1 +1,0 @@
-import{r}from"./iframe-DRR0ge1c.js";let o=0,e="";function l(t){r.useEffect(()=>{if(t)return o===0&&(e=document.body.style.overflow,document.body.style.overflow="hidden"),o++,()=>{o--,o===0&&(document.body.style.overflow=e)}},[t])}const n={fast:"100ms",normal:"150ms",slow:"250ms",slower:"400ms"};export{n as t,l as u};
