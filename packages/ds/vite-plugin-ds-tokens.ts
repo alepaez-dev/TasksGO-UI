@@ -1,5 +1,5 @@
 /**
- * Vite plugin that generates tokens.css and typography.css from the TS token constants.
+ * Vite plugin that generates tokens.css, typography.css, and fonts.css from the TS sources.
  *
  * - On build: generates once before compilation (buildStart).
  * - On dev: generates on server start, then re-generates live whenever a token
@@ -14,6 +14,7 @@ import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 import * as prettier from 'prettier';
 import {
+  generateFontsCSS,
   generateTokensCSS,
   generateTypographyCSS,
 } from './src/tokens/generate-css.ts';
@@ -30,6 +31,7 @@ const TOKEN_FILES = [
   '/src/tokens/iconography.ts',
   '/src/tokens/interaction.ts',
   '/src/tokens/zIndex.ts',
+  '/src/tokens/webfonts.ts',
 ];
 
 async function formatCSS(css: string, root: string): Promise<string> {
@@ -41,6 +43,7 @@ async function writeCSS(
   root: string,
   tokensCss: string,
   typographyCss: string,
+  fontsCss: string,
 ) {
   const tokensDir = resolve(root, 'src/tokens');
   writeFileSync(
@@ -50,6 +53,10 @@ async function writeCSS(
   writeFileSync(
     resolve(tokensDir, 'typography.css'),
     await formatCSS(typographyCss, root),
+  );
+  writeFileSync(
+    resolve(tokensDir, 'fonts.css'),
+    await formatCSS(fontsCss, root),
   );
 }
 
@@ -66,7 +73,12 @@ export function dsTokensPlugin(): Plugin {
       server = _server;
     },
     async buildStart() {
-      await writeCSS(root, generateTokensCSS(), generateTypographyCSS());
+      await writeCSS(
+        root,
+        generateTokensCSS(),
+        generateTypographyCSS(),
+        generateFontsCSS(),
+      );
     },
     async handleHotUpdate({ file }) {
       if (!server) return;
@@ -88,7 +100,12 @@ export function dsTokensPlugin(): Plugin {
 
       try {
         const mod = await server.ssrLoadModule(GENERATE_MODULE);
-        await writeCSS(root, mod.generateTokensCSS(), mod.generateTypographyCSS());
+        await writeCSS(
+          root,
+          mod.generateTokensCSS(),
+          mod.generateTypographyCSS(),
+          mod.generateFontsCSS(),
+        );
       } catch (err) {
         console.error('[ds-tokens] Failed to regenerate CSS:', err);
       }

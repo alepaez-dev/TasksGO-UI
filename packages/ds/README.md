@@ -4,6 +4,10 @@ React design system for TasksGo.
 
 ## Fonts
 
-By default, this package loads Inter and IBM Plex Mono from Google Fonts CDN. This means end-user browsers make requests to `fonts.googleapis.com` and `fonts.gstatic.com`, which exposes visitor IP addresses to Google.
+Fonts are self-hosted via `@fontsource`. This package ships Inter and IBM Plex Mono in latin + latin-ext subsets, weights 400/500/600/700 (~250 kB of woff2 assets). If your app needs additional subsets or weights, override the `@font-face` declarations in your own CSS.
 
-If your application operates in a GDPR-regulated environment, self-host the font files instead of relying on the default CDN import.
+A single import gives you tokens, components, and fonts — no network calls, no second import:
+
+```ts
+import '@all3hp/tasksgo-ui/styles.css';
+```
