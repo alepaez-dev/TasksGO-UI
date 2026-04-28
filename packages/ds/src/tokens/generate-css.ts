@@ -19,6 +19,7 @@ import { effects } from './effects.ts';
 import { iconography } from './iconography.ts';
 import { interaction } from './interaction.ts';
 import { zIndex } from './zIndex.ts';
+import { webfonts, subsets } from './webfonts.ts';
 
 type VarMap = Map<string, string>;
 
@@ -252,6 +253,32 @@ export function generateTokensCSS(): string {
   lines.push('');
 
   return lines.join('\n');
+}
+
+export function generateFontsCSS(): string {
+  const lines: string[] = [
+    '/* AUTO-GENERATED from webfonts.ts — do not edit manually */',
+    '',
+  ];
+
+  for (const { family, slug, weights, subsets: fontSubsets } of webfonts) {
+    for (const subset of fontSubsets) {
+      for (const weight of weights) {
+        lines.push(
+          '@font-face {',
+          `  font-family: '${family}';`,
+          '  font-style: normal;',
+          '  font-display: swap;',
+          `  font-weight: ${weight};`,
+          `  src: url('@fontsource/${slug}/files/${slug}-${subset}-${weight}-normal.woff2') format('woff2');`,
+          `  unicode-range: ${subsets[subset]};`,
+          '}',
+        );
+      }
+    }
+  }
+
+  return lines.join('\n') + '\n';
 }
 
 export function generateTypographyCSS(): string {

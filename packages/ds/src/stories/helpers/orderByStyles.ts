@@ -14,5 +14,5 @@ export const orderByPrefixStyle: CSSProperties = {
 };
 
 export const orderByValueStyle: CSSProperties = {
-  fontWeight: 'var(--ds-font-weight-extrabold)',
+  fontWeight: 'var(--ds-font-weight-bold)',
 };

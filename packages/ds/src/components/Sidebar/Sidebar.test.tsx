@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar';
 describe('Sidebar', () => {
   it('renders an aside with navigation landmark', () => {
     render(
-      <Sidebar>
+      <Sidebar aria-label="Sidebar navigation">
         <a href="/link">Link</a>
       </Sidebar>,
     );
@@ -16,7 +16,7 @@ describe('Sidebar', () => {
 
   it('renders children inside a nav element', () => {
     render(
-      <Sidebar>
+      <Sidebar aria-label="Sidebar navigation">
         <a href="/link">Link</a>
       </Sidebar>,
     );
@@ -27,7 +27,10 @@ describe('Sidebar', () => {
 
   it('renders header when provided', () => {
     render(
-      <Sidebar header={<span>Header Content</span>}>
+      <Sidebar
+        aria-label="Sidebar navigation"
+        header={<span>Header Content</span>}
+      >
         <a href="/link">Link</a>
       </Sidebar>,
     );
@@ -36,7 +39,7 @@ describe('Sidebar', () => {
 
   it('does not render header wrapper when header is not provided', () => {
     const { container } = render(
-      <Sidebar>
+      <Sidebar aria-label="Sidebar navigation">
         <a href="/link">Link</a>
       </Sidebar>,
     );
@@ -46,7 +49,10 @@ describe('Sidebar', () => {
 
   it('renders footer when provided', () => {
     render(
-      <Sidebar footer={<span>Footer Content</span>}>
+      <Sidebar
+        aria-label="Sidebar navigation"
+        footer={<span>Footer Content</span>}
+      >
         <a href="/link">Link</a>
       </Sidebar>,
     );
@@ -55,7 +61,7 @@ describe('Sidebar', () => {
 
   it('does not render footer wrapper when footer is not provided', () => {
     const { container } = render(
-      <Sidebar>
+      <Sidebar aria-label="Sidebar navigation">
         <a href="/link">Link</a>
       </Sidebar>,
     );
@@ -66,7 +72,7 @@ describe('Sidebar', () => {
   it('forwards ref to aside element', () => {
     const ref = { current: null } as React.RefObject<HTMLElement | null>;
     render(
-      <Sidebar ref={ref}>
+      <Sidebar ref={ref} aria-label="Sidebar navigation">
         <a href="/link">Link</a>
       </Sidebar>,
     );
@@ -76,7 +82,7 @@ describe('Sidebar', () => {
 
   it('applies custom className', () => {
     render(
-      <Sidebar className="custom-class">
+      <Sidebar aria-label="Sidebar navigation" className="custom-class">
         <a href="/link">Link</a>
       </Sidebar>,
     );
@@ -86,7 +92,7 @@ describe('Sidebar', () => {
 
   it('spreads additional HTML attributes', () => {
     render(
-      <Sidebar data-testid="my-sidebar">
+      <Sidebar aria-label="Sidebar navigation" data-testid="my-sidebar">
         <a href="/link">Link</a>
       </Sidebar>,
     );

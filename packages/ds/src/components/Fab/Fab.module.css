@@ -1,8 +1,8 @@
 .fab {
   position: fixed;
-  /* TODO: tokenize bottom offset when BottomTabBar is implemented */
-  bottom: var(--ds-space-fab-offset);
-  right: var(--ds-space-fab-offset);
+  /* Override on an ancestor when composing above BottomTabBar */
+  bottom: var(--ds-space-fab-bottom-offset);
+  right: var(--ds-space-fab-right-offset);
   z-index: var(--ds-z-fab);
 
   display: inline-flex;

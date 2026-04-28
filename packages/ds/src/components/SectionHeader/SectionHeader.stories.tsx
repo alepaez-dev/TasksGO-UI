@@ -8,9 +8,19 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     children: { control: 'text' },
+    subtitle: { control: 'text' },
+    headingLevel: { control: 'select', options: [2, 3, 4, 5, 6] },
   },
   args: {
     children: 'Project Artifacts',
+  },
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Uppercase-mono section heading with an optional subtitle line. The `headingLevel` prop (default `3`) lets consumers pick the semantic heading element; `h1` is intentionally excluded since it is reserved for page titles. Consumers are responsible for maintaining a correct document outline — if a parent section already has an `h2` sibling, pick a deeper level here to avoid flat/broken heading hierarchies.',
+      },
+    },
   },
 } satisfies Meta<typeof SectionHeader>;
 
@@ -18,6 +28,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const WithSubtitle: Story = {
+  args: {
+    children: 'My tasks',
+    subtitle: '12 open · 3 in progress',
+    headingLevel: 2,
+  },
+};
 
 export const AllVariants: Story = {
   render: () => (
