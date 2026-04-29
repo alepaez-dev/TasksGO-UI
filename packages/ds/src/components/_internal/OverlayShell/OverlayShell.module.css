@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--ds-z-modal);
-  background-color: var(--ds-color-drawer-overlay);
+  background-color: var(--ds-color-overlay-backdrop);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;

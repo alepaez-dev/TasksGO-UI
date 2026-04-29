@@ -173,8 +173,8 @@ export const colors = {
     border: border.default,
   },
 
-  drawer: {
-    overlay: 'rgba(0, 0, 0, 0.5)',
+  overlay: {
+    backdrop: 'rgba(0, 0, 0, 0.5)',
   },
 
   taskDrawer: {
