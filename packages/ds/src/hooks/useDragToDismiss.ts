@@ -48,8 +48,10 @@ export function useDragToDismiss({
   const startY = useRef<number | null>(null);
   const lastDragY = useRef(0);
 
-  if (!enabled && dragY !== 0) {
-    setDragY(0);
+  if (!enabled) {
+    if (dragY !== 0) setDragY(0);
+    lastDragY.current = 0;
+    startY.current = null;
   }
 
   const onTouchStart = useCallback(
@@ -84,13 +86,19 @@ export function useDragToDismiss({
     }
   }, [enabled, threshold, onDismiss]);
 
+  const cancelDrag = useCallback(() => {
+    startY.current = null;
+    lastDragY.current = 0;
+    setDragY(0);
+  }, []);
+
   return {
     dragY: enabled ? dragY : 0,
     handlers: {
       onTouchStart,
       onTouchMove,
       onTouchEnd: endDrag,
-      onTouchCancel: endDrag,
+      onTouchCancel: cancelDrag,
     },
   };
 }
