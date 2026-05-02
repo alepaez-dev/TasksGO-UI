@@ -4,6 +4,7 @@ export { AttachFileIcon } from './attachFile';
 export { AttachmentIcon } from './attachment';
 export { AutoAwesomeIcon } from './autoAwesome';
 export { CheckCircleIcon } from './checkCircle';
+export { ChevronLeftIcon } from './chevronLeft';
 export { ChevronRightIcon } from './chevronRight';
 export { CloseIcon } from './close';
 export { ConfirmationNumberIcon } from './confirmationNumber';

@@ -11,6 +11,7 @@ export {
   AttachmentIcon,
   AutoAwesomeIcon,
   CheckCircleIcon,
+  ChevronLeftIcon,
   ChevronRightIcon,
   CloseIcon,
   ConfirmationNumberIcon,
@@ -61,10 +62,7 @@ export {
   type SearchPaletteResult,
   type SearchPaletteGroup,
 } from './components/SearchPalette';
-export {
-  MobileSearchSheet,
-  type MobileSearchSheetProps,
-} from './components/MobileSearchSheet';
+export { BottomSheet, type BottomSheetProps } from './components/BottomSheet';
 export { TaskSection, type TaskSectionProps } from './components/TaskSection';
 export {
   TaskRow,
@@ -90,6 +88,11 @@ export {
   type SelectorOption,
   type SelectorAction,
 } from './components/Selector';
+export {
+  ProjectPicker,
+  type ProjectPickerProps,
+  type ProjectPickerProject,
+} from './components/ProjectPicker';
 export { Drawer, type DrawerProps } from './components/Drawer';
 export {
   TaskDrawer,
@@ -108,6 +111,12 @@ export {
 
 export { useClickOutside } from './hooks/useClickOutside';
 export { useFocusTrap } from './hooks/useFocusTrap';
+export {
+  useDragToDismiss,
+  type UseDragToDismissOptions,
+  type UseDragToDismissHandlers,
+  type UseDragToDismissReturn,
+} from './hooks/useDragToDismiss';
 export {
   useSelectorState,
   useSelectorGroup,

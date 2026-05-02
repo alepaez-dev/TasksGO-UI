@@ -4,6 +4,7 @@ import { AttachFileIcon } from './attachFile';
 import { AttachmentIcon } from './attachment';
 import { AutoAwesomeIcon } from './autoAwesome';
 import { CheckCircleIcon } from './checkCircle';
+import { ChevronLeftIcon } from './chevronLeft';
 import { ChevronRightIcon } from './chevronRight';
 import { CloseIcon } from './close';
 import { ConfirmationNumberIcon } from './confirmationNumber';
@@ -30,6 +31,7 @@ export const iconRegistry = {
   attachment: AttachmentIcon,
   auto_awesome: AutoAwesomeIcon,
   check_circle: CheckCircleIcon,
+  chevron_left: ChevronLeftIcon,
   chevron_right: ChevronRightIcon,
   close: CloseIcon,
   confirmation_number: ConfirmationNumberIcon,

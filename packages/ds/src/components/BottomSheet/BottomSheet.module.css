@@ -1,0 +1,47 @@
+.panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  /* TODO: revisit max-height when Header mobile tweaks land */
+  max-height: var(--ds-space-bottom-sheet-max-height);
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ds-color-surface-primary);
+  border-radius: var(--ds-space-bottom-sheet-top-radius)
+    var(--ds-space-bottom-sheet-top-radius) 0 0;
+  box-shadow: var(--ds-elevation-bottom-sheet);
+  transform: translateY(100%);
+  transition: transform
+    var(--ds-overlay-duration, var(--ds-transition-duration-slow))
+    var(--ds-transition-timing-function);
+}
+
+.panel.open {
+  transform: translateY(0);
+}
+
+.handle {
+  align-self: center;
+  flex-shrink: 0;
+  width: var(--ds-space-bottom-sheet-handle-width);
+  height: var(--ds-space-bottom-sheet-handle-height);
+  margin-top: var(--ds-space-bottom-sheet-handle-top);
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-color-border-default);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--ds-space-bottom-sheet-content-padding-top)
+    var(--ds-space-bottom-sheet-padding-x)
+    var(--ds-space-bottom-sheet-padding-bottom);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition: none;
+  }
+}

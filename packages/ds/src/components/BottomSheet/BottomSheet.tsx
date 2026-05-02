@@ -1,43 +1,40 @@
-import { forwardRef, useRef, type HTMLAttributes } from 'react';
-import { Icon } from '../Icon';
+import {
+  forwardRef,
+  useRef,
+  type CSSProperties,
+  type HTMLAttributes,
+} from 'react';
 import { OverlayShell } from '../_internal/OverlayShell';
 import { cn } from '../../utils/cn';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useDragToDismiss } from '../../hooks/useDragToDismiss';
 import { type TransitionDuration } from '../../tokens/interaction';
-import styles from './Drawer.module.css';
+import styles from './BottomSheet.module.css';
 
-type DrawerSide = 'left' | 'right';
-
-type DrawerLabelProps =
+type BottomSheetLabelProps =
   | { 'aria-label': string; 'aria-labelledby'?: never }
   | { 'aria-label'?: never; 'aria-labelledby': string };
 
-export type DrawerProps = DrawerLabelProps &
+export type BottomSheetProps = BottomSheetLabelProps &
   Omit<HTMLAttributes<HTMLDivElement>, 'aria-label' | 'aria-labelledby'> & {
     open: boolean;
     onClose: () => void;
-    side?: DrawerSide;
-    closeLabel?: string;
     duration?: TransitionDuration;
   };
 
-export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
+export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
   (
-    {
-      open,
-      onClose,
-      side = 'left',
-      closeLabel = 'Close',
-      duration = 'normal',
-      children,
-      className,
-      ...rest
-    },
+    { open, onClose, duration = 'slow', children, className, style, ...rest },
     ref,
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
 
     useFocusTrap(panelRef, open);
+
+    const { dragY, handlers } = useDragToDismiss({
+      onDismiss: onClose,
+      enabled: open,
+    });
 
     function setRefs(node: HTMLDivElement | null) {
       panelRef.current = node;
@@ -45,35 +42,28 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       else if (ref) Object.assign(ref, { current: node });
     }
 
+    const dragStyle: CSSProperties | undefined =
+      dragY > 0
+        ? { transform: `translateY(${dragY}px)`, transition: 'none' }
+        : undefined;
+
     return (
       <OverlayShell open={open} onClose={onClose} duration={duration}>
         <div
           ref={setRefs}
           role="dialog"
           aria-modal="true"
-          className={cn(
-            styles.panel,
-            styles[side],
-            open && styles.open,
-            className,
-          )}
+          className={cn(styles.panel, open && styles.open, className)}
+          style={{ ...style, ...dragStyle }}
           {...rest}
+          {...handlers}
         >
-          <div className={styles.content}>
-            <button
-              type="button"
-              className={styles.closeButton}
-              aria-label={closeLabel}
-              onClick={onClose}
-            >
-              <Icon name="close" size="sm" />
-            </button>
-            {children}
-          </div>
+          <div className={styles.handle} aria-hidden="true" />
+          <div className={styles.content}>{children}</div>
         </div>
       </OverlayShell>
     );
   },
 );
 
-Drawer.displayName = 'Drawer';
+BottomSheet.displayName = 'BottomSheet';

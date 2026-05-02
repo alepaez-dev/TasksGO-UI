@@ -63,6 +63,12 @@ export const spacing = {
     paddingY: '8px',
     iconGap: '8px',
   },
+  searchPalette: {
+    mobileGroupPaddingX: '24px',
+    mobileGroupPaddingY: '8px',
+    mobileResultPaddingX: '24px',
+    mobileResultPaddingY: '12px',
+  },
   taskSection: {
     headerGap: '8px',
     contentPaddingTop: '12px',
@@ -91,14 +97,6 @@ export const spacing = {
     smSize: '24px',
     mdSize: '32px',
   },
-  mobileSearchSheet: {
-    height: '55vh',
-    topRadius: '24px',
-    resultPaddingX: '24px',
-    resultPaddingY: '12px',
-    groupHeaderPaddingX: '24px',
-    groupHeaderPaddingY: '8px',
-  },
   drawer: {
     closeButtonInsetTop: '3px',
     closeButtonInsetRight: '3px',
@@ -121,6 +119,16 @@ export const spacing = {
   },
   bottomTabBar: {
     height: '64px',
+  },
+  bottomSheet: {
+    maxHeight: '85vh',
+    topRadius: '16px',
+    paddingX: '16px',
+    paddingBottom: '24px',
+    handleTop: '8px',
+    handleWidth: '36px',
+    handleHeight: '4px',
+    contentPaddingTop: '24px',
   },
   columnWidths: {
     priority: '80px',
