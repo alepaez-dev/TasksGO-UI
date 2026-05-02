@@ -32,7 +32,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             onClick={onClear}
             aria-label="Clear search"
           >
-            Clear
+            <Icon name="cancel" size="sm" />
           </button>
         ) : shortcutHint ? (
           <kbd className={styles.kbd}>{shortcutHint}</kbd>

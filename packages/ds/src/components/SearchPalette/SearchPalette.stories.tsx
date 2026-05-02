@@ -6,17 +6,17 @@ const sampleGroups: SearchPaletteGroup[] = [
   {
     title: 'Jump to Task',
     results: [
-      { id: 'r1', label: 'Update login flow', refId: 'TSK-042', type: 'task' },
+      { id: 'r1', label: 'Update login flow', badge: 'TSK-042', type: 'task' },
       {
         id: 'r2',
         label: 'Fix auth token expiry',
-        refId: 'TSK-041',
+        badge: 'TSK-041',
         type: 'task',
       },
       {
         id: 'r3',
         label: 'Refactor dashboard layout',
-        refId: 'TSK-039',
+        badge: 'TSK-039',
         type: 'task',
       },
     ],
@@ -27,7 +27,7 @@ const sampleGroups: SearchPaletteGroup[] = [
       {
         id: 'r4',
         label: 'Login timeout on slow networks',
-        refId: 'TKT-15',
+        badge: 'TKT-15',
         type: 'ticket',
       },
     ],
@@ -35,7 +35,7 @@ const sampleGroups: SearchPaletteGroup[] = [
   {
     title: 'Jump to Doc',
     results: [
-      { id: 'r5', label: 'Authentication guide', refId: 'DOC-7', type: 'doc' },
+      { id: 'r5', label: 'Authentication guide', badge: 'DOC-7', type: 'doc' },
     ],
   },
 ];

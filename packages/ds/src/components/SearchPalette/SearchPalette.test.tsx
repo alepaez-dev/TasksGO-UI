@@ -8,19 +8,19 @@ const groups: SearchPaletteGroup[] = [
   {
     title: 'Jump to Task',
     results: [
-      { id: 'r1', label: 'Update login flow', refId: 'TSK-042', type: 'task' },
-      { id: 'r2', label: 'Fix auth token', refId: 'TSK-041', type: 'task' },
+      { id: 'r1', label: 'Update login flow', badge: 'TSK-042', type: 'task' },
+      { id: 'r2', label: 'Fix auth token', badge: 'TSK-041', type: 'task' },
     ],
   },
   {
     title: 'Jump to Ticket',
     results: [
-      { id: 'r3', label: 'Login timeout', refId: 'TKT-15', type: 'ticket' },
+      { id: 'r3', label: 'Login timeout', badge: 'TKT-15', type: 'ticket' },
     ],
   },
   {
     title: 'Jump to Doc',
-    results: [{ id: 'r4', label: 'Auth guide', refId: 'DOC-7', type: 'doc' }],
+    results: [{ id: 'r4', label: 'Auth guide', badge: 'DOC-7', type: 'doc' }],
   },
 ];
 
@@ -111,7 +111,7 @@ describe('SearchPalette', () => {
     expect(handleSelect).toHaveBeenCalledWith({
       id: 'r3',
       label: 'Login timeout',
-      refId: 'TKT-15',
+      badge: 'TKT-15',
       type: 'ticket',
     });
   });

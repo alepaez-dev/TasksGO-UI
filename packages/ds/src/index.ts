@@ -10,6 +10,7 @@ export {
   AttachFileIcon,
   AttachmentIcon,
   AutoAwesomeIcon,
+  CancelIcon,
   CheckCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,

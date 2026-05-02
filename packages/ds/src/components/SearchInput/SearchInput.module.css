@@ -47,6 +47,11 @@
   min-width: 0;
 }
 
+.input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .md .input {
   font-size: var(--ds-text-search-input-font-size);
   font-family: var(--ds-text-search-input-font-family);
@@ -70,18 +75,15 @@
 }
 
 .clearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   border: none;
   background: none;
   cursor: pointer;
   padding: 0;
-  font-size: var(--ds-text-search-input-clear-font-size);
-  font-family: var(--ds-text-search-input-clear-font-family);
-  font-weight: var(--ds-text-search-input-clear-font-weight);
-  letter-spacing: var(--ds-text-search-input-clear-letter-spacing);
-  text-transform: var(--ds-text-search-input-clear-text-transform);
-  color: var(--ds-color-search-input-clear-text);
-  line-height: var(--ds-text-search-input-clear-line-height);
+  color: var(--ds-color-text-disabled);
   transition-property: var(--ds-transition-property);
   transition-duration: var(--ds-transition-duration);
   transition-timing-function: var(--ds-transition-timing-function);

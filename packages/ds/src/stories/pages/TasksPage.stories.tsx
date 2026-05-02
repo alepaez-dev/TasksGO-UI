@@ -186,7 +186,7 @@ const searchResults: SearchPaletteGroup[] = [
     results: SEED_TASKS.map((t) => ({
       id: t.id,
       label: t.title,
-      refId: t.ticketId ?? t.id,
+      badge: t.ticketId ?? t.id,
       type: 'task' as const,
     })),
   },
@@ -200,7 +200,7 @@ function filterSearchResults(query: string): SearchPaletteGroup[] {
       results: group.results.filter(
         (r) =>
           r.label.toLowerCase().includes(q) ||
-          r.refId.toLowerCase().includes(q),
+          (r.badge?.toLowerCase().includes(q) ?? false),
       ),
     }))
     .filter((group) => group.results.length > 0);

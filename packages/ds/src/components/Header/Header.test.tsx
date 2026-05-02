@@ -25,20 +25,29 @@ describe('Header', () => {
 
   it('does not render left wrapper when left is not provided', () => {
     const { container } = render(<Header center={<span>Search</span>} />);
-    const leftDiv = container.querySelector('[class*="left"]');
-    expect(leftDiv).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="left"]'),
+    ).not.toBeInTheDocument();
   });
 
   it('does not render center wrapper when center is not provided', () => {
     const { container } = render(<Header left={<span>Nav</span>} />);
-    const centerDiv = container.querySelector('[class*="center"]');
-    expect(centerDiv).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="center"]'),
+    ).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="center-absolute"]'),
+    ).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="center-full"]'),
+    ).not.toBeInTheDocument();
   });
 
   it('does not render right wrapper when right is not provided', () => {
     const { container } = render(<Header left={<span>Nav</span>} />);
-    const rightDiv = container.querySelector('[class*="right"]');
-    expect(rightDiv).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="right"]'),
+    ).not.toBeInTheDocument();
   });
 
   it('forwards ref to header element', () => {
@@ -61,21 +70,40 @@ describe('Header', () => {
 
   it('renders center inside content in default flow mode', () => {
     const { container } = render(<Header center={<span>Title</span>} />);
-    const content = container.querySelector('[class*="content"]');
-    const center = container.querySelector('[class*="center"]');
+    const content = container.querySelector('[data-slot="content"]');
+    const center = container.querySelector('[data-slot="center"]');
     expect(content).toContainElement(center as HTMLElement);
   });
 
-  it('renders center absolutely and applies compact class when compact', () => {
+  it('renders center absolutely when compact with right', () => {
     const { container } = render(
-      <Header center={<span>Title</span>} compact />,
+      <Header
+        center={<span>Title</span>}
+        right={<span>Actions</span>}
+        compact
+      />,
     );
     const header = screen.getByRole('banner');
     expect(header.className).toContain('compact');
-    const content = container.querySelector('[class*="content"]');
-    const centerAbsolute = container.querySelector('[class*="centerAbsolute"]');
+    const content = container.querySelector('[data-slot="content"]');
+    const centerAbsolute = container.querySelector(
+      '[data-slot="center-absolute"]',
+    );
     expect(centerAbsolute).toBeInTheDocument();
     expect(content).not.toContainElement(centerAbsolute as HTMLElement);
     expect(screen.getByText('Title')).toBeInTheDocument();
+  });
+
+  it('renders center full-width when compact without right', () => {
+    const { container } = render(
+      <Header center={<span>Search</span>} compact />,
+    );
+    expect(
+      container.querySelector('[data-slot="center-full"]'),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('[data-slot="center-absolute"]'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('Search')).toBeInTheDocument();
   });
 });
