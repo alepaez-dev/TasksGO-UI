@@ -107,15 +107,14 @@
 }
 
 .mobileGroupHeader {
-  padding: var(--ds-space-scale-md) var(--ds-space-scale-md)
+  padding: var(--ds-space-scale-md) 0
     var(--ds-space-search-palette-mobile-group-padding-y);
 }
 
 .mobileResult {
   margin: 0;
   border-radius: 0;
-  padding: var(--ds-space-search-palette-mobile-result-padding-y)
-    var(--ds-space-scale-md);
+  padding: var(--ds-space-search-palette-mobile-result-padding-y) 0;
   gap: var(--ds-space-scale-sm);
 }
 

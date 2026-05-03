@@ -9,7 +9,7 @@
 }
 
 .wrapper:hover {
-  border-bottom-color: var(--ds-color-text-disabled);
+  border-bottom-color: var(--ds-color-search-input-hover-border);
 }
 
 .wrapper:focus-within {
@@ -22,6 +22,11 @@
 }
 
 .wrapper:has(:disabled):hover {
+  border-bottom-color: var(--ds-color-search-input-border);
+}
+
+.borderless:hover,
+.borderless:focus-within {
   border-bottom-color: var(--ds-color-search-input-border);
 }
 

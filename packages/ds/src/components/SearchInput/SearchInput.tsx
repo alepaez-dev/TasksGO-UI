@@ -12,12 +12,30 @@ export interface SearchInputProps extends Omit<
   shortcutHint?: string;
   size?: SearchInputSize;
   onClear?: () => void;
+  borderless?: boolean;
 }
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
-  ({ shortcutHint, size = 'md', onClear, className, ...inputProps }, ref) => {
+  (
+    {
+      shortcutHint,
+      size = 'md',
+      onClear,
+      borderless = false,
+      className,
+      ...inputProps
+    },
+    ref,
+  ) => {
     return (
-      <div className={cn(styles.wrapper, styles[size], className)}>
+      <div
+        className={cn(
+          styles.wrapper,
+          styles[size],
+          borderless && styles.borderless,
+          className,
+        )}
+      >
         <Icon name="search" size="sm" className={styles.icon} />
         <input
           ref={ref}

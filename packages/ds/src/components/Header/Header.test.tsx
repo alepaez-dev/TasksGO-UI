@@ -75,7 +75,7 @@ describe('Header', () => {
     expect(content).toContainElement(center as HTMLElement);
   });
 
-  it('renders center absolutely when compact with right', () => {
+  it('renders center absolutely in compact mode', () => {
     const { container } = render(
       <Header
         center={<span>Title</span>}
@@ -92,18 +92,5 @@ describe('Header', () => {
     expect(centerAbsolute).toBeInTheDocument();
     expect(content).not.toContainElement(centerAbsolute as HTMLElement);
     expect(screen.getByText('Title')).toBeInTheDocument();
-  });
-
-  it('renders center full-width when compact without right', () => {
-    const { container } = render(
-      <Header center={<span>Search</span>} compact />,
-    );
-    expect(
-      container.querySelector('[data-slot="center-full"]'),
-    ).toBeInTheDocument();
-    expect(
-      container.querySelector('[data-slot="center-absolute"]'),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText('Search')).toBeInTheDocument();
   });
 });

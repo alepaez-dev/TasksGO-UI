@@ -1,264 +1,59 @@
 import { useState, useMemo } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
-import { desktopViewports } from '../../../.storybook/preview';
-import { useSelectorGroup, useSelectorState } from '../../hooks/useSelector';
-import { Sidebar } from '../../components/Sidebar';
-import { Selector } from '../../components/Selector';
-import { NavItem } from '../../components/NavItem';
-import { Avatar } from '../../components/Avatar';
-import { SectionHeader } from '../../components/SectionHeader';
-import { StatusDot } from '../../components/StatusDot';
-import { Header } from '../../components/Header';
-import { Breadcrumb } from '../../components/Breadcrumb';
-import { SearchInput } from '../../components/SearchInput';
+import { desktopViewports } from '../../../../.storybook/preview';
+import { useSelectorGroup, useSelectorState } from '../../../hooks/useSelector';
+import { Sidebar } from '../../../components/Sidebar';
+import { Selector } from '../../../components/Selector';
+import { NavItem } from '../../../components/NavItem';
+import { Avatar } from '../../../components/Avatar';
+import { SectionHeader } from '../../../components/SectionHeader';
+import { StatusDot } from '../../../components/StatusDot';
+import { Header } from '../../../components/Header';
+import { Breadcrumb } from '../../../components/Breadcrumb';
+import { SearchInput } from '../../../components/SearchInput';
 import {
   SearchPalette,
   getSearchPaletteOptionId,
-  type SearchPaletteGroup,
-} from '../../components/SearchPalette';
-import { Button } from '../../components/Button';
-import { Icon } from '../../components/Icon';
-import { Footer } from '../../components/Footer';
-import { TaskSection } from '../../components/TaskSection';
-import { TaskRow, type TaskRowProps } from '../../components/TaskRow';
-import { Drawer } from '../../components/Drawer';
+} from '../../../components/SearchPalette';
+import { Button } from '../../../components/Button';
+import { Icon } from '../../../components/Icon';
+import { Footer } from '../../../components/Footer';
+import { TaskSection } from '../../../components/TaskSection';
+import { TaskRow } from '../../../components/TaskRow';
+import { Drawer } from '../../../components/Drawer';
 import {
   TaskDrawer,
   TaskDrawerField,
   TaskDrawerSection,
-} from '../../components/TaskDrawer';
-import { PropertyRow } from '../../components/PropertyRow';
-import { RecentTaskList } from '../../components/RecentTaskList';
-import type { RecentTaskItem } from '../../components/RecentTaskList';
+} from '../../../components/TaskDrawer';
+import { PropertyRow } from '../../../components/PropertyRow';
+import { RecentTaskList } from '../../../components/RecentTaskList';
 import {
   orderByLabelStyle,
   orderByPrefixStyle,
   orderByValueStyle,
-} from '../helpers/orderByStyles';
-import styles from './TasksPage.module.css';
-
-type TaskItem = Pick<
-  TaskRowProps,
-  'title' | 'badge' | 'refs' | 'priority' | 'date'
-> & {
-  id: string;
-  ticketId?: string;
-};
-
-const SEED_TASKS: readonly TaskItem[] = [
-  {
-    id: 'TSK-1',
-    title: 'Refactor Kubernetes service discovery logic for edge nodes',
-    badge: { label: 'In Progress', variant: 'progress' },
-    refs: [{ label: 'architecture-spec-v2.md', variant: 'doc' }],
-    priority: 'high',
-    ticketId: 'ENG-902',
-    date: { label: 'Mar 28', dateTime: '2026-03-28' },
-  },
-  {
-    id: 'TSK-2',
-    title: 'Audit IAM permissions for the staging database cluster',
-    badge: { label: 'Todo', variant: 'todo' },
-    refs: [{ label: 'iam-policy-draft.json', variant: 'attachment' }],
-    priority: 'medium',
-    ticketId: 'INFRA-441',
-    date: { label: 'Mar 30', dateTime: '2026-03-30' },
-  },
-  {
-    id: 'TSK-3',
-    title: 'Investigate intermittent TLS handshake timeouts in US-WEST-2',
-    badge: { label: 'In Progress', variant: 'progress' },
-    refs: [{ label: 'incident artifact' }],
-    priority: 'high',
-    ticketId: 'OPS-112',
-    date: { label: 'Today', dateTime: '2026-04-03', urgent: true },
-  },
-  {
-    id: 'TSK-4',
-    title: 'Configure auto-scaling for ingestion pipeline',
-    badge: { label: 'Todo', variant: 'todo' },
-    refs: [{ label: 'pipeline-config.yaml', variant: 'attachment' }],
-    priority: 'medium',
-    date: { label: 'Apr 1', dateTime: '2026-04-01' },
-  },
-  {
-    id: 'TSK-5',
-    title: 'Address memory leak in production API cluster',
-    badge: { label: 'In Progress', variant: 'progress' },
-    refs: [{ label: 'heap-dump-analysis' }],
-    priority: 'critical',
-    date: { label: 'Today', dateTime: '2026-04-03', urgent: true },
-  },
-];
-
-const SEED_COMPLETED: readonly TaskItem[] = [
-  {
-    id: 'TSK-6',
-    title: 'Update root CA certificates for all build agents',
-    badge: { label: 'Done', variant: 'done' },
-    priority: 'low',
-    ticketId: 'SEC-22',
-    date: { label: 'Jan 12', dateTime: '2026-01-12' },
-  },
-];
-
-const projects = [
-  { value: 'eng-core', label: 'Engineering Core' },
-  { value: 'tasksgo', label: 'TasksGO' },
-  { value: 'mudatec', label: 'Mudatec' },
-];
-
-const avatars: Record<string, { initial: string; label: string }> = {
-  'eng-core': { initial: 'P', label: 'Engineering Core' },
-  tasksgo: { initial: 'M', label: 'TasksGO' },
-  mudatec: { initial: 'M', label: 'Mudatec' },
-};
-
-const assigneeOptions = [
-  { value: 'alex', label: 'Alex H.', initial: 'AH', color: '#7D9B84' },
-  { value: 'cleo', label: 'Cleo H.', initial: 'CH', color: '#C38E70' },
-  { value: 'vader', label: 'Vader P.', initial: 'VP', color: '#6C89A8' },
-];
-
-const priorityOptions = [
-  {
-    value: 'critical',
-    label: 'Critical',
-    icon: 'flag' as const,
-    iconColor: 'var(--ds-color-status-critical)',
-  },
-  {
-    value: 'high',
-    label: 'High',
-    icon: 'flag' as const,
-    iconColor: 'var(--ds-color-status-high)',
-  },
-  {
-    value: 'medium',
-    label: 'Medium',
-    icon: 'flag' as const,
-    iconColor: 'var(--ds-color-status-medium)',
-  },
-  {
-    value: 'low',
-    label: 'Low',
-    icon: 'flag' as const,
-    iconColor: 'var(--ds-color-status-low)',
-  },
-];
-
-const ticketOptions = [
-  { value: 'T-42', label: 'Implement dynamic edge-caching...', prefix: 'T-42' },
-  {
-    value: 'T-104',
-    label: 'Implement unit tests for cache logic',
-    prefix: 'T-104',
-  },
-  {
-    value: 'T-105',
-    label: 'Update staging environment config',
-    prefix: 'T-105',
-  },
-];
-
-const recentTasks: readonly RecentTaskItem[] = [
-  {
-    ticketId: 'TSK-104',
-    title: 'Implement unit tests for cache logic',
-    timeAgo: '2h ago',
-  },
-  {
-    ticketId: 'TSK-105',
-    title: 'Update staging environment config',
-    timeAgo: '1d ago',
-  },
-  {
-    ticketId: 'TSK-98',
-    title: 'Fix DNS resolution in edge proxy',
-    timeAgo: '3d ago',
-  },
-];
-
-const searchResults: SearchPaletteGroup[] = [
-  {
-    title: 'Jump to Task',
-    results: SEED_TASKS.map((t) => ({
-      id: t.id,
-      label: t.title,
-      badge: t.ticketId ?? t.id,
-      type: 'task' as const,
-    })),
-  },
-];
-
-function filterSearchResults(query: string): SearchPaletteGroup[] {
-  const q = query.toLowerCase();
-  return searchResults
-    .map((group) => ({
-      ...group,
-      results: group.results.filter(
-        (r) =>
-          r.label.toLowerCase().includes(q) ||
-          (r.badge?.toLowerCase().includes(q) ?? false),
-      ),
-    }))
-    .filter((group) => group.results.length > 0);
-}
-
-const sortOptions = [
-  { value: 'priority', label: 'Priority' },
-  { value: 'due-date', label: 'Due date' },
-];
-
-const PRIORITY_ORDER: Record<string, number> = {
-  critical: 0,
-  high: 1,
-  medium: 2,
-  low: 3,
-};
-
-function sortTasks(
-  tasks: readonly TaskItem[],
-  by: string,
-): readonly TaskItem[] {
-  const sorted = [...tasks];
-  switch (by) {
-    case 'priority':
-      return sorted.sort(
-        (a, b) =>
-          (PRIORITY_ORDER[a.priority ?? 'low'] ?? 4) -
-          (PRIORITY_ORDER[b.priority ?? 'low'] ?? 4),
-      );
-    case 'due-date':
-      return sorted.sort((a, b) =>
-        (b.date?.dateTime ?? '').localeCompare(a.date?.dateTime ?? ''),
-      );
-    default:
-      return sorted;
-  }
-}
-
-interface DrawerFormState {
-  title: string;
-  description: string;
-  assignee: string;
-  priority: string;
-  linkedTicket: string | undefined;
-}
-
-const INITIAL_FORM: DrawerFormState = {
-  title: '',
-  description: '',
-  assignee: 'alex',
-  priority: 'high',
-  linkedTicket: undefined,
-};
-
-const DEFAULT_TASKS: readonly TaskItem[] = [...SEED_TASKS, ...SEED_COMPLETED];
+} from '../../helpers/orderByStyles';
+import {
+  type TaskItem,
+  type DrawerFormState,
+  initialForm,
+  seedCompleted,
+  defaultTasks,
+  projectList,
+  getProject,
+  assigneeOptions,
+  priorityOptions,
+  ticketOptions,
+  recentTasks,
+  sortOptions,
+  sortTasks,
+  filterSearchResults,
+} from './shared';
+import styles from './TasksDesktop.module.css';
 
 function TasksPageRender({
-  initialTasks = DEFAULT_TASKS,
+  initialTasks = defaultTasks,
 }: {
   initialTasks?: readonly TaskItem[];
 }) {
@@ -286,14 +81,14 @@ function TasksPageRender({
     () =>
       new Set(
         initialTasks
-          .filter((t) => SEED_COMPLETED.some((s) => s.id === t.id))
+          .filter((t) => seedCompleted.some((s) => s.id === t.id))
           .map((t) => t.id),
       ),
   );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | undefined>();
-  const [form, setForm] = useState<DrawerFormState>(INITIAL_FORM);
+  const [form, setForm] = useState<DrawerFormState>(initialForm);
   const selectors = useSelectorGroup('assignee', 'priority', 'ticket');
   const {
     ref: assigneeRef,
@@ -323,8 +118,6 @@ function TasksPageRender({
     return sortTasks(filtered, sortBy);
   }, [allTasks, completedIds, filterQuery, sortBy]);
 
-  // Completed tasks are not sorted here — the consumer will usually want to
-  // apply a default sort like most-recently-completed-first.
   const completedTasks = useMemo(() => {
     const q = filterQuery.toLowerCase();
     return allTasks
@@ -347,7 +140,7 @@ function TasksPageRender({
   function handleDrawerClose() {
     setDrawerOpen(false);
     setEditingTaskId(undefined);
-    setForm(INITIAL_FORM);
+    setForm(initialForm);
     setAssigneeQuery('');
     setTicketQuery('');
   }
@@ -368,11 +161,11 @@ function TasksPageRender({
     ? allTasks.find((t) => t.id === editingTaskId)
     : undefined;
   const drawerTitle = editingTask
-    ? `Edit task · ${editingTask.ticketId ?? editingTask.id}`
+    ? `Edit task \u00b7 ${editingTask.ticketId ?? editingTask.id}`
     : 'New task';
   const drawerSubmitLabel = editingTaskId ? 'Save' : 'Create Task';
 
-  const avatar = avatars[project];
+  const activeProject = getProject(project);
   const navClick = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     setActiveNav(id);
@@ -386,13 +179,16 @@ function TasksPageRender({
           <>
             <Selector
               ref={projectRef}
-              options={projects}
+              options={projectList}
               value={project}
               onValueChange={setProject}
               open={projectOpen}
               onOpenChange={onProjectChange}
               triggerPrefix={
-                <Avatar initial={avatar.initial} aria-label={avatar.label} />
+                <Avatar
+                  initial={activeProject.initial}
+                  aria-label={activeProject.label}
+                />
               }
               action={{ label: 'Add project', icon: 'add', onClick: () => {} }}
             />
@@ -419,7 +215,7 @@ function TasksPageRender({
                   lineHeight: 'var(--ds-text-page-title-line-height)',
                 }}
               >
-                Project / {avatar.label}
+                Project / {activeProject.label}
               </p>
               <span
                 style={{
@@ -548,7 +344,7 @@ function TasksPageRender({
                 <Icon name="add" size="sm" />
                 New task
               </Button>
-              <Avatar initial="AD" variant="profile" aria-label="Alex D." />
+              <Avatar initial="AP" variant="profile" aria-label="Ale Paez" />
             </>
           }
         />

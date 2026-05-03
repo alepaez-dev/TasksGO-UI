@@ -17,11 +17,9 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
         className={cn(styles.header, compact && styles.compact, className)}
         {...rest}
       >
-        {/* center lives inside .content in normal mode (in-flow),
-            but outside it in compact mode so .content can shrink.
-            Compact + right: absolute-center the title against an
-            unknown-width right slot. Compact + no right: full-width
-            for search takeover. */}
+        {/* In compact mode, center is absolute-positioned outside .content
+            so the title stays optically centered against an unknown-width
+            right slot while .content shrinks to fit left only. */}
         <div className={styles.content} data-slot="content">
           {left && (
             <div className={styles.left} data-slot="left">
@@ -34,17 +32,12 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
             </div>
           )}
         </div>
-        {center && compact && right && (
+        {center && compact && (
           <div
             className={styles.centerAbsolute}
             data-slot="center-absolute"
             title={typeof center === 'string' ? center : undefined}
           >
-            {center}
-          </div>
-        )}
-        {center && compact && !right && (
-          <div className={styles.centerFull} data-slot="center-full">
             {center}
           </div>
         )}

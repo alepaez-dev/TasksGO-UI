@@ -58,14 +58,6 @@
   color: var(--ds-color-text-primary);
 }
 
-.centerFull {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  margin-left: var(--ds-space-scale-sm);
-}
-
 .right {
   display: flex;
   align-items: center;

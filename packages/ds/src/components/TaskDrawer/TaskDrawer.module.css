@@ -142,4 +142,16 @@
     padding-left: var(--ds-space-scale-md);
     padding-right: var(--ds-space-scale-md);
   }
+
+  .footer button {
+    padding: var(--ds-space-button-md-padding-y)
+      var(--ds-space-button-md-padding-x);
+    font-size: var(--ds-text-option-label-font-size);
+  }
+
+  /* 16px prevents iOS from zooming on focus */
+  .body input,
+  .body textarea {
+    font-size: 16px;
+  }
 }

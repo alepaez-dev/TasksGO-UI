@@ -13,10 +13,14 @@ import {
   getSearchPaletteOptionId,
   type SearchPaletteGroup,
 } from '../SearchPalette';
+import { BottomSheet } from '../BottomSheet';
 import { Avatar } from '../Avatar';
 import { Button } from '../Button';
 import { Icon } from '../Icon';
 import { IconButton } from '../IconButton';
+import { NavItem } from '../NavItem';
+import { SectionHeader } from '../SectionHeader';
+import searchPillStyles from '../../stories/helpers/searchPill.module.css';
 import storyStyles from './Header.stories.module.css';
 
 const allResults: SearchPaletteGroup[] = [
@@ -145,7 +149,7 @@ const meta: Meta<typeof Header> = {
   argTypes: {
     compact: {
       description:
-        'Mobile layout mode. Reduces padding and changes how `center` renders: absolute-centered title when `right` is present, or full-width (e.g. search takeover) when `right` is absent.',
+        'Mobile layout mode. Reduces padding and absolute-centers `center` so the title stays optically centered against the left and right slots.',
     },
   },
   parameters: {
@@ -185,7 +189,7 @@ export const LeftOnly: Story = {
 };
 
 function MobileRender() {
-  const [searching, setSearching] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const searchRef = useCallback((node: HTMLInputElement | null) => {
     node?.focus();
@@ -193,70 +197,86 @@ function MobileRender() {
 
   const mobileGroups = query.length > 0 ? filterGroups(query) : [];
 
+  function handleSearchClose() {
+    setSearchOpen(false);
+    setQuery('');
+  }
+
   return (
     <div style={{ minHeight: '100vh' }}>
-      {searching ? (
-        <>
-          <Header
-            compact
-            left={
-              <IconButton
-                icon="chevron_left"
-                size="md"
-                aria-label="Close search"
-                onClick={() => {
-                  setSearching(false);
-                  setQuery('');
-                }}
-              />
-            }
-            center={
-              <SearchInput
-                ref={searchRef}
-                placeholder="Search..."
-                size="sm"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onClear={query ? () => setQuery('') : undefined}
-                className={storyStyles.searchPill}
-                style={{ fontSize: 16 }}
-              />
-            }
-          />
-          {mobileGroups.length > 0 && (
-            <SearchPalette
-              groups={mobileGroups}
-              onResultSelect={() => {}}
-              variant="mobile"
-              aria-label="Search results"
+      <Header
+        compact
+        left={
+          <div className={storyStyles.projectRow}>
+            <Avatar
+              initial="E"
+              variant="project"
+              aria-label="Engineering Core"
             />
-          )}
-        </>
-      ) : (
-        <Header
-          compact
-          left={
-            <div className={storyStyles.projectRow}>
-              <Avatar
-                initial="E"
-                variant="project"
-                aria-label="Engineering Core"
+            <span className={storyStyles.pageTitle}>Tasks</span>
+          </div>
+        }
+        right={
+          <>
+            <IconButton
+              icon="search"
+              aria-label="Search"
+              onClick={() => setSearchOpen(true)}
+            />
+            <Avatar initial="AP" variant="profile" aria-label="Ale Paez" />
+          </>
+        }
+      />
+
+      <BottomSheet
+        open={searchOpen}
+        onClose={handleSearchClose}
+        fullHeight
+        aria-label="Search"
+      >
+        <div className={storyStyles.searchSheetHeader}>
+          <SearchInput
+            ref={searchRef}
+            placeholder="Jump to task"
+            size="sm"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onClear={query ? () => setQuery('') : undefined}
+            borderless
+            className={searchPillStyles.searchPill}
+            style={{ fontSize: 16 }}
+          />
+          <button
+            type="button"
+            className={storyStyles.cancelButton}
+            onClick={handleSearchClose}
+          >
+            Cancel
+          </button>
+        </div>
+
+        {mobileGroups.length > 0 ? (
+          <SearchPalette
+            groups={mobileGroups}
+            onResultSelect={() => handleSearchClose()}
+            variant="mobile"
+            aria-label="Search results"
+          />
+        ) : (
+          <>
+            <SectionHeader headingLevel={3}>Jump to</SectionHeader>
+            <nav aria-label="Jump to">
+              <NavItem icon="task_alt" label="All tasks" href="#tasks" />
+              <NavItem
+                icon="confirmation_number"
+                label="All tickets"
+                href="#tickets"
               />
-              <span className={storyStyles.pageTitle}>Tasks</span>
-            </div>
-          }
-          right={
-            <>
-              <IconButton
-                icon="search"
-                aria-label="Search"
-                onClick={() => setSearching(true)}
-              />
-              <Avatar initial="AP" variant="profile" aria-label="Ale Paez" />
-            </>
-          }
-        />
-      )}
+              <NavItem icon="description" label="All docs" href="#docs" />
+            </nav>
+          </>
+        )}
+      </BottomSheet>
     </div>
   );
 }
