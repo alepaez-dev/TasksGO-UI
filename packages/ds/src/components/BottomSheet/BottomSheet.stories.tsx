@@ -16,6 +16,12 @@ const meta: Meta<typeof BottomSheet> = {
   title: 'Components/BottomSheet',
   component: BottomSheet,
   tags: ['autodocs'],
+  argTypes: {
+    fullHeight: {
+      description:
+        'Expands the sheet to fill the viewport (no rounded corners, no max-height). Use for search or full-screen takeovers.',
+    },
+  },
   decorators: [withDefaultViewport('mobile')],
   parameters: {
     layout: 'fullscreen',

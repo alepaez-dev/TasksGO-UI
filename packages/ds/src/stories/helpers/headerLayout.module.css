@@ -1,0 +1,29 @@
+.projectRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-nav-item-gap);
+}
+
+.pageTitle {
+  font-family: var(--ds-font-family-sans);
+  font-size: 16px;
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.searchSheetHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  margin-bottom: var(--ds-space-scale-md);
+}
+
+.cancelButton {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-option-label-font-size);
+  color: var(--ds-color-text-primary);
+}

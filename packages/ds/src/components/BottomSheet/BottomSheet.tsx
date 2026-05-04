@@ -20,11 +20,21 @@ export type BottomSheetProps = BottomSheetLabelProps &
     open: boolean;
     onClose: () => void;
     duration?: TransitionDuration;
+    fullHeight?: boolean;
   };
 
 export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
   (
-    { open, onClose, duration = 'slow', children, className, style, ...rest },
+    {
+      open,
+      onClose,
+      duration = 'slow',
+      fullHeight = false,
+      children,
+      className,
+      style,
+      ...rest
+    },
     ref,
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
@@ -53,7 +63,12 @@ export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
           ref={setRefs}
           role="dialog"
           aria-modal="true"
-          className={cn(styles.panel, open && styles.open, className)}
+          className={cn(
+            styles.panel,
+            open && styles.open,
+            fullHeight && styles.fullHeight,
+            className,
+          )}
           style={{ ...style, ...dragStyle }}
           {...rest}
           {...handlers}

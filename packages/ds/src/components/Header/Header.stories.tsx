@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { withDefaultViewport } from '../../../.storybook/decorators';
 import {
@@ -13,49 +13,55 @@ import {
   getSearchPaletteOptionId,
   type SearchPaletteGroup,
 } from '../SearchPalette';
-import { FloatingSearch } from '../FloatingSearch';
+import { BottomSheet } from '../BottomSheet';
 import { Avatar } from '../Avatar';
 import { Button } from '../Button';
 import { Icon } from '../Icon';
 import { IconButton } from '../IconButton';
+import { NavItem } from '../NavItem';
+import { SectionHeader } from '../SectionHeader';
+import searchPillStyles from '../../stories/helpers/searchPill.module.css';
+import headerLayoutStyles from '../../stories/helpers/headerLayout.module.css';
 
 const allResults: SearchPaletteGroup[] = [
   {
-    title: 'Jump to Task',
+    title: 'Tasks',
     results: [
       {
         id: 'r1',
-        label: 'Update login flow',
-        refId: 'TSK-042',
+        label: 'Refactor Kubernetes service discovery',
+        badge: 'HIGH',
+        subtitle: 'IN PROGRESS \u00b7 TODAY',
         type: 'task',
       },
       {
         id: 'r2',
-        label: 'Fix auth token expiry',
-        refId: 'TSK-041',
+        label: 'Kube-proxy iptables sync timeout',
+        badge: 'MED',
+        subtitle: 'OPEN \u00b7 DEC 23',
         type: 'task',
       },
     ],
   },
   {
-    title: 'Jump to Ticket',
+    title: 'Docs',
     results: [
       {
-        id: 'r3',
-        label: 'Login timeout on slow networks',
-        refId: 'TKT-15',
-        type: 'ticket',
+        id: 'r4',
+        label: 'Architecture \u00b7 Kubernetes topology',
+        subtitle: 'EDITED 2D AGO',
+        type: 'doc',
       },
     ],
   },
   {
-    title: 'Jump to Doc',
+    title: 'Tickets',
     results: [
       {
-        id: 'r4',
-        label: 'Authentication guide',
-        refId: 'DOC-7',
-        type: 'doc',
+        id: 'r3',
+        label: 'TGO-2891 \u2014 Kubelet eviction loop',
+        subtitle: 'MARIA C \u00b7 YESTERDAY',
+        type: 'ticket',
       },
     ],
   },
@@ -69,7 +75,7 @@ function filterGroups(query: string): SearchPaletteGroup[] {
       results: group.results.filter(
         (r) =>
           r.label.toLowerCase().includes(q) ||
-          r.refId.toLowerCase().includes(q),
+          (r.badge?.toLowerCase().includes(q) ?? false),
       ),
     }))
     .filter((group) => group.results.length > 0);
@@ -140,6 +146,12 @@ const meta: Meta<typeof Header> = {
   title: 'Components/Header',
   component: Header,
   tags: ['autodocs'],
+  argTypes: {
+    compact: {
+      description:
+        'Mobile layout mode. Reduces padding and absolute-centers `center` so the title stays optically centered against the left and right slots.',
+    },
+  },
   parameters: {
     layout: 'fullscreen',
   },
@@ -177,29 +189,94 @@ export const LeftOnly: Story = {
 };
 
 function MobileRender() {
+  const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const searchRef = useCallback((node: HTMLInputElement | null) => {
+    node?.focus();
+  }, []);
+
+  const mobileGroups = query.length > 0 ? filterGroups(query) : [];
+
+  function handleSearchClose() {
+    setSearchOpen(false);
+    setQuery('');
+  }
 
   return (
-    <div style={{ minHeight: '100vh', position: 'relative' }}>
+    <div style={{ minHeight: '100vh' }}>
       <Header
         compact
-        left={<IconButton icon="menu" aria-label="Menu" />}
-        center="Project / Infrastructure"
+        left={
+          <div className={headerLayoutStyles.projectRow}>
+            <Avatar
+              initial="E"
+              variant="project"
+              aria-label="Engineering Core"
+            />
+            <span className={headerLayoutStyles.pageTitle}>Tasks</span>
+          </div>
+        }
         right={
           <>
-            <Button size="sm" aria-label="New task">
-              <Icon name="add" size="sm" />
-            </Button>
-            <Avatar initial="AD" variant="profile" aria-label="Alejandra D" />
+            <IconButton
+              icon="search"
+              aria-label="Search"
+              onClick={() => setSearchOpen(true)}
+            />
+            <Avatar initial="AP" variant="profile" aria-label="Ale Paez" />
           </>
         }
       />
-      <FloatingSearch
-        placeholder="Search tasks or commands..."
-        shortcutHint="⌘K"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
+
+      <BottomSheet
+        open={searchOpen}
+        onClose={handleSearchClose}
+        fullHeight
+        aria-label="Search"
+      >
+        <div className={headerLayoutStyles.searchSheetHeader}>
+          <SearchInput
+            ref={searchRef}
+            placeholder="Jump to task"
+            size="sm"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onClear={query ? () => setQuery('') : undefined}
+            borderless
+            className={searchPillStyles.searchPill}
+            style={{ fontSize: 16 }}
+          />
+          <button
+            type="button"
+            className={headerLayoutStyles.cancelButton}
+            onClick={handleSearchClose}
+          >
+            Cancel
+          </button>
+        </div>
+
+        {mobileGroups.length > 0 ? (
+          <SearchPalette
+            groups={mobileGroups}
+            onResultSelect={() => handleSearchClose()}
+            variant="mobile"
+            aria-label="Search results"
+          />
+        ) : (
+          <>
+            <SectionHeader headingLevel={3}>Jump to</SectionHeader>
+            <nav aria-label="Jump to">
+              <NavItem icon="task_alt" label="All tasks" href="#tasks" />
+              <NavItem
+                icon="confirmation_number"
+                label="All tickets"
+                href="#tickets"
+              />
+              <NavItem icon="description" label="All docs" href="#docs" />
+            </nav>
+          </>
+        )}
+      </BottomSheet>
     </div>
   );
 }

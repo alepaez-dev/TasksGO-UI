@@ -1,0 +1,150 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.scrollArea {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: calc(
+    var(--ds-space-bottom-tab-bar-height) + var(--ds-space-scale-xl)
+  );
+}
+
+.content {
+  padding: var(--ds-space-scale-md) 0;
+}
+
+.filterRow {
+  margin-bottom: var(--ds-space-scale-md);
+}
+
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-lg);
+}
+
+.taskList summary {
+  padding: 0 var(--ds-space-scale-md);
+}
+
+.emptyMessage {
+  padding: var(--ds-space-layout-content-padding-y) 0;
+  text-align: center;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-option-label-font-size);
+}
+
+.emptyHint {
+  margin-top: var(--ds-space-scale-sm);
+  font-size: var(--ds-text-search-input-sm-font-size);
+  color: var(--ds-color-text-disabled);
+}
+
+.sortTrigger {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sortOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ds-space-scale-sm) 0;
+  cursor: pointer;
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-option-label-font-size);
+  color: var(--ds-color-text-primary);
+  border: none;
+  background: none;
+  text-align: left;
+  width: 100%;
+}
+
+.section {
+  border-bottom: 1px solid var(--ds-color-border-default);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.profileRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.nameBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.name {
+  font-weight: var(--ds-font-weight-medium);
+  font-size: var(--ds-text-option-label-font-size);
+  font-family: var(--ds-font-family-sans);
+}
+
+.email {
+  font-size: 13px;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-sans);
+}
+
+.workspaceNav {
+  margin-left: calc(-1 * var(--ds-space-nav-item-padding-x));
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.statusLabel {
+  font-size: var(--ds-text-option-label-font-size);
+  font-family: var(--ds-font-family-sans);
+}
+
+.slider {
+  display: flex;
+  transition: transform 250ms ease;
+}
+
+.panel {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.moreProjectRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-nav-item-gap);
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: var(--ds-font-family-sans);
+  font-size: 16px;
+  font-weight: var(--ds-font-weight-semibold);
+  color: var(--ds-color-text-primary);
+  text-align: left;
+  outline: none;
+}
+
+.moreProjectLabel {
+  flex: 1;
+}

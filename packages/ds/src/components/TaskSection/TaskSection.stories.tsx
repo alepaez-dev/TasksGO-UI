@@ -16,6 +16,10 @@ const meta = {
       options: ['default', 'progress', 'todo', 'done'],
     },
     open: { control: 'boolean' },
+    compact: {
+      description:
+        'Insets the trailing slot from the right edge for narrow viewports.',
+    },
   },
 } satisfies Meta<typeof TaskSection>;
 

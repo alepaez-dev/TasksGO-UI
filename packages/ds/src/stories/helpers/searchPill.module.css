@@ -1,0 +1,6 @@
+.searchPill {
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-xl);
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-md);
+  flex: 1;
+}

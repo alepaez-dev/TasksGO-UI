@@ -48,16 +48,15 @@ export function useDragToDismiss({
   const startY = useRef<number | null>(null);
   const lastDragY = useRef(0);
 
-  if (!enabled) {
-    if (dragY !== 0) setDragY(0);
-    lastDragY.current = 0;
-    startY.current = null;
+  if (!enabled && dragY !== 0) {
+    setDragY(0);
   }
 
   const onTouchStart = useCallback(
     (e: TouchEvent<HTMLElement>) => {
       if (!enabled) return;
       if (isInsideScrolledContent(e.target)) return;
+      lastDragY.current = 0;
       startY.current = e.touches[0].clientY;
     },
     [enabled],
