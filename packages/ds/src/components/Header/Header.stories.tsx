@@ -21,7 +21,7 @@ import { IconButton } from '../IconButton';
 import { NavItem } from '../NavItem';
 import { SectionHeader } from '../SectionHeader';
 import searchPillStyles from '../../stories/helpers/searchPill.module.css';
-import storyStyles from './Header.stories.module.css';
+import headerLayoutStyles from '../../stories/helpers/headerLayout.module.css';
 
 const allResults: SearchPaletteGroup[] = [
   {
@@ -207,13 +207,13 @@ function MobileRender() {
       <Header
         compact
         left={
-          <div className={storyStyles.projectRow}>
+          <div className={headerLayoutStyles.projectRow}>
             <Avatar
               initial="E"
               variant="project"
               aria-label="Engineering Core"
             />
-            <span className={storyStyles.pageTitle}>Tasks</span>
+            <span className={headerLayoutStyles.pageTitle}>Tasks</span>
           </div>
         }
         right={
@@ -234,7 +234,7 @@ function MobileRender() {
         fullHeight
         aria-label="Search"
       >
-        <div className={storyStyles.searchSheetHeader}>
+        <div className={headerLayoutStyles.searchSheetHeader}>
           <SearchInput
             ref={searchRef}
             placeholder="Jump to task"
@@ -248,7 +248,7 @@ function MobileRender() {
           />
           <button
             type="button"
-            className={storyStyles.cancelButton}
+            className={headerLayoutStyles.cancelButton}
             onClick={handleSearchClose}
           >
             Cancel

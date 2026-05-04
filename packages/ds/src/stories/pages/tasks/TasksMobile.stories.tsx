@@ -45,6 +45,7 @@ import {
 } from './shared';
 import { useTasksState } from './useTasksState';
 import searchPillStyles from '../../helpers/searchPill.module.css';
+import headerLayoutStyles from '../../helpers/headerLayout.module.css';
 import styles from './TasksMobile.module.css';
 
 // Lift the FAB above the BottomTabBar; the default offset assumes no tab bar.
@@ -106,13 +107,13 @@ function TasksMobileRender({
       <Header
         compact
         left={
-          <div className={styles.projectRow}>
+          <div className={headerLayoutStyles.projectRow}>
             <Avatar
               initial={activeProject.initial}
               variant="project"
               aria-label={activeProject.label}
             />
-            <span className={styles.pageTitle}>Tasks</span>
+            <span className={headerLayoutStyles.pageTitle}>Tasks</span>
           </div>
         }
         right={
@@ -136,7 +137,7 @@ function TasksMobileRender({
         fullHeight
         aria-label="Search"
       >
-        <div className={styles.searchSheetHeader}>
+        <div className={headerLayoutStyles.searchSheetHeader}>
           <SearchInput
             ref={searchRef}
             placeholder="Jump to task"
@@ -150,7 +151,7 @@ function TasksMobileRender({
           />
           <button
             type="button"
-            className={styles.cancelButton}
+            className={headerLayoutStyles.cancelButton}
             onClick={() => {
               setSearchOpen(false);
               setSearchQuery('');
