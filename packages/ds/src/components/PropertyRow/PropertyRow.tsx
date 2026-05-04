@@ -5,7 +5,7 @@ import type { IconName } from '../../icons';
 import styles from './PropertyRow.module.css';
 
 export interface PropertyRowProps extends HTMLAttributes<HTMLDivElement> {
-  icon: IconName;
+  icon?: IconName;
   label: string;
   onClick?: () => void;
 }
@@ -18,7 +18,7 @@ export const PropertyRow = forwardRef<HTMLDivElement, PropertyRowProps>(
     return (
       <div ref={ref} className={cn(styles.row, className)} {...rest}>
         <div className={styles.left}>
-          <Icon name={icon} size="sm" className={styles.icon} />
+          {icon && <Icon name={icon} size="sm" className={styles.icon} />}
           <span className={styles.label}>{label}</span>
         </div>
         <Value

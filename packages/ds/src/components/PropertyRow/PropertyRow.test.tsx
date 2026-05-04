@@ -13,6 +13,15 @@ describe('PropertyRow', () => {
     expect(screen.getByText('Alex D.')).toBeInTheDocument();
   });
 
+  it('renders without an icon when icon prop is omitted', () => {
+    const { container } = render(
+      <PropertyRow label="Assignee">Alex D.</PropertyRow>,
+    );
+    expect(screen.getByText('Assignee')).toBeInTheDocument();
+    expect(screen.getByText('Alex D.')).toBeInTheDocument();
+    expect(container.querySelector('svg')).not.toBeInTheDocument();
+  });
+
   it('renders a div when not interactive', () => {
     render(
       <PropertyRow icon="tag" label="Project">
