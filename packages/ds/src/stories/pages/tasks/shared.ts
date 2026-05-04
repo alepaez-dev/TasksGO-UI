@@ -27,7 +27,7 @@ export const initialForm: DrawerFormState = {
   linkedTicket: undefined,
 };
 
-export const seedTasks: readonly TaskItem[] = [
+const seedTasks: readonly TaskItem[] = [
   {
     id: 'TSK-1',
     title: 'Refactor Kubernetes service discovery logic for edge nodes',

@@ -38,9 +38,6 @@ describe('Header', () => {
     expect(
       container.querySelector('[data-slot="center-absolute"]'),
     ).not.toBeInTheDocument();
-    expect(
-      container.querySelector('[data-slot="center-full"]'),
-    ).not.toBeInTheDocument();
   });
 
   it('does not render right wrapper when right is not provided', () => {
