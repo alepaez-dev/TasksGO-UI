@@ -1,4 +1,4 @@
-import { useState, useCallback, type CSSProperties } from 'react';
+import { useState, useRef, type CSSProperties } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { withDefaultViewport } from '../../../../.storybook/decorators';
 import { mobileViewportOptions } from '../../../../.storybook/preview';
@@ -81,9 +81,7 @@ function TasksMobileRender({
   const [project, setProject] = useState('eng-core');
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const searchRef = useCallback((node: HTMLInputElement | null) => {
-    node?.focus();
-  }, []);
+  const searchRef = useRef<HTMLInputElement>(null);
   const searchGroups =
     searchQuery.length > 0 ? filterSearchResults(searchQuery) : [];
   const [moreOpen, setMoreOpen] = useState(false);
@@ -134,6 +132,7 @@ function TasksMobileRender({
           setSearchOpen(false);
           setSearchQuery('');
         }}
+        onOpened={() => searchRef.current?.focus()}
         fullHeight
         aria-label="Search"
       >

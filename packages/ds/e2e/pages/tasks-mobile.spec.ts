@@ -106,6 +106,22 @@ test.describe('Mobile tasks — search sheet', () => {
     await expect(page.getByPlaceholder('Jump to task')).toBeVisible();
   });
 
+  test('opening search sheet auto-focuses the input', async ({ page }) => {
+    await page.getByRole('button', { name: 'Search' }).click();
+    await expect(page.getByPlaceholder('Jump to task')).toBeFocused();
+  });
+
+  test('reopening the search sheet re-focuses the input', async ({ page }) => {
+    await page.getByRole('button', { name: 'Search' }).click();
+    await expect(page.getByPlaceholder('Jump to task')).toBeFocused();
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(
+      page.getByRole('dialog', { name: 'Search' }),
+    ).not.toBeVisible();
+    await page.getByRole('button', { name: 'Search' }).click();
+    await expect(page.getByPlaceholder('Jump to task')).toBeFocused();
+  });
+
   test('cancel closes search sheet', async ({ page }) => {
     await page.getByRole('button', { name: 'Search' }).click();
     await expect(page.getByRole('dialog', { name: 'Search' })).toBeVisible();

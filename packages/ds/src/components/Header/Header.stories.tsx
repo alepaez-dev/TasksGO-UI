@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { withDefaultViewport } from '../../../.storybook/decorators';
 import {
@@ -191,9 +191,7 @@ export const LeftOnly: Story = {
 function MobileRender() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const searchRef = useCallback((node: HTMLInputElement | null) => {
-    node?.focus();
-  }, []);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const mobileGroups = query.length > 0 ? filterGroups(query) : [];
 
@@ -231,6 +229,7 @@ function MobileRender() {
       <BottomSheet
         open={searchOpen}
         onClose={handleSearchClose}
+        onOpened={() => searchRef.current?.focus()}
         fullHeight
         aria-label="Search"
       >

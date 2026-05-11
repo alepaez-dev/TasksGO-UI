@@ -31,11 +31,11 @@
 }
 
 .md {
-  padding: var(--ds-space-search-input-padding-y) 0;
+  padding-block: var(--ds-space-search-input-padding-y);
 }
 
 .sm {
-  padding: var(--ds-space-scale-xs) 0;
+  padding-block: var(--ds-space-scale-xs);
 }
 
 .icon {

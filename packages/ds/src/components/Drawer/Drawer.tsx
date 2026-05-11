@@ -2,7 +2,7 @@ import { forwardRef, useRef, type HTMLAttributes } from 'react';
 import { Icon } from '../Icon';
 import { OverlayShell } from '../_internal/OverlayShell';
 import { cn } from '../../utils/cn';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useFocusTrap, FOCUSABLE_SELECTOR } from '../../hooks/useFocusTrap';
 import { type TransitionDuration } from '../../tokens/interaction';
 import styles from './Drawer.module.css';
 
@@ -19,6 +19,9 @@ export type DrawerProps = DrawerLabelProps &
     side?: DrawerSide;
     closeLabel?: string;
     duration?: TransitionDuration;
+    forceMount?: boolean;
+    onOpened?: () => void;
+    onClosed?: () => void;
   };
 
 export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
@@ -29,6 +32,9 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       side = 'left',
       closeLabel = 'Close',
       duration = 'normal',
+      forceMount,
+      onOpened,
+      onClosed,
       children,
       className,
       ...rest
@@ -37,7 +43,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
 
-    useFocusTrap(panelRef, open);
+    useFocusTrap(panelRef, open, { autoFocus: false });
 
     function setRefs(node: HTMLDivElement | null) {
       panelRef.current = node;
@@ -45,8 +51,22 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       else if (ref) Object.assign(ref, { current: node });
     }
 
+    function handleOpened() {
+      const focusables =
+        panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      focusables?.[0]?.focus();
+      onOpened?.();
+    }
+
     return (
-      <OverlayShell open={open} onClose={onClose} duration={duration}>
+      <OverlayShell
+        open={open}
+        onClose={onClose}
+        duration={duration}
+        forceMount={forceMount}
+        onOpened={handleOpened}
+        onClosed={onClosed}
+      >
         <div
           ref={setRefs}
           role="dialog"

@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../../utils/cn';
 import { useScrollLock } from '../../../hooks/useScrollLock';
+import { useOverlayLifecycle } from '../../../hooks/useOverlayLifecycle';
 import {
   transitionDurations,
   type TransitionDuration,
@@ -12,6 +13,9 @@ export interface OverlayShellProps {
   open: boolean;
   onClose: () => void;
   duration?: TransitionDuration;
+  forceMount?: boolean;
+  onOpened?: () => void;
+  onClosed?: () => void;
   children: ReactNode;
 }
 
@@ -19,8 +23,18 @@ export function OverlayShell({
   open,
   onClose,
   duration = 'normal',
+  forceMount = false,
+  onOpened,
+  onClosed,
   children,
 }: OverlayShellProps) {
+  const { shouldRender, isVisible, backdropRef } = useOverlayLifecycle({
+    open,
+    duration,
+    onOpened,
+    onClosed,
+  });
+
   useScrollLock(open);
 
   useEffect(() => {
@@ -35,6 +49,7 @@ export function OverlayShell({
   }, [open, onClose]);
 
   if (typeof document === 'undefined') return null;
+  if (!shouldRender && !forceMount) return null;
 
   const durationStyle = {
     '--ds-overlay-duration': transitionDurations[duration],
@@ -42,7 +57,8 @@ export function OverlayShell({
 
   return createPortal(
     <div
-      className={cn(styles.backdrop, open && styles.open)}
+      ref={backdropRef}
+      className={cn(styles.backdrop, isVisible && styles.open)}
       style={durationStyle}
     >
       <button

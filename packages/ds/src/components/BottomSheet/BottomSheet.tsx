@@ -6,7 +6,7 @@ import {
 } from 'react';
 import { OverlayShell } from '../_internal/OverlayShell';
 import { cn } from '../../utils/cn';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useFocusTrap, FOCUSABLE_SELECTOR } from '../../hooks/useFocusTrap';
 import { useDragToDismiss } from '../../hooks/useDragToDismiss';
 import { type TransitionDuration } from '../../tokens/interaction';
 import styles from './BottomSheet.module.css';
@@ -21,6 +21,9 @@ export type BottomSheetProps = BottomSheetLabelProps &
     onClose: () => void;
     duration?: TransitionDuration;
     fullHeight?: boolean;
+    forceMount?: boolean;
+    onOpened?: () => void;
+    onClosed?: () => void;
   };
 
 export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
@@ -30,6 +33,9 @@ export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
       onClose,
       duration = 'slow',
       fullHeight = false,
+      forceMount,
+      onOpened,
+      onClosed,
       children,
       className,
       style,
@@ -39,12 +45,19 @@ export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
 
-    useFocusTrap(panelRef, open);
+    useFocusTrap(panelRef, open, { autoFocus: false });
 
     const { dragY, handlers } = useDragToDismiss({
       onDismiss: onClose,
       enabled: open,
     });
+
+    function handleOpened() {
+      const focusables =
+        panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      focusables?.[0]?.focus();
+      onOpened?.();
+    }
 
     function setRefs(node: HTMLDivElement | null) {
       panelRef.current = node;
@@ -58,7 +71,14 @@ export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
         : undefined;
 
     return (
-      <OverlayShell open={open} onClose={onClose} duration={duration}>
+      <OverlayShell
+        open={open}
+        onClose={onClose}
+        duration={duration}
+        forceMount={forceMount}
+        onOpened={handleOpened}
+        onClosed={onClosed}
+      >
         <div
           ref={setRefs}
           role="dialog"
