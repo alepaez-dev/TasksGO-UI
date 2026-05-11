@@ -53,10 +53,13 @@ export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
     });
 
     function handleOpened() {
-      const focusables =
-        panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-      focusables?.[0]?.focus();
-      onOpened?.();
+      if (onOpened) {
+        onOpened();
+        return;
+      }
+      panelRef.current
+        ?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)[0]
+        ?.focus();
     }
 
     function setRefs(node: HTMLDivElement | null) {
@@ -79,23 +82,25 @@ export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
         onOpened={handleOpened}
         onClosed={onClosed}
       >
-        <div
-          ref={setRefs}
-          role="dialog"
-          aria-modal="true"
-          className={cn(
-            styles.panel,
-            open && styles.open,
-            fullHeight && styles.fullHeight,
-            className,
-          )}
-          style={{ ...style, ...dragStyle }}
-          {...rest}
-          {...handlers}
-        >
-          <div className={styles.handle} aria-hidden="true" />
-          <div className={styles.content}>{children}</div>
-        </div>
+        {({ visible }) => (
+          <div
+            ref={setRefs}
+            role="dialog"
+            aria-modal="true"
+            className={cn(
+              styles.panel,
+              visible && styles.open,
+              fullHeight && styles.fullHeight,
+              className,
+            )}
+            style={{ ...style, ...dragStyle }}
+            {...rest}
+            {...handlers}
+          >
+            <div className={styles.handle} aria-hidden="true" />
+            <div className={styles.content}>{children}</div>
+          </div>
+        )}
       </OverlayShell>
     );
   },

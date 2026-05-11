@@ -126,69 +126,71 @@ function TasksMobileRender({
         }
       />
 
-      <BottomSheet
-        open={searchOpen}
-        onClose={() => {
-          setSearchOpen(false);
-          setSearchQuery('');
-        }}
-        onOpened={() => searchRef.current?.focus()}
-        fullHeight
-        aria-label="Search"
-      >
-        <div className={headerLayoutStyles.searchSheetHeader}>
-          <SearchInput
-            ref={searchRef}
-            placeholder="Jump to task"
-            size="sm"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onClear={searchQuery ? () => setSearchQuery('') : undefined}
-            borderless
-            className={searchPillStyles.searchPill}
-            style={{ fontSize: 16 }}
-          />
-          <button
-            type="button"
-            className={headerLayoutStyles.cancelButton}
-            onClick={() => {
-              setSearchOpen(false);
-              setSearchQuery('');
-            }}
-          >
-            Cancel
-          </button>
-        </div>
-
-        {searchGroups.length > 0 ? (
-          <SearchPalette
-            groups={searchGroups}
-            onResultSelect={(result) => {
-              const task = initialTasks.find((t) => t.id === result.id);
-              if (task) {
-                tasks.handleTaskClick(task);
+      {!tasks.drawerOpen && (
+        <BottomSheet
+          open={searchOpen}
+          onClose={() => {
+            setSearchOpen(false);
+            setSearchQuery('');
+          }}
+          onOpened={() => searchRef.current?.focus()}
+          fullHeight
+          aria-label="Search"
+        >
+          <div className={headerLayoutStyles.searchSheetHeader}>
+            <SearchInput
+              ref={searchRef}
+              placeholder="Jump to task"
+              size="sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClear={searchQuery ? () => setSearchQuery('') : undefined}
+              borderless
+              className={searchPillStyles.searchPill}
+              style={{ fontSize: 16 }}
+            />
+            <button
+              type="button"
+              className={headerLayoutStyles.cancelButton}
+              onClick={() => {
                 setSearchOpen(false);
                 setSearchQuery('');
-              }
-            }}
-            variant="mobile"
-            aria-label="Search results"
-          />
-        ) : (
-          <>
-            <SectionHeader headingLevel={3}>Jump to</SectionHeader>
-            <nav aria-label="Jump to" className={styles.workspaceNav}>
-              <NavItem icon="task_alt" label="All tasks" href="#tasks" />
-              <NavItem
-                icon="confirmation_number"
-                label="All tickets"
-                href="#tickets"
-              />
-              <NavItem icon="description" label="All docs" href="#docs" />
-            </nav>
-          </>
-        )}
-      </BottomSheet>
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+
+          {searchGroups.length > 0 ? (
+            <SearchPalette
+              groups={searchGroups}
+              onResultSelect={(result) => {
+                const task = initialTasks.find((t) => t.id === result.id);
+                if (task) {
+                  tasks.handleTaskClick(task);
+                  setSearchOpen(false);
+                  setSearchQuery('');
+                }
+              }}
+              variant="mobile"
+              aria-label="Search results"
+            />
+          ) : (
+            <>
+              <SectionHeader headingLevel={3}>Jump to</SectionHeader>
+              <nav aria-label="Jump to" className={styles.workspaceNav}>
+                <NavItem icon="task_alt" label="All tasks" href="#tasks" />
+                <NavItem
+                  icon="confirmation_number"
+                  label="All tickets"
+                  href="#tickets"
+                />
+                <NavItem icon="description" label="All docs" href="#docs" />
+              </nav>
+            </>
+          )}
+        </BottomSheet>
+      )}
 
       <div className={styles.scrollArea}>
         <div className={styles.content}>

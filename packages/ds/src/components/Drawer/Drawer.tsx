@@ -52,10 +52,13 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
     }
 
     function handleOpened() {
-      const focusables =
-        panelRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-      focusables?.[0]?.focus();
-      onOpened?.();
+      if (onOpened) {
+        onOpened();
+        return;
+      }
+      panelRef.current
+        ?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)[0]
+        ?.focus();
     }
 
     return (
@@ -67,30 +70,32 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
         onOpened={handleOpened}
         onClosed={onClosed}
       >
-        <div
-          ref={setRefs}
-          role="dialog"
-          aria-modal="true"
-          className={cn(
-            styles.panel,
-            styles[side],
-            open && styles.open,
-            className,
-          )}
-          {...rest}
-        >
-          <div className={styles.content}>
-            <button
-              type="button"
-              className={styles.closeButton}
-              aria-label={closeLabel}
-              onClick={onClose}
-            >
-              <Icon name="close" size="sm" />
-            </button>
-            {children}
+        {({ visible }) => (
+          <div
+            ref={setRefs}
+            role="dialog"
+            aria-modal="true"
+            className={cn(
+              styles.panel,
+              styles[side],
+              visible && styles.open,
+              className,
+            )}
+            {...rest}
+          >
+            <div className={styles.content}>
+              <button
+                type="button"
+                className={styles.closeButton}
+                aria-label={closeLabel}
+                onClick={onClose}
+              >
+                <Icon name="close" size="sm" />
+              </button>
+              {children}
+            </div>
           </div>
-        </div>
+        )}
       </OverlayShell>
     );
   },

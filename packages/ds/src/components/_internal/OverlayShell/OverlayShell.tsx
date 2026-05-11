@@ -9,6 +9,14 @@ import {
 } from '../../../tokens/interaction';
 import styles from './OverlayShell.module.css';
 
+export interface OverlayShellRenderState {
+  visible: boolean;
+}
+
+export type OverlayShellChildren =
+  | ReactNode
+  | ((state: OverlayShellRenderState) => ReactNode);
+
 export interface OverlayShellProps {
   open: boolean;
   onClose: () => void;
@@ -16,7 +24,7 @@ export interface OverlayShellProps {
   forceMount?: boolean;
   onOpened?: () => void;
   onClosed?: () => void;
-  children: ReactNode;
+  children: OverlayShellChildren;
 }
 
 export function OverlayShell({
@@ -55,6 +63,11 @@ export function OverlayShell({
     '--ds-overlay-duration': transitionDurations[duration],
   } as React.CSSProperties;
 
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({ visible: isVisible })
+      : children;
+
   return createPortal(
     <div
       ref={backdropRef}
@@ -68,7 +81,7 @@ export function OverlayShell({
         tabIndex={-1}
         aria-hidden="true"
       />
-      {children}
+      {renderedChildren}
     </div>,
     document.body,
   );
