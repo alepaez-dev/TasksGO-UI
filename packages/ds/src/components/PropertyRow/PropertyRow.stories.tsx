@@ -69,3 +69,10 @@ export const Placeholder: Story = {
     children: 'Search ticket...',
   },
 };
+
+export const WithoutIcon: Story = {
+  args: {
+    label: 'Sprint',
+    children: 'Q1-W4-INFRA',
+  },
+};
