@@ -1,4 +1,6 @@
 import { forwardRef, type HTMLAttributes, type KeyboardEvent } from 'react';
+import { Icon } from '../Icon';
+import type { IconName } from '../../icons';
 import { cn } from '../../utils/cn';
 import styles from './SearchPalette.module.css';
 
@@ -7,7 +9,8 @@ type SearchPaletteResultType = 'task' | 'ticket' | 'doc';
 export type SearchPaletteResult = Readonly<{
   id: string;
   label: string;
-  refId: string;
+  badge?: string;
+  subtitle?: string;
   type: SearchPaletteResultType;
 }>;
 
@@ -22,6 +25,12 @@ export function getSearchPaletteOptionId(
 ): string {
   return `${paletteId}-${resultId}`;
 }
+
+const resultTypeIcon: Record<SearchPaletteResultType, IconName> = {
+  task: 'check_circle',
+  doc: 'description',
+  ticket: 'confirmation_number',
+};
 
 type SearchPaletteVariant = 'default' | 'mobile';
 
@@ -93,10 +102,26 @@ export const SearchPalette = forwardRef<HTMLDivElement, SearchPaletteProps>(
                   onClick={() => onResultSelect?.(result)}
                   onKeyDown={handleResultKeyDown(result)}
                 >
-                  <span className={styles.resultLabel}>{result.label}</span>
-                  <span className={cn(styles.resultRef, styles[result.type])}>
-                    {result.refId}
-                  </span>
+                  {isMobile && (
+                    <Icon
+                      name={resultTypeIcon[result.type]}
+                      size="sm"
+                      className={cn(styles.resultIcon, styles[result.type])}
+                    />
+                  )}
+                  <div className={styles.resultBody}>
+                    <span className={styles.resultLabel}>{result.label}</span>
+                    {isMobile && result.subtitle && (
+                      <span className={styles.resultSubtitle}>
+                        {result.subtitle}
+                      </span>
+                    )}
+                  </div>
+                  {result.badge && (
+                    <span className={cn(styles.resultRef, styles[result.type])}>
+                      {result.badge}
+                    </span>
+                  )}
                 </div>
               );
             })}

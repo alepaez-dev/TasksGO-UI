@@ -17,20 +17,35 @@ export const Header = forwardRef<HTMLElement, HeaderProps>(
         className={cn(styles.header, compact && styles.compact, className)}
         {...rest}
       >
-        <div className={styles.content}>
-          {left && <div className={styles.left}>{left}</div>}
-          {center && !compact && <div className={styles.center}>{center}</div>}
+        {/* In compact mode, center is absolute-positioned outside .content
+            so the title stays optically centered against an unknown-width
+            right slot while .content shrinks to fit left only. */}
+        <div className={styles.content} data-slot="content">
+          {left && (
+            <div className={styles.left} data-slot="left">
+              {left}
+            </div>
+          )}
+          {center && !compact && (
+            <div className={styles.center} data-slot="center">
+              {center}
+            </div>
+          )}
         </div>
-        {/* TODO: replace title with tap-to-reveal Tooltip component for mobile */}
         {center && compact && (
           <div
             className={styles.centerAbsolute}
+            data-slot="center-absolute"
             title={typeof center === 'string' ? center : undefined}
           >
             {center}
           </div>
         )}
-        {right && <div className={styles.right}>{right}</div>}
+        {right && (
+          <div className={styles.right} data-slot="right">
+            {right}
+          </div>
+        )}
       </header>
     );
   },

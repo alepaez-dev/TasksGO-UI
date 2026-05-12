@@ -65,6 +65,7 @@ export const ProjectPicker = forwardRef<HTMLDivElement, ProjectPickerProps>(
               size="sm"
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
+              onClear={query ? () => onQueryChange('') : undefined}
               // 16px prevents iOS from zooming on focus
               style={{ fontSize: 16 }}
             />

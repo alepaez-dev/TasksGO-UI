@@ -10,9 +10,8 @@ export interface TaskSectionProps extends DetailsHTMLAttributes<HTMLDetailsEleme
   title: string;
   count?: number;
   badgeVariant?: BadgeVariant;
-  /** Rendered outside `<details>` via absolute positioning.
-   *  The forwarded ref always points to the `<details>` element. */
   trailing?: ReactNode;
+  compact?: boolean;
 }
 
 export const TaskSection = forwardRef<HTMLDetailsElement, TaskSectionProps>(
@@ -22,6 +21,7 @@ export const TaskSection = forwardRef<HTMLDetailsElement, TaskSectionProps>(
       count,
       badgeVariant = 'default',
       trailing,
+      compact = false,
       className,
       children,
       ...rest
@@ -47,7 +47,7 @@ export const TaskSection = forwardRef<HTMLDetailsElement, TaskSectionProps>(
     if (!trailing) return details;
 
     return (
-      <div className={styles.wrapper}>
+      <div className={cn(styles.wrapper, compact && styles.compact)}>
         {details}
         <div className={styles.trailing}>{trailing}</div>
       </div>

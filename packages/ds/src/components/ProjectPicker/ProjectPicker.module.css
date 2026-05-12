@@ -58,7 +58,7 @@
   padding: var(--ds-space-scale-sm);
   cursor: pointer;
   font-family: var(--ds-font-family-sans);
-  font-size: var(--ds-text-nav-label-sm-font-size);
+  font-size: var(--ds-text-option-label-font-size);
   color: var(--ds-color-text-primary);
   border-radius: var(--ds-radius-md);
   transition-property: var(--ds-transition-property);

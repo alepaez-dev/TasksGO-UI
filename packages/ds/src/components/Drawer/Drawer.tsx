@@ -2,7 +2,7 @@ import { forwardRef, useRef, type HTMLAttributes } from 'react';
 import { Icon } from '../Icon';
 import { OverlayShell } from '../_internal/OverlayShell';
 import { cn } from '../../utils/cn';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useFocusTrap, FOCUSABLE_SELECTOR } from '../../hooks/useFocusTrap';
 import { type TransitionDuration } from '../../tokens/interaction';
 import styles from './Drawer.module.css';
 
@@ -19,6 +19,9 @@ export type DrawerProps = DrawerLabelProps &
     side?: DrawerSide;
     closeLabel?: string;
     duration?: TransitionDuration;
+    forceMount?: boolean;
+    onOpened?: () => void;
+    onClosed?: () => void;
   };
 
 export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
@@ -29,6 +32,9 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       side = 'left',
       closeLabel = 'Close',
       duration = 'normal',
+      forceMount,
+      onOpened,
+      onClosed,
       children,
       className,
       ...rest
@@ -37,7 +43,7 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
 
-    useFocusTrap(panelRef, open);
+    useFocusTrap(panelRef, open, { autoFocus: false });
 
     function setRefs(node: HTMLDivElement | null) {
       panelRef.current = node;
@@ -45,32 +51,51 @@ export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
       else if (ref) Object.assign(ref, { current: node });
     }
 
+    function handleOpened() {
+      if (onOpened) {
+        onOpened();
+        return;
+      }
+      panelRef.current
+        ?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)[0]
+        ?.focus();
+    }
+
     return (
-      <OverlayShell open={open} onClose={onClose} duration={duration}>
-        <div
-          ref={setRefs}
-          role="dialog"
-          aria-modal="true"
-          className={cn(
-            styles.panel,
-            styles[side],
-            open && styles.open,
-            className,
-          )}
-          {...rest}
-        >
-          <div className={styles.content}>
-            <button
-              type="button"
-              className={styles.closeButton}
-              aria-label={closeLabel}
-              onClick={onClose}
-            >
-              <Icon name="close" size="sm" />
-            </button>
-            {children}
+      <OverlayShell
+        open={open}
+        onClose={onClose}
+        duration={duration}
+        forceMount={forceMount}
+        onOpened={handleOpened}
+        onClosed={onClosed}
+      >
+        {({ visible }) => (
+          <div
+            ref={setRefs}
+            role="dialog"
+            aria-modal="true"
+            className={cn(
+              styles.panel,
+              styles[side],
+              visible && styles.open,
+              className,
+            )}
+            {...rest}
+          >
+            <div className={styles.content}>
+              <button
+                type="button"
+                className={styles.closeButton}
+                aria-label={closeLabel}
+                onClick={onClose}
+              >
+                <Icon name="close" size="sm" />
+              </button>
+              {children}
+            </div>
           </div>
-        </div>
+        )}
       </OverlayShell>
     );
   },

@@ -68,6 +68,7 @@ export const spacing = {
     mobileGroupPaddingY: '8px',
     mobileResultPaddingX: '24px',
     mobileResultPaddingY: '12px',
+    mobileIconSize: '18px',
   },
   taskSection: {
     headerGap: '8px',

@@ -6,7 +6,7 @@ import {
 } from 'react';
 import { OverlayShell } from '../_internal/OverlayShell';
 import { cn } from '../../utils/cn';
-import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useFocusTrap, FOCUSABLE_SELECTOR } from '../../hooks/useFocusTrap';
 import { useDragToDismiss } from '../../hooks/useDragToDismiss';
 import { type TransitionDuration } from '../../tokens/interaction';
 import styles from './BottomSheet.module.css';
@@ -20,21 +20,47 @@ export type BottomSheetProps = BottomSheetLabelProps &
     open: boolean;
     onClose: () => void;
     duration?: TransitionDuration;
+    fullHeight?: boolean;
+    forceMount?: boolean;
+    onOpened?: () => void;
+    onClosed?: () => void;
   };
 
 export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
   (
-    { open, onClose, duration = 'slow', children, className, style, ...rest },
+    {
+      open,
+      onClose,
+      duration = 'slow',
+      fullHeight = false,
+      forceMount,
+      onOpened,
+      onClosed,
+      children,
+      className,
+      style,
+      ...rest
+    },
     ref,
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
 
-    useFocusTrap(panelRef, open);
+    useFocusTrap(panelRef, open, { autoFocus: false });
 
     const { dragY, handlers } = useDragToDismiss({
       onDismiss: onClose,
       enabled: open,
     });
+
+    function handleOpened() {
+      if (onOpened) {
+        onOpened();
+        return;
+      }
+      panelRef.current
+        ?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)[0]
+        ?.focus();
+    }
 
     function setRefs(node: HTMLDivElement | null) {
       panelRef.current = node;
@@ -48,19 +74,33 @@ export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
         : undefined;
 
     return (
-      <OverlayShell open={open} onClose={onClose} duration={duration}>
-        <div
-          ref={setRefs}
-          role="dialog"
-          aria-modal="true"
-          className={cn(styles.panel, open && styles.open, className)}
-          style={{ ...style, ...dragStyle }}
-          {...rest}
-          {...handlers}
-        >
-          <div className={styles.handle} aria-hidden="true" />
-          <div className={styles.content}>{children}</div>
-        </div>
+      <OverlayShell
+        open={open}
+        onClose={onClose}
+        duration={duration}
+        forceMount={forceMount}
+        onOpened={handleOpened}
+        onClosed={onClosed}
+      >
+        {({ visible }) => (
+          <div
+            ref={setRefs}
+            role="dialog"
+            aria-modal="true"
+            className={cn(
+              styles.panel,
+              visible && styles.open,
+              fullHeight && styles.fullHeight,
+              className,
+            )}
+            style={{ ...style, ...dragStyle }}
+            {...rest}
+            {...handlers}
+          >
+            <div className={styles.handle} aria-hidden="true" />
+            <div className={styles.content}>{children}</div>
+          </div>
+        )}
       </OverlayShell>
     );
   },

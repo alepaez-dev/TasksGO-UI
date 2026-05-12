@@ -1,4 +1,10 @@
-import { useCallback, useRef, useState, type TouchEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type TouchEvent,
+} from 'react';
 
 // Minimum downward delta before treating the gesture as a sheet drag.
 // Prevents accidental translation when the user intends to overscroll.
@@ -48,16 +54,22 @@ export function useDragToDismiss({
   const startY = useRef<number | null>(null);
   const lastDragY = useRef(0);
 
-  if (!enabled) {
-    if (dragY !== 0) setDragY(0);
-    lastDragY.current = 0;
-    startY.current = null;
+  if (!enabled && dragY !== 0) {
+    setDragY(0);
   }
+
+  useEffect(() => {
+    if (!enabled) {
+      startY.current = null;
+      lastDragY.current = 0;
+    }
+  }, [enabled]);
 
   const onTouchStart = useCallback(
     (e: TouchEvent<HTMLElement>) => {
       if (!enabled) return;
       if (isInsideScrolledContent(e.target)) return;
+      lastDragY.current = 0;
       startY.current = e.touches[0].clientY;
     },
     [enabled],

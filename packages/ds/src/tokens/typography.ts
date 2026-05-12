@@ -55,6 +55,15 @@ const bodyRegularSans13 = {
   lineHeight: DEFAULT_LINE_HEIGHT,
 };
 
+const bodyRegularSans14 = {
+  fontSize: '14px',
+  fontFamily: fontFamilies.sans,
+  fontWeight: fontWeights.regular,
+  letterSpacing: 'normal',
+  textTransform: 'none',
+  lineHeight: DEFAULT_LINE_HEIGHT,
+};
+
 export const typographyScale = {
   sectionHeader: {
     fontSize: '10px',
@@ -65,6 +74,15 @@ export const typographyScale = {
     lineHeight: DEFAULT_LINE_HEIGHT,
   },
   sectionHeaderSubtitle: bodyRegularSans13,
+  optionLabel: bodyRegularSans14,
+  resultSubtitle: {
+    fontSize: '10px',
+    fontFamily: fontFamilies.mono,
+    fontWeight: fontWeights.regular,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    lineHeight: DEFAULT_LINE_HEIGHT,
+  },
   microLabel: {
     fontSize: '9px',
     fontFamily: fontFamilies.mono,

@@ -10,6 +10,13 @@ import { cn } from '../../utils/cn';
 import styles from './TaskRow.module.css';
 
 type PriorityLevel = 'critical' | 'high' | 'medium' | 'low';
+
+const priorityDotClass: Record<PriorityLevel, string> = {
+  critical: styles.dotCritical,
+  high: styles.dotHigh,
+  medium: styles.dotMedium,
+  low: styles.dotLow,
+};
 type BadgeVariant = 'default' | 'progress' | 'todo' | 'done';
 type RefLabelVariant = 'attachment' | 'doc' | 'general';
 type TaskRowLayout = 'default' | 'compact';
@@ -87,7 +94,7 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
         </div>
         <div className={styles.titleRow}>
           <span className={styles.title}>{title}</span>
-          {badge && (
+          {layout === 'default' && badge && (
             <div className={styles.badge}>
               <Badge variant={badge.variant}>{badge.label}</Badge>
             </div>
@@ -103,7 +110,16 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
           </div>
         )}
         <div className={styles.priority}>
-          {priority && <PriorityLabel priority={priority} />}
+          {priority &&
+            (layout === 'compact' ? (
+              <span
+                role="img"
+                className={cn(styles.priorityDot, priorityDotClass[priority])}
+                aria-label={priority}
+              />
+            ) : (
+              <PriorityLabel priority={priority} />
+            ))}
         </div>
         <div className={styles.info}>
           <div className={styles.ticket}>
@@ -119,6 +135,14 @@ export const TaskRow = forwardRef<HTMLDivElement, TaskRowProps>(
               />
             )}
           </div>
+          {layout === 'compact' && badge && (
+            <>
+              <span className={styles.separator} aria-hidden="true" />
+              <div className={styles.badge}>
+                <Badge variant={badge.variant}>{badge.label}</Badge>
+              </div>
+            </>
+          )}
         </div>
       </div>
     );

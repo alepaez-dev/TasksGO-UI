@@ -21,6 +21,12 @@
   transform: translateY(0);
 }
 
+.fullHeight {
+  height: 100%;
+  max-height: none;
+  border-radius: 0;
+}
+
 .handle {
   align-self: center;
   flex-shrink: 0;

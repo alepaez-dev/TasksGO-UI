@@ -1,12 +1,18 @@
 import { useEffect, useRef } from 'react';
 
-const FOCUSABLE_SELECTOR =
+export const FOCUSABLE_SELECTOR =
   'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
+
+export interface UseFocusTrapOptions {
+  autoFocus?: boolean;
+}
 
 export function useFocusTrap(
   ref: React.RefObject<HTMLElement | null>,
   active: boolean,
+  options: UseFocusTrapOptions = {},
 ): void {
+  const { autoFocus = true } = options;
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -14,10 +20,12 @@ export function useFocusTrap(
 
     previouslyFocused.current = document.activeElement as HTMLElement;
 
-    const focusables =
-      ref.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-    if (focusables.length > 0) {
-      focusables[0].focus();
+    if (autoFocus) {
+      const focusables =
+        ref.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      if (focusables.length > 0) {
+        focusables[0].focus();
+      }
     }
 
     function handleKeyDown(e: KeyboardEvent) {
@@ -48,5 +56,5 @@ export function useFocusTrap(
       document.removeEventListener('keydown', handleKeyDown);
       previouslyFocused.current?.focus();
     };
-  }, [active, ref]);
+  }, [active, ref, autoFocus]);
 }

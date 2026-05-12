@@ -54,6 +54,10 @@
   height: var(--ds-text-section-header-line-height);
 }
 
+.compact .trailing {
+  right: var(--ds-space-scale-md);
+}
+
 .content {
   padding-top: var(--ds-space-task-section-content-padding-top);
 }

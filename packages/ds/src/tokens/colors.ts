@@ -95,6 +95,7 @@ export const colors = {
 
   checkbox: {
     border: '#d1d5db',
+    borderSubtle: '#d9dce0',
     active: accent.primary,
     focusRing: focus.ring,
     completed: text.disabled,
@@ -139,6 +140,7 @@ export const colors = {
 
   searchInput: {
     border: border.default,
+    hoverBorder: text.disabled,
     focusBorder: accent.primary,
     icon: text.secondary,
     placeholder: text.disabled,
