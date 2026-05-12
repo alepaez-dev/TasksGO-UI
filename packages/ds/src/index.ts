@@ -105,6 +105,13 @@ export {
 } from './components/TaskDrawer';
 export { PropertyRow, type PropertyRowProps } from './components/PropertyRow';
 export {
+  Tabs,
+  getTabId,
+  getTabPanelId,
+  type TabsProps,
+  type TabItem,
+} from './components/Tabs';
+export {
   RecentTaskList,
   type RecentTaskListProps,
   type RecentTaskItem,

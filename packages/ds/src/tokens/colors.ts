@@ -182,6 +182,10 @@ export const colors = {
   taskDrawer: {
     footerBg: 'rgba(248, 249, 250, 0.3)',
   },
+
+  tabs: {
+    activeBorder: status.info,
+  },
 } as const;
 
 export type ColorGroup = keyof typeof colors;

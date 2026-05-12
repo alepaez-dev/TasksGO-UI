@@ -1,0 +1,44 @@
+.tablist {
+  display: flex;
+  gap: var(--ds-space-scale-lg);
+}
+
+.tab {
+  position: relative;
+  padding: var(--ds-space-scale-sm) 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-text-nav-label-font-size);
+  font-family: var(--ds-text-nav-label-font-family);
+  font-weight: var(--ds-text-nav-label-font-weight);
+  letter-spacing: var(--ds-text-nav-label-letter-spacing);
+  line-height: var(--ds-text-nav-label-line-height);
+  /* -1px lets the active underline overlap a 1px parent border (see WithParentBorder story). */
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.tab:hover:not(.disabled):not(.selected) {
+  color: var(--ds-color-text-primary);
+}
+
+.tab:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-sm);
+}
+
+.selected {
+  color: var(--ds-color-text-primary);
+  border-bottom-color: var(--ds-color-tabs-active-border);
+}
+
+.disabled {
+  color: var(--ds-color-text-disabled);
+  cursor: not-allowed;
+}
