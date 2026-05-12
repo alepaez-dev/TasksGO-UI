@@ -842,7 +842,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> BottomSheet</h2>
       <div class="badges">
-        <label for="c-2-components-bottomsheet-props" class="badge ok as-toggle">3 prop types</label>
+        <label for="c-2-components-bottomsheet-props" class="badge ok as-toggle">7 prop types</label>
         <label for="c-2-components-bottomsheet-info" class="badge info as-toggle">1 info</label>
         <label for="c-2-components-bottomsheet-stories" class="badge ok as-toggle">4 stories</label>
         
@@ -876,13 +876,21 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">3 prop types</span>
+              <span class="badge ok">7 prop types</span>
             </div>
             <pre><code>Component: src/components/BottomSheet/BottomSheet.tsx::BottomSheet</code></pre>
             <pre><code>Props:</code></pre>
             <pre><code>duration?: keyof typeof transitionDurations = &#39;slow&#39;
 
+forceMount?: boolean
+
+fullHeight?: boolean = false
+
 onClose: () =&gt; void
+
+onClosed?: () =&gt; void
+
+onOpened?: () =&gt; void
 
 open: boolean</code></pre>
           </div>
@@ -1626,7 +1634,7 @@ urgent?: boolean = false</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Drawer</h2>
       <div class="badges">
-        <label for="c-8-compositions-drawer-props" class="badge ok as-toggle">5 prop types</label>
+        <label for="c-8-compositions-drawer-props" class="badge ok as-toggle">8 prop types</label>
         <label for="c-8-compositions-drawer-info" class="badge info as-toggle">1 info</label>
         <label for="c-8-compositions-drawer-stories" class="badge ok as-toggle">3 stories</label>
         
@@ -1660,7 +1668,7 @@ urgent?: boolean = false</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">5 prop types</span>
+              <span class="badge ok">8 prop types</span>
             </div>
             <pre><code>Component: src/components/Drawer/Drawer.tsx::Drawer</code></pre>
             <pre><code>Props:</code></pre>
@@ -1668,7 +1676,13 @@ urgent?: boolean = false</code></pre>
 
 duration?: keyof typeof transitionDurations = &#39;normal&#39;
 
+forceMount?: boolean
+
 onClose: () =&gt; void
+
+onClosed?: () =&gt; void
+
+onOpened?: () =&gt; void
 
 open: boolean
 
@@ -2095,14 +2109,16 @@ right?: ReactNode</code></pre>
                 </div>
                 <pre><code>import {
     Avatar,
+    BottomSheet,
     Breadcrumb,
     Button,
-    FloatingSearch,
     Header,
     Icon,
     IconButton,
+    NavItem,
     SearchInput,
     SearchPalette,
+    SectionHeader,
 } from "@all3hp/tasksgo-ui";</code></pre>
               </div>
           
@@ -3228,7 +3244,7 @@ variant?: &#39;attachment&#39; | &#39;doc&#39; | &#39;general&#39; = &#39;genera
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> SearchInput</h2>
       <div class="badges">
-        <label for="c-21-components-searchinput-props" class="badge ok as-toggle">3 prop types</label>
+        <label for="c-21-components-searchinput-props" class="badge ok as-toggle">4 prop types</label>
         <label for="c-21-components-searchinput-info" class="badge info as-toggle">1 info</label>
         <label for="c-21-components-searchinput-stories" class="badge ok as-toggle">3 stories</label>
         
@@ -3262,11 +3278,13 @@ variant?: &#39;attachment&#39; | &#39;doc&#39; | &#39;general&#39; = &#39;genera
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">3 prop types</span>
+              <span class="badge ok">4 prop types</span>
             </div>
             <pre><code>Component: src/components/SearchInput/SearchInput.tsx::SearchInput</code></pre>
             <pre><code>Props:</code></pre>
-            <pre><code>onClear?: () =&gt; void
+            <pre><code>borderless?: boolean = false
+
+onClear?: () =&gt; void
 
 shortcutHint?: string
 
@@ -4410,7 +4428,7 @@ title: string</code></pre>
         
       </div>
     </div>
-    <div class="meta" title="./src/stories/pages/TasksPage.stories.tsx">pages-tasks · ./src/stories/pages/TasksPage.stories.tsx</div>
+    <div class="meta" title="./src/stories/pages/tasks/TasksDesktop.stories.tsx">pages-tasks · ./src/stories/pages/tasks/TasksDesktop.stories.tsx</div>
     
     
     
@@ -4430,276 +4448,71 @@ title: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  832 | }
-  833 |
-&gt; 834 | const meta: Meta = {
+  628 | }
+  629 |
+&gt; 630 | const meta: Meta = {
       | ^
-  835 |   title: &#39;Pages/Tasks&#39;,
-  836 |   parameters: {
-  837 |     layout: &#39;fullscreen&#39;,
+  631 |   title: &#39;Pages/Tasks&#39;,
+  632 |   parameters: {
+  633 |     layout: &#39;fullscreen&#39;,
 
-./src/stories/pages/TasksPage.stories.tsx:
+./src/stories/pages/tasks/TasksDesktop.stories.tsx:
 import { useState, useMemo } from &#39;react&#39;;
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
 import { expect, userEvent, waitFor, within } from &#39;storybook/test&#39;;
-import { desktopViewports } from &#39;../../../.storybook/preview&#39;;
-import { useSelectorGroup, useSelectorState } from &#39;../../hooks/useSelector&#39;;
-import { Sidebar } from &#39;../../components/Sidebar&#39;;
-import { Selector } from &#39;../../components/Selector&#39;;
-import { NavItem } from &#39;../../components/NavItem&#39;;
-import { Avatar } from &#39;../../components/Avatar&#39;;
-import { SectionHeader } from &#39;../../components/SectionHeader&#39;;
-import { StatusDot } from &#39;../../components/StatusDot&#39;;
-import { Header } from &#39;../../components/Header&#39;;
-import { Breadcrumb } from &#39;../../components/Breadcrumb&#39;;
-import { SearchInput } from &#39;../../components/SearchInput&#39;;
+import { desktopViewports } from &#39;../../../../.storybook/preview&#39;;
+import { useSelectorGroup, useSelectorState } from &#39;../../../hooks/useSelector&#39;;
+import { Sidebar } from &#39;../../../components/Sidebar&#39;;
+import { Selector } from &#39;../../../components/Selector&#39;;
+import { NavItem } from &#39;../../../components/NavItem&#39;;
+import { Avatar } from &#39;../../../components/Avatar&#39;;
+import { SectionHeader } from &#39;../../../components/SectionHeader&#39;;
+import { StatusDot } from &#39;../../../components/StatusDot&#39;;
+import { Header } from &#39;../../../components/Header&#39;;
+import { Breadcrumb } from &#39;../../../components/Breadcrumb&#39;;
+import { SearchInput } from &#39;../../../components/SearchInput&#39;;
 import {
   SearchPalette,
   getSearchPaletteOptionId,
-  type SearchPaletteGroup,
-} from &#39;../../components/SearchPalette&#39;;
-import { Button } from &#39;../../components/Button&#39;;
-import { Icon } from &#39;../../components/Icon&#39;;
-import { Footer } from &#39;../../components/Footer&#39;;
-import { TaskSection } from &#39;../../components/TaskSection&#39;;
-import { TaskRow, type TaskRowProps } from &#39;../../components/TaskRow&#39;;
-import { Drawer } from &#39;../../components/Drawer&#39;;
+} from &#39;../../../components/SearchPalette&#39;;
+import { Button } from &#39;../../../components/Button&#39;;
+import { Icon } from &#39;../../../components/Icon&#39;;
+import { Footer } from &#39;../../../components/Footer&#39;;
+import { TaskSection } from &#39;../../../components/TaskSection&#39;;
+import { TaskRow } from &#39;../../../components/TaskRow&#39;;
+import { Drawer } from &#39;../../../components/Drawer&#39;;
 import {
   TaskDrawer,
   TaskDrawerField,
   TaskDrawerSection,
-} from &#39;../../components/TaskDrawer&#39;;
-import { PropertyRow } from &#39;../../components/PropertyRow&#39;;
-import { RecentTaskList } from &#39;../../components/RecentTaskList&#39;;
-import type { RecentTaskItem } from &#39;../../components/RecentTaskList&#39;;
+} from &#39;../../../components/TaskDrawer&#39;;
+import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
+import { RecentTaskList } from &#39;../../../components/RecentTaskList&#39;;
 import {
   orderByLabelStyle,
   orderByPrefixStyle,
   orderByValueStyle,
-} from &#39;../helpers/orderByStyles&#39;;
-import styles from &#39;./TasksPage.module.css&#39;;
-
-type TaskItem = Pick&lt;
-  TaskRowProps,
-  &#39;title&#39; | &#39;badge&#39; | &#39;refs&#39; | &#39;priority&#39; | &#39;date&#39;
-&gt; &amp; {
-  id: string;
-  ticketId?: string;
-};
-
-const SEED_TASKS: readonly TaskItem[] = [
-  {
-    id: &#39;TSK-1&#39;,
-    title: &#39;Refactor Kubernetes service discovery logic for edge nodes&#39;,
-    badge: { label: &#39;In Progress&#39;, variant: &#39;progress&#39; },
-    refs: [{ label: &#39;architecture-spec-v2.md&#39;, variant: &#39;doc&#39; }],
-    priority: &#39;high&#39;,
-    ticketId: &#39;ENG-902&#39;,
-    date: { label: &#39;Mar 28&#39;, dateTime: &#39;2026-03-28&#39; },
-  },
-  {
-    id: &#39;TSK-2&#39;,
-    title: &#39;Audit IAM permissions for the staging database cluster&#39;,
-    badge: { label: &#39;Todo&#39;, variant: &#39;todo&#39; },
-    refs: [{ label: &#39;iam-policy-draft.json&#39;, variant: &#39;attachment&#39; }],
-    priority: &#39;medium&#39;,
-    ticketId: &#39;INFRA-441&#39;,
-    date: { label: &#39;Mar 30&#39;, dateTime: &#39;2026-03-30&#39; },
-  },
-  {
-    id: &#39;TSK-3&#39;,
-    title: &#39;Investigate intermittent TLS handshake timeouts in US-WEST-2&#39;,
-    badge: { label: &#39;In Progress&#39;, variant: &#39;progress&#39; },
-    refs: [{ label: &#39;incident artifact&#39; }],
-    priority: &#39;high&#39;,
-    ticketId: &#39;OPS-112&#39;,
-    date: { label: &#39;Today&#39;, dateTime: &#39;2026-04-03&#39;, urgent: true },
-  },
-  {
-    id: &#39;TSK-4&#39;,
-    title: &#39;Configure auto-scaling for ingestion pipeline&#39;,
-    badge: { label: &#39;Todo&#39;, variant: &#39;todo&#39; },
-    refs: [{ label: &#39;pipeline-config.yaml&#39;, variant: &#39;attachment&#39; }],
-    priority: &#39;medium&#39;,
-    date: { label: &#39;Apr 1&#39;, dateTime: &#39;2026-04-01&#39; },
-  },
-  {
-    id: &#39;TSK-5&#39;,
-    title: &#39;Address memory leak in production API cluster&#39;,
-    badge: { label: &#39;In Progress&#39;, variant: &#39;progress&#39; },
-    refs: [{ label: &#39;heap-dump-analysis&#39; }],
-    priority: &#39;critical&#39;,
-    date: { label: &#39;Today&#39;, dateTime: &#39;2026-04-03&#39;, urgent: true },
-  },
-];
-
-const SEED_COMPLETED: readonly TaskItem[] = [
-  {
-    id: &#39;TSK-6&#39;,
-    title: &#39;Update root CA certificates for all build agents&#39;,
-    badge: { label: &#39;Done&#39;, variant: &#39;done&#39; },
-    priority: &#39;low&#39;,
-    ticketId: &#39;SEC-22&#39;,
-    date: { label: &#39;Jan 12&#39;, dateTime: &#39;2026-01-12&#39; },
-  },
-];
-
-const projects = [
-  { value: &#39;eng-core&#39;, label: &#39;Engineering Core&#39; },
-  { value: &#39;tasksgo&#39;, label: &#39;TasksGO&#39; },
-  { value: &#39;mudatec&#39;, label: &#39;Mudatec&#39; },
-];
-
-const avatars: Record&lt;string, { initial: string; label: string }&gt; = {
-  &#39;eng-core&#39;: { initial: &#39;P&#39;, label: &#39;Engineering Core&#39; },
-  tasksgo: { initial: &#39;M&#39;, label: &#39;TasksGO&#39; },
-  mudatec: { initial: &#39;M&#39;, label: &#39;Mudatec&#39; },
-};
-
-const assigneeOptions = [
-  { value: &#39;alex&#39;, label: &#39;Alex H.&#39;, initial: &#39;AH&#39;, color: &#39;#7D9B84&#39; },
-  { value: &#39;cleo&#39;, label: &#39;Cleo H.&#39;, initial: &#39;CH&#39;, color: &#39;#C38E70&#39; },
-  { value: &#39;vader&#39;, label: &#39;Vader P.&#39;, initial: &#39;VP&#39;, color: &#39;#6C89A8&#39; },
-];
-
-const priorityOptions = [
-  {
-    value: &#39;critical&#39;,
-    label: &#39;Critical&#39;,
-    icon: &#39;flag&#39; as const,
-    iconColor: &#39;var(--ds-color-status-critical)&#39;,
-  },
-  {
-    value: &#39;high&#39;,
-    label: &#39;High&#39;,
-    icon: &#39;flag&#39; as const,
-    iconColor: &#39;var(--ds-color-status-high)&#39;,
-  },
-  {
-    value: &#39;medium&#39;,
-    label: &#39;Medium&#39;,
-    icon: &#39;flag&#39; as const,
-    iconColor: &#39;var(--ds-color-status-medium)&#39;,
-  },
-  {
-    value: &#39;low&#39;,
-    label: &#39;Low&#39;,
-    icon: &#39;flag&#39; as const,
-    iconColor: &#39;var(--ds-color-status-low)&#39;,
-  },
-];
-
-const ticketOptions = [
-  { value: &#39;T-42&#39;, label: &#39;Implement dynamic edge-caching...&#39;, prefix: &#39;T-42&#39; },
-  {
-    value: &#39;T-104&#39;,
-    label: &#39;Implement unit tests for cache logic&#39;,
-    prefix: &#39;T-104&#39;,
-  },
-  {
-    value: &#39;T-105&#39;,
-    label: &#39;Update staging environment config&#39;,
-    prefix: &#39;T-105&#39;,
-  },
-];
-
-const recentTasks: readonly RecentTaskItem[] = [
-  {
-    ticketId: &#39;TSK-104&#39;,
-    title: &#39;Implement unit tests for cache logic&#39;,
-    timeAgo: &#39;2h ago&#39;,
-  },
-  {
-    ticketId: &#39;TSK-105&#39;,
-    title: &#39;Update staging environment config&#39;,
-    timeAgo: &#39;1d ago&#39;,
-  },
-  {
-    ticketId: &#39;TSK-98&#39;,
-    title: &#39;Fix DNS resolution in edge proxy&#39;,
-    timeAgo: &#39;3d ago&#39;,
-  },
-];
-
-const searchResults: SearchPaletteGroup[] = [
-  {
-    title: &#39;Jump to Task&#39;,
-    results: SEED_TASKS.map((t) =&gt; ({
-      id: t.id,
-      label: t.title,
-      refId: t.ticketId ?? t.id,
-      type: &#39;task&#39; as const,
-    })),
-  },
-];
-
-function filterSearchResults(query: string): SearchPaletteGroup[] {
-  const q = query.toLowerCase();
-  return searchResults
-    .map((group) =&gt; ({
-      ...group,
-      results: group.results.filter(
-        (r) =&gt;
-          r.label.toLowerCase().includes(q) ||
-          r.refId.toLowerCase().includes(q),
-      ),
-    }))
-    .filter((group) =&gt; group.results.length &gt; 0);
-}
-
-const sortOptions = [
-  { value: &#39;priority&#39;, label: &#39;Priority&#39; },
-  { value: &#39;due-date&#39;, label: &#39;Due date&#39; },
-];
-
-const PRIORITY_ORDER: Record&lt;string, number&gt; = {
-  critical: 0,
-  high: 1,
-  medium: 2,
-  low: 3,
-};
-
-function sortTasks(
-  tasks: readonly TaskItem[],
-  by: string,
-): readonly TaskItem[] {
-  const sorted = [...tasks];
-  switch (by) {
-    case &#39;priority&#39;:
-      return sorted.sort(
-        (a, b) =&gt;
-          (PRIORITY_ORDER[a.priority ?? &#39;low&#39;] ?? 4) -
-          (PRIORITY_ORDER[b.priority ?? &#39;low&#39;] ?? 4),
-      );
-    case &#39;due-date&#39;:
-      return sorted.sort((a, b) =&gt;
-        (b.date?.dateTime ?? &#39;&#39;).localeCompare(a.date?.dateTime ?? &#39;&#39;),
-      );
-    default:
-      return sorted;
-  }
-}
-
-interface DrawerFormState {
-  title: string;
-  description: string;
-  assignee: string;
-  priority: string;
-  linkedTicket: string | undefined;
-}
-
-const INITIAL_FORM: DrawerFormState = {
-  title: &#39;&#39;,
-  description: &#39;&#39;,
-  assignee: &#39;alex&#39;,
-  priority: &#39;high&#39;,
-  linkedTicket: undefined,
-};
-
-const DEFAULT_TASKS: readonly TaskItem[] = [...SEED_TASKS, ...SEED_COMPLETED];
+} from &#39;../../helpers/orderByStyles&#39;;
+import {
+  type TaskItem,
+  type DrawerFormState,
+  initialForm,
+  seedCompleted,
+  defaultTasks,
+  projectList,
+  getProject,
+  assigneeOptions,
+  priorityOptions,
+  ticketOptions,
+  recentTasks,
+  sortOptions,
+  sortTasks,
+  filterSearchResults,
+} from &#39;./shared&#39;;
+import styles from &#39;./TasksDesktop.module.css&#39;;
 
 function TasksPageRender({
-  initialTasks = DEFAULT_TASKS,
+  initialTasks = defaultTasks,
 }: {
   initialTasks?: readonly TaskItem[];
 }) {
@@ -4727,14 +4540,14 @@ function TasksPageRender({
     () =&gt;
       new Set(
         initialTasks
-          .filter((t) =&gt; SEED_COMPLETED.some((s) =&gt; s.id === t.id))
+          .filter((t) =&gt; seedCompleted.some((s) =&gt; s.id === t.id))
           .map((t) =&gt; t.id),
       ),
   );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState&lt;string | undefined&gt;();
-  const [form, setForm] = useState&lt;DrawerFormState&gt;(INITIAL_FORM);
+  const [form, setForm] = useState&lt;DrawerFormState&gt;(initialForm);
   const selectors = useSelectorGroup(&#39;assignee&#39;, &#39;priority&#39;, &#39;ticket&#39;);
   const {
     ref: assigneeRef,
@@ -4764,8 +4577,6 @@ function TasksPageRender({
     return sortTasks(filtered, sortBy);
   }, [allTasks, completedIds, filterQuery, sortBy]);
 
-  // Completed tasks are not sorted here — the consumer will usually want to
-  // apply a default sort like most-recently-completed-first.
   const completedTasks = useMemo(() =&gt; {
     const q = filterQuery.toLowerCase();
     return allTasks
@@ -4788,7 +4599,7 @@ function TasksPageRender({
   function handleDrawerClose() {
     setDrawerOpen(false);
     setEditingTaskId(undefined);
-    setForm(INITIAL_FORM);
+    setForm(initialForm);
     setAssigneeQuery(&#39;&#39;);
     setTicketQuery(&#39;&#39;);
   }
@@ -4809,11 +4620,11 @@ function TasksPageRender({
     ? allTasks.find((t) =&gt; t.id === editingTaskId)
     : undefined;
   const drawerTitle = editingTask
-    ? `Edit task · ${editingTask.ticketId ?? editingTask.id}`
+    ? `Edit task \u00b7 ${editingTask.ticketId ?? editingTask.id}`
     : &#39;New task&#39;;
   const drawerSubmitLabel = editingTaskId ? &#39;Save&#39; : &#39;Create Task&#39;;
 
-  const avatar = avatars[project];
+  const activeProject = getProject(project);
   const navClick = (id: string) =&gt; (e: React.MouseEvent) =&gt; {
     e.preventDefault();
     setActiveNav(id);
@@ -4827,13 +4638,16 @@ function TasksPageRender({
           &lt;&gt;
             &lt;Selector
               ref={projectRef}
-              options={projects}
+              options={projectList}
               value={project}
               onValueChange={setProject}
               open={projectOpen}
               onOpenChange={onProjectChange}
               triggerPrefix={
-                &lt;Avatar initial={avatar.initial} aria-label={avatar.label} /&gt;
+                &lt;Avatar
+                  initial={activeProject.initial}
+                  aria-label={activeProject.label}
+                /&gt;
               }
               action={{ label: &#39;Add project&#39;, icon: &#39;add&#39;, onClick: () =&gt; {} }}
             /&gt;
@@ -4860,7 +4674,7 @@ function TasksPageRender({
                   lineHeight: &#39;var(--ds-text-page-title-line-height)&#39;,
                 }}
               &gt;
-                Project / {avatar.label}
+                Project / {activeProject.label}
               &lt;/p&gt;
               &lt;span
                 style={{
@@ -4989,7 +4803,7 @@ function TasksPageRender({
                 &lt;Icon name=&quot;add&quot; size=&quot;sm&quot; /&gt;
                 New task
               &lt;/Button&gt;
-              &lt;Avatar initial=&quot;AD&quot; variant=&quot;profile&quot; aria-label=&quot;Alex D.&quot; /&gt;
+              &lt;Avatar initial=&quot;AP&quot; variant=&quot;profile&quot; aria-label=&quot;Ale Paez&quot; /&gt;
             &lt;/&gt;
           }
         /&gt;
@@ -5394,7 +5208,7 @@ export const EmptyState: Story = {
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> TaskSection</h2>
       <div class="badges">
-        <label for="c-30-components-tasksection-props" class="badge ok as-toggle">4 prop types</label>
+        <label for="c-30-components-tasksection-props" class="badge ok as-toggle">5 prop types</label>
         <label for="c-30-components-tasksection-info" class="badge info as-toggle">1 info</label>
         <label for="c-30-components-tasksection-stories" class="badge ok as-toggle">4 stories</label>
         
@@ -5428,20 +5242,18 @@ export const EmptyState: Story = {
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">4 prop types</span>
+              <span class="badge ok">5 prop types</span>
             </div>
             <pre><code>Component: src/components/TaskSection/TaskSection.tsx::TaskSection</code></pre>
             <pre><code>Props:</code></pre>
             <pre><code>badgeVariant?: &#39;default&#39; | &#39;progress&#39; | &#39;todo&#39; | &#39;done&#39; = &#39;default&#39;
 
+compact?: boolean = false
+
 count?: number
 
 title: string
 
-/**
- * Rendered outside `&lt;details&gt;` via absolute positioning.
- *  The forwarded ref always points to the `&lt;details&gt;` element.
- */
 trailing?: ReactNode</code></pre>
           </div>
         </div>
@@ -5616,7 +5428,7 @@ trailing?: ReactNode</code></pre>
         
       </div>
     </div>
-    <div class="meta" title="./src/stories/pages/TasksPage.stories.tsx">pages-tasks · ./src/stories/pages/TasksPage.stories.tsx</div>
+    <div class="meta" title="./src/stories/pages/tasks/TasksDesktop.stories.tsx">pages-tasks · ./src/stories/pages/tasks/TasksDesktop.stories.tsx</div>
     
     
     
@@ -5636,276 +5448,71 @@ trailing?: ReactNode</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  832 | }
-  833 |
-&gt; 834 | const meta: Meta = {
+  628 | }
+  629 |
+&gt; 630 | const meta: Meta = {
       | ^
-  835 |   title: &#39;Pages/Tasks&#39;,
-  836 |   parameters: {
-  837 |     layout: &#39;fullscreen&#39;,
+  631 |   title: &#39;Pages/Tasks&#39;,
+  632 |   parameters: {
+  633 |     layout: &#39;fullscreen&#39;,
 
-./src/stories/pages/TasksPage.stories.tsx:
+./src/stories/pages/tasks/TasksDesktop.stories.tsx:
 import { useState, useMemo } from &#39;react&#39;;
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
 import { expect, userEvent, waitFor, within } from &#39;storybook/test&#39;;
-import { desktopViewports } from &#39;../../../.storybook/preview&#39;;
-import { useSelectorGroup, useSelectorState } from &#39;../../hooks/useSelector&#39;;
-import { Sidebar } from &#39;../../components/Sidebar&#39;;
-import { Selector } from &#39;../../components/Selector&#39;;
-import { NavItem } from &#39;../../components/NavItem&#39;;
-import { Avatar } from &#39;../../components/Avatar&#39;;
-import { SectionHeader } from &#39;../../components/SectionHeader&#39;;
-import { StatusDot } from &#39;../../components/StatusDot&#39;;
-import { Header } from &#39;../../components/Header&#39;;
-import { Breadcrumb } from &#39;../../components/Breadcrumb&#39;;
-import { SearchInput } from &#39;../../components/SearchInput&#39;;
+import { desktopViewports } from &#39;../../../../.storybook/preview&#39;;
+import { useSelectorGroup, useSelectorState } from &#39;../../../hooks/useSelector&#39;;
+import { Sidebar } from &#39;../../../components/Sidebar&#39;;
+import { Selector } from &#39;../../../components/Selector&#39;;
+import { NavItem } from &#39;../../../components/NavItem&#39;;
+import { Avatar } from &#39;../../../components/Avatar&#39;;
+import { SectionHeader } from &#39;../../../components/SectionHeader&#39;;
+import { StatusDot } from &#39;../../../components/StatusDot&#39;;
+import { Header } from &#39;../../../components/Header&#39;;
+import { Breadcrumb } from &#39;../../../components/Breadcrumb&#39;;
+import { SearchInput } from &#39;../../../components/SearchInput&#39;;
 import {
   SearchPalette,
   getSearchPaletteOptionId,
-  type SearchPaletteGroup,
-} from &#39;../../components/SearchPalette&#39;;
-import { Button } from &#39;../../components/Button&#39;;
-import { Icon } from &#39;../../components/Icon&#39;;
-import { Footer } from &#39;../../components/Footer&#39;;
-import { TaskSection } from &#39;../../components/TaskSection&#39;;
-import { TaskRow, type TaskRowProps } from &#39;../../components/TaskRow&#39;;
-import { Drawer } from &#39;../../components/Drawer&#39;;
+} from &#39;../../../components/SearchPalette&#39;;
+import { Button } from &#39;../../../components/Button&#39;;
+import { Icon } from &#39;../../../components/Icon&#39;;
+import { Footer } from &#39;../../../components/Footer&#39;;
+import { TaskSection } from &#39;../../../components/TaskSection&#39;;
+import { TaskRow } from &#39;../../../components/TaskRow&#39;;
+import { Drawer } from &#39;../../../components/Drawer&#39;;
 import {
   TaskDrawer,
   TaskDrawerField,
   TaskDrawerSection,
-} from &#39;../../components/TaskDrawer&#39;;
-import { PropertyRow } from &#39;../../components/PropertyRow&#39;;
-import { RecentTaskList } from &#39;../../components/RecentTaskList&#39;;
-import type { RecentTaskItem } from &#39;../../components/RecentTaskList&#39;;
+} from &#39;../../../components/TaskDrawer&#39;;
+import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
+import { RecentTaskList } from &#39;../../../components/RecentTaskList&#39;;
 import {
   orderByLabelStyle,
   orderByPrefixStyle,
   orderByValueStyle,
-} from &#39;../helpers/orderByStyles&#39;;
-import styles from &#39;./TasksPage.module.css&#39;;
-
-type TaskItem = Pick&lt;
-  TaskRowProps,
-  &#39;title&#39; | &#39;badge&#39; | &#39;refs&#39; | &#39;priority&#39; | &#39;date&#39;
-&gt; &amp; {
-  id: string;
-  ticketId?: string;
-};
-
-const SEED_TASKS: readonly TaskItem[] = [
-  {
-    id: &#39;TSK-1&#39;,
-    title: &#39;Refactor Kubernetes service discovery logic for edge nodes&#39;,
-    badge: { label: &#39;In Progress&#39;, variant: &#39;progress&#39; },
-    refs: [{ label: &#39;architecture-spec-v2.md&#39;, variant: &#39;doc&#39; }],
-    priority: &#39;high&#39;,
-    ticketId: &#39;ENG-902&#39;,
-    date: { label: &#39;Mar 28&#39;, dateTime: &#39;2026-03-28&#39; },
-  },
-  {
-    id: &#39;TSK-2&#39;,
-    title: &#39;Audit IAM permissions for the staging database cluster&#39;,
-    badge: { label: &#39;Todo&#39;, variant: &#39;todo&#39; },
-    refs: [{ label: &#39;iam-policy-draft.json&#39;, variant: &#39;attachment&#39; }],
-    priority: &#39;medium&#39;,
-    ticketId: &#39;INFRA-441&#39;,
-    date: { label: &#39;Mar 30&#39;, dateTime: &#39;2026-03-30&#39; },
-  },
-  {
-    id: &#39;TSK-3&#39;,
-    title: &#39;Investigate intermittent TLS handshake timeouts in US-WEST-2&#39;,
-    badge: { label: &#39;In Progress&#39;, variant: &#39;progress&#39; },
-    refs: [{ label: &#39;incident artifact&#39; }],
-    priority: &#39;high&#39;,
-    ticketId: &#39;OPS-112&#39;,
-    date: { label: &#39;Today&#39;, dateTime: &#39;2026-04-03&#39;, urgent: true },
-  },
-  {
-    id: &#39;TSK-4&#39;,
-    title: &#39;Configure auto-scaling for ingestion pipeline&#39;,
-    badge: { label: &#39;Todo&#39;, variant: &#39;todo&#39; },
-    refs: [{ label: &#39;pipeline-config.yaml&#39;, variant: &#39;attachment&#39; }],
-    priority: &#39;medium&#39;,
-    date: { label: &#39;Apr 1&#39;, dateTime: &#39;2026-04-01&#39; },
-  },
-  {
-    id: &#39;TSK-5&#39;,
-    title: &#39;Address memory leak in production API cluster&#39;,
-    badge: { label: &#39;In Progress&#39;, variant: &#39;progress&#39; },
-    refs: [{ label: &#39;heap-dump-analysis&#39; }],
-    priority: &#39;critical&#39;,
-    date: { label: &#39;Today&#39;, dateTime: &#39;2026-04-03&#39;, urgent: true },
-  },
-];
-
-const SEED_COMPLETED: readonly TaskItem[] = [
-  {
-    id: &#39;TSK-6&#39;,
-    title: &#39;Update root CA certificates for all build agents&#39;,
-    badge: { label: &#39;Done&#39;, variant: &#39;done&#39; },
-    priority: &#39;low&#39;,
-    ticketId: &#39;SEC-22&#39;,
-    date: { label: &#39;Jan 12&#39;, dateTime: &#39;2026-01-12&#39; },
-  },
-];
-
-const projects = [
-  { value: &#39;eng-core&#39;, label: &#39;Engineering Core&#39; },
-  { value: &#39;tasksgo&#39;, label: &#39;TasksGO&#39; },
-  { value: &#39;mudatec&#39;, label: &#39;Mudatec&#39; },
-];
-
-const avatars: Record&lt;string, { initial: string; label: string }&gt; = {
-  &#39;eng-core&#39;: { initial: &#39;P&#39;, label: &#39;Engineering Core&#39; },
-  tasksgo: { initial: &#39;M&#39;, label: &#39;TasksGO&#39; },
-  mudatec: { initial: &#39;M&#39;, label: &#39;Mudatec&#39; },
-};
-
-const assigneeOptions = [
-  { value: &#39;alex&#39;, label: &#39;Alex H.&#39;, initial: &#39;AH&#39;, color: &#39;#7D9B84&#39; },
-  { value: &#39;cleo&#39;, label: &#39;Cleo H.&#39;, initial: &#39;CH&#39;, color: &#39;#C38E70&#39; },
-  { value: &#39;vader&#39;, label: &#39;Vader P.&#39;, initial: &#39;VP&#39;, color: &#39;#6C89A8&#39; },
-];
-
-const priorityOptions = [
-  {
-    value: &#39;critical&#39;,
-    label: &#39;Critical&#39;,
-    icon: &#39;flag&#39; as const,
-    iconColor: &#39;var(--ds-color-status-critical)&#39;,
-  },
-  {
-    value: &#39;high&#39;,
-    label: &#39;High&#39;,
-    icon: &#39;flag&#39; as const,
-    iconColor: &#39;var(--ds-color-status-high)&#39;,
-  },
-  {
-    value: &#39;medium&#39;,
-    label: &#39;Medium&#39;,
-    icon: &#39;flag&#39; as const,
-    iconColor: &#39;var(--ds-color-status-medium)&#39;,
-  },
-  {
-    value: &#39;low&#39;,
-    label: &#39;Low&#39;,
-    icon: &#39;flag&#39; as const,
-    iconColor: &#39;var(--ds-color-status-low)&#39;,
-  },
-];
-
-const ticketOptions = [
-  { value: &#39;T-42&#39;, label: &#39;Implement dynamic edge-caching...&#39;, prefix: &#39;T-42&#39; },
-  {
-    value: &#39;T-104&#39;,
-    label: &#39;Implement unit tests for cache logic&#39;,
-    prefix: &#39;T-104&#39;,
-  },
-  {
-    value: &#39;T-105&#39;,
-    label: &#39;Update staging environment config&#39;,
-    prefix: &#39;T-105&#39;,
-  },
-];
-
-const recentTasks: readonly RecentTaskItem[] = [
-  {
-    ticketId: &#39;TSK-104&#39;,
-    title: &#39;Implement unit tests for cache logic&#39;,
-    timeAgo: &#39;2h ago&#39;,
-  },
-  {
-    ticketId: &#39;TSK-105&#39;,
-    title: &#39;Update staging environment config&#39;,
-    timeAgo: &#39;1d ago&#39;,
-  },
-  {
-    ticketId: &#39;TSK-98&#39;,
-    title: &#39;Fix DNS resolution in edge proxy&#39;,
-    timeAgo: &#39;3d ago&#39;,
-  },
-];
-
-const searchResults: SearchPaletteGroup[] = [
-  {
-    title: &#39;Jump to Task&#39;,
-    results: SEED_TASKS.map((t) =&gt; ({
-      id: t.id,
-      label: t.title,
-      refId: t.ticketId ?? t.id,
-      type: &#39;task&#39; as const,
-    })),
-  },
-];
-
-function filterSearchResults(query: string): SearchPaletteGroup[] {
-  const q = query.toLowerCase();
-  return searchResults
-    .map((group) =&gt; ({
-      ...group,
-      results: group.results.filter(
-        (r) =&gt;
-          r.label.toLowerCase().includes(q) ||
-          r.refId.toLowerCase().includes(q),
-      ),
-    }))
-    .filter((group) =&gt; group.results.length &gt; 0);
-}
-
-const sortOptions = [
-  { value: &#39;priority&#39;, label: &#39;Priority&#39; },
-  { value: &#39;due-date&#39;, label: &#39;Due date&#39; },
-];
-
-const PRIORITY_ORDER: Record&lt;string, number&gt; = {
-  critical: 0,
-  high: 1,
-  medium: 2,
-  low: 3,
-};
-
-function sortTasks(
-  tasks: readonly TaskItem[],
-  by: string,
-): readonly TaskItem[] {
-  const sorted = [...tasks];
-  switch (by) {
-    case &#39;priority&#39;:
-      return sorted.sort(
-        (a, b) =&gt;
-          (PRIORITY_ORDER[a.priority ?? &#39;low&#39;] ?? 4) -
-          (PRIORITY_ORDER[b.priority ?? &#39;low&#39;] ?? 4),
-      );
-    case &#39;due-date&#39;:
-      return sorted.sort((a, b) =&gt;
-        (b.date?.dateTime ?? &#39;&#39;).localeCompare(a.date?.dateTime ?? &#39;&#39;),
-      );
-    default:
-      return sorted;
-  }
-}
-
-interface DrawerFormState {
-  title: string;
-  description: string;
-  assignee: string;
-  priority: string;
-  linkedTicket: string | undefined;
-}
-
-const INITIAL_FORM: DrawerFormState = {
-  title: &#39;&#39;,
-  description: &#39;&#39;,
-  assignee: &#39;alex&#39;,
-  priority: &#39;high&#39;,
-  linkedTicket: undefined,
-};
-
-const DEFAULT_TASKS: readonly TaskItem[] = [...SEED_TASKS, ...SEED_COMPLETED];
+} from &#39;../../helpers/orderByStyles&#39;;
+import {
+  type TaskItem,
+  type DrawerFormState,
+  initialForm,
+  seedCompleted,
+  defaultTasks,
+  projectList,
+  getProject,
+  assigneeOptions,
+  priorityOptions,
+  ticketOptions,
+  recentTasks,
+  sortOptions,
+  sortTasks,
+  filterSearchResults,
+} from &#39;./shared&#39;;
+import styles from &#39;./TasksDesktop.module.css&#39;;
 
 function TasksPageRender({
-  initialTasks = DEFAULT_TASKS,
+  initialTasks = defaultTasks,
 }: {
   initialTasks?: readonly TaskItem[];
 }) {
@@ -5933,14 +5540,14 @@ function TasksPageRender({
     () =&gt;
       new Set(
         initialTasks
-          .filter((t) =&gt; SEED_COMPLETED.some((s) =&gt; s.id === t.id))
+          .filter((t) =&gt; seedCompleted.some((s) =&gt; s.id === t.id))
           .map((t) =&gt; t.id),
       ),
   );
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState&lt;string | undefined&gt;();
-  const [form, setForm] = useState&lt;DrawerFormState&gt;(INITIAL_FORM);
+  const [form, setForm] = useState&lt;DrawerFormState&gt;(initialForm);
   const selectors = useSelectorGroup(&#39;assignee&#39;, &#39;priority&#39;, &#39;ticket&#39;);
   const {
     ref: assigneeRef,
@@ -5970,8 +5577,6 @@ function TasksPageRender({
     return sortTasks(filtered, sortBy);
   }, [allTasks, completedIds, filterQuery, sortBy]);
 
-  // Completed tasks are not sorted here — the consumer will usually want to
-  // apply a default sort like most-recently-completed-first.
   const completedTasks = useMemo(() =&gt; {
     const q = filterQuery.toLowerCase();
     return allTasks
@@ -5994,7 +5599,7 @@ function TasksPageRender({
   function handleDrawerClose() {
     setDrawerOpen(false);
     setEditingTaskId(undefined);
-    setForm(INITIAL_FORM);
+    setForm(initialForm);
     setAssigneeQuery(&#39;&#39;);
     setTicketQuery(&#39;&#39;);
   }
@@ -6015,11 +5620,11 @@ function TasksPageRender({
     ? allTasks.find((t) =&gt; t.id === editingTaskId)
     : undefined;
   const drawerTitle = editingTask
-    ? `Edit task · ${editingTask.ticketId ?? editingTask.id}`
+    ? `Edit task \u00b7 ${editingTask.ticketId ?? editingTask.id}`
     : &#39;New task&#39;;
   const drawerSubmitLabel = editingTaskId ? &#39;Save&#39; : &#39;Create Task&#39;;
 
-  const avatar = avatars[project];
+  const activeProject = getProject(project);
   const navClick = (id: string) =&gt; (e: React.MouseEvent) =&gt; {
     e.preventDefault();
     setActiveNav(id);
@@ -6033,13 +5638,16 @@ function TasksPageRender({
           &lt;&gt;
             &lt;Selector
               ref={projectRef}
-              options={projects}
+              options={projectList}
               value={project}
               onValueChange={setProject}
               open={projectOpen}
               onOpenChange={onProjectChange}
               triggerPrefix={
-                &lt;Avatar initial={avatar.initial} aria-label={avatar.label} /&gt;
+                &lt;Avatar
+                  initial={activeProject.initial}
+                  aria-label={activeProject.label}
+                /&gt;
               }
               action={{ label: &#39;Add project&#39;, icon: &#39;add&#39;, onClick: () =&gt; {} }}
             /&gt;
@@ -6066,7 +5674,7 @@ function TasksPageRender({
                   lineHeight: &#39;var(--ds-text-page-title-line-height)&#39;,
                 }}
               &gt;
-                Project / {avatar.label}
+                Project / {activeProject.label}
               &lt;/p&gt;
               &lt;span
                 style={{
@@ -6195,7 +5803,7 @@ function TasksPageRender({
                 &lt;Icon name=&quot;add&quot; size=&quot;sm&quot; /&gt;
                 New task
               &lt;/Button&gt;
-              &lt;Avatar initial=&quot;AD&quot; variant=&quot;profile&quot; aria-label=&quot;Alex D.&quot; /&gt;
+              &lt;Avatar initial=&quot;AP&quot; variant=&quot;profile&quot; aria-label=&quot;Ale Paez&quot; /&gt;
             &lt;/&gt;
           }
         /&gt;
