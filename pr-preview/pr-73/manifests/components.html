@@ -842,7 +842,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> BottomSheet</h2>
       <div class="badges">
-        <label for="c-2-components-bottomsheet-props" class="badge ok as-toggle">4 prop types</label>
+        <label for="c-2-components-bottomsheet-props" class="badge ok as-toggle">7 prop types</label>
         <label for="c-2-components-bottomsheet-info" class="badge info as-toggle">1 info</label>
         <label for="c-2-components-bottomsheet-stories" class="badge ok as-toggle">4 stories</label>
         
@@ -876,15 +876,21 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">4 prop types</span>
+              <span class="badge ok">7 prop types</span>
             </div>
             <pre><code>Component: src/components/BottomSheet/BottomSheet.tsx::BottomSheet</code></pre>
             <pre><code>Props:</code></pre>
             <pre><code>duration?: keyof typeof transitionDurations = &#39;slow&#39;
 
+forceMount?: boolean
+
 fullHeight?: boolean = false
 
 onClose: () =&gt; void
+
+onClosed?: () =&gt; void
+
+onOpened?: () =&gt; void
 
 open: boolean</code></pre>
           </div>
@@ -1628,7 +1634,7 @@ urgent?: boolean = false</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Drawer</h2>
       <div class="badges">
-        <label for="c-8-compositions-drawer-props" class="badge ok as-toggle">5 prop types</label>
+        <label for="c-8-compositions-drawer-props" class="badge ok as-toggle">8 prop types</label>
         <label for="c-8-compositions-drawer-info" class="badge info as-toggle">1 info</label>
         <label for="c-8-compositions-drawer-stories" class="badge ok as-toggle">3 stories</label>
         
@@ -1662,7 +1668,7 @@ urgent?: boolean = false</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">5 prop types</span>
+              <span class="badge ok">8 prop types</span>
             </div>
             <pre><code>Component: src/components/Drawer/Drawer.tsx::Drawer</code></pre>
             <pre><code>Props:</code></pre>
@@ -1670,7 +1676,13 @@ urgent?: boolean = false</code></pre>
 
 duration?: keyof typeof transitionDurations = &#39;normal&#39;
 
+forceMount?: boolean
+
 onClose: () =&gt; void
+
+onClosed?: () =&gt; void
+
+onOpened?: () =&gt; void
 
 open: boolean
 
