@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">1/32 prop type error</a><a class="filter-pill info" data-k="infos" href="#filter-infos">32/32 infos</a><span class="filter-pill ok" aria-disabled="true">127 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">1/32 prop type error</a><a class="filter-pill info" data-k="infos" href="#filter-infos">32/32 infos</a><span class="filter-pill ok" aria-disabled="true">128 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -2884,7 +2884,7 @@ value: string</code></pre>
       <div class="badges">
         <label for="c-18-components-propertyrow-props" class="badge ok as-toggle">3 prop types</label>
         <label for="c-18-components-propertyrow-info" class="badge info as-toggle">1 info</label>
-        <label for="c-18-components-propertyrow-stories" class="badge ok as-toggle">5 stories</label>
+        <label for="c-18-components-propertyrow-stories" class="badge ok as-toggle">6 stories</label>
         
       </div>
     </div>
@@ -2920,7 +2920,7 @@ value: string</code></pre>
             </div>
             <pre><code>Component: src/components/PropertyRow/PropertyRow.tsx::PropertyRow</code></pre>
             <pre><code>Props:</code></pre>
-            <pre><code>icon: unknown
+            <pre><code>icon?: unknown
 
 label: string
 
@@ -2992,6 +2992,15 @@ onClick?: () =&gt; void</code></pre>
               
               
               <pre><code>const Placeholder = () =&gt; &lt;PropertyRow icon=&quot;confirmation_number&quot; label=&quot;Linked Ticket&quot; onClick={() =&gt; {}}&gt;Search ticket...&lt;/PropertyRow&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Without Icon</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithoutIcon = () =&gt; &lt;PropertyRow label=&quot;Sprint&quot;&gt;Q1-W4-INFRA&lt;/PropertyRow&gt;;</code></pre>
             </div>
         </div>
     
