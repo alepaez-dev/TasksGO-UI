@@ -5,12 +5,15 @@
   padding: var(--ds-space-scale-md);
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-xl);
-  background-color: var(--ds-color-surface-primary);
   font-size: var(--ds-text-card-body-font-size);
   font-family: var(--ds-text-card-body-font-family);
   font-weight: var(--ds-text-card-body-font-weight);
   line-height: var(--ds-text-card-body-line-height);
   color: var(--ds-color-text-primary);
+}
+
+.default {
+  background-color: var(--ds-color-surface-primary);
 }
 
 .subtle {
