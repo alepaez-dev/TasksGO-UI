@@ -98,11 +98,10 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
       }
     };
 
-    const selectedIndex = items.findIndex((it) => it.value === value);
-    const focusableIndex =
-      selectedIndex !== -1 && !items[selectedIndex].disabled
-        ? selectedIndex
-        : findFirstEnabled();
+    const matchedIndex = items.findIndex((it) => it.value === value);
+    const isMatchActive = matchedIndex !== -1 && !items[matchedIndex].disabled;
+    const selectedIndex = isMatchActive ? matchedIndex : -1;
+    const focusableIndex = isMatchActive ? matchedIndex : findFirstEnabled();
 
     return (
       <div
