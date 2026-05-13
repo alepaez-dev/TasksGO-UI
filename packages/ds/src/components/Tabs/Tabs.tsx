@@ -100,7 +100,9 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
 
     const selectedIndex = items.findIndex((it) => it.value === value);
     const focusableIndex =
-      selectedIndex !== -1 ? selectedIndex : findFirstEnabled();
+      selectedIndex !== -1 && !items[selectedIndex].disabled
+        ? selectedIndex
+        : findFirstEnabled();
 
     return (
       <div

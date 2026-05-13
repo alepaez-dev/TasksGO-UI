@@ -174,6 +174,29 @@ describe('Tabs', () => {
     );
   });
 
+  it('falls back to first enabled tab when value matches a disabled tab', () => {
+    const selectedDisabled: readonly TabItem[] = [
+      { value: 'overview', label: 'Overview', disabled: true },
+      { value: 'dev', label: 'Dev' },
+      { value: 'qa', label: 'QA' },
+    ];
+    render(
+      <Tabs
+        items={selectedDisabled}
+        value="overview"
+        onValueChange={() => {}}
+      />,
+    );
+    expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute(
+      'tabindex',
+      '-1',
+    );
+    expect(screen.getByRole('tab', { name: 'Dev' })).toHaveAttribute(
+      'tabindex',
+      '0',
+    );
+  });
+
   it('makes no tab focusable when all tabs are disabled and no value matches', () => {
     const allDisabled: readonly TabItem[] = [
       { value: 'a', label: 'A', disabled: true },
