@@ -75,6 +75,15 @@ export const typographyScale = {
   },
   sectionHeaderSubtitle: bodyRegularSans13,
   optionLabel: bodyRegularSans14,
+  cardBody: bodyRegularSans14,
+  cardHeader: {
+    fontSize: '12px',
+    fontFamily: fontFamilies.sans,
+    fontWeight: fontWeights.bold,
+    letterSpacing: '0.05em',
+    textTransform: 'uppercase',
+    lineHeight: DEFAULT_LINE_HEIGHT,
+  },
   resultSubtitle: {
     fontSize: '10px',
     fontFamily: fontFamilies.mono,

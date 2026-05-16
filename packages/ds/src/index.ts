@@ -104,6 +104,7 @@ export {
   type TaskDrawerSectionProps,
 } from './components/TaskDrawer';
 export { PropertyRow, type PropertyRowProps } from './components/PropertyRow';
+export { Card, type CardProps } from './components/Card';
 export {
   Tabs,
   getTabId,

@@ -1,0 +1,40 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-md);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-xl);
+  font-size: var(--ds-text-card-body-font-size);
+  font-family: var(--ds-text-card-body-font-family);
+  font-weight: var(--ds-text-card-body-font-weight);
+  line-height: var(--ds-text-card-body-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.default {
+  background-color: var(--ds-color-surface-primary);
+}
+
+.subtle {
+  background-color: var(--ds-color-surface-secondary);
+}
+
+.header {
+  font-size: var(--ds-text-card-header-font-size);
+  font-family: var(--ds-text-card-header-font-family);
+  font-weight: var(--ds-text-card-header-font-weight);
+  letter-spacing: var(--ds-text-card-header-letter-spacing);
+  text-transform: var(--ds-text-card-header-text-transform);
+  line-height: var(--ds-text-card-header-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.card > :where(p, ul, ol) {
+  margin: 0;
+}
+
+.card > :where(ul, ol) {
+  padding-left: var(--ds-space-scale-md);
+  color: var(--ds-color-text-secondary);
+}
