@@ -17,7 +17,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         className={cn(styles.card, styles[variant], className)}
         {...rest}
       >
-        {header !== undefined && <div className={styles.header}>{header}</div>}
+        {header && <div className={styles.header}>{header}</div>}
         {children}
       </div>
     );
