@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { TicketTitleBlock } from './TicketTitleBlock';
 import { Avatar } from '../Avatar';
+import { AvatarGroup } from '../AvatarGroup';
 
 const meta: Meta<typeof TicketTitleBlock> = {
   title: 'Components/TicketTitleBlock',
@@ -63,5 +64,33 @@ export const WithoutBadges: Story = {
 export const TitleOnly: Story = {
   args: {
     title: ticketTitle,
+  },
+};
+
+export const WithAvatarGroup: Story = {
+  args: {
+    title: ticketTitle,
+    badges: [
+      { label: 'In Progress', variant: 'progress' },
+      { label: 'High Prio', variant: 'high' },
+    ],
+    avatar: (
+      <AvatarGroup aria-label="Assignees">
+        <Avatar
+          initial="JD"
+          aria-label="Jordan D."
+          variant="profile"
+          size="sm"
+          style={{ backgroundColor: '#6C89A8' }}
+        />
+        <Avatar
+          initial="AM"
+          aria-label="Alex M."
+          variant="profile"
+          size="sm"
+          style={{ backgroundColor: '#C38E70' }}
+        />
+      </AvatarGroup>
+    ),
   },
 };

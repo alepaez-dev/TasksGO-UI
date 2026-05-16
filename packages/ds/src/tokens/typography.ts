@@ -152,7 +152,7 @@ export const typographyScale = {
   avatarSmInitial: {
     fontSize: '10px',
     fontFamily: fontFamilies.mono,
-    fontWeight: fontWeights.bold,
+    fontWeight: fontWeights.medium,
     letterSpacing: 'normal',
     textTransform: 'none',
     lineHeight: '1',

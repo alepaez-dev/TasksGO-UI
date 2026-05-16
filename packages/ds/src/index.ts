@@ -35,6 +35,7 @@ export {
   iconRegistry,
 } from './icons';
 export { Avatar, type AvatarProps } from './components/Avatar';
+export { AvatarGroup, type AvatarGroupProps } from './components/AvatarGroup';
 export { StatusDot, type StatusDotProps } from './components/StatusDot';
 export { Badge, type BadgeProps } from './components/Badge';
 export { NavItem, type NavItemProps } from './components/NavItem';
