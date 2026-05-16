@@ -36,3 +36,9 @@
   color: var(--ds-color-badge-done-text);
   border-color: var(--ds-color-badge-done-border);
 }
+
+.high {
+  background-color: var(--ds-color-badge-high-background);
+  color: var(--ds-color-badge-high-text);
+  border-color: var(--ds-color-badge-high-border);
+}

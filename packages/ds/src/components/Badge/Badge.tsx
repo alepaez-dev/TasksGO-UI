@@ -2,7 +2,7 @@ import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '../../utils/cn';
 import styles from './Badge.module.css';
 
-type BadgeVariant = 'default' | 'progress' | 'todo' | 'done';
+type BadgeVariant = 'default' | 'progress' | 'todo' | 'done' | 'high';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;

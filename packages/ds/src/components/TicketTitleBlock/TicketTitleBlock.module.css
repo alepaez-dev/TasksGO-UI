@@ -1,0 +1,27 @@
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-md);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-md);
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--ds-text-page-title-font-size);
+  font-family: var(--ds-text-page-title-font-family);
+  font-weight: var(--ds-text-page-title-font-weight);
+  letter-spacing: var(--ds-text-page-title-letter-spacing);
+  line-height: var(--ds-text-page-title-line-height);
+  color: var(--ds-color-text-primary);
+}

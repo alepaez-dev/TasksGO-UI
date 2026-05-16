@@ -8,7 +8,7 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'progress', 'todo', 'done'],
+      options: ['default', 'progress', 'todo', 'done', 'high'],
     },
     children: { control: 'text' },
   },
@@ -34,6 +34,10 @@ export const Done: Story = {
   args: { variant: 'done', children: 'Done' },
 };
 
+export const High: Story = {
+  args: { variant: 'high', children: 'High Prio' },
+};
+
 export const AllVariants: Story = {
   render: () => (
     <div
@@ -47,6 +51,7 @@ export const AllVariants: Story = {
       <Badge variant="progress">In Progress</Badge>
       <Badge variant="todo">To Do</Badge>
       <Badge variant="done">Done</Badge>
+      <Badge variant="high">High Prio</Badge>
     </div>
   ),
 };

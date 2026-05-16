@@ -19,6 +19,7 @@ const border = {
 const surface = {
   primary: '#FFFFFF',
   secondary: '#F8F9FA',
+  muted: '#e5e7eb',
   hover: '#eff1f3',
 } as const;
 
@@ -71,6 +72,11 @@ export const colors = {
       text: '#6b7280',
       border: badgeTodoBg,
     },
+    high: {
+      background: '#fff7ed',
+      text: status.high,
+      border: '#fed7aa',
+    },
     default: {
       background: 'transparent',
       text: text.secondary,
@@ -88,7 +94,7 @@ export const colors = {
   avatar: {
     background: text.primary,
     text: surface.primary,
-    profileBackground: surface.secondary,
+    profileBackground: surface.muted,
     profileText: text.primary,
     profileBorder: border.default,
   },
