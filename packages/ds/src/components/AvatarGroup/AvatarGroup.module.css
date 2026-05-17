@@ -1,0 +1,16 @@
+.group {
+  display: inline-flex;
+  align-items: center;
+  isolation: isolate;
+}
+
+.group > * {
+  position: relative;
+  /* First child gets the highest z-index. AvatarGroup injects
+     --ds-avatar-group-index on each child via cloneElement. */
+  z-index: calc(100 - var(--ds-avatar-group-index, 0));
+}
+
+.group > * + * {
+  margin-left: calc(-1 * var(--ds-space-scale-sm));
+}
