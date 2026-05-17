@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { PropertyRow } from './PropertyRow';
@@ -53,7 +54,7 @@ describe('PropertyRow', () => {
   });
 
   it('forwards ref', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(
       <PropertyRow ref={ref} icon="person" label="Assignee">
         Alex D.

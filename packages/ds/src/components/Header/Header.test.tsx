@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { Header } from './Header';
@@ -48,7 +49,7 @@ describe('Header', () => {
   });
 
   it('forwards ref to header element', () => {
-    const ref = { current: null } as React.RefObject<HTMLElement | null>;
+    const ref = createRef<HTMLElement>();
     render(<Header ref={ref} />);
     expect(ref.current).toBeInstanceOf(HTMLElement);
     expect(ref.current?.tagName).toBe('HEADER');

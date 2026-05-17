@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { BottomSheet } from './BottomSheet';
@@ -133,7 +134,7 @@ describe('BottomSheet', () => {
   });
 
   it('forwards ref to the panel element', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(
       <BottomSheet ref={ref} open onClose={vi.fn()} aria-label="Test">
         content

@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
@@ -10,7 +11,7 @@ describe('SearchInput', () => {
   });
 
   it('forwards ref to the input element', () => {
-    const ref = { current: null } as React.RefObject<HTMLInputElement | null>;
+    const ref = createRef<HTMLInputElement>();
     render(<SearchInput ref={ref} aria-label="Search tasks" />);
     expect(ref.current).toBeInstanceOf(HTMLInputElement);
   });

@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import userEvent from '@testing-library/user-event';
@@ -50,9 +51,7 @@ describe('TaskSection', () => {
   });
 
   it('forwards ref to the details element', () => {
-    const ref = {
-      current: null,
-    } as React.RefObject<HTMLDetailsElement | null>;
+    const ref = createRef<HTMLDetailsElement>();
     render(
       <TaskSection ref={ref} title="ACTIVE TASKS">
         <p>Content</p>

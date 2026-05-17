@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { DateCell } from './DateCell';
@@ -26,7 +27,7 @@ describe('DateCell', () => {
   });
 
   it('forwards ref to the time element', () => {
-    const ref = { current: null } as React.RefObject<HTMLTimeElement | null>;
+    const ref = createRef<HTMLTimeElement>();
     render(<DateCell ref={ref} date="Oct 28" dateTime="2026-10-28" />);
     expect(ref.current).toBeInstanceOf(HTMLTimeElement);
   });

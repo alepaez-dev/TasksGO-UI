@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { BottomTabBar } from './BottomTabBar';
@@ -42,7 +43,7 @@ describe('BottomTabBar', () => {
   });
 
   it('forwards ref to the nav element', () => {
-    const ref = { current: null } as React.RefObject<HTMLElement | null>;
+    const ref = createRef<HTMLElement>();
     render(
       <BottomTabBar ref={ref} aria-label="Main navigation">
         <NavItem

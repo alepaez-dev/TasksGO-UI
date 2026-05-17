@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { PriorityLabel } from './PriorityLabel';
@@ -23,7 +24,7 @@ describe('PriorityLabel', () => {
   });
 
   it('forwards ref to the span element', () => {
-    const ref = { current: null } as React.RefObject<HTMLSpanElement | null>;
+    const ref = createRef<HTMLSpanElement>();
     render(<PriorityLabel ref={ref} priority="high" />);
     expect(ref.current).toBeInstanceOf(HTMLSpanElement);
   });

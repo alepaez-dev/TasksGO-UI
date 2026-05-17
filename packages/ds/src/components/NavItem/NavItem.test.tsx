@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { NavItem } from './NavItem';
@@ -45,7 +46,7 @@ describe('NavItem', () => {
   });
 
   it('forwards ref to the anchor element', () => {
-    const ref = { current: null } as React.RefObject<HTMLAnchorElement | null>;
+    const ref = createRef<HTMLAnchorElement>();
     render(<NavItem ref={ref} icon="task_alt" label="Tasks" href="/tasks" />);
     expect(ref.current).toBeInstanceOf(HTMLAnchorElement);
   });

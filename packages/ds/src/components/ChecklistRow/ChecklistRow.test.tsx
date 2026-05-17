@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ChecklistRow } from './ChecklistRow';
@@ -125,7 +126,7 @@ describe('ChecklistRow', () => {
   });
 
   it('forwards ref to the root element', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(<ChecklistRow ref={ref} status="passed" label="Cache hit" />);
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });

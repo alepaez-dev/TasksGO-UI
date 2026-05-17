@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
@@ -127,7 +128,7 @@ describe('TaskRow', () => {
   });
 
   it('forwards ref to the div element', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(<TaskRow ref={ref} title="Fix login bug" refId="TSK-1" />);
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });

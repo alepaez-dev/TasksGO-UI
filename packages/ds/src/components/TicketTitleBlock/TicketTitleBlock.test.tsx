@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { TicketTitleBlock } from './TicketTitleBlock';
@@ -62,7 +63,7 @@ describe('TicketTitleBlock', () => {
   });
 
   it('forwards ref to the root element', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(<TicketTitleBlock ref={ref} title="Edge caching" />);
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });

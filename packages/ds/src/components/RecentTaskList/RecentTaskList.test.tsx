@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { RecentTaskList } from './RecentTaskList';
@@ -30,7 +31,7 @@ describe('RecentTaskList', () => {
   });
 
   it('forwards ref', () => {
-    const ref = { current: null } as React.RefObject<HTMLUListElement | null>;
+    const ref = createRef<HTMLUListElement>();
     render(<RecentTaskList ref={ref} items={items} />);
     expect(ref.current).toBeInstanceOf(HTMLUListElement);
   });

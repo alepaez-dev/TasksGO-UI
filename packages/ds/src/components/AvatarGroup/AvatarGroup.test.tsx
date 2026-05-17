@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { AvatarGroup } from './AvatarGroup';
@@ -27,7 +28,7 @@ describe('AvatarGroup', () => {
   });
 
   it('forwards ref to the root element', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(
       <AvatarGroup ref={ref} aria-label="Assignees">
         <Avatar initial="AP" aria-label="Ale P." variant="profile" />

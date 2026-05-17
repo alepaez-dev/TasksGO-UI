@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { TaskDrawer, TaskDrawerField, TaskDrawerSection } from './TaskDrawer';
@@ -88,7 +89,7 @@ describe('TaskDrawer', () => {
   });
 
   it('forwards ref', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(
       <TaskDrawer ref={ref} title="Test" onCancel={vi.fn()} onSubmit={vi.fn()}>
         content

@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
@@ -158,7 +159,7 @@ describe('Selector', () => {
   });
 
   it('forwards ref to container div', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(<Selector ref={ref} options={options} value="a" />);
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });

@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { FloatingSearch } from './FloatingSearch';
@@ -9,7 +10,7 @@ describe('FloatingSearch', () => {
   });
 
   it('forwards ref to input element', () => {
-    const ref = { current: null } as React.RefObject<HTMLInputElement | null>;
+    const ref = createRef<HTMLInputElement>();
     render(<FloatingSearch ref={ref} />);
     expect(ref.current).toBeInstanceOf(HTMLInputElement);
   });

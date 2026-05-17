@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ProjectPicker, type ProjectPickerProject } from './ProjectPicker';
@@ -122,7 +123,7 @@ describe('ProjectPicker', () => {
   });
 
   it('forwards ref to root element', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(
       <ProjectPicker
         ref={ref}
