@@ -16,6 +16,7 @@
     "lint:fix": "npm run lint:fix --workspace=packages/ds",
     "test:a11y": "npm run test:a11y --workspace=packages/ds",
     "test:e2e": "npm run test:e2e --workspace=packages/ds",
+    "postinstall": "npm run typings -w packages/ds",
     "prepare": "husky"
   },
   "engines": {

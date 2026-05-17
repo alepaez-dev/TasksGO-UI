@@ -69,6 +69,11 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/', 'storybook-static/', 'eslint-rules/'],
+    ignores: [
+      'dist/',
+      'storybook-static/',
+      'eslint-rules/',
+      'src/**/*.module.css.d.ts',
+    ],
   },
 );
