@@ -14,12 +14,7 @@ export interface AvatarProps extends HTMLAttributes<HTMLSpanElement> {
 
 export const Avatar = forwardRef<HTMLSpanElement, AvatarProps>(
   ({ initial, variant = 'project', size = 'md', className, ...rest }, ref) => {
-    const classes = cn(
-      styles.avatar,
-      styles[variant],
-      size === 'sm' && styles.sm,
-      className,
-    );
+    const classes = cn(styles.avatar, styles[variant], styles[size], className);
 
     return (
       <span ref={ref} role="img" className={classes} {...rest}>

@@ -113,6 +113,11 @@ export {
   type TabItem,
 } from './components/Tabs';
 export {
+  TicketTitleBlock,
+  type TicketTitleBlockProps,
+  type TicketTitleBlockBadge,
+} from './components/TicketTitleBlock';
+export {
   RecentTaskList,
   type RecentTaskListProps,
   type RecentTaskItem,
