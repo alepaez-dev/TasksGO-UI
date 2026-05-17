@@ -1,0 +1,99 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-md);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-card-body-font-size);
+  color: var(--ds-color-text-primary);
+}
+
+.clickable {
+  cursor: pointer;
+  border-radius: var(--ds-radius-md);
+}
+
+.clickable:hover,
+.clickable:focus-visible {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.clickable:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--ds-space-checklist-row-badge-size);
+  height: var(--ds-space-checklist-row-badge-size);
+  border-radius: var(--ds-radius-full);
+  color: var(--ds-color-surface-primary);
+}
+
+/* 
+Thicken the inner symbol strokes for a bolder appearance.
+Icons ship with a 960-unit viewBox, so stroke-width 60 ≈ 6% glyph weight. 
+*/
+.statusBadge svg {
+  stroke: currentColor;
+  stroke-width: 60;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.passed {
+  background-color: var(--ds-color-status-active);
+}
+
+.failed {
+  background-color: var(--ds-color-status-critical);
+}
+
+.pending {
+  background-color: var(--ds-color-text-disabled);
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+}
+
+.meta {
+  flex-shrink: 0;
+  font-family: var(--ds-text-metadata-font-family);
+  font-size: var(--ds-text-metadata-font-size);
+  font-weight: var(--ds-text-metadata-font-weight);
+  letter-spacing: var(--ds-text-metadata-letter-spacing);
+  line-height: var(--ds-text-metadata-line-height);
+  color: var(--ds-color-text-secondary);
+}
+
+.actionIcon {
+  flex-shrink: 0;
+  color: var(--ds-color-text-secondary);
+  opacity: 0;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.clickable:hover .actionIcon,
+.clickable:focus-visible .actionIcon {
+  opacity: 1;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

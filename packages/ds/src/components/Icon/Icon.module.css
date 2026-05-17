@@ -12,6 +12,11 @@
   height: 100%;
 }
 
+.xs {
+  width: var(--ds-icon-size-xs);
+  height: var(--ds-icon-size-xs);
+}
+
 .sm {
   width: var(--ds-icon-size-sm);
   height: var(--ds-icon-size-sm);
