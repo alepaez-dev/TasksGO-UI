@@ -31,6 +31,12 @@ export default meta;
 
 type Story = StoryObj<typeof ChecklistRow>;
 
+const failedMeta = (
+  <span style={{ color: 'var(--ds-color-status-critical)', fontWeight: 700 }}>
+    FAILED
+  </span>
+);
+
 export const Passed: Story = {
   args: {
     status: 'passed',
@@ -43,7 +49,7 @@ export const Failed: Story = {
   args: {
     status: 'failed',
     label: 'Invalidation latency under 200ms',
-    meta: 'FAILED',
+    meta: failedMeta,
   },
 };
 
@@ -66,11 +72,12 @@ export const Clickable: Story = {
   args: {
     status: 'failed',
     label: 'Invalidation latency under 200ms',
-    meta: 'FAILED',
+    meta: failedMeta,
     onClick: () => {
       window.open(
         'https://example.com/failures/invalidation-latency',
         '_blank',
+        'noopener,noreferrer',
       );
     },
   },
@@ -96,7 +103,7 @@ export const AllStatuses: Story = {
       <ChecklistRow
         status="failed"
         label="Invalidation latency under 200ms"
-        meta="FAILED"
+        meta={failedMeta}
         onClick={() => {}}
       />
       <ChecklistRow

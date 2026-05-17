@@ -42,3 +42,15 @@
   color: var(--ds-color-badge-high-text);
   border-color: var(--ds-color-badge-high-border);
 }
+
+.critical {
+  background-color: var(--ds-color-badge-critical-background);
+  color: var(--ds-color-badge-critical-text);
+  border-color: var(--ds-color-badge-critical-border);
+}
+
+.success {
+  background-color: var(--ds-color-badge-success-background);
+  color: var(--ds-color-badge-success-text);
+  border-color: var(--ds-color-badge-success-border);
+}

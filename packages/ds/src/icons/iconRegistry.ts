@@ -21,6 +21,7 @@ import { MenuIcon } from './menu';
 import { MoreHorizIcon } from './moreHoriz';
 import { OpenInNewIcon } from './openInNew';
 import { PersonIcon } from './person';
+import { ScheduleIcon } from './schedule';
 import { SearchIcon } from './search';
 import { SettingsIcon } from './settings';
 import { SignalCellularAltIcon } from './signalCellularAlt';
@@ -51,6 +52,7 @@ export const iconRegistry = {
   more_horiz: MoreHorizIcon,
   open_in_new: OpenInNewIcon,
   person: PersonIcon,
+  schedule: ScheduleIcon,
   search: SearchIcon,
   settings: SettingsIcon,
   signal_cellular_alt: SignalCellularAltIcon,

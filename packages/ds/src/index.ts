@@ -28,6 +28,7 @@ export {
   MoreHorizIcon,
   OpenInNewIcon,
   PersonIcon,
+  ScheduleIcon,
   SearchIcon,
   SettingsIcon,
   SignalCellularAltIcon,
@@ -112,6 +113,10 @@ export {
 } from './components/TaskDrawer';
 export { PropertyRow, type PropertyRowProps } from './components/PropertyRow';
 export { Card, type CardProps } from './components/Card';
+export {
+  CollapsibleCard,
+  type CollapsibleCardProps,
+} from './components/CollapsibleCard';
 export {
   Tabs,
   getTabId,
