@@ -36,6 +36,7 @@ const status = {
   info: '#2563eb',
   active: '#22c55e',
   success: '#15803d',
+  criticalText: '#b91c1c',
 } as const;
 
 const badgeTodoBg = '#f3f4f6';
@@ -80,7 +81,7 @@ export const colors = {
     },
     critical: {
       background: '#fef2f2',
-      text: status.critical,
+      text: status.criticalText,
       border: '#fecaca',
     },
     success: {
