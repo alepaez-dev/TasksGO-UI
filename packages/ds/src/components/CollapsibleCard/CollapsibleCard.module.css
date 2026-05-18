@@ -1,0 +1,58 @@
+.card {
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-xl);
+  font-family: var(--ds-font-family-sans);
+  color: var(--ds-color-text-primary);
+}
+
+.default {
+  background-color: var(--ds-color-surface-primary);
+}
+
+.subtle {
+  background-color: var(--ds-color-surface-secondary);
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-md);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-xl);
+}
+
+.headerSlot {
+  flex: 1;
+  min-width: 0;
+  --ds-text-badge-label-font-weight: var(--ds-font-weight-bold);
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--ds-color-text-secondary);
+  transition: transform var(--ds-transition-duration)
+    var(--ds-transition-timing-function);
+}
+
+.card[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.body {
+  padding: 0 0 var(--ds-space-scale-md);
+}

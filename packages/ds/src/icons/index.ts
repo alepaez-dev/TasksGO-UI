@@ -21,6 +21,7 @@ export { MenuIcon } from './menu';
 export { MoreHorizIcon } from './moreHoriz';
 export { OpenInNewIcon } from './openInNew';
 export { PersonIcon } from './person';
+export { ScheduleIcon } from './schedule';
 export { SearchIcon } from './search';
 export { SettingsIcon } from './settings';
 export { SignalCellularAltIcon } from './signalCellularAlt';
