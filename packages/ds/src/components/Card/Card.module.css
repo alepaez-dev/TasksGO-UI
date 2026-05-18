@@ -12,6 +12,10 @@
   color: var(--ds-color-text-primary);
 }
 
+.default {
+  background-color: var(--ds-color-surface-primary);
+}
+
 .subtle {
   background-color: var(--ds-color-surface-secondary);
 }
