@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { SectionHeader } from './SectionHeader';
@@ -23,7 +24,7 @@ describe('SectionHeader', () => {
   });
 
   it('forwards ref to the container div element', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(<SectionHeader ref={ref}>Label</SectionHeader>);
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });

@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { Tabs, type TabItem } from './Tabs';
@@ -209,7 +210,7 @@ describe('Tabs', () => {
   });
 
   it('forwards ref to the tablist element', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(
       <Tabs
         ref={ref}

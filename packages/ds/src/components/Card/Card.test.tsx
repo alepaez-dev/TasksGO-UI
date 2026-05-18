@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { Card } from './Card';
@@ -49,7 +50,7 @@ describe('Card', () => {
   });
 
   it('forwards ref to the root element', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(
       <Card ref={ref}>
         <p>Body</p>

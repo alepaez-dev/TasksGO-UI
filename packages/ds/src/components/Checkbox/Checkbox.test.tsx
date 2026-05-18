@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
@@ -43,7 +44,7 @@ describe('Checkbox', () => {
   });
 
   it('forwards ref to the input element', () => {
-    const ref = { current: null } as React.RefObject<HTMLInputElement | null>;
+    const ref = createRef<HTMLInputElement>();
     render(<Checkbox ref={ref} aria-label="Toggle task" />);
     expect(ref.current).toBeInstanceOf(HTMLInputElement);
   });

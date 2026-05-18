@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { RefLabel } from './RefLabel';
@@ -34,7 +35,7 @@ describe('RefLabel', () => {
   });
 
   it('forwards ref to the span element', () => {
-    const ref = { current: null } as React.RefObject<HTMLSpanElement | null>;
+    const ref = createRef<HTMLSpanElement>();
     render(<RefLabel ref={ref}>Label</RefLabel>);
     expect(ref.current).toBeInstanceOf(HTMLSpanElement);
   });

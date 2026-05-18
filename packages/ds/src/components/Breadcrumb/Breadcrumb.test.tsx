@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { Breadcrumb } from './Breadcrumb';
@@ -43,7 +44,7 @@ describe('Breadcrumb', () => {
   });
 
   it('forwards ref to the nav element', () => {
-    const ref = { current: null } as React.RefObject<HTMLElement | null>;
+    const ref = createRef<HTMLElement>();
     render(<Breadcrumb ref={ref} segments={segments} />);
     expect(ref.current).toBeInstanceOf(HTMLElement);
     expect(ref.current?.tagName).toBe('NAV');

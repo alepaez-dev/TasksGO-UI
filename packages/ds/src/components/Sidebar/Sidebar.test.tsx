@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { Sidebar } from './Sidebar';
@@ -70,7 +71,7 @@ describe('Sidebar', () => {
   });
 
   it('forwards ref to aside element', () => {
-    const ref = { current: null } as React.RefObject<HTMLElement | null>;
+    const ref = createRef<HTMLElement>();
     render(
       <Sidebar ref={ref} aria-label="Sidebar navigation">
         <a href="/link">Link</a>

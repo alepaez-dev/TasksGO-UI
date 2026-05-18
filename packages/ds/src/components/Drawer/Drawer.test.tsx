@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { Drawer } from './Drawer';
@@ -118,7 +119,7 @@ describe('Drawer', () => {
   });
 
   it('forwards ref to the panel element', () => {
-    const ref = { current: null } as React.RefObject<HTMLDivElement | null>;
+    const ref = createRef<HTMLDivElement>();
     render(
       <Drawer ref={ref} open onClose={vi.fn()} aria-label="Test">
         content

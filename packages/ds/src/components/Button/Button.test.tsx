@@ -1,3 +1,4 @@
+import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
@@ -12,7 +13,7 @@ describe('Button', () => {
   });
 
   it('forwards ref to the button element', () => {
-    const ref = { current: null } as React.RefObject<HTMLButtonElement | null>;
+    const ref = createRef<HTMLButtonElement>();
     render(<Button ref={ref}>Ref test</Button>);
     expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });
