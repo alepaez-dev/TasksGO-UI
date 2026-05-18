@@ -11,6 +11,7 @@ export {
   AttachmentIcon,
   AutoAwesomeIcon,
   CancelIcon,
+  CheckIcon,
   CheckCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -25,6 +26,7 @@ export {
   LinkIcon,
   MenuIcon,
   MoreHorizIcon,
+  OpenInNewIcon,
   PersonIcon,
   SearchIcon,
   SettingsIcon,
@@ -36,6 +38,10 @@ export {
 } from './icons';
 export { Avatar, type AvatarProps } from './components/Avatar';
 export { AvatarGroup, type AvatarGroupProps } from './components/AvatarGroup';
+export {
+  ChecklistRow,
+  type ChecklistRowProps,
+} from './components/ChecklistRow';
 export { StatusDot, type StatusDotProps } from './components/StatusDot';
 export { Badge, type BadgeProps } from './components/Badge';
 export { NavItem, type NavItemProps } from './components/NavItem';

@@ -4,6 +4,7 @@ import { AttachFileIcon } from './attachFile';
 import { AttachmentIcon } from './attachment';
 import { AutoAwesomeIcon } from './autoAwesome';
 import { CancelIcon } from './cancel';
+import { CheckIcon } from './check';
 import { CheckCircleIcon } from './checkCircle';
 import { ChevronLeftIcon } from './chevronLeft';
 import { ChevronRightIcon } from './chevronRight';
@@ -18,6 +19,7 @@ import { HelpIcon } from './help';
 import { LinkIcon } from './link';
 import { MenuIcon } from './menu';
 import { MoreHorizIcon } from './moreHoriz';
+import { OpenInNewIcon } from './openInNew';
 import { PersonIcon } from './person';
 import { SearchIcon } from './search';
 import { SettingsIcon } from './settings';
@@ -32,6 +34,7 @@ export const iconRegistry = {
   attachment: AttachmentIcon,
   auto_awesome: AutoAwesomeIcon,
   cancel: CancelIcon,
+  check: CheckIcon,
   check_circle: CheckCircleIcon,
   chevron_left: ChevronLeftIcon,
   chevron_right: ChevronRightIcon,
@@ -46,6 +49,7 @@ export const iconRegistry = {
   link: LinkIcon,
   menu: MenuIcon,
   more_horiz: MoreHorizIcon,
+  open_in_new: OpenInNewIcon,
   person: PersonIcon,
   search: SearchIcon,
   settings: SettingsIcon,

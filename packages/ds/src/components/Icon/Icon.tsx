@@ -3,7 +3,7 @@ import { cn } from '../../utils/cn';
 import { iconRegistry, type IconName } from '../../icons';
 import styles from './Icon.module.css';
 
-type IconSize = 'sm' | 'md' | 'lg';
+type IconSize = 'xs' | 'sm' | 'md' | 'lg';
 
 export interface IconProps extends HTMLAttributes<HTMLSpanElement> {
   name: IconName;

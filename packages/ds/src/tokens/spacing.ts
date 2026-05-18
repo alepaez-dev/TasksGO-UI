@@ -48,6 +48,9 @@ export const spacing = {
   checkbox: {
     size: '16px',
   },
+  checklistRow: {
+    badgeSize: '16px',
+  },
   scale: {
     xs: '4px',
     sm: '8px',
