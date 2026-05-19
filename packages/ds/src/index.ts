@@ -118,6 +118,11 @@ export {
   type CollapsibleCardProps,
 } from './components/CollapsibleCard';
 export {
+  PipelineStageIndicator,
+  type PipelineStageIndicatorProps,
+  type PipelineStage,
+} from './components/PipelineStageIndicator';
+export {
   Tabs,
   getTabId,
   getTabPanelId,
