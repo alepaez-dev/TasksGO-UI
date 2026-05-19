@@ -33,7 +33,7 @@
 }
 
 .separator {
-  color: var(--ds-color-text-disabled);
+  color: var(--ds-color-text-secondary);
   font-size: var(--ds-text-badge-label-font-size);
   letter-spacing: 1px;
   user-select: none;
