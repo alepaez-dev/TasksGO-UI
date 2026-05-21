@@ -20,6 +20,7 @@ export {
   ConfirmationNumberFilledIcon,
   DescriptionIcon,
   DescriptionFilledIcon,
+  DragIndicatorIcon,
   ExpandMoreIcon,
   FlagIcon,
   HelpIcon,
@@ -122,6 +123,13 @@ export {
   type PipelineStageIndicatorProps,
   type PipelineStage,
 } from './components/PipelineStageIndicator';
+export { Popover, type PopoverProps } from './components/Popover';
+export {
+  PipelineHierarchyPanel,
+  type PipelineHierarchyPanelProps,
+  type PipelineHierarchyStage,
+  type PipelineHierarchyStageStatus,
+} from './components/PipelineHierarchyPanel';
 export {
   Tabs,
   getTabId,
