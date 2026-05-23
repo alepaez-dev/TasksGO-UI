@@ -13,6 +13,7 @@ export { ConfirmationNumberIcon } from './confirmationNumber';
 export { ConfirmationNumberFilledIcon } from './confirmationNumberFilled';
 export { DescriptionIcon } from './description';
 export { DescriptionFilledIcon } from './descriptionFilled';
+export { DragIndicatorIcon } from './dragIndicator';
 export { ExpandMoreIcon } from './expandMore';
 export { FlagIcon } from './flag';
 export { HelpIcon } from './help';

@@ -6,6 +6,7 @@ export const elevation = {
   drawer: '4px 0 24px rgba(0, 0, 0, 0.12)',
   fab: '0 4px 16px rgba(0, 0, 0, 0.18)',
   bottomSheet: '0 -8px 24px rgba(0, 0, 0, 0.12)',
+  dragLift: '0 12px 24px rgba(0, 0, 0, 0.18), 0 4px 8px rgba(0, 0, 0, 0.12)',
 } as const;
 
 export type ElevationToken = keyof typeof elevation;

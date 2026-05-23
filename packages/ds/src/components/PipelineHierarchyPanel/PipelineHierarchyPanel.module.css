@@ -1,0 +1,236 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  padding: var(--ds-space-scale-md);
+  background-color: var(--ds-color-surface-primary);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-xl);
+  font-family: var(--ds-font-family-sans);
+  color: var(--ds-color-text-primary);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-scale-sm);
+  padding: 0 var(--ds-space-scale-sm) var(--ds-space-scale-sm);
+  border-bottom: 1px solid var(--ds-color-border-default);
+}
+
+.title {
+  font-size: var(--ds-text-card-header-font-size);
+  font-family: var(--ds-text-section-header-font-family);
+  font-weight: var(--ds-text-section-header-font-weight);
+  letter-spacing: normal;
+  text-transform: var(--ds-text-section-header-text-transform);
+  color: var(--ds-color-text-secondary);
+}
+
+.hint {
+  font-family: var(--ds-text-metadata-font-family);
+  font-size: var(--ds-text-section-header-font-size);
+  font-style: italic;
+  color: var(--ds-color-text-secondary);
+  letter-spacing: normal;
+}
+
+.list {
+  list-style: none;
+  padding: var(--ds-space-scale-sm) 0 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  border-radius: var(--ds-radius-md);
+  transition: background-color var(--ds-transition-duration)
+    var(--ds-transition-timing-function);
+}
+
+.selectable {
+  cursor: pointer;
+}
+
+.selectable:not(.rowActive):not(.dragging):hover {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.rowActive {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.rowActive .indicators > * {
+  box-shadow: 0 0 0 3px var(--ds-color-surface-hover);
+}
+
+.rowActive .activeMark {
+  border-radius: 50%;
+}
+
+.dropAbove::before,
+.dropBelow::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--ds-color-status-info);
+  pointer-events: none;
+}
+
+.dropAbove::before {
+  top: -1px;
+}
+
+.dropBelow::after {
+  bottom: -1px;
+}
+
+.dragging .rowButton,
+.dragging .rowStatic,
+.dragging .dragHandle {
+  opacity: 0;
+}
+
+.dragging {
+  background-color: var(--ds-color-surface-hover);
+  border-radius: var(--ds-radius-md);
+  opacity: 0.4;
+}
+
+.floatingClone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  margin: 0;
+  list-style: none;
+  pointer-events: none;
+  background-color: var(--ds-color-surface-primary);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-elevation-dropdown);
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  transform-origin: top left;
+  transition: box-shadow 150ms ease-out;
+  will-change: transform;
+}
+
+.floatingCloneLifted {
+  box-shadow: var(--ds-elevation-drag-lift);
+}
+
+.dragHandle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: var(--ds-space-scale-xs);
+  border: none;
+  background: transparent;
+  color: var(--ds-color-text-disabled);
+  opacity: 0.5;
+  cursor: grab;
+  border-radius: var(--ds-radius-sm);
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.dragHandle:hover {
+  opacity: 1;
+  color: var(--ds-color-text-secondary);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragHandle:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.rowButton,
+.rowStatic {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-sm);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: var(--ds-text-option-label-font-family);
+  font-size: var(--ds-text-option-label-font-size);
+  text-align: left;
+  border-radius: var(--ds-radius-md);
+}
+
+.rowButton {
+  cursor: pointer;
+}
+
+.rowButton:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.label {
+  flex: 1;
+  font-family: var(--ds-font-family-mono);
+}
+
+.indicators {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  flex-shrink: 0;
+}
+
+.activeMark {
+  color: var(--ds-color-status-info);
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--ds-color-border-default);
+  margin: var(--ds-space-scale-sm) 0;
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-sm);
+  border: none;
+  background: transparent;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-option-label-font-size);
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--ds-radius-md);
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.addButton:hover {
+  background-color: var(--ds-color-surface-hover);
+  color: var(--ds-color-text-primary);
+}
+
+.addButton:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
