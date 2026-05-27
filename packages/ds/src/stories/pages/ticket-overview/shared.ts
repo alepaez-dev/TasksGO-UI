@@ -69,6 +69,7 @@ export interface TicketMeta {
     title: string;
     reorderHint: string;
     addLabel: string;
+    addStagePlaceholder: string;
     initialActiveStage: string;
     stages: readonly PipelineHierarchyStage[];
   };
@@ -230,6 +231,7 @@ export const ticket: TicketMeta = {
     title: 'Pipeline Hierarchy',
     reorderHint: 'Drag to reorder',
     addLabel: 'Add environment',
+    addStagePlaceholder: 'Prod-US',
     initialActiveStage: 'qa2',
     stages: [
       { value: 'qa1', label: 'QA1', status: 'success' },

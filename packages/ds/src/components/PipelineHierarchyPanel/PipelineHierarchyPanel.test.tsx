@@ -396,4 +396,287 @@ describe('PipelineHierarchyPanel', () => {
     );
     expect(container.firstChild).toHaveClass('custom');
   });
+
+  describe('inline add stage editor', () => {
+    it('hides the editor and renders the add button when addingStage is false', () => {
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          onAddStage={() => {}}
+        />,
+      );
+      expect(
+        screen.getByRole('button', { name: 'Add environment' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('textbox', { name: 'Add environment' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders the editor and hides the add button when addingStage is true', () => {
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          onAddStage={() => {}}
+          addingStage
+          addStageValue=""
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={() => {}}
+          onAddStageCancel={() => {}}
+        />,
+      );
+      expect(
+        screen.getByRole('textbox', { name: 'Add environment' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'Add environment' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('fires onAddStageValueChange when typing', () => {
+      const onAddStageValueChange = vi.fn();
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          addingStage
+          addStageValue=""
+          onAddStageValueChange={onAddStageValueChange}
+          onAddStageConfirm={() => {}}
+          onAddStageCancel={() => {}}
+        />,
+      );
+      fireEvent.change(
+        screen.getByRole('textbox', { name: 'Add environment' }),
+        { target: { value: 'Prod-US' } },
+      );
+      expect(onAddStageValueChange).toHaveBeenCalledWith('Prod-US');
+    });
+
+    it('fires onAddStageConfirm with the trimmed value when clicking the confirm button', () => {
+      const onAddStageConfirm = vi.fn();
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          addingStage
+          addStageValue="  Prod-US  "
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={onAddStageConfirm}
+          onAddStageCancel={() => {}}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+      expect(onAddStageConfirm).toHaveBeenCalledWith('Prod-US');
+    });
+
+    it('fires onAddStageConfirm with the trimmed value on Enter', () => {
+      const onAddStageConfirm = vi.fn();
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          addingStage
+          addStageValue="Prod-US"
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={onAddStageConfirm}
+          onAddStageCancel={() => {}}
+        />,
+      );
+      fireEvent.keyDown(
+        screen.getByRole('textbox', { name: 'Add environment' }),
+        { key: 'Enter' },
+      );
+      expect(onAddStageConfirm).toHaveBeenCalledWith('Prod-US');
+    });
+
+    it('fires onAddStageCancel when clicking the cancel button', () => {
+      const onAddStageCancel = vi.fn();
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          addingStage
+          addStageValue="Prod-US"
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={() => {}}
+          onAddStageCancel={onAddStageCancel}
+        />,
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+      expect(onAddStageCancel).toHaveBeenCalledTimes(1);
+    });
+
+    it('fires onAddStageCancel on Escape', () => {
+      const onAddStageCancel = vi.fn();
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          addingStage
+          addStageValue="Prod-US"
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={() => {}}
+          onAddStageCancel={onAddStageCancel}
+        />,
+      );
+      fireEvent.keyDown(
+        screen.getByRole('textbox', { name: 'Add environment' }),
+        { key: 'Escape' },
+      );
+      expect(onAddStageCancel).toHaveBeenCalledTimes(1);
+    });
+
+    it('disables confirm and ignores Enter when the value is empty or whitespace', () => {
+      const onAddStageConfirm = vi.fn();
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          addingStage
+          addStageValue="   "
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={onAddStageConfirm}
+          onAddStageCancel={() => {}}
+        />,
+      );
+      const confirm = screen.getByRole('button', { name: 'Confirm' });
+      expect(confirm).toBeDisabled();
+      fireEvent.click(confirm);
+      fireEvent.keyDown(
+        screen.getByRole('textbox', { name: 'Add environment' }),
+        { key: 'Enter' },
+      );
+      expect(onAddStageConfirm).not.toHaveBeenCalled();
+    });
+
+    it('renders an error message and disables confirm when addStageMessage.kind is error', () => {
+      const onAddStageConfirm = vi.fn();
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          addingStage
+          addStageValue="QA1"
+          addStageMessage={{ kind: 'error', text: '"QA1" already exists' }}
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={onAddStageConfirm}
+          onAddStageCancel={() => {}}
+        />,
+      );
+      expect(screen.getByText('"QA1" already exists')).toBeInTheDocument();
+      const confirm = screen.getByRole('button', { name: 'Confirm' });
+      expect(confirm).toBeDisabled();
+      fireEvent.keyDown(
+        screen.getByRole('textbox', { name: 'Add environment' }),
+        { key: 'Enter' },
+      );
+      expect(onAddStageConfirm).not.toHaveBeenCalled();
+    });
+
+    it('renders a warning message but keeps confirm enabled when addStageMessage.kind is warning', () => {
+      const onAddStageConfirm = vi.fn();
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          addingStage
+          addStageValue="QA3"
+          addStageMessage={{
+            kind: 'warning',
+            text: 'Similar to "QA1" and "QA2" — still confirm?',
+          }}
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={onAddStageConfirm}
+          onAddStageCancel={() => {}}
+        />,
+      );
+      expect(
+        screen.getByText('Similar to "QA1" and "QA2" — still confirm?'),
+      ).toBeInTheDocument();
+      const confirm = screen.getByRole('button', { name: 'Confirm' });
+      expect(confirm).not.toBeDisabled();
+      fireEvent.click(confirm);
+      expect(onAddStageConfirm).toHaveBeenCalledWith('QA3');
+    });
+
+    it('marks the input aria-invalid when an error message is set', () => {
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          addingStage
+          addStageValue="QA1"
+          addStageMessage={{ kind: 'error', text: '"QA1" already exists' }}
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={() => {}}
+          onAddStageCancel={() => {}}
+        />,
+      );
+      expect(
+        screen.getByRole('textbox', { name: 'Add environment' }),
+      ).toHaveAttribute('aria-invalid', 'true');
+    });
+
+    it('does not render a message row when addStageMessage is absent', () => {
+      render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          addingStage
+          addStageValue="Prod-US"
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={() => {}}
+          onAddStageCancel={() => {}}
+        />,
+      );
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+
+    it('auto-focuses the input when the editor opens', () => {
+      const { rerender } = render(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          onAddStage={() => {}}
+        />,
+      );
+      expect(
+        screen.queryByRole('textbox', { name: 'Add environment' }),
+      ).not.toBeInTheDocument();
+
+      rerender(
+        <PipelineHierarchyPanel
+          title="Pipeline Hierarchy"
+          stages={stages}
+          addLabel="Add environment"
+          onAddStage={() => {}}
+          addingStage
+          addStageValue=""
+          onAddStageValueChange={() => {}}
+          onAddStageConfirm={() => {}}
+          onAddStageCancel={() => {}}
+        />,
+      );
+
+      const input = screen.getByRole('textbox', { name: 'Add environment' });
+      expect(input).toHaveFocus();
+    });
+  });
 });

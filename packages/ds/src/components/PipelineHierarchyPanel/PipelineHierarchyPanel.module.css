@@ -234,3 +234,98 @@
   outline: var(--ds-focus-ring-width) solid transparent;
   box-shadow: var(--ds-focus-ring);
 }
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-xs);
+}
+
+.editorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+}
+
+.editorMessage {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-metadata-font-size);
+}
+
+.editorMessageError {
+  color: var(--ds-color-status-critical);
+}
+
+.editorMessageWarning {
+  color: var(--ds-color-status-high);
+}
+
+.editorSpacer {
+  flex-shrink: 0;
+  width: calc(var(--ds-icon-size-sm) + (var(--ds-space-scale-xs) * 2));
+}
+
+.editorInput {
+  flex: 1;
+  min-width: 0;
+  margin-right: var(--ds-space-scale-xs);
+  padding: var(--ds-space-scale-sm);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background: transparent;
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-option-label-font-size);
+  outline: none;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.editorInput::placeholder {
+  color: var(--ds-color-text-disabled);
+}
+
+.editorInput:focus-visible {
+  border-color: transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.editorAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: var(--ds-space-scale-xs);
+  border: none;
+  background: transparent;
+  color: var(--ds-color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--ds-radius-sm);
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.editorAction:hover:not(:disabled) {
+  background-color: var(--ds-color-surface-hover);
+  color: var(--ds-color-text-primary);
+}
+
+.editorAction:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.editorAction:disabled {
+  cursor: not-allowed;
+  opacity: var(--ds-effect-disabled-opacity);
+}
+
+.editorConfirm:not(:disabled) {
+  background-color: var(--ds-color-surface-hover);
+  color: var(--ds-color-text-primary);
+}

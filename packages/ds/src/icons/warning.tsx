@@ -1,0 +1,6 @@
+import { createIcon } from './createIcon';
+
+export const WarningIcon = createIcon(
+  'M40-120 480-880l440 760H40Zm138-80h604L480-720 178-200Zm302-40q17 0 28.5-11.5T520-280q0-17-11.5-28.5T480-320q-17 0-28.5 11.5T440-280q0 17 11.5 28.5T480-240Zm-40-120h80v-200h-80v200Zm40-100Z',
+  'WarningIcon',
+);
