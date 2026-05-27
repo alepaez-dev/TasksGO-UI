@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { PipelineHierarchyStage } from '../../../components/PipelineHierarchyPanel';
 import {
   useSelectorGroup,
@@ -7,6 +7,8 @@ import {
   type SelectorGroupEntry,
 } from '../../../hooks/useSelector';
 import { ticket } from './shared';
+
+const BRANCH_COPIED_FLASH_MS = 2000;
 
 export interface UseTicketOverviewState {
   project: string;
@@ -34,6 +36,15 @@ export interface UseTicketOverviewState {
   setActiveStage: (value: string) => void;
   pipelineOpen: boolean;
   togglePipelineOpen: () => void;
+  branch: string;
+  branchDraft: string;
+  branchEditing: boolean;
+  branchCopied: boolean;
+  startEditBranch: () => void;
+  changeBranchDraft: (next: string) => void;
+  confirmBranch: () => void;
+  cancelBranch: () => void;
+  copyBranch: () => void;
 }
 
 export function useTicketOverviewState(): UseTicketOverviewState {
@@ -59,6 +70,48 @@ export function useTicketOverviewState(): UseTicketOverviewState {
   );
   const [pipelineOpen, setPipelineOpen] = useState(false);
   const togglePipelineOpen = () => setPipelineOpen((current) => !current);
+
+  const [branch, setBranch] = useState(ticket.metadata.branchValue);
+  const [branchDraft, setBranchDraft] = useState('');
+  const [branchEditing, setBranchEditing] = useState(false);
+  const [branchCopied, setBranchCopied] = useState(false);
+
+  const startEditBranch = useCallback(() => {
+    setBranchDraft(branch);
+    setBranchEditing(true);
+  }, [branch]);
+
+  const changeBranchDraft = useCallback((next: string) => {
+    setBranchDraft(next);
+  }, []);
+
+  const confirmBranch = useCallback(() => {
+    const trimmed = branchDraft.trim();
+    if (trimmed === '') return;
+    setBranch(trimmed);
+    setBranchEditing(false);
+  }, [branchDraft]);
+
+  const cancelBranch = useCallback(() => {
+    setBranchEditing(false);
+  }, []);
+
+  const copyBranch = useCallback(() => {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) return;
+    navigator.clipboard.writeText(branch).then(
+      () => setBranchCopied(true),
+      () => {},
+    );
+  }, [branch]);
+
+  useEffect(() => {
+    if (!branchCopied) return;
+    const timer = setTimeout(
+      () => setBranchCopied(false),
+      BRANCH_COPIED_FLASH_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [branchCopied]);
 
   return {
     project,
@@ -86,5 +139,14 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     setActiveStage,
     pipelineOpen,
     togglePipelineOpen,
+    branch,
+    branchDraft,
+    branchEditing,
+    branchCopied,
+    startEditBranch,
+    changeBranchDraft,
+    confirmBranch,
+    cancelBranch,
+    copyBranch,
   };
 }

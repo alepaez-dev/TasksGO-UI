@@ -1,0 +1,155 @@
+.field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  min-width: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  min-width: 0;
+  max-width: 100%;
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  border: 1px solid transparent;
+  border-radius: var(--ds-radius-md);
+  background: none;
+  cursor: pointer;
+  color: var(--ds-color-text-primary);
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.chip:hover {
+  background-color: var(--ds-color-surface-hover);
+  border-color: var(--ds-color-border-default);
+}
+
+.chip:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.chipIcon {
+  color: var(--ds-color-text-secondary);
+  flex-shrink: 0;
+}
+
+.value {
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-property-row-value-font-size);
+  line-height: var(--ds-text-property-row-value-line-height);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.chipEmpty {
+  color: var(--ds-color-text-secondary);
+}
+
+.placeholder {
+  font-family: var(--ds-font-family-sans);
+  font-style: italic;
+}
+
+.inputWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  min-width: 0;
+  flex: 1;
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-primary);
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--ds-color-search-input-focus-border);
+  box-shadow: var(--ds-focus-ring);
+}
+
+.inputIcon {
+  color: var(--ds-color-text-secondary);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-property-row-value-font-size);
+  line-height: var(--ds-text-property-row-value-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.confirmButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-space-icon-button-sm-size);
+  height: var(--ds-space-icon-button-sm-size);
+  border: none;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-status-success);
+  color: var(--ds-color-surface-primary);
+  cursor: pointer;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.confirmButton:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.confirmButton:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.confirmButton:disabled {
+  opacity: var(--ds-effect-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.copiedToast {
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-section-header-font-size);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ds-color-text-secondary);
+  flex-shrink: 0;
+}
+
+.chipCopied {
+  background-color: var(--ds-color-badge-success-background);
+  border-color: var(--ds-color-badge-success-border);
+  color: var(--ds-color-badge-success-text);
+}
+
+.chipCopied .chipIcon {
+  color: var(--ds-color-badge-success-text);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

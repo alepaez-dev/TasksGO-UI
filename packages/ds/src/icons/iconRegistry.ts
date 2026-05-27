@@ -11,11 +11,13 @@ import { ChevronRightIcon } from './chevronRight';
 import { CloseIcon } from './close';
 import { ConfirmationNumberIcon } from './confirmationNumber';
 import { ConfirmationNumberFilledIcon } from './confirmationNumberFilled';
+import { ContentCopyIcon } from './contentCopy';
 import { DescriptionIcon } from './description';
 import { DescriptionFilledIcon } from './descriptionFilled';
 import { DragIndicatorIcon } from './dragIndicator';
 import { ExpandMoreIcon } from './expandMore';
 import { FlagIcon } from './flag';
+import { ForkRightIcon } from './forkRight';
 import { HelpIcon } from './help';
 import { LinkIcon } from './link';
 import { MenuIcon } from './menu';
@@ -43,11 +45,13 @@ export const iconRegistry = {
   close: CloseIcon,
   confirmation_number: ConfirmationNumberIcon,
   confirmation_number_filled: ConfirmationNumberFilledIcon,
+  content_copy: ContentCopyIcon,
   description: DescriptionIcon,
   description_filled: DescriptionFilledIcon,
   drag_indicator: DragIndicatorIcon,
   expand_more: ExpandMoreIcon,
   flag: FlagIcon,
+  fork_right: ForkRightIcon,
   help: HelpIcon,
   link: LinkIcon,
   menu: MenuIcon,

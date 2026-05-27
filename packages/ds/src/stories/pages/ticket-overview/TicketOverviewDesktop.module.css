@@ -140,6 +140,7 @@
 .rightRail {
   grid-column: 2;
   grid-row: 2 / 4;
+  overflow-x: hidden;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -204,6 +205,10 @@
 .metadataSelector {
   --ds-space-dropdown-end-width: 180px;
   --ds-text-nav-label-font-size: 12px;
+}
+
+.metadataBranchField {
+  max-width: 180px;
 }
 
 .qaCardHeader {

@@ -19,6 +19,7 @@ import { Card } from '../../../components/Card';
 import { CollapsibleCard } from '../../../components/CollapsibleCard';
 import { ChecklistRow } from '../../../components/ChecklistRow';
 import { PropertyRow } from '../../../components/PropertyRow';
+import { EditableRefField } from '../../../components/EditableRefField';
 import { TicketId } from '../../../components/TicketId';
 import { PipelineHierarchyPanel } from '../../../components/PipelineHierarchyPanel';
 import {
@@ -91,6 +92,15 @@ function TicketOverviewRender() {
     setActiveStage,
     pipelineOpen,
     togglePipelineOpen,
+    branch,
+    branchDraft,
+    branchEditing,
+    branchCopied,
+    startEditBranch,
+    changeBranchDraft,
+    confirmBranch,
+    cancelBranch,
+    copyBranch,
   } = useTicketOverviewState();
   const activeProject = getProject(project);
   const activeAssignee = getPerson(assignee);
@@ -427,6 +437,25 @@ function TicketOverviewRender() {
                   )}
                   renderOptionIndicator={() => null}
                   aria-label="Select status"
+                />
+              </PropertyRow>
+              <PropertyRow icon="fork_right" label="Branch">
+                <EditableRefField
+                  className={styles.metadataBranchField}
+                  icon="fork_right"
+                  value={branch}
+                  placeholder="Add branch"
+                  editing={branchEditing}
+                  draftValue={branchDraft}
+                  copied={branchCopied}
+                  onStartEdit={startEditBranch}
+                  onDraftChange={changeBranchDraft}
+                  onConfirm={confirmBranch}
+                  onCancel={cancelBranch}
+                  onCopy={copyBranch}
+                  editAriaLabel="Edit branch"
+                  inputAriaLabel="Branch name"
+                  copyAriaLabel="Copy branch"
                 />
               </PropertyRow>
               <PropertyRow icon="signal_cellular_alt" label="Priority">

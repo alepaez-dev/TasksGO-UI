@@ -16,7 +16,13 @@ export const Icon = forwardRef<HTMLSpanElement, IconProps>(
     const classes = cn(styles.icon, styles[size], className);
 
     return (
-      <span ref={ref} className={classes} aria-hidden="true" {...rest}>
+      <span
+        ref={ref}
+        className={classes}
+        aria-hidden="true"
+        data-icon-name={name}
+        {...rest}
+      >
         <SvgComponent />
       </span>
     );
