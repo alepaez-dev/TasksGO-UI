@@ -19,6 +19,11 @@ describe('Badge', () => {
     expect(screen.getByText('In Progress')).toHaveClass('progress');
   });
 
+  it('applies the reference variant class', () => {
+    render(<Badge variant="reference">v4.1.0-alpha</Badge>);
+    expect(screen.getByText('v4.1.0-alpha')).toHaveClass('reference');
+  });
+
   it('forwards ref to the span element', () => {
     const ref = createRef<HTMLSpanElement>();
     render(<Badge ref={ref}>Label</Badge>);

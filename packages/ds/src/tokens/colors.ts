@@ -94,6 +94,11 @@ export const colors = {
       text: text.secondary,
       border: border.default,
     },
+    reference: {
+      background: border.default,
+      text: text.secondary,
+      border: 'transparent',
+    },
   },
 
   nav: {

@@ -225,3 +225,9 @@
   font-size: 11px;
   color: var(--ds-color-text-secondary);
 }
+
+.footerMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-md);
+}

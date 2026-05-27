@@ -16,7 +16,10 @@ const meta = {
         'high',
         'critical',
         'success',
+        'reference',
       ],
+      description:
+        'Visual style. Status variants (progress/todo/done/high/critical/success) tint the badge by state; "reference" is a mono-styled chip for technical reference values like version IDs, build numbers, or short hashes.',
     },
     children: { control: 'text' },
   },
@@ -54,6 +57,10 @@ export const Success: Story = {
   args: { variant: 'success', children: '4/4 Passed' },
 };
 
+export const Reference: Story = {
+  args: { variant: 'reference', children: 'v4.1.0-alpha' },
+};
+
 export const AllVariants: Story = {
   render: () => (
     <div
@@ -70,6 +77,7 @@ export const AllVariants: Story = {
       <Badge variant="high">High Prio</Badge>
       <Badge variant="critical">1 Failed</Badge>
       <Badge variant="success">4/4 Passed</Badge>
+      <Badge variant="reference">v4.1.0-alpha</Badge>
     </div>
   ),
 };

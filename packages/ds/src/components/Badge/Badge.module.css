@@ -54,3 +54,14 @@
   color: var(--ds-color-badge-success-text);
   border-color: var(--ds-color-badge-success-border);
 }
+
+.reference {
+  background-color: var(--ds-color-badge-reference-background);
+  color: var(--ds-color-badge-reference-text);
+  border-color: var(--ds-color-badge-reference-border);
+  border-radius: var(--ds-radius-lg);
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-section-header-font-size);
+  font-weight: var(--ds-font-weight-regular);
+  text-transform: none;
+}

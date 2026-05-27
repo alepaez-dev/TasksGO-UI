@@ -8,7 +8,6 @@ import { Selector } from '../../../components/Selector';
 import { NavItem } from '../../../components/NavItem';
 import { Avatar } from '../../../components/Avatar';
 import { SectionHeader } from '../../../components/SectionHeader';
-import { StatusDot } from '../../../components/StatusDot';
 import { Header } from '../../../components/Header';
 import { Breadcrumb } from '../../../components/Breadcrumb';
 import { SearchInput } from '../../../components/SearchInput';
@@ -34,6 +33,10 @@ import {
   orderByPrefixStyle,
   orderByValueStyle,
 } from '../../helpers/orderByStyles';
+import {
+  SidebarWorkspaceHeader,
+  SidebarStatusLabel,
+} from '../../helpers/pageChrome';
 import {
   type TaskItem,
   type DrawerFormState,
@@ -192,55 +195,11 @@ function TasksPageRender({
               }
               action={{ label: 'Add project', icon: 'add', onClick: () => {} }}
             />
-            <div style={{ marginTop: 'var(--ds-space-sidebar-section-gap)' }}>
-              <span
-                style={{
-                  fontFamily: 'var(--ds-text-section-header-font-family)',
-                  fontSize: 'var(--ds-text-section-header-font-size)',
-                  fontWeight: 'var(--ds-font-weight-medium)',
-                  letterSpacing: 'var(--ds-text-section-header-letter-spacing)',
-                  textTransform: 'uppercase' as const,
-                  color: 'var(--ds-color-text-secondary)',
-                }}
-              >
-                Active Workspace
-              </span>
-              <p
-                style={{
-                  margin: 'var(--ds-space-scale-sm) 0 var(--ds-space-scale-sm)',
-                  fontFamily: 'var(--ds-font-family-sans)',
-                  fontSize: 'var(--ds-text-page-title-font-size)',
-                  fontWeight: 'var(--ds-font-weight-bold)',
-                  color: 'var(--ds-color-text-primary)',
-                  lineHeight: 'var(--ds-text-page-title-line-height)',
-                }}
-              >
-                Project / {activeProject.label}
-              </p>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 'var(--ds-space-scale-sm)',
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: 'var(--ds-font-family-mono)',
-                    fontSize: 'var(--ds-text-section-header-font-size)',
-                    color: 'var(--ds-color-text-secondary)',
-                    letterSpacing: '0.05em',
-                    padding:
-                      'var(--ds-space-badge-padding-y) var(--ds-space-badge-padding-x)',
-                    borderRadius: 'var(--ds-radius-lg)',
-                    backgroundColor: 'var(--ds-color-border-default)',
-                  }}
-                >
-                  v4.1.0-alpha
-                </span>
-                <StatusDot variant="active" label="Healthy" />
-              </span>
-            </div>
+            <SidebarWorkspaceHeader
+              projectLabel={activeProject.label}
+              version="v4.1.0-alpha"
+              status={{ variant: 'active', label: 'Healthy' }}
+            />
           </>
         }
         footer={
@@ -252,20 +211,7 @@ function TasksPageRender({
               size="sm"
             />
             <NavItem icon="help" label="Support" href="/support" size="sm" />
-            <span
-              style={{
-                display: 'block',
-                marginTop: '16px',
-                padding: '0 12px',
-                fontSize: '9px',
-                fontFamily: 'var(--ds-font-family-mono)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.2em',
-                color: 'var(--ds-color-text-secondary)',
-              }}
-            >
-              System Stable
-            </span>
+            <SidebarStatusLabel>System Stable</SidebarStatusLabel>
           </>
         }
       >
