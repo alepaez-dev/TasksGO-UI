@@ -91,6 +91,10 @@ export {
 } from './components/BottomTabBar';
 export { Header, type HeaderProps } from './components/Header';
 export {
+  FloatingActionBar,
+  type FloatingActionBarProps,
+} from './components/FloatingActionBar';
+export {
   FloatingSearch,
   type FloatingSearchProps,
 } from './components/FloatingSearch';
