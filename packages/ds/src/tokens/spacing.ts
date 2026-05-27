@@ -1,6 +1,7 @@
 export const spacing = {
   layout: {
     sidebarWidth: '288px',
+    rightRailWidth: '320px',
     headerHeight: '56px',
     contentMaxWidth: '1024px',
     contentPaddingX: '40px',

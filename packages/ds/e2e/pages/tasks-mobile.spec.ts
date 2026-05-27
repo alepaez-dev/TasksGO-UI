@@ -164,9 +164,7 @@ test.describe('Mobile tasks — More menu', () => {
       .getByRole('navigation', { name: 'Main navigation' })
       .getByText('More')
       .click();
-    await expect(
-      page.getByRole('dialog', { name: 'More menu' }),
-    ).toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'More menu' })).toBeVisible();
 
     await page.getByRole('button', { name: /Engineering Core/i }).click();
     await expect(
@@ -187,9 +185,7 @@ test.describe('Mobile tasks — More menu', () => {
     await page.getByText('Mudatec').click();
     await page.keyboard.press('Escape');
 
-    await expect(
-      page.getByRole('banner').getByText('Tasks'),
-    ).toBeVisible();
+    await expect(page.getByRole('banner').getByText('Tasks')).toBeVisible();
   });
 });
 

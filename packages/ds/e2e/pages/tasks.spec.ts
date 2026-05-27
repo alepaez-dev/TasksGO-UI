@@ -5,7 +5,9 @@ const STORY_ID = 'pages-tasks--default';
 
 async function loadStory(page: import('@playwright/test').Page) {
   await page.goto(storyUrl(STORY_ID));
-  await page.getByRole('button', { name: /new task/i }).waitFor({ state: 'visible' });
+  await page
+    .getByRole('button', { name: /new task/i })
+    .waitFor({ state: 'visible' });
 }
 
 test.describe('Tasks page — drawer lifecycle', () => {
@@ -17,7 +19,9 @@ test.describe('Tasks page — drawer lifecycle', () => {
     await page.getByRole('button', { name: /new task/i }).click();
     const dialog = page.getByRole('dialog', { name: 'New task' });
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole('heading', { name: 'New task' })).toBeVisible();
+    await expect(
+      dialog.getByRole('heading', { name: 'New task' }),
+    ).toBeVisible();
   });
 
   test('cancel closes drawer and resets form state', async ({ page }) => {
@@ -50,7 +54,9 @@ test.describe('Tasks page — drawer lifecycle', () => {
     await expect(dialog).not.toBeVisible();
   });
 
-  test('close button remains clickable after scrolling drawer content', async ({ page }) => {
+  test('close button remains clickable after scrolling drawer content', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1280, height: 200 });
     await page.getByRole('button', { name: /new task/i }).click();
     const dialog = page.getByRole('dialog', { name: 'New task' });
@@ -79,8 +85,11 @@ test.describe('Tasks page — checkbox completion', () => {
   });
 
   test('checking a task moves it to completed section', async ({ page }) => {
-    const taskTitle = 'Refactor Kubernetes service discovery logic for edge nodes';
-    const checkbox = page.getByRole('checkbox', { name: `Toggle ${taskTitle}` });
+    const taskTitle =
+      'Refactor Kubernetes service discovery logic for edge nodes';
+    const checkbox = page.getByRole('checkbox', {
+      name: `Toggle ${taskTitle}`,
+    });
 
     const activeSummary = page.getByText('Active Tasks').first();
     const completedSummary = page.getByText('Completed Tasks').first();
@@ -90,13 +99,19 @@ test.describe('Tasks page — checkbox completion', () => {
 
     await checkbox.click();
 
-    await expect(page.getByRole('checkbox', { name: `Toggle ${taskTitle}` })).toBeChecked();
+    await expect(
+      page.getByRole('checkbox', { name: `Toggle ${taskTitle}` }),
+    ).toBeChecked();
     await expect(completedSummary).toBeVisible();
   });
 
-  test('unchecking a completed task moves it back to active', async ({ page }) => {
+  test('unchecking a completed task moves it back to active', async ({
+    page,
+  }) => {
     const taskTitle = 'Update root CA certificates for all build agents';
-    const checkbox = page.getByRole('checkbox', { name: `Toggle ${taskTitle}` });
+    const checkbox = page.getByRole('checkbox', {
+      name: `Toggle ${taskTitle}`,
+    });
 
     await expect(checkbox).toBeChecked();
     await checkbox.click();
@@ -111,8 +126,11 @@ test.describe('Tasks page — click to edit', () => {
     await loadStory(page);
   });
 
-  test('clicking a task opens drawer with pre-filled data', async ({ page }) => {
-    const taskTitle = 'Refactor Kubernetes service discovery logic for edge nodes';
+  test('clicking a task opens drawer with pre-filled data', async ({
+    page,
+  }) => {
+    const taskTitle =
+      'Refactor Kubernetes service discovery logic for edge nodes';
     const taskRow = page.getByText(taskTitle);
     await taskRow.click();
 
@@ -123,8 +141,11 @@ test.describe('Tasks page — click to edit', () => {
   });
 
   test('clicking checkbox does not open edit drawer', async ({ page }) => {
-    const taskTitle = 'Refactor Kubernetes service discovery logic for edge nodes';
-    const checkbox = page.getByRole('checkbox', { name: `Toggle ${taskTitle}` });
+    const taskTitle =
+      'Refactor Kubernetes service discovery logic for edge nodes';
+    const checkbox = page.getByRole('checkbox', {
+      name: `Toggle ${taskTitle}`,
+    });
     await checkbox.click();
 
     const dialog = page.getByRole('dialog');
@@ -140,17 +161,25 @@ test.describe('Tasks page — selector mutual exclusion', () => {
   });
 
   test('opening one selector closes another', async ({ page }) => {
-    const assigneeButton = page.getByRole('button', { name: 'Select assignee' });
-    const priorityButton = page.getByRole('button', { name: 'Select priority' });
+    const assigneeButton = page.getByRole('button', {
+      name: 'Select assignee',
+    });
+    const priorityButton = page.getByRole('button', {
+      name: 'Select priority',
+    });
 
     // Open priority first (compact dropdown, won't overlay assignee above)
     await priorityButton.click();
-    const priorityListbox = page.getByRole('listbox', { name: 'Select priority' });
+    const priorityListbox = page.getByRole('listbox', {
+      name: 'Select priority',
+    });
     await expect(priorityListbox).toBeVisible();
 
     // Opening assignee should auto-close priority via useSelectorGroup
     await assigneeButton.click();
-    const assigneeListbox = page.getByRole('listbox', { name: 'Select assignee' });
+    const assigneeListbox = page.getByRole('listbox', {
+      name: 'Select assignee',
+    });
     await expect(assigneeListbox).toBeVisible();
     await expect(priorityListbox).not.toBeVisible();
   });
@@ -164,7 +193,9 @@ test.describe('Tasks page — order by', () => {
   test('sort selector does not collapse the section', async ({ page }) => {
     const sortButton = page.getByRole('button', { name: 'Sort tasks by' });
     await sortButton.click();
-    await expect(page.getByRole('listbox', { name: 'Sort tasks by' })).toBeVisible();
+    await expect(
+      page.getByRole('listbox', { name: 'Sort tasks by' }),
+    ).toBeVisible();
 
     // Close by clicking the trigger again — section should stay open
     await sortButton.click();
@@ -174,7 +205,9 @@ test.describe('Tasks page — order by', () => {
   test('sorting by priority shows critical before medium', async ({ page }) => {
     const priorities = page.getByText(/^(critical|high|medium|low)$/i);
     const labels = await priorities.allTextContents();
-    const criticalIndex = labels.findIndex((l) => l.toLowerCase() === 'critical');
+    const criticalIndex = labels.findIndex(
+      (l) => l.toLowerCase() === 'critical',
+    );
     const mediumIndex = labels.findIndex((l) => l.toLowerCase() === 'medium');
     expect(criticalIndex).toBeLessThan(mediumIndex);
   });
@@ -191,7 +224,10 @@ test.describe('Tasks page — order by', () => {
     await page.getByRole('option', { name: 'Due date' }).click();
 
     // Web-first wait: second date changes after sort flushes
-    await expect(times.nth(1)).not.toHaveAttribute('datetime', preSortSecond ?? '');
+    await expect(times.nth(1)).not.toHaveAttribute(
+      'datetime',
+      preSortSecond ?? '',
+    );
 
     const dateTimes = await times.evaluateAll((els) =>
       els.map((el) => el.getAttribute('datetime')),
@@ -205,7 +241,9 @@ test.describe('Tasks page — order by', () => {
 });
 
 test.describe('Tasks page — focus trap', () => {
-  test('Tab cycles within drawer and Escape returns focus to trigger', async ({ page }) => {
+  test('Tab cycles within drawer and Escape returns focus to trigger', async ({
+    page,
+  }) => {
     await loadStory(page);
 
     const trigger = page.getByRole('button', { name: /new task/i });
@@ -240,8 +278,12 @@ test.describe('Tasks page — filter', () => {
 
   test('typing in filter input shows only matching tasks', async ({ page }) => {
     const filterInput = page.getByPlaceholder('Filter tasks...');
-    const kubernetesTask = page.getByText('Refactor Kubernetes service discovery logic for edge nodes');
-    const iamTask = page.getByText('Audit IAM permissions for the staging database cluster');
+    const kubernetesTask = page.getByText(
+      'Refactor Kubernetes service discovery logic for edge nodes',
+    );
+    const iamTask = page.getByText(
+      'Audit IAM permissions for the staging database cluster',
+    );
 
     await expect(kubernetesTask).toBeVisible();
     await expect(iamTask).toBeVisible();

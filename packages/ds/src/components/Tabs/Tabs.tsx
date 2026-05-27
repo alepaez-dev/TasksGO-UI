@@ -13,10 +13,13 @@ export interface TabItem {
   disabled?: boolean;
 }
 
+type TabsSize = 'sm' | 'md';
+
 export interface TabsProps extends HTMLAttributes<HTMLDivElement> {
   items: readonly TabItem[];
   value: string;
   onValueChange: (value: string) => void;
+  size?: TabsSize;
   idPrefix?: string;
   'aria-label'?: string;
 }
@@ -35,6 +38,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
       items,
       value,
       onValueChange,
+      size = 'md',
       idPrefix,
       'aria-label': ariaLabel,
       className,
@@ -109,7 +113,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
         role="tablist"
         aria-label={ariaLabel}
         aria-orientation="horizontal"
-        className={cn(styles.tablist, className)}
+        className={cn(styles.tablist, styles[size], className)}
         {...rest}
       >
         {items.map((item, index) => {
