@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">1/41 prop type error</a><a class="filter-pill info" data-k="infos" href="#filter-infos">41/41 infos</a><span class="filter-pill ok" aria-disabled="true">170 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/42 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">42/42 infos</a><span class="filter-pill ok" aria-disabled="true">171 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -5098,7 +5098,7 @@ variant?: | &#39;active&#39;
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Tabs</h2>
       <div class="badges">
-        <label for="c-34-components-tabs-props" class="badge ok as-toggle">5 prop types</label>
+        <label for="c-34-components-tabs-props" class="badge ok as-toggle">6 prop types</label>
         <label for="c-34-components-tabs-info" class="badge info as-toggle">1 info</label>
         <label for="c-34-components-tabs-stories" class="badge ok as-toggle">5 stories</label>
         
@@ -5132,7 +5132,7 @@ variant?: | &#39;active&#39;
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">5 prop types</span>
+              <span class="badge ok">6 prop types</span>
             </div>
             <pre><code>Component: src/components/Tabs/Tabs.tsx::Tabs</code></pre>
             <pre><code>Props:</code></pre>
@@ -5143,6 +5143,8 @@ idPrefix?: string
 items: unknown
 
 onValueChange: (value: string) =&gt; void
+
+size?: &#39;sm&#39; | &#39;md&#39; = &#39;md&#39;
 
 value: string</code></pre>
           </div>
@@ -6723,6 +6725,724 @@ trailing?: ReactNode</code></pre>
 </article>
 <article
   class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TicketOverview">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> TicketOverview</h2>
+      <div class="badges">
+        <label for="c-40-pages-ticket-overview-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-40-pages-ticket-overview-info" class="badge info as-toggle">1 info</label>
+        <label for="c-40-pages-ticket-overview-stories" class="badge ok as-toggle">1 story</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx">pages-ticket-overview · ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-40-pages-ticket-overview-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-40-pages-ticket-overview-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-40-pages-ticket-overview-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
+  583 | }
+  584 |
+&gt; 585 | const meta: Meta = {
+      | ^
+  586 |   title: &#39;Pages/Ticket Overview&#39;,
+  587 |   parameters: {
+  588 |     layout: &#39;fullscreen&#39;,
+
+./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import { desktopViewports } from &#39;../../../../.storybook/preview&#39;;
+import { Sidebar } from &#39;../../../components/Sidebar&#39;;
+import { Selector } from &#39;../../../components/Selector&#39;;
+import { NavItem } from &#39;../../../components/NavItem&#39;;
+import { SectionHeader } from &#39;../../../components/SectionHeader&#39;;
+import { StatusDot } from &#39;../../../components/StatusDot&#39;;
+import { Header } from &#39;../../../components/Header&#39;;
+import { Footer } from &#39;../../../components/Footer&#39;;
+import { Button } from &#39;../../../components/Button&#39;;
+import { IconButton } from &#39;../../../components/IconButton&#39;;
+import { cn } from &#39;../../../utils/cn&#39;;
+import { Avatar } from &#39;../../../components/Avatar&#39;;
+import { AvatarGroup } from &#39;../../../components/AvatarGroup&#39;;
+import { Badge } from &#39;../../../components/Badge&#39;;
+import { Breadcrumb } from &#39;../../../components/Breadcrumb&#39;;
+import { TicketTitleBlock } from &#39;../../../components/TicketTitleBlock&#39;;
+import { Tabs, getTabId, getTabPanelId } from &#39;../../../components/Tabs&#39;;
+import { Card } from &#39;../../../components/Card&#39;;
+import { CollapsibleCard } from &#39;../../../components/CollapsibleCard&#39;;
+import { ChecklistRow } from &#39;../../../components/ChecklistRow&#39;;
+import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
+import { TicketId } from &#39;../../../components/TicketId&#39;;
+import { PipelineHierarchyPanel } from &#39;../../../components/PipelineHierarchyPanel&#39;;
+import { useTicketOverviewState } from &#39;./useTicketOverviewState&#39;;
+import {
+  getPerson,
+  getPriorityOption,
+  getProject,
+  getStatusOption,
+  navItems,
+  peopleOptions,
+  priorityOptions,
+  projectList,
+  statusOptions,
+  tabs,
+  ticket,
+} from &#39;./shared&#39;;
+import styles from &#39;./TicketOverviewDesktop.module.css&#39;;
+
+const TAB_ID_PREFIX = &#39;ticket-overview&#39;;
+
+function TicketOverviewRender() {
+  const {
+    project,
+    setProject,
+    projectSelector: {
+      ref: projectSelectorRef,
+      open: projectSelectorOpen,
+      onOpenChange: onProjectSelectorOpenChange,
+    },
+    activeNav,
+    setActiveNav,
+    activeTab,
+    setActiveTab,
+    assignee,
+    setAssignee,
+    assigneeSelector: {
+      ref: assigneeSelectorRef,
+      open: assigneeSelectorOpen,
+      onOpenChange: onAssigneeSelectorOpenChange,
+    },
+    reporter,
+    setReporter,
+    reporterSelector: {
+      ref: reporterSelectorRef,
+      open: reporterSelectorOpen,
+      onOpenChange: onReporterSelectorOpenChange,
+    },
+    status,
+    setStatus,
+    statusSelector: {
+      ref: statusSelectorRef,
+      open: statusSelectorOpen,
+      onOpenChange: onStatusSelectorOpenChange,
+    },
+    priority,
+    setPriority,
+    prioritySelector: {
+      ref: prioritySelectorRef,
+      open: prioritySelectorOpen,
+      onOpenChange: onPrioritySelectorOpenChange,
+    },
+    pipelineStages,
+    setPipelineStages,
+    activeStage,
+    setActiveStage,
+    pipelineOpen,
+    togglePipelineOpen,
+  } = useTicketOverviewState();
+  const activeProject = getProject(project);
+  const activeAssignee = getPerson(assignee);
+  const activeReporter = getPerson(reporter);
+  const activeStatus = getStatusOption(status);
+  const activePriority = getPriorityOption(priority);
+
+  const navClick = (id: string) =&gt; (e: React.MouseEvent) =&gt; {
+    e.preventDefault();
+    setActiveNav(id);
+  };
+
+  return (
+    &lt;div className={styles.shell}&gt;
+      &lt;Sidebar
+        aria-label=&quot;Sidebar navigation&quot;
+        header={
+          &lt;&gt;
+            &lt;Selector
+              ref={projectSelectorRef}
+              options={projectList}
+              value={project}
+              onValueChange={setProject}
+              open={projectSelectorOpen}
+              onOpenChange={onProjectSelectorOpenChange}
+              triggerPrefix={
+                &lt;Avatar
+                  initial={activeProject.initial}
+                  aria-label={activeProject.label}
+                /&gt;
+              }
+              action={{ label: &#39;Add project&#39;, icon: &#39;add&#39;, onClick: () =&gt; {} }}
+            /&gt;
+            &lt;div style={{ marginTop: &#39;var(--ds-space-sidebar-section-gap)&#39; }}&gt;
+              &lt;span
+                style={{
+                  fontFamily: &#39;var(--ds-text-section-header-font-family)&#39;,
+                  fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
+                  fontWeight: &#39;var(--ds-font-weight-medium)&#39;,
+                  letterSpacing: &#39;var(--ds-text-section-header-letter-spacing)&#39;,
+                  textTransform: &#39;uppercase&#39; as const,
+                  color: &#39;var(--ds-color-text-secondary)&#39;,
+                }}
+              &gt;
+                Active Workspace
+              &lt;/span&gt;
+              &lt;p
+                style={{
+                  margin: &#39;var(--ds-space-scale-sm) 0 var(--ds-space-scale-sm)&#39;,
+                  fontFamily: &#39;var(--ds-font-family-sans)&#39;,
+                  fontSize: &#39;var(--ds-text-page-title-font-size)&#39;,
+                  fontWeight: &#39;var(--ds-font-weight-bold)&#39;,
+                  color: &#39;var(--ds-color-text-primary)&#39;,
+                  lineHeight: &#39;var(--ds-text-page-title-line-height)&#39;,
+                }}
+              &gt;
+                Project / {activeProject.label}
+              &lt;/p&gt;
+              &lt;span
+                style={{
+                  display: &#39;inline-flex&#39;,
+                  alignItems: &#39;center&#39;,
+                  gap: &#39;var(--ds-space-scale-sm)&#39;,
+                }}
+              &gt;
+                &lt;span
+                  style={{
+                    fontFamily: &#39;var(--ds-font-family-mono)&#39;,
+                    fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
+                    color: &#39;var(--ds-color-text-secondary)&#39;,
+                    letterSpacing: &#39;0.05em&#39;,
+                    padding:
+                      &#39;var(--ds-space-badge-padding-y) var(--ds-space-badge-padding-x)&#39;,
+                    borderRadius: &#39;var(--ds-radius-lg)&#39;,
+                    backgroundColor: &#39;var(--ds-color-border-default)&#39;,
+                  }}
+                &gt;
+                  v4.1.0-alpha
+                &lt;/span&gt;
+                &lt;StatusDot variant=&quot;active&quot; label=&quot;Healthy&quot; /&gt;
+              &lt;/span&gt;
+            &lt;/div&gt;
+          &lt;/&gt;
+        }
+        footer={
+          &lt;&gt;
+            &lt;NavItem
+              icon=&quot;settings&quot;
+              label=&quot;Settings&quot;
+              href=&quot;/settings&quot;
+              size=&quot;sm&quot;
+            /&gt;
+            &lt;NavItem icon=&quot;help&quot; label=&quot;Support&quot; href=&quot;/support&quot; size=&quot;sm&quot; /&gt;
+            &lt;span
+              style={{
+                display: &#39;block&#39;,
+                marginTop: &#39;16px&#39;,
+                padding: &#39;0 12px&#39;,
+                fontSize: &#39;9px&#39;,
+                fontFamily: &#39;var(--ds-font-family-mono)&#39;,
+                textTransform: &#39;uppercase&#39;,
+                letterSpacing: &#39;0.2em&#39;,
+                color: &#39;var(--ds-color-text-secondary)&#39;,
+              }}
+            &gt;
+              System Stable
+            &lt;/span&gt;
+          &lt;/&gt;
+        }
+      &gt;
+        &lt;SectionHeader&gt;Project Artifacts&lt;/SectionHeader&gt;
+        {navItems.map((item) =&gt; (
+          &lt;NavItem
+            key={item.id}
+            icon={item.icon}
+            label={item.label}
+            href={item.href}
+            active={activeNav === item.id}
+            onClick={navClick(item.id)}
+          /&gt;
+        ))}
+      &lt;/Sidebar&gt;
+
+      &lt;div className={styles.workArea}&gt;
+        &lt;Header
+          left={&lt;Breadcrumb segments={ticket.breadcrumb} /&gt;}
+          right={
+            &lt;&gt;
+              &lt;Button variant=&quot;ghost&quot; size=&quot;sm&quot;&gt;
+                Ask
+              &lt;/Button&gt;
+              &lt;Button variant=&quot;ghost&quot; size=&quot;sm&quot;&gt;
+                Comment
+              &lt;/Button&gt;
+              &lt;Button variant=&quot;primary&quot; size=&quot;sm&quot;&gt;
+                Add scenario
+              &lt;/Button&gt;
+              &lt;IconButton icon=&quot;link&quot; size=&quot;sm&quot; aria-label=&quot;Share ticket&quot; /&gt;
+              &lt;IconButton icon=&quot;flag&quot; size=&quot;sm&quot; aria-label=&quot;Star ticket&quot; /&gt;
+              &lt;IconButton
+                icon=&quot;more_horiz&quot;
+                size=&quot;sm&quot;
+                aria-label=&quot;More actions&quot;
+              /&gt;
+              &lt;Avatar initial=&quot;AP&quot; variant=&quot;profile&quot; aria-label=&quot;Ale Paez&quot; /&gt;
+            &lt;/&gt;
+          }
+        /&gt;
+
+        &lt;div className={styles.body}&gt;
+          &lt;div className={styles.titleAndTabs}&gt;
+            &lt;div className={styles.titleSection}&gt;
+              &lt;TicketTitleBlock
+                title={ticket.title}
+                badges={ticket.badges}
+                avatar={
+                  &lt;AvatarGroup aria-label=&quot;Assignee and reporter&quot;&gt;
+                    &lt;Avatar
+                      variant=&quot;profile&quot;
+                      size=&quot;sm&quot;
+                      initial={activeAssignee.initial}
+                      aria-label={activeAssignee.label}
+                      style={{ backgroundColor: activeAssignee.color }}
+                    /&gt;
+                    &lt;Avatar
+                      variant=&quot;profile&quot;
+                      size=&quot;sm&quot;
+                      initial={activeReporter.initial}
+                      aria-label={activeReporter.label}
+                      style={{ backgroundColor: activeReporter.color }}
+                    /&gt;
+                  &lt;/AvatarGroup&gt;
+                }
+              /&gt;
+            &lt;/div&gt;
+            &lt;div className={styles.tabsBar}&gt;
+              &lt;Tabs
+                className={styles.tabs}
+                items={tabs}
+                value={activeTab}
+                onValueChange={setActiveTab}
+                size=&quot;sm&quot;
+                idPrefix={TAB_ID_PREFIX}
+                aria-label=&quot;Ticket sections&quot;
+              /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;div className={styles.scrollArea}&gt;
+            &lt;div className={styles.content}&gt;
+              &lt;div
+                role=&quot;tabpanel&quot;
+                id={getTabPanelId(TAB_ID_PREFIX, &#39;overview&#39;)}
+                aria-labelledby={getTabId(TAB_ID_PREFIX, &#39;overview&#39;)}
+                className={styles.overviewPanel}
+                hidden={activeTab !== &#39;overview&#39;}
+              &gt;
+                &lt;section className={styles.section}&gt;
+                  &lt;SectionHeader headingLevel={2}&gt;Description&lt;/SectionHeader&gt;
+                  &lt;p className={styles.prose}&gt;{ticket.description}&lt;/p&gt;
+                &lt;/section&gt;
+
+                &lt;section className={styles.section}&gt;
+                  &lt;SectionHeader headingLevel={2}&gt;Why&lt;/SectionHeader&gt;
+                  &lt;ul className={styles.bulletList}&gt;
+                    {ticket.why.map((item) =&gt; (
+                      &lt;li key={item}&gt;{item}&lt;/li&gt;
+                    ))}
+                  &lt;/ul&gt;
+                &lt;/section&gt;
+
+                &lt;section className={styles.section}&gt;
+                  &lt;SectionHeader headingLevel={2}&gt;Scope&lt;/SectionHeader&gt;
+                  &lt;div className={styles.scopeGrid}&gt;
+                    &lt;Card
+                      header={
+                        &lt;span className={styles.scopeCardLabel}&gt;
+                          {ticket.scope.included.title}
+                        &lt;/span&gt;
+                      }
+                    &gt;
+                      &lt;ul className={styles.scopeList}&gt;
+                        {ticket.scope.included.items.map((item) =&gt; (
+                          &lt;li key={item}&gt;{item}&lt;/li&gt;
+                        ))}
+                      &lt;/ul&gt;
+                    &lt;/Card&gt;
+                    &lt;Card
+                      header={
+                        &lt;span className={styles.scopeCardLabel}&gt;
+                          {ticket.scope.excluded.title}
+                        &lt;/span&gt;
+                      }
+                    &gt;
+                      &lt;ul className={styles.scopeList}&gt;
+                        {ticket.scope.excluded.items.map((item) =&gt; (
+                          &lt;li key={item}&gt;{item}&lt;/li&gt;
+                        ))}
+                      &lt;/ul&gt;
+                    &lt;/Card&gt;
+                  &lt;/div&gt;
+                &lt;/section&gt;
+
+                &lt;section className={styles.section}&gt;
+                  &lt;SectionHeader headingLevel={2}&gt;QA Summary&lt;/SectionHeader&gt;
+                  &lt;CollapsibleCard
+                    defaultOpen
+                    header={
+                      &lt;span className={styles.qaCardHeader}&gt;
+                        &lt;span className={styles.qaCardTitle}&gt;
+                          {ticket.qaSummary.title}
+                        &lt;/span&gt;
+                        &lt;Badge variant=&quot;critical&quot;&gt;
+                          {ticket.qaSummary.failedCount} Failed
+                        &lt;/Badge&gt;
+                        &lt;span className={styles.qaCardMeta}&gt;
+                          {ticket.qaSummary.lastChecked}
+                        &lt;/span&gt;
+                      &lt;/span&gt;
+                    }
+                  &gt;
+                    {ticket.qaSummary.items.map((item) =&gt; (
+                      &lt;ChecklistRow
+                        key={item.id}
+                        status={item.status}
+                        label={item.label}
+                        meta={
+                          item.metaVariant ? (
+                            &lt;Badge variant={item.metaVariant}&gt;
+                              {item.meta}
+                            &lt;/Badge&gt;
+                          ) : (
+                            item.meta
+                          )
+                        }
+                      /&gt;
+                    ))}
+                  &lt;/CollapsibleCard&gt;
+                &lt;/section&gt;
+              &lt;/div&gt;
+
+              {([&#39;dev&#39;, &#39;qa&#39;, &#39;activity&#39;] as const).map((tabValue) =&gt; (
+                &lt;div
+                  key={tabValue}
+                  role=&quot;tabpanel&quot;
+                  id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
+                  aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
+                  className={styles.tabPanelEmpty}
+                  hidden={activeTab !== tabValue}
+                &gt;
+                  Nothing here yet.
+                &lt;/div&gt;
+              ))}
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;aside aria-label=&quot;Ticket metadata&quot; className={styles.rightRail}&gt;
+            &lt;SectionHeader headingLevel={2}&gt;Metadata&lt;/SectionHeader&gt;
+            &lt;div className={styles.metadataList}&gt;
+              &lt;PropertyRow icon=&quot;person&quot; label=&quot;Assignee&quot;&gt;
+                &lt;Selector
+                  ref={assigneeSelectorRef}
+                  className={styles.metadataSelector}
+                  options={peopleOptions}
+                  value={assignee}
+                  onValueChange={setAssignee}
+                  open={assigneeSelectorOpen}
+                  onOpenChange={onAssigneeSelectorOpenChange}
+                  variant=&quot;inline&quot;
+                  dropdownAlign=&quot;end&quot;
+                  triggerPrefix={
+                    &lt;Avatar
+                      variant=&quot;profile&quot;
+                      size=&quot;sm&quot;
+                      initial={activeAssignee.initial}
+                      aria-label={activeAssignee.label}
+                      style={{ backgroundColor: activeAssignee.color }}
+                    /&gt;
+                  }
+                  renderTriggerLabel={(opt) =&gt; opt.label}
+                  renderOptionIndicator={(opt) =&gt; {
+                    const person = peopleOptions.find(
+                      (p) =&gt; p.value === opt.value,
+                    );
+                    return person ? (
+                      &lt;Avatar
+                        variant=&quot;profile&quot;
+                        size=&quot;sm&quot;
+                        initial={person.initial}
+                        aria-label={person.label}
+                        style={{ backgroundColor: person.color }}
+                      /&gt;
+                    ) : null;
+                  }}
+                  aria-label=&quot;Select assignee&quot;
+                /&gt;
+              &lt;/PropertyRow&gt;
+              &lt;PropertyRow icon=&quot;person&quot; label=&quot;Reporter&quot;&gt;
+                &lt;Selector
+                  ref={reporterSelectorRef}
+                  className={styles.metadataSelector}
+                  options={peopleOptions}
+                  value={reporter}
+                  onValueChange={setReporter}
+                  open={reporterSelectorOpen}
+                  onOpenChange={onReporterSelectorOpenChange}
+                  variant=&quot;inline&quot;
+                  dropdownAlign=&quot;end&quot;
+                  triggerPrefix={
+                    &lt;Avatar
+                      variant=&quot;profile&quot;
+                      size=&quot;sm&quot;
+                      initial={activeReporter.initial}
+                      aria-label={activeReporter.label}
+                      style={{ backgroundColor: activeReporter.color }}
+                    /&gt;
+                  }
+                  renderTriggerLabel={(opt) =&gt; opt.label}
+                  renderOptionIndicator={(opt) =&gt; {
+                    const person = peopleOptions.find(
+                      (p) =&gt; p.value === opt.value,
+                    );
+                    return person ? (
+                      &lt;Avatar
+                        variant=&quot;profile&quot;
+                        size=&quot;sm&quot;
+                        initial={person.initial}
+                        aria-label={person.label}
+                        style={{ backgroundColor: person.color }}
+                      /&gt;
+                    ) : null;
+                  }}
+                  aria-label=&quot;Select reporter&quot;
+                /&gt;
+              &lt;/PropertyRow&gt;
+              &lt;PropertyRow icon=&quot;schedule&quot; label=&quot;Status&quot;&gt;
+                &lt;Selector
+                  ref={statusSelectorRef}
+                  className={styles.metadataSelector}
+                  options={statusOptions}
+                  value={status}
+                  onValueChange={setStatus}
+                  open={statusSelectorOpen}
+                  onOpenChange={onStatusSelectorOpenChange}
+                  variant=&quot;inline&quot;
+                  dropdownAlign=&quot;end&quot;
+                  renderTriggerLabel={() =&gt; (
+                    &lt;Badge variant={activeStatus.variant}&gt;
+                      {activeStatus.label}
+                    &lt;/Badge&gt;
+                  )}
+                  renderOptionIndicator={() =&gt; null}
+                  aria-label=&quot;Select status&quot;
+                /&gt;
+              &lt;/PropertyRow&gt;
+              &lt;PropertyRow icon=&quot;signal_cellular_alt&quot; label=&quot;Priority&quot;&gt;
+                &lt;Selector
+                  ref={prioritySelectorRef}
+                  className={styles.metadataSelector}
+                  options={priorityOptions}
+                  value={priority}
+                  onValueChange={setPriority}
+                  open={prioritySelectorOpen}
+                  onOpenChange={onPrioritySelectorOpenChange}
+                  variant=&quot;inline&quot;
+                  dropdownAlign=&quot;end&quot;
+                  renderTriggerLabel={() =&gt; (
+                    &lt;span className={styles.priorityValue}&gt;
+                      {activePriority.label}
+                    &lt;/span&gt;
+                  )}
+                  aria-label=&quot;Select priority&quot;
+                /&gt;
+              &lt;/PropertyRow&gt;
+              &lt;PropertyRow icon=&quot;tag&quot; label=&quot;Environments&quot;&gt;
+                &lt;span className={styles.environments}&gt;
+                  &lt;span
+                    className={styles.envChips}
+                    tabIndex={0}
+                    role=&quot;region&quot;
+                    aria-label=&quot;Pipeline environments&quot;
+                  &gt;
+                    {pipelineStages.map((stage) =&gt; (
+                      &lt;Badge
+                        key={stage.value}
+                        variant={
+                          stage.value === activeStage ? &#39;progress&#39; : &#39;default&#39;
+                        }
+                      &gt;
+                        {stage.label}
+                      &lt;/Badge&gt;
+                    ))}
+                  &lt;/span&gt;
+                  &lt;IconButton
+                    icon=&quot;chevron_right&quot;
+                    size=&quot;sm&quot;
+                    className={cn(pipelineOpen &amp;&amp; styles.envChevronOpen)}
+                    onClick={togglePipelineOpen}
+                    aria-expanded={pipelineOpen}
+                    aria-controls=&quot;ticket-pipeline-hierarchy&quot;
+                    aria-label={
+                      pipelineOpen
+                        ? &#39;Close pipeline hierarchy&#39;
+                        : &#39;Open pipeline hierarchy&#39;
+                    }
+                  /&gt;
+                &lt;/span&gt;
+              &lt;/PropertyRow&gt;
+            &lt;/div&gt;
+
+            {pipelineOpen &amp;&amp; (
+              &lt;PipelineHierarchyPanel
+                id=&quot;ticket-pipeline-hierarchy&quot;
+                title={ticket.pipeline.title}
+                stages={pipelineStages}
+                activeValue={activeStage}
+                onSelect={setActiveStage}
+                onReorder={setPipelineStages}
+                reorderHint={ticket.pipeline.reorderHint}
+                addLabel={ticket.pipeline.addLabel}
+                onAddStage={() =&gt; {}}
+              /&gt;
+            )}
+          &lt;/aside&gt;
+        &lt;/div&gt;
+
+        &lt;Footer
+          left={
+            &lt;span
+              style={{
+                display: &#39;inline-flex&#39;,
+                alignItems: &#39;center&#39;,
+                gap: &#39;var(--ds-space-scale-md)&#39;,
+              }}
+            &gt;
+              &lt;TicketId&gt;{ticket.footer.ticketIdLabel}&lt;/TicketId&gt;
+              &lt;span
+                style={{
+                  fontFamily: &#39;var(--ds-font-family-mono)&#39;,
+                  fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
+                  letterSpacing: &#39;0.05em&#39;,
+                  textTransform: &#39;uppercase&#39;,
+                  color: &#39;var(--ds-color-text-secondary)&#39;,
+                }}
+              &gt;
+                {ticket.footer.lastEdited}
+              &lt;/span&gt;
+            &lt;/span&gt;
+          }
+        /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+const meta: Meta = {
+  title: &#39;Pages/Ticket Overview&#39;,
+  parameters: {
+    layout: &#39;fullscreen&#39;,
+    viewport: { options: desktopViewports },
+    a11y: {
+      config: {
+        rules: [
+          // .titleAndTabs uses a horizontal linear-gradient bg. axe-core
+          // can&#39;t compute color-contrast through gradients and returns
+          // &#39;incomplete&#39; for every text node sitting on it. Manually
+          // verified: at peak 15% mix of accent-subtle over white the
+          // effective bg is ≈ #fafaf3, giving text-primary (#1a1a1a)
+          // a ~13.5:1 ratio — well above WCAG 2 AA&#39;s 4.5:1.
+          { id: &#39;color-contrast&#39;, enabled: false },
+        ],
+      },
+    },
+  },
+};
+export default meta;
+
+type Story = StoryObj;
+
+export const Default: Story = {
+  render: () =&gt; &lt;TicketOverviewRender /&gt;,
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import {
+    Avatar,
+    AvatarGroup,
+    Badge,
+    Breadcrumb,
+    Button,
+    Card,
+    ChecklistRow,
+    CollapsibleCard,
+    Footer,
+    Header,
+    IconButton,
+    NavItem,
+    PipelineHierarchyPanel,
+    PropertyRow,
+    SectionHeader,
+    Selector,
+    Sidebar,
+    StatusDot,
+    Tabs,
+    TicketId,
+    TicketTitleBlock,
+} from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Default</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Default = () =&gt; &lt;TicketOverviewRender /&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
   no-error 
   has-info 
   no-story-error
@@ -6733,9 +7453,9 @@ trailing?: ReactNode</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> TicketTitleBlock</h2>
       <div class="badges">
-        <label for="c-40-components-tickettitleblock-props" class="badge ok as-toggle">3 prop types</label>
-        <label for="c-40-components-tickettitleblock-info" class="badge info as-toggle">1 info</label>
-        <label for="c-40-components-tickettitleblock-stories" class="badge ok as-toggle">5 stories</label>
+        <label for="c-41-components-tickettitleblock-props" class="badge ok as-toggle">3 prop types</label>
+        <label for="c-41-components-tickettitleblock-info" class="badge info as-toggle">1 info</label>
+        <label for="c-41-components-tickettitleblock-stories" class="badge ok as-toggle">5 stories</label>
         
       </div>
     </div>
@@ -6747,10 +7467,10 @@ trailing?: ReactNode</code></pre>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-40-components-tickettitleblock-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-40-components-tickettitleblock-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-41-components-tickettitleblock-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-41-components-tickettitleblock-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  <input id="c-40-components-tickettitleblock-props" class="tg tg-props" type="checkbox" hidden />
+  <input id="c-41-components-tickettitleblock-props" class="tg tg-props" type="checkbox" hidden />
 
   <div class="panels">
     
@@ -6881,7 +7601,7 @@ title: string</code></pre>
           <label for="no-component-found-toggle" class="group-header">
             <span class="caret">▸</span>
             <span class="group-title">No component found</span>
-            <span class="group-count">1</span>
+            <span class="group-count">2</span>
           </label>
           <div class="group-cards">
 <article
@@ -7665,6 +8385,724 @@ export const EmptyState: Story = {
               
               
               <pre><code>const EmptyState = () =&gt; &lt;TasksPageRender initialTasks={[]} /&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TicketOverview">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> TicketOverview</h2>
+      <div class="badges">
+        <label for="c-error-1-pages-ticket-overview-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-error-1-pages-ticket-overview-info" class="badge info as-toggle">1 info</label>
+        <label for="c-error-1-pages-ticket-overview-stories" class="badge ok as-toggle">1 story</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx">pages-ticket-overview · ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-error-1-pages-ticket-overview-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-error-1-pages-ticket-overview-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-error-1-pages-ticket-overview-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
+  583 | }
+  584 |
+&gt; 585 | const meta: Meta = {
+      | ^
+  586 |   title: &#39;Pages/Ticket Overview&#39;,
+  587 |   parameters: {
+  588 |     layout: &#39;fullscreen&#39;,
+
+./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import { desktopViewports } from &#39;../../../../.storybook/preview&#39;;
+import { Sidebar } from &#39;../../../components/Sidebar&#39;;
+import { Selector } from &#39;../../../components/Selector&#39;;
+import { NavItem } from &#39;../../../components/NavItem&#39;;
+import { SectionHeader } from &#39;../../../components/SectionHeader&#39;;
+import { StatusDot } from &#39;../../../components/StatusDot&#39;;
+import { Header } from &#39;../../../components/Header&#39;;
+import { Footer } from &#39;../../../components/Footer&#39;;
+import { Button } from &#39;../../../components/Button&#39;;
+import { IconButton } from &#39;../../../components/IconButton&#39;;
+import { cn } from &#39;../../../utils/cn&#39;;
+import { Avatar } from &#39;../../../components/Avatar&#39;;
+import { AvatarGroup } from &#39;../../../components/AvatarGroup&#39;;
+import { Badge } from &#39;../../../components/Badge&#39;;
+import { Breadcrumb } from &#39;../../../components/Breadcrumb&#39;;
+import { TicketTitleBlock } from &#39;../../../components/TicketTitleBlock&#39;;
+import { Tabs, getTabId, getTabPanelId } from &#39;../../../components/Tabs&#39;;
+import { Card } from &#39;../../../components/Card&#39;;
+import { CollapsibleCard } from &#39;../../../components/CollapsibleCard&#39;;
+import { ChecklistRow } from &#39;../../../components/ChecklistRow&#39;;
+import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
+import { TicketId } from &#39;../../../components/TicketId&#39;;
+import { PipelineHierarchyPanel } from &#39;../../../components/PipelineHierarchyPanel&#39;;
+import { useTicketOverviewState } from &#39;./useTicketOverviewState&#39;;
+import {
+  getPerson,
+  getPriorityOption,
+  getProject,
+  getStatusOption,
+  navItems,
+  peopleOptions,
+  priorityOptions,
+  projectList,
+  statusOptions,
+  tabs,
+  ticket,
+} from &#39;./shared&#39;;
+import styles from &#39;./TicketOverviewDesktop.module.css&#39;;
+
+const TAB_ID_PREFIX = &#39;ticket-overview&#39;;
+
+function TicketOverviewRender() {
+  const {
+    project,
+    setProject,
+    projectSelector: {
+      ref: projectSelectorRef,
+      open: projectSelectorOpen,
+      onOpenChange: onProjectSelectorOpenChange,
+    },
+    activeNav,
+    setActiveNav,
+    activeTab,
+    setActiveTab,
+    assignee,
+    setAssignee,
+    assigneeSelector: {
+      ref: assigneeSelectorRef,
+      open: assigneeSelectorOpen,
+      onOpenChange: onAssigneeSelectorOpenChange,
+    },
+    reporter,
+    setReporter,
+    reporterSelector: {
+      ref: reporterSelectorRef,
+      open: reporterSelectorOpen,
+      onOpenChange: onReporterSelectorOpenChange,
+    },
+    status,
+    setStatus,
+    statusSelector: {
+      ref: statusSelectorRef,
+      open: statusSelectorOpen,
+      onOpenChange: onStatusSelectorOpenChange,
+    },
+    priority,
+    setPriority,
+    prioritySelector: {
+      ref: prioritySelectorRef,
+      open: prioritySelectorOpen,
+      onOpenChange: onPrioritySelectorOpenChange,
+    },
+    pipelineStages,
+    setPipelineStages,
+    activeStage,
+    setActiveStage,
+    pipelineOpen,
+    togglePipelineOpen,
+  } = useTicketOverviewState();
+  const activeProject = getProject(project);
+  const activeAssignee = getPerson(assignee);
+  const activeReporter = getPerson(reporter);
+  const activeStatus = getStatusOption(status);
+  const activePriority = getPriorityOption(priority);
+
+  const navClick = (id: string) =&gt; (e: React.MouseEvent) =&gt; {
+    e.preventDefault();
+    setActiveNav(id);
+  };
+
+  return (
+    &lt;div className={styles.shell}&gt;
+      &lt;Sidebar
+        aria-label=&quot;Sidebar navigation&quot;
+        header={
+          &lt;&gt;
+            &lt;Selector
+              ref={projectSelectorRef}
+              options={projectList}
+              value={project}
+              onValueChange={setProject}
+              open={projectSelectorOpen}
+              onOpenChange={onProjectSelectorOpenChange}
+              triggerPrefix={
+                &lt;Avatar
+                  initial={activeProject.initial}
+                  aria-label={activeProject.label}
+                /&gt;
+              }
+              action={{ label: &#39;Add project&#39;, icon: &#39;add&#39;, onClick: () =&gt; {} }}
+            /&gt;
+            &lt;div style={{ marginTop: &#39;var(--ds-space-sidebar-section-gap)&#39; }}&gt;
+              &lt;span
+                style={{
+                  fontFamily: &#39;var(--ds-text-section-header-font-family)&#39;,
+                  fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
+                  fontWeight: &#39;var(--ds-font-weight-medium)&#39;,
+                  letterSpacing: &#39;var(--ds-text-section-header-letter-spacing)&#39;,
+                  textTransform: &#39;uppercase&#39; as const,
+                  color: &#39;var(--ds-color-text-secondary)&#39;,
+                }}
+              &gt;
+                Active Workspace
+              &lt;/span&gt;
+              &lt;p
+                style={{
+                  margin: &#39;var(--ds-space-scale-sm) 0 var(--ds-space-scale-sm)&#39;,
+                  fontFamily: &#39;var(--ds-font-family-sans)&#39;,
+                  fontSize: &#39;var(--ds-text-page-title-font-size)&#39;,
+                  fontWeight: &#39;var(--ds-font-weight-bold)&#39;,
+                  color: &#39;var(--ds-color-text-primary)&#39;,
+                  lineHeight: &#39;var(--ds-text-page-title-line-height)&#39;,
+                }}
+              &gt;
+                Project / {activeProject.label}
+              &lt;/p&gt;
+              &lt;span
+                style={{
+                  display: &#39;inline-flex&#39;,
+                  alignItems: &#39;center&#39;,
+                  gap: &#39;var(--ds-space-scale-sm)&#39;,
+                }}
+              &gt;
+                &lt;span
+                  style={{
+                    fontFamily: &#39;var(--ds-font-family-mono)&#39;,
+                    fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
+                    color: &#39;var(--ds-color-text-secondary)&#39;,
+                    letterSpacing: &#39;0.05em&#39;,
+                    padding:
+                      &#39;var(--ds-space-badge-padding-y) var(--ds-space-badge-padding-x)&#39;,
+                    borderRadius: &#39;var(--ds-radius-lg)&#39;,
+                    backgroundColor: &#39;var(--ds-color-border-default)&#39;,
+                  }}
+                &gt;
+                  v4.1.0-alpha
+                &lt;/span&gt;
+                &lt;StatusDot variant=&quot;active&quot; label=&quot;Healthy&quot; /&gt;
+              &lt;/span&gt;
+            &lt;/div&gt;
+          &lt;/&gt;
+        }
+        footer={
+          &lt;&gt;
+            &lt;NavItem
+              icon=&quot;settings&quot;
+              label=&quot;Settings&quot;
+              href=&quot;/settings&quot;
+              size=&quot;sm&quot;
+            /&gt;
+            &lt;NavItem icon=&quot;help&quot; label=&quot;Support&quot; href=&quot;/support&quot; size=&quot;sm&quot; /&gt;
+            &lt;span
+              style={{
+                display: &#39;block&#39;,
+                marginTop: &#39;16px&#39;,
+                padding: &#39;0 12px&#39;,
+                fontSize: &#39;9px&#39;,
+                fontFamily: &#39;var(--ds-font-family-mono)&#39;,
+                textTransform: &#39;uppercase&#39;,
+                letterSpacing: &#39;0.2em&#39;,
+                color: &#39;var(--ds-color-text-secondary)&#39;,
+              }}
+            &gt;
+              System Stable
+            &lt;/span&gt;
+          &lt;/&gt;
+        }
+      &gt;
+        &lt;SectionHeader&gt;Project Artifacts&lt;/SectionHeader&gt;
+        {navItems.map((item) =&gt; (
+          &lt;NavItem
+            key={item.id}
+            icon={item.icon}
+            label={item.label}
+            href={item.href}
+            active={activeNav === item.id}
+            onClick={navClick(item.id)}
+          /&gt;
+        ))}
+      &lt;/Sidebar&gt;
+
+      &lt;div className={styles.workArea}&gt;
+        &lt;Header
+          left={&lt;Breadcrumb segments={ticket.breadcrumb} /&gt;}
+          right={
+            &lt;&gt;
+              &lt;Button variant=&quot;ghost&quot; size=&quot;sm&quot;&gt;
+                Ask
+              &lt;/Button&gt;
+              &lt;Button variant=&quot;ghost&quot; size=&quot;sm&quot;&gt;
+                Comment
+              &lt;/Button&gt;
+              &lt;Button variant=&quot;primary&quot; size=&quot;sm&quot;&gt;
+                Add scenario
+              &lt;/Button&gt;
+              &lt;IconButton icon=&quot;link&quot; size=&quot;sm&quot; aria-label=&quot;Share ticket&quot; /&gt;
+              &lt;IconButton icon=&quot;flag&quot; size=&quot;sm&quot; aria-label=&quot;Star ticket&quot; /&gt;
+              &lt;IconButton
+                icon=&quot;more_horiz&quot;
+                size=&quot;sm&quot;
+                aria-label=&quot;More actions&quot;
+              /&gt;
+              &lt;Avatar initial=&quot;AP&quot; variant=&quot;profile&quot; aria-label=&quot;Ale Paez&quot; /&gt;
+            &lt;/&gt;
+          }
+        /&gt;
+
+        &lt;div className={styles.body}&gt;
+          &lt;div className={styles.titleAndTabs}&gt;
+            &lt;div className={styles.titleSection}&gt;
+              &lt;TicketTitleBlock
+                title={ticket.title}
+                badges={ticket.badges}
+                avatar={
+                  &lt;AvatarGroup aria-label=&quot;Assignee and reporter&quot;&gt;
+                    &lt;Avatar
+                      variant=&quot;profile&quot;
+                      size=&quot;sm&quot;
+                      initial={activeAssignee.initial}
+                      aria-label={activeAssignee.label}
+                      style={{ backgroundColor: activeAssignee.color }}
+                    /&gt;
+                    &lt;Avatar
+                      variant=&quot;profile&quot;
+                      size=&quot;sm&quot;
+                      initial={activeReporter.initial}
+                      aria-label={activeReporter.label}
+                      style={{ backgroundColor: activeReporter.color }}
+                    /&gt;
+                  &lt;/AvatarGroup&gt;
+                }
+              /&gt;
+            &lt;/div&gt;
+            &lt;div className={styles.tabsBar}&gt;
+              &lt;Tabs
+                className={styles.tabs}
+                items={tabs}
+                value={activeTab}
+                onValueChange={setActiveTab}
+                size=&quot;sm&quot;
+                idPrefix={TAB_ID_PREFIX}
+                aria-label=&quot;Ticket sections&quot;
+              /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;div className={styles.scrollArea}&gt;
+            &lt;div className={styles.content}&gt;
+              &lt;div
+                role=&quot;tabpanel&quot;
+                id={getTabPanelId(TAB_ID_PREFIX, &#39;overview&#39;)}
+                aria-labelledby={getTabId(TAB_ID_PREFIX, &#39;overview&#39;)}
+                className={styles.overviewPanel}
+                hidden={activeTab !== &#39;overview&#39;}
+              &gt;
+                &lt;section className={styles.section}&gt;
+                  &lt;SectionHeader headingLevel={2}&gt;Description&lt;/SectionHeader&gt;
+                  &lt;p className={styles.prose}&gt;{ticket.description}&lt;/p&gt;
+                &lt;/section&gt;
+
+                &lt;section className={styles.section}&gt;
+                  &lt;SectionHeader headingLevel={2}&gt;Why&lt;/SectionHeader&gt;
+                  &lt;ul className={styles.bulletList}&gt;
+                    {ticket.why.map((item) =&gt; (
+                      &lt;li key={item}&gt;{item}&lt;/li&gt;
+                    ))}
+                  &lt;/ul&gt;
+                &lt;/section&gt;
+
+                &lt;section className={styles.section}&gt;
+                  &lt;SectionHeader headingLevel={2}&gt;Scope&lt;/SectionHeader&gt;
+                  &lt;div className={styles.scopeGrid}&gt;
+                    &lt;Card
+                      header={
+                        &lt;span className={styles.scopeCardLabel}&gt;
+                          {ticket.scope.included.title}
+                        &lt;/span&gt;
+                      }
+                    &gt;
+                      &lt;ul className={styles.scopeList}&gt;
+                        {ticket.scope.included.items.map((item) =&gt; (
+                          &lt;li key={item}&gt;{item}&lt;/li&gt;
+                        ))}
+                      &lt;/ul&gt;
+                    &lt;/Card&gt;
+                    &lt;Card
+                      header={
+                        &lt;span className={styles.scopeCardLabel}&gt;
+                          {ticket.scope.excluded.title}
+                        &lt;/span&gt;
+                      }
+                    &gt;
+                      &lt;ul className={styles.scopeList}&gt;
+                        {ticket.scope.excluded.items.map((item) =&gt; (
+                          &lt;li key={item}&gt;{item}&lt;/li&gt;
+                        ))}
+                      &lt;/ul&gt;
+                    &lt;/Card&gt;
+                  &lt;/div&gt;
+                &lt;/section&gt;
+
+                &lt;section className={styles.section}&gt;
+                  &lt;SectionHeader headingLevel={2}&gt;QA Summary&lt;/SectionHeader&gt;
+                  &lt;CollapsibleCard
+                    defaultOpen
+                    header={
+                      &lt;span className={styles.qaCardHeader}&gt;
+                        &lt;span className={styles.qaCardTitle}&gt;
+                          {ticket.qaSummary.title}
+                        &lt;/span&gt;
+                        &lt;Badge variant=&quot;critical&quot;&gt;
+                          {ticket.qaSummary.failedCount} Failed
+                        &lt;/Badge&gt;
+                        &lt;span className={styles.qaCardMeta}&gt;
+                          {ticket.qaSummary.lastChecked}
+                        &lt;/span&gt;
+                      &lt;/span&gt;
+                    }
+                  &gt;
+                    {ticket.qaSummary.items.map((item) =&gt; (
+                      &lt;ChecklistRow
+                        key={item.id}
+                        status={item.status}
+                        label={item.label}
+                        meta={
+                          item.metaVariant ? (
+                            &lt;Badge variant={item.metaVariant}&gt;
+                              {item.meta}
+                            &lt;/Badge&gt;
+                          ) : (
+                            item.meta
+                          )
+                        }
+                      /&gt;
+                    ))}
+                  &lt;/CollapsibleCard&gt;
+                &lt;/section&gt;
+              &lt;/div&gt;
+
+              {([&#39;dev&#39;, &#39;qa&#39;, &#39;activity&#39;] as const).map((tabValue) =&gt; (
+                &lt;div
+                  key={tabValue}
+                  role=&quot;tabpanel&quot;
+                  id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
+                  aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
+                  className={styles.tabPanelEmpty}
+                  hidden={activeTab !== tabValue}
+                &gt;
+                  Nothing here yet.
+                &lt;/div&gt;
+              ))}
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;aside aria-label=&quot;Ticket metadata&quot; className={styles.rightRail}&gt;
+            &lt;SectionHeader headingLevel={2}&gt;Metadata&lt;/SectionHeader&gt;
+            &lt;div className={styles.metadataList}&gt;
+              &lt;PropertyRow icon=&quot;person&quot; label=&quot;Assignee&quot;&gt;
+                &lt;Selector
+                  ref={assigneeSelectorRef}
+                  className={styles.metadataSelector}
+                  options={peopleOptions}
+                  value={assignee}
+                  onValueChange={setAssignee}
+                  open={assigneeSelectorOpen}
+                  onOpenChange={onAssigneeSelectorOpenChange}
+                  variant=&quot;inline&quot;
+                  dropdownAlign=&quot;end&quot;
+                  triggerPrefix={
+                    &lt;Avatar
+                      variant=&quot;profile&quot;
+                      size=&quot;sm&quot;
+                      initial={activeAssignee.initial}
+                      aria-label={activeAssignee.label}
+                      style={{ backgroundColor: activeAssignee.color }}
+                    /&gt;
+                  }
+                  renderTriggerLabel={(opt) =&gt; opt.label}
+                  renderOptionIndicator={(opt) =&gt; {
+                    const person = peopleOptions.find(
+                      (p) =&gt; p.value === opt.value,
+                    );
+                    return person ? (
+                      &lt;Avatar
+                        variant=&quot;profile&quot;
+                        size=&quot;sm&quot;
+                        initial={person.initial}
+                        aria-label={person.label}
+                        style={{ backgroundColor: person.color }}
+                      /&gt;
+                    ) : null;
+                  }}
+                  aria-label=&quot;Select assignee&quot;
+                /&gt;
+              &lt;/PropertyRow&gt;
+              &lt;PropertyRow icon=&quot;person&quot; label=&quot;Reporter&quot;&gt;
+                &lt;Selector
+                  ref={reporterSelectorRef}
+                  className={styles.metadataSelector}
+                  options={peopleOptions}
+                  value={reporter}
+                  onValueChange={setReporter}
+                  open={reporterSelectorOpen}
+                  onOpenChange={onReporterSelectorOpenChange}
+                  variant=&quot;inline&quot;
+                  dropdownAlign=&quot;end&quot;
+                  triggerPrefix={
+                    &lt;Avatar
+                      variant=&quot;profile&quot;
+                      size=&quot;sm&quot;
+                      initial={activeReporter.initial}
+                      aria-label={activeReporter.label}
+                      style={{ backgroundColor: activeReporter.color }}
+                    /&gt;
+                  }
+                  renderTriggerLabel={(opt) =&gt; opt.label}
+                  renderOptionIndicator={(opt) =&gt; {
+                    const person = peopleOptions.find(
+                      (p) =&gt; p.value === opt.value,
+                    );
+                    return person ? (
+                      &lt;Avatar
+                        variant=&quot;profile&quot;
+                        size=&quot;sm&quot;
+                        initial={person.initial}
+                        aria-label={person.label}
+                        style={{ backgroundColor: person.color }}
+                      /&gt;
+                    ) : null;
+                  }}
+                  aria-label=&quot;Select reporter&quot;
+                /&gt;
+              &lt;/PropertyRow&gt;
+              &lt;PropertyRow icon=&quot;schedule&quot; label=&quot;Status&quot;&gt;
+                &lt;Selector
+                  ref={statusSelectorRef}
+                  className={styles.metadataSelector}
+                  options={statusOptions}
+                  value={status}
+                  onValueChange={setStatus}
+                  open={statusSelectorOpen}
+                  onOpenChange={onStatusSelectorOpenChange}
+                  variant=&quot;inline&quot;
+                  dropdownAlign=&quot;end&quot;
+                  renderTriggerLabel={() =&gt; (
+                    &lt;Badge variant={activeStatus.variant}&gt;
+                      {activeStatus.label}
+                    &lt;/Badge&gt;
+                  )}
+                  renderOptionIndicator={() =&gt; null}
+                  aria-label=&quot;Select status&quot;
+                /&gt;
+              &lt;/PropertyRow&gt;
+              &lt;PropertyRow icon=&quot;signal_cellular_alt&quot; label=&quot;Priority&quot;&gt;
+                &lt;Selector
+                  ref={prioritySelectorRef}
+                  className={styles.metadataSelector}
+                  options={priorityOptions}
+                  value={priority}
+                  onValueChange={setPriority}
+                  open={prioritySelectorOpen}
+                  onOpenChange={onPrioritySelectorOpenChange}
+                  variant=&quot;inline&quot;
+                  dropdownAlign=&quot;end&quot;
+                  renderTriggerLabel={() =&gt; (
+                    &lt;span className={styles.priorityValue}&gt;
+                      {activePriority.label}
+                    &lt;/span&gt;
+                  )}
+                  aria-label=&quot;Select priority&quot;
+                /&gt;
+              &lt;/PropertyRow&gt;
+              &lt;PropertyRow icon=&quot;tag&quot; label=&quot;Environments&quot;&gt;
+                &lt;span className={styles.environments}&gt;
+                  &lt;span
+                    className={styles.envChips}
+                    tabIndex={0}
+                    role=&quot;region&quot;
+                    aria-label=&quot;Pipeline environments&quot;
+                  &gt;
+                    {pipelineStages.map((stage) =&gt; (
+                      &lt;Badge
+                        key={stage.value}
+                        variant={
+                          stage.value === activeStage ? &#39;progress&#39; : &#39;default&#39;
+                        }
+                      &gt;
+                        {stage.label}
+                      &lt;/Badge&gt;
+                    ))}
+                  &lt;/span&gt;
+                  &lt;IconButton
+                    icon=&quot;chevron_right&quot;
+                    size=&quot;sm&quot;
+                    className={cn(pipelineOpen &amp;&amp; styles.envChevronOpen)}
+                    onClick={togglePipelineOpen}
+                    aria-expanded={pipelineOpen}
+                    aria-controls=&quot;ticket-pipeline-hierarchy&quot;
+                    aria-label={
+                      pipelineOpen
+                        ? &#39;Close pipeline hierarchy&#39;
+                        : &#39;Open pipeline hierarchy&#39;
+                    }
+                  /&gt;
+                &lt;/span&gt;
+              &lt;/PropertyRow&gt;
+            &lt;/div&gt;
+
+            {pipelineOpen &amp;&amp; (
+              &lt;PipelineHierarchyPanel
+                id=&quot;ticket-pipeline-hierarchy&quot;
+                title={ticket.pipeline.title}
+                stages={pipelineStages}
+                activeValue={activeStage}
+                onSelect={setActiveStage}
+                onReorder={setPipelineStages}
+                reorderHint={ticket.pipeline.reorderHint}
+                addLabel={ticket.pipeline.addLabel}
+                onAddStage={() =&gt; {}}
+              /&gt;
+            )}
+          &lt;/aside&gt;
+        &lt;/div&gt;
+
+        &lt;Footer
+          left={
+            &lt;span
+              style={{
+                display: &#39;inline-flex&#39;,
+                alignItems: &#39;center&#39;,
+                gap: &#39;var(--ds-space-scale-md)&#39;,
+              }}
+            &gt;
+              &lt;TicketId&gt;{ticket.footer.ticketIdLabel}&lt;/TicketId&gt;
+              &lt;span
+                style={{
+                  fontFamily: &#39;var(--ds-font-family-mono)&#39;,
+                  fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
+                  letterSpacing: &#39;0.05em&#39;,
+                  textTransform: &#39;uppercase&#39;,
+                  color: &#39;var(--ds-color-text-secondary)&#39;,
+                }}
+              &gt;
+                {ticket.footer.lastEdited}
+              &lt;/span&gt;
+            &lt;/span&gt;
+          }
+        /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+const meta: Meta = {
+  title: &#39;Pages/Ticket Overview&#39;,
+  parameters: {
+    layout: &#39;fullscreen&#39;,
+    viewport: { options: desktopViewports },
+    a11y: {
+      config: {
+        rules: [
+          // .titleAndTabs uses a horizontal linear-gradient bg. axe-core
+          // can&#39;t compute color-contrast through gradients and returns
+          // &#39;incomplete&#39; for every text node sitting on it. Manually
+          // verified: at peak 15% mix of accent-subtle over white the
+          // effective bg is ≈ #fafaf3, giving text-primary (#1a1a1a)
+          // a ~13.5:1 ratio — well above WCAG 2 AA&#39;s 4.5:1.
+          { id: &#39;color-contrast&#39;, enabled: false },
+        ],
+      },
+    },
+  },
+};
+export default meta;
+
+type Story = StoryObj;
+
+export const Default: Story = {
+  render: () =&gt; &lt;TicketOverviewRender /&gt;,
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import {
+    Avatar,
+    AvatarGroup,
+    Badge,
+    Breadcrumb,
+    Button,
+    Card,
+    ChecklistRow,
+    CollapsibleCard,
+    Footer,
+    Header,
+    IconButton,
+    NavItem,
+    PipelineHierarchyPanel,
+    PropertyRow,
+    SectionHeader,
+    Selector,
+    Sidebar,
+    StatusDot,
+    Tabs,
+    TicketId,
+    TicketTitleBlock,
+} from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Default</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Default = () =&gt; &lt;TicketOverviewRender /&gt;;</code></pre>
             </div>
         </div>
     
