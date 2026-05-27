@@ -212,11 +212,9 @@ function DefaultRender() {
                       assigneeOptions.find((m) => m.value === assignee)
                         ?.label ?? 'No assignee'
                     }
-                    style={{
-                      backgroundColor: assigneeOptions.find(
-                        (m) => m.value === assignee,
-                      )?.color,
-                    }}
+                    tint={
+                      assigneeOptions.find((m) => m.value === assignee)?.color
+                    }
                   />
                 }
                 renderTriggerLabel={(opt) => opt.label}
@@ -230,7 +228,7 @@ function DefaultRender() {
                       size="sm"
                       initial={member.initial}
                       aria-label={member.label}
-                      style={{ backgroundColor: member.color }}
+                      tint={member.color}
                     />
                   ) : null;
                 }}

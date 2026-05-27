@@ -52,19 +52,19 @@ export const MediumSize: Story = {
         initial="AH"
         aria-label="Alex H."
         variant="profile"
-        style={{ backgroundColor: '#7D9B84' }}
+        tint="#7D9B84"
       />
       <Avatar
         initial="CH"
         aria-label="Cleo H."
         variant="profile"
-        style={{ backgroundColor: '#C38E70' }}
+        tint="#C38E70"
       />
       <Avatar
         initial="VP"
         aria-label="Vader P."
         variant="profile"
-        style={{ backgroundColor: '#6C89A8' }}
+        tint="#6C89A8"
       />
     </AvatarGroup>
   ),

@@ -114,7 +114,7 @@ function MoreMenuContent({
             initial={projectInitial}
             variant="project"
             aria-label={projectLabel}
-            style={projectColor ? { backgroundColor: projectColor } : undefined}
+            tint={projectColor}
           />
           <span className={styles.projectLabel}>{projectLabel}</span>
           <Icon name="chevron_right" size="sm" />
