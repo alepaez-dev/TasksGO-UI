@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import type { Decorator } from '@storybook/react';
 import { useGlobals } from 'storybook/preview-api';
 
+export const VIEWPORT_APPLIED_ATTR = 'data-ds-viewport-applied';
+
 export const withDefaultViewport =
   (viewport: string): Decorator =>
   (Story, context) => {
@@ -12,6 +14,7 @@ export const withDefaultViewport =
       if (!applied.current && !isDocs) {
         applied.current = true;
         updateGlobals({ viewport: { value: viewport } });
+        document.documentElement.setAttribute(VIEWPORT_APPLIED_ATTR, viewport);
       }
     }, [updateGlobals, isDocs]);
     return <Story />;

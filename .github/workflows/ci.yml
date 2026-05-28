@@ -32,7 +32,7 @@ jobs:
   a11y:
     runs-on: ubuntu-latest
     needs: validate
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -44,7 +44,20 @@ jobs:
 
       - run: npm ci
 
-      - run: npx playwright install --with-deps chromium
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright browsers and system deps (cache miss)
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright system deps only (cache hit)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
 
       - run: npm run build-storybook -w packages/ds
 
@@ -69,7 +82,20 @@ jobs:
 
       - run: npm ci
 
-      - run: npx playwright install --with-deps chromium
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright browsers and system deps (cache miss)
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright system deps only (cache hit)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
 
       - run: npm run build-storybook -w packages/ds
 
