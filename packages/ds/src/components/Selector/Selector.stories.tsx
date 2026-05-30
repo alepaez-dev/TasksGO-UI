@@ -79,6 +79,20 @@ export const Default: Story = {
   render: (args) => <DefaultRender options={args.options} />,
 };
 
+export const Open: Story = {
+  args: { options: projects },
+  render: (args) => (
+    <Selector
+      options={args.options}
+      value="eng-core"
+      open
+      onOpenChange={() => {}}
+      triggerPrefix={<Avatar initial="E" aria-label="Engineering Core" />}
+      aria-label="Select project"
+    />
+  ),
+};
+
 function WithActionRender({ options, action }: RenderProps) {
   const [value, setValue] = useState('eng-core');
   const { ref, open, onOpenChange } = useSelectorState();
