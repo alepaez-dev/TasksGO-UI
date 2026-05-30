@@ -8,6 +8,7 @@ const meta = {
   argTypes: {
     initial: { control: 'text' },
     variant: { control: 'select', options: ['project', 'profile'] },
+    tint: { control: 'color' },
     'aria-label': { control: 'text' },
   },
   args: {
@@ -36,6 +37,32 @@ export const AllVariants: Story = {
       <Avatar initial="H" aria-label="Project H" />
       <Avatar initial="AP" variant="profile" aria-label="Alejandra Paez" />
       <Avatar initial="CP" variant="profile" aria-label="Cleo Paez" />
+    </div>
+  ),
+};
+
+export const Tinted: Story = {
+  render: () => (
+    <div style={{ display: 'flex', gap: 'var(--ds-space-scale-sm)' }}>
+      <Avatar
+        initial="AH"
+        variant="profile"
+        aria-label="Alex H."
+        tint="#7D9B84"
+      />
+      <Avatar
+        initial="CH"
+        variant="profile"
+        aria-label="Cleo H."
+        tint="#C38E70"
+      />
+      <Avatar
+        initial="VP"
+        variant="profile"
+        aria-label="Vader P."
+        tint="#6C89A8"
+      />
+      <Avatar initial="P" tint="#4f6f8f" aria-label="Project P" />
     </div>
   ),
 };

@@ -1,4 +1,4 @@
-import { forwardRef, type CSSProperties, type HTMLAttributes } from 'react';
+import { forwardRef, type HTMLAttributes } from 'react';
 import { Avatar } from '../Avatar';
 import { Icon } from '../Icon';
 import { SearchInput } from '../SearchInput';
@@ -75,9 +75,6 @@ export const ProjectPicker = forwardRef<HTMLDivElement, ProjectPickerProps>(
         <ul className={styles.list} role="listbox" aria-label="Projects">
           {filtered.map((project) => {
             const selected = project.value === value;
-            const avatarStyle: CSSProperties | undefined = project.avatarColor
-              ? { backgroundColor: project.avatarColor }
-              : undefined;
 
             return (
               <li
@@ -98,7 +95,7 @@ export const ProjectPicker = forwardRef<HTMLDivElement, ProjectPickerProps>(
                   initial={project.initial}
                   variant="project"
                   aria-label={project.label}
-                  style={avatarStyle}
+                  tint={project.avatarColor}
                 />
                 <span className={styles.label}>{project.label}</span>
                 {selected && (

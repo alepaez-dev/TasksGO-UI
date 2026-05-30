@@ -36,4 +36,11 @@ describe('Avatar', () => {
     expect(screen.getByRole('img')).toHaveClass('profile');
     expect(screen.getByText('AD')).toBeInTheDocument();
   });
+
+  it('applies tint', () => {
+    render(<Avatar initial="AP" aria-label="Ale P." tint="#7D9B84" />);
+    expect(
+      screen.getByRole('img').style.getPropertyValue('--ds-color-avatar-tint'),
+    ).toBe('#7D9B84');
+  });
 });

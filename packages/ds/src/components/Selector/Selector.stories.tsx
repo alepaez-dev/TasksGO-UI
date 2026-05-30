@@ -321,9 +321,7 @@ function AvatarOptionsRender() {
           variant="profile"
           initial={selected?.initial ?? '?'}
           aria-label={selected?.label ?? 'No assignee'}
-          style={
-            selected?.color ? { backgroundColor: selected.color } : undefined
-          }
+          tint={selected?.color}
         />
       }
       renderTriggerLabel={(opt) => opt.label}
@@ -335,7 +333,7 @@ function AvatarOptionsRender() {
             size="sm"
             initial={member.initial}
             aria-label={member.label}
-            style={{ backgroundColor: member.color }}
+            tint={member.color}
           />
         ) : null;
       }}

@@ -153,6 +153,8 @@ describe('ProjectPicker', () => {
       />,
     );
     const avatar = screen.getByRole('img', { name: 'Alpha' });
-    expect(avatar).toHaveStyle({ backgroundColor: '#ff0000' });
+    expect(avatar.style.getPropertyValue('--ds-color-avatar-tint')).toBe(
+      '#ff0000',
+    );
   });
 });

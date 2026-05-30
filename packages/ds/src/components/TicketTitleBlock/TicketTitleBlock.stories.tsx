@@ -81,14 +81,14 @@ export const WithAvatarGroup: Story = {
           aria-label="Jordan D."
           variant="profile"
           size="sm"
-          style={{ backgroundColor: '#6C89A8' }}
+          tint="#6C89A8"
         />
         <Avatar
           initial="AM"
           aria-label="Alex M."
           variant="profile"
           size="sm"
-          style={{ backgroundColor: '#C38E70' }}
+          tint="#C38E70"
         />
       </AvatarGroup>
     ),
