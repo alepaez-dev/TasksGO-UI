@@ -83,6 +83,8 @@ const statusLabel: Record<PipelineHierarchyStageStatus, string> = {
   critical: 'Failing',
 };
 
+const DEFAULT_ADD_LABEL = 'Add stage';
+
 export const PipelineHierarchyPanel = forwardRef<
   HTMLDivElement,
   PipelineHierarchyPanelProps
@@ -191,7 +193,7 @@ export const PipelineHierarchyPanel = forwardRef<
                 reorderable={reorderable}
                 value={addStageValue}
                 placeholder={addStagePlaceholder}
-                ariaLabel={addLabel ?? 'New stage'}
+                ariaLabel={addLabel ?? DEFAULT_ADD_LABEL}
                 canConfirm={canConfirmAddStage}
                 message={addStageMessage}
                 onValueChange={onAddStageValueChange}
@@ -209,7 +211,7 @@ export const PipelineHierarchyPanel = forwardRef<
                 onClick={onAddStage}
               >
                 <Icon name="add" size="sm" />
-                <span>{addLabel ?? 'Add stage'}</span>
+                <span>{addLabel ?? DEFAULT_ADD_LABEL}</span>
               </button>
             )}
           </>

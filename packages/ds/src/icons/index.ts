@@ -31,3 +31,4 @@ export { SignalCellularAltIcon } from './signalCellularAlt';
 export { TagIcon } from './tag';
 export { TaskAltIcon } from './taskAlt';
 export { UnfoldMoreIcon } from './unfoldMore';
+export { WarningIcon } from './warning';
