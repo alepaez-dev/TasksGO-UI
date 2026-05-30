@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/42 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">42/42 infos</a><span class="filter-pill ok" aria-disabled="true">172 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/42 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">42/42 infos</a><span class="filter-pill ok" aria-disabled="true">173 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -604,9 +604,9 @@
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Avatar</h2>
       <div class="badges">
-        <label for="c-0-components-avatar-props" class="badge ok as-toggle">4 prop types</label>
+        <label for="c-0-components-avatar-props" class="badge ok as-toggle">5 prop types</label>
         <label for="c-0-components-avatar-info" class="badge info as-toggle">1 info</label>
-        <label for="c-0-components-avatar-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-0-components-avatar-stories" class="badge ok as-toggle">4 stories</label>
         
       </div>
     </div>
@@ -638,7 +638,7 @@
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">4 prop types</span>
+              <span class="badge ok">5 prop types</span>
             </div>
             <pre><code>Component: src/components/Avatar/Avatar.tsx::Avatar</code></pre>
             <pre><code>Props:</code></pre>
@@ -647,6 +647,11 @@
 initial: string
 
 size?: &#39;sm&#39; | &#39;md&#39; = &#39;md&#39;
+
+/**
+ * Any CSS color string (hex, rgb, hsl, named). Overrides the variant&#39;s default background.
+ */
+tint?: string
 
 variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
           </div>
@@ -695,6 +700,37 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     &lt;Avatar initial=&quot;H&quot; aria-label=&quot;Project H&quot; /&gt;
     &lt;Avatar initial=&quot;AP&quot; variant=&quot;profile&quot; aria-label=&quot;Alejandra Paez&quot; /&gt;
     &lt;Avatar initial=&quot;CP&quot; variant=&quot;profile&quot; aria-label=&quot;Cleo Paez&quot; /&gt;
+  &lt;/div&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Tinted</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Tinted = () =&gt; (
+  &lt;div style={{ display: &#39;flex&#39;, gap: &#39;var(--ds-space-scale-sm)&#39; }}&gt;
+    &lt;Avatar
+      initial=&quot;AH&quot;
+      variant=&quot;profile&quot;
+      aria-label=&quot;Alex H.&quot;
+      tint=&quot;#7D9B84&quot;
+    /&gt;
+    &lt;Avatar
+      initial=&quot;CH&quot;
+      variant=&quot;profile&quot;
+      aria-label=&quot;Cleo H.&quot;
+      tint=&quot;#C38E70&quot;
+    /&gt;
+    &lt;Avatar
+      initial=&quot;VP&quot;
+      variant=&quot;profile&quot;
+      aria-label=&quot;Vader P.&quot;
+      tint=&quot;#6C89A8&quot;
+    /&gt;
+    &lt;Avatar initial=&quot;P&quot; tint=&quot;#4f6f8f&quot; aria-label=&quot;Project P&quot; /&gt;
   &lt;/div&gt;
 );</code></pre>
             </div>
@@ -810,19 +846,19 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
       initial=&quot;AH&quot;
       aria-label=&quot;Alex H.&quot;
       variant=&quot;profile&quot;
-      style={{ backgroundColor: &#39;#7D9B84&#39; }}
+      tint=&quot;#7D9B84&quot;
     /&gt;
     &lt;Avatar
       initial=&quot;CH&quot;
       aria-label=&quot;Cleo H.&quot;
       variant=&quot;profile&quot;
-      style={{ backgroundColor: &#39;#C38E70&#39; }}
+      tint=&quot;#C38E70&quot;
     /&gt;
     &lt;Avatar
       initial=&quot;VP&quot;
       aria-label=&quot;Vader P.&quot;
       variant=&quot;profile&quot;
-      style={{ backgroundColor: &#39;#6C89A8&#39; }}
+      tint=&quot;#6C89A8&quot;
     /&gt;
   &lt;/AvatarGroup&gt;
 );</code></pre>
@@ -7470,14 +7506,14 @@ title: string</code></pre>
         aria-label=&quot;Jordan D.&quot;
         variant=&quot;profile&quot;
         size=&quot;sm&quot;
-        style={{ backgroundColor: &#39;#6C89A8&#39; }}
+        tint=&quot;#6C89A8&quot;
       /&gt;
       &lt;Avatar
         initial=&quot;AM&quot;
         aria-label=&quot;Alex M.&quot;
         variant=&quot;profile&quot;
         size=&quot;sm&quot;
-        style={{ backgroundColor: &#39;#C38E70&#39; }}
+        tint=&quot;#C38E70&quot;
       /&gt;
     &lt;/AvatarGroup&gt;)} /&gt;;</code></pre>
             </div>
