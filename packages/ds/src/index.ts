@@ -18,11 +18,13 @@ export {
   CloseIcon,
   ConfirmationNumberIcon,
   ConfirmationNumberFilledIcon,
+  ContentCopyIcon,
   DescriptionIcon,
   DescriptionFilledIcon,
   DragIndicatorIcon,
   ExpandMoreIcon,
   FlagIcon,
+  ForkRightIcon,
   HelpIcon,
   LinkIcon,
   MenuIcon,
@@ -113,6 +115,10 @@ export {
   type TaskDrawerSectionProps,
 } from './components/TaskDrawer';
 export { PropertyRow, type PropertyRowProps } from './components/PropertyRow';
+export {
+  EditableRefField,
+  type EditableRefFieldProps,
+} from './components/EditableRefField';
 export { Card, type CardProps } from './components/Card';
 export {
   CollapsibleCard,

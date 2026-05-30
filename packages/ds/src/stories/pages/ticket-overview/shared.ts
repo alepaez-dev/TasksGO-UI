@@ -57,6 +57,7 @@ export interface TicketMeta {
     reporterValue: string;
     statusValue: string;
     priorityValue: string;
+    branchValue: string;
   };
   qaSummary: {
     title: string;
@@ -191,6 +192,7 @@ export const ticket: TicketMeta = {
     reporterValue: 'alex-m',
     statusValue: 'in-progress',
     priorityValue: 'high',
+    branchValue: 'feat/dynamic-edge-caching',
   },
   qaSummary: {
     title: 'Scenarios Checklist',
