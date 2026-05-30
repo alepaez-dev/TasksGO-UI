@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/42 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">42/42 infos</a><span class="filter-pill ok" aria-disabled="true">171 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/42 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">42/42 infos</a><span class="filter-pill ok" aria-disabled="true">172 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -845,7 +845,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
       <div class="badges">
         <label for="c-2-components-badge-props" class="badge ok as-toggle">1 prop type</label>
         <label for="c-2-components-badge-info" class="badge info as-toggle">1 info</label>
-        <label for="c-2-components-badge-stories" class="badge ok as-toggle">8 stories</label>
+        <label for="c-2-components-badge-stories" class="badge ok as-toggle">9 stories</label>
         
       </div>
     </div>
@@ -887,7 +887,8 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
 | &#39;done&#39;
 | &#39;high&#39;
 | &#39;critical&#39;
-| &#39;success&#39; = &#39;default&#39;</code></pre>
+| &#39;success&#39;
+| &#39;reference&#39; = &#39;default&#39;</code></pre>
           </div>
         </div>
     
@@ -968,6 +969,15 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
+                <span class="ex-name">Reference</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Reference = () =&gt; &lt;Badge variant=&quot;reference&quot;&gt;v4.1.0-alpha&lt;/Badge&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
                 <span class="ex-name">All Variants</span>
                 <span class="badge ok">story ok</span>
               </div>
@@ -988,6 +998,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     &lt;Badge variant=&quot;high&quot;&gt;High Prio&lt;/Badge&gt;
     &lt;Badge variant=&quot;critical&quot;&gt;1 Failed&lt;/Badge&gt;
     &lt;Badge variant=&quot;success&quot;&gt;4/4 Passed&lt;/Badge&gt;
+    &lt;Badge variant=&quot;reference&quot;&gt;v4.1.0-alpha&lt;/Badge&gt;
   &lt;/div&gt;
 );</code></pre>
             </div>
@@ -5771,13 +5782,13 @@ title: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  628 | }
-  629 |
-&gt; 630 | const meta: Meta = {
+  574 | }
+  575 |
+&gt; 576 | const meta: Meta = {
       | ^
-  631 |   title: &#39;Pages/Tasks&#39;,
-  632 |   parameters: {
-  633 |     layout: &#39;fullscreen&#39;,
+  577 |   title: &#39;Pages/Tasks&#39;,
+  578 |   parameters: {
+  579 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/tasks/TasksDesktop.stories.tsx:
 import { useState, useMemo } from &#39;react&#39;;
@@ -5790,7 +5801,6 @@ import { Selector } from &#39;../../../components/Selector&#39;;
 import { NavItem } from &#39;../../../components/NavItem&#39;;
 import { Avatar } from &#39;../../../components/Avatar&#39;;
 import { SectionHeader } from &#39;../../../components/SectionHeader&#39;;
-import { StatusDot } from &#39;../../../components/StatusDot&#39;;
 import { Header } from &#39;../../../components/Header&#39;;
 import { Breadcrumb } from &#39;../../../components/Breadcrumb&#39;;
 import { SearchInput } from &#39;../../../components/SearchInput&#39;;
@@ -5816,6 +5826,10 @@ import {
   orderByPrefixStyle,
   orderByValueStyle,
 } from &#39;../../helpers/orderByStyles&#39;;
+import {
+  SidebarWorkspaceHeader,
+  SidebarStatusLabel,
+} from &#39;../../helpers/pageChrome&#39;;
 import {
   type TaskItem,
   type DrawerFormState,
@@ -5974,55 +5988,11 @@ function TasksPageRender({
               }
               action={{ label: &#39;Add project&#39;, icon: &#39;add&#39;, onClick: () =&gt; {} }}
             /&gt;
-            &lt;div style={{ marginTop: &#39;var(--ds-space-sidebar-section-gap)&#39; }}&gt;
-              &lt;span
-                style={{
-                  fontFamily: &#39;var(--ds-text-section-header-font-family)&#39;,
-                  fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
-                  fontWeight: &#39;var(--ds-font-weight-medium)&#39;,
-                  letterSpacing: &#39;var(--ds-text-section-header-letter-spacing)&#39;,
-                  textTransform: &#39;uppercase&#39; as const,
-                  color: &#39;var(--ds-color-text-secondary)&#39;,
-                }}
-              &gt;
-                Active Workspace
-              &lt;/span&gt;
-              &lt;p
-                style={{
-                  margin: &#39;var(--ds-space-scale-sm) 0 var(--ds-space-scale-sm)&#39;,
-                  fontFamily: &#39;var(--ds-font-family-sans)&#39;,
-                  fontSize: &#39;var(--ds-text-page-title-font-size)&#39;,
-                  fontWeight: &#39;var(--ds-font-weight-bold)&#39;,
-                  color: &#39;var(--ds-color-text-primary)&#39;,
-                  lineHeight: &#39;var(--ds-text-page-title-line-height)&#39;,
-                }}
-              &gt;
-                Project / {activeProject.label}
-              &lt;/p&gt;
-              &lt;span
-                style={{
-                  display: &#39;inline-flex&#39;,
-                  alignItems: &#39;center&#39;,
-                  gap: &#39;var(--ds-space-scale-sm)&#39;,
-                }}
-              &gt;
-                &lt;span
-                  style={{
-                    fontFamily: &#39;var(--ds-font-family-mono)&#39;,
-                    fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
-                    color: &#39;var(--ds-color-text-secondary)&#39;,
-                    letterSpacing: &#39;0.05em&#39;,
-                    padding:
-                      &#39;var(--ds-space-badge-padding-y) var(--ds-space-badge-padding-x)&#39;,
-                    borderRadius: &#39;var(--ds-radius-lg)&#39;,
-                    backgroundColor: &#39;var(--ds-color-border-default)&#39;,
-                  }}
-                &gt;
-                  v4.1.0-alpha
-                &lt;/span&gt;
-                &lt;StatusDot variant=&quot;active&quot; label=&quot;Healthy&quot; /&gt;
-              &lt;/span&gt;
-            &lt;/div&gt;
+            &lt;SidebarWorkspaceHeader
+              projectLabel={activeProject.label}
+              version=&quot;v4.1.0-alpha&quot;
+              status={{ variant: &#39;active&#39;, label: &#39;Healthy&#39; }}
+            /&gt;
           &lt;/&gt;
         }
         footer={
@@ -6034,20 +6004,7 @@ function TasksPageRender({
               size=&quot;sm&quot;
             /&gt;
             &lt;NavItem icon=&quot;help&quot; label=&quot;Support&quot; href=&quot;/support&quot; size=&quot;sm&quot; /&gt;
-            &lt;span
-              style={{
-                display: &#39;block&#39;,
-                marginTop: &#39;16px&#39;,
-                padding: &#39;0 12px&#39;,
-                fontSize: &#39;9px&#39;,
-                fontFamily: &#39;var(--ds-font-family-mono)&#39;,
-                textTransform: &#39;uppercase&#39;,
-                letterSpacing: &#39;0.2em&#39;,
-                color: &#39;var(--ds-color-text-secondary)&#39;,
-              }}
-            &gt;
-              System Stable
-            &lt;/span&gt;
+            &lt;SidebarStatusLabel&gt;System Stable&lt;/SidebarStatusLabel&gt;
           &lt;/&gt;
         }
       &gt;
@@ -6478,7 +6435,8 @@ export const EmptyState: Story = {
     SectionHeader,
     Selector,
     Sidebar,
-    StatusDot,
+    SidebarStatusLabel,
+    SidebarWorkspaceHeader,
     TaskDrawer,
     TaskDrawerField,
     TaskDrawerSection,
@@ -6761,13 +6719,13 @@ trailing?: ReactNode</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  583 | }
-  584 |
-&gt; 585 | const meta: Meta = {
+  514 | }
+  515 |
+&gt; 516 | const meta: Meta = {
       | ^
-  586 |   title: &#39;Pages/Ticket Overview&#39;,
-  587 |   parameters: {
-  588 |     layout: &#39;fullscreen&#39;,
+  517 |   title: &#39;Pages/Ticket Overview&#39;,
+  518 |   parameters: {
+  519 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -6776,7 +6734,6 @@ import { Sidebar } from &#39;../../../components/Sidebar&#39;;
 import { Selector } from &#39;../../../components/Selector&#39;;
 import { NavItem } from &#39;../../../components/NavItem&#39;;
 import { SectionHeader } from &#39;../../../components/SectionHeader&#39;;
-import { StatusDot } from &#39;../../../components/StatusDot&#39;;
 import { Header } from &#39;../../../components/Header&#39;;
 import { Footer } from &#39;../../../components/Footer&#39;;
 import { Button } from &#39;../../../components/Button&#39;;
@@ -6794,6 +6751,11 @@ import { ChecklistRow } from &#39;../../../components/ChecklistRow&#39;;
 import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
 import { TicketId } from &#39;../../../components/TicketId&#39;;
 import { PipelineHierarchyPanel } from &#39;../../../components/PipelineHierarchyPanel&#39;;
+import {
+  SidebarWorkspaceHeader,
+  SidebarStatusLabel,
+  LastEditedLabel,
+} from &#39;../../helpers/pageChrome&#39;;
 import { useTicketOverviewState } from &#39;./useTicketOverviewState&#39;;
 import {
   getPerson,
@@ -6892,55 +6854,11 @@ function TicketOverviewRender() {
               }
               action={{ label: &#39;Add project&#39;, icon: &#39;add&#39;, onClick: () =&gt; {} }}
             /&gt;
-            &lt;div style={{ marginTop: &#39;var(--ds-space-sidebar-section-gap)&#39; }}&gt;
-              &lt;span
-                style={{
-                  fontFamily: &#39;var(--ds-text-section-header-font-family)&#39;,
-                  fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
-                  fontWeight: &#39;var(--ds-font-weight-medium)&#39;,
-                  letterSpacing: &#39;var(--ds-text-section-header-letter-spacing)&#39;,
-                  textTransform: &#39;uppercase&#39; as const,
-                  color: &#39;var(--ds-color-text-secondary)&#39;,
-                }}
-              &gt;
-                Active Workspace
-              &lt;/span&gt;
-              &lt;p
-                style={{
-                  margin: &#39;var(--ds-space-scale-sm) 0 var(--ds-space-scale-sm)&#39;,
-                  fontFamily: &#39;var(--ds-font-family-sans)&#39;,
-                  fontSize: &#39;var(--ds-text-page-title-font-size)&#39;,
-                  fontWeight: &#39;var(--ds-font-weight-bold)&#39;,
-                  color: &#39;var(--ds-color-text-primary)&#39;,
-                  lineHeight: &#39;var(--ds-text-page-title-line-height)&#39;,
-                }}
-              &gt;
-                Project / {activeProject.label}
-              &lt;/p&gt;
-              &lt;span
-                style={{
-                  display: &#39;inline-flex&#39;,
-                  alignItems: &#39;center&#39;,
-                  gap: &#39;var(--ds-space-scale-sm)&#39;,
-                }}
-              &gt;
-                &lt;span
-                  style={{
-                    fontFamily: &#39;var(--ds-font-family-mono)&#39;,
-                    fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
-                    color: &#39;var(--ds-color-text-secondary)&#39;,
-                    letterSpacing: &#39;0.05em&#39;,
-                    padding:
-                      &#39;var(--ds-space-badge-padding-y) var(--ds-space-badge-padding-x)&#39;,
-                    borderRadius: &#39;var(--ds-radius-lg)&#39;,
-                    backgroundColor: &#39;var(--ds-color-border-default)&#39;,
-                  }}
-                &gt;
-                  v4.1.0-alpha
-                &lt;/span&gt;
-                &lt;StatusDot variant=&quot;active&quot; label=&quot;Healthy&quot; /&gt;
-              &lt;/span&gt;
-            &lt;/div&gt;
+            &lt;SidebarWorkspaceHeader
+              projectLabel={activeProject.label}
+              version=&quot;v4.1.0-alpha&quot;
+              status={{ variant: &#39;active&#39;, label: &#39;Healthy&#39; }}
+            /&gt;
           &lt;/&gt;
         }
         footer={
@@ -6952,20 +6870,7 @@ function TicketOverviewRender() {
               size=&quot;sm&quot;
             /&gt;
             &lt;NavItem icon=&quot;help&quot; label=&quot;Support&quot; href=&quot;/support&quot; size=&quot;sm&quot; /&gt;
-            &lt;span
-              style={{
-                display: &#39;block&#39;,
-                marginTop: &#39;16px&#39;,
-                padding: &#39;0 12px&#39;,
-                fontSize: &#39;9px&#39;,
-                fontFamily: &#39;var(--ds-font-family-mono)&#39;,
-                textTransform: &#39;uppercase&#39;,
-                letterSpacing: &#39;0.2em&#39;,
-                color: &#39;var(--ds-color-text-secondary)&#39;,
-              }}
-            &gt;
-              System Stable
-            &lt;/span&gt;
+            &lt;SidebarStatusLabel&gt;System Stable&lt;/SidebarStatusLabel&gt;
           &lt;/&gt;
         }
       &gt;
@@ -7327,25 +7232,9 @@ function TicketOverviewRender() {
 
         &lt;Footer
           left={
-            &lt;span
-              style={{
-                display: &#39;inline-flex&#39;,
-                alignItems: &#39;center&#39;,
-                gap: &#39;var(--ds-space-scale-md)&#39;,
-              }}
-            &gt;
+            &lt;span className={styles.footerMeta}&gt;
               &lt;TicketId&gt;{ticket.footer.ticketIdLabel}&lt;/TicketId&gt;
-              &lt;span
-                style={{
-                  fontFamily: &#39;var(--ds-font-family-mono)&#39;,
-                  fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
-                  letterSpacing: &#39;0.05em&#39;,
-                  textTransform: &#39;uppercase&#39;,
-                  color: &#39;var(--ds-color-text-secondary)&#39;,
-                }}
-              &gt;
-                {ticket.footer.lastEdited}
-              &lt;/span&gt;
+              &lt;LastEditedLabel&gt;{ticket.footer.lastEdited}&lt;/LastEditedLabel&gt;
             &lt;/span&gt;
           }
         /&gt;
@@ -7414,13 +7303,15 @@ export const Default: Story = {
     Footer,
     Header,
     IconButton,
+    LastEditedLabel,
     NavItem,
     PipelineHierarchyPanel,
     PropertyRow,
     SectionHeader,
     Selector,
     Sidebar,
-    StatusDot,
+    SidebarStatusLabel,
+    SidebarWorkspaceHeader,
     Tabs,
     TicketId,
     TicketTitleBlock,
@@ -7642,13 +7533,13 @@ title: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  628 | }
-  629 |
-&gt; 630 | const meta: Meta = {
+  574 | }
+  575 |
+&gt; 576 | const meta: Meta = {
       | ^
-  631 |   title: &#39;Pages/Tasks&#39;,
-  632 |   parameters: {
-  633 |     layout: &#39;fullscreen&#39;,
+  577 |   title: &#39;Pages/Tasks&#39;,
+  578 |   parameters: {
+  579 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/tasks/TasksDesktop.stories.tsx:
 import { useState, useMemo } from &#39;react&#39;;
@@ -7661,7 +7552,6 @@ import { Selector } from &#39;../../../components/Selector&#39;;
 import { NavItem } from &#39;../../../components/NavItem&#39;;
 import { Avatar } from &#39;../../../components/Avatar&#39;;
 import { SectionHeader } from &#39;../../../components/SectionHeader&#39;;
-import { StatusDot } from &#39;../../../components/StatusDot&#39;;
 import { Header } from &#39;../../../components/Header&#39;;
 import { Breadcrumb } from &#39;../../../components/Breadcrumb&#39;;
 import { SearchInput } from &#39;../../../components/SearchInput&#39;;
@@ -7687,6 +7577,10 @@ import {
   orderByPrefixStyle,
   orderByValueStyle,
 } from &#39;../../helpers/orderByStyles&#39;;
+import {
+  SidebarWorkspaceHeader,
+  SidebarStatusLabel,
+} from &#39;../../helpers/pageChrome&#39;;
 import {
   type TaskItem,
   type DrawerFormState,
@@ -7845,55 +7739,11 @@ function TasksPageRender({
               }
               action={{ label: &#39;Add project&#39;, icon: &#39;add&#39;, onClick: () =&gt; {} }}
             /&gt;
-            &lt;div style={{ marginTop: &#39;var(--ds-space-sidebar-section-gap)&#39; }}&gt;
-              &lt;span
-                style={{
-                  fontFamily: &#39;var(--ds-text-section-header-font-family)&#39;,
-                  fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
-                  fontWeight: &#39;var(--ds-font-weight-medium)&#39;,
-                  letterSpacing: &#39;var(--ds-text-section-header-letter-spacing)&#39;,
-                  textTransform: &#39;uppercase&#39; as const,
-                  color: &#39;var(--ds-color-text-secondary)&#39;,
-                }}
-              &gt;
-                Active Workspace
-              &lt;/span&gt;
-              &lt;p
-                style={{
-                  margin: &#39;var(--ds-space-scale-sm) 0 var(--ds-space-scale-sm)&#39;,
-                  fontFamily: &#39;var(--ds-font-family-sans)&#39;,
-                  fontSize: &#39;var(--ds-text-page-title-font-size)&#39;,
-                  fontWeight: &#39;var(--ds-font-weight-bold)&#39;,
-                  color: &#39;var(--ds-color-text-primary)&#39;,
-                  lineHeight: &#39;var(--ds-text-page-title-line-height)&#39;,
-                }}
-              &gt;
-                Project / {activeProject.label}
-              &lt;/p&gt;
-              &lt;span
-                style={{
-                  display: &#39;inline-flex&#39;,
-                  alignItems: &#39;center&#39;,
-                  gap: &#39;var(--ds-space-scale-sm)&#39;,
-                }}
-              &gt;
-                &lt;span
-                  style={{
-                    fontFamily: &#39;var(--ds-font-family-mono)&#39;,
-                    fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
-                    color: &#39;var(--ds-color-text-secondary)&#39;,
-                    letterSpacing: &#39;0.05em&#39;,
-                    padding:
-                      &#39;var(--ds-space-badge-padding-y) var(--ds-space-badge-padding-x)&#39;,
-                    borderRadius: &#39;var(--ds-radius-lg)&#39;,
-                    backgroundColor: &#39;var(--ds-color-border-default)&#39;,
-                  }}
-                &gt;
-                  v4.1.0-alpha
-                &lt;/span&gt;
-                &lt;StatusDot variant=&quot;active&quot; label=&quot;Healthy&quot; /&gt;
-              &lt;/span&gt;
-            &lt;/div&gt;
+            &lt;SidebarWorkspaceHeader
+              projectLabel={activeProject.label}
+              version=&quot;v4.1.0-alpha&quot;
+              status={{ variant: &#39;active&#39;, label: &#39;Healthy&#39; }}
+            /&gt;
           &lt;/&gt;
         }
         footer={
@@ -7905,20 +7755,7 @@ function TasksPageRender({
               size=&quot;sm&quot;
             /&gt;
             &lt;NavItem icon=&quot;help&quot; label=&quot;Support&quot; href=&quot;/support&quot; size=&quot;sm&quot; /&gt;
-            &lt;span
-              style={{
-                display: &#39;block&#39;,
-                marginTop: &#39;16px&#39;,
-                padding: &#39;0 12px&#39;,
-                fontSize: &#39;9px&#39;,
-                fontFamily: &#39;var(--ds-font-family-mono)&#39;,
-                textTransform: &#39;uppercase&#39;,
-                letterSpacing: &#39;0.2em&#39;,
-                color: &#39;var(--ds-color-text-secondary)&#39;,
-              }}
-            &gt;
-              System Stable
-            &lt;/span&gt;
+            &lt;SidebarStatusLabel&gt;System Stable&lt;/SidebarStatusLabel&gt;
           &lt;/&gt;
         }
       &gt;
@@ -8349,7 +8186,8 @@ export const EmptyState: Story = {
     SectionHeader,
     Selector,
     Sidebar,
-    StatusDot,
+    SidebarStatusLabel,
+    SidebarWorkspaceHeader,
     TaskDrawer,
     TaskDrawerField,
     TaskDrawerSection,
@@ -8428,13 +8266,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  583 | }
-  584 |
-&gt; 585 | const meta: Meta = {
+  514 | }
+  515 |
+&gt; 516 | const meta: Meta = {
       | ^
-  586 |   title: &#39;Pages/Ticket Overview&#39;,
-  587 |   parameters: {
-  588 |     layout: &#39;fullscreen&#39;,
+  517 |   title: &#39;Pages/Ticket Overview&#39;,
+  518 |   parameters: {
+  519 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -8443,7 +8281,6 @@ import { Sidebar } from &#39;../../../components/Sidebar&#39;;
 import { Selector } from &#39;../../../components/Selector&#39;;
 import { NavItem } from &#39;../../../components/NavItem&#39;;
 import { SectionHeader } from &#39;../../../components/SectionHeader&#39;;
-import { StatusDot } from &#39;../../../components/StatusDot&#39;;
 import { Header } from &#39;../../../components/Header&#39;;
 import { Footer } from &#39;../../../components/Footer&#39;;
 import { Button } from &#39;../../../components/Button&#39;;
@@ -8461,6 +8298,11 @@ import { ChecklistRow } from &#39;../../../components/ChecklistRow&#39;;
 import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
 import { TicketId } from &#39;../../../components/TicketId&#39;;
 import { PipelineHierarchyPanel } from &#39;../../../components/PipelineHierarchyPanel&#39;;
+import {
+  SidebarWorkspaceHeader,
+  SidebarStatusLabel,
+  LastEditedLabel,
+} from &#39;../../helpers/pageChrome&#39;;
 import { useTicketOverviewState } from &#39;./useTicketOverviewState&#39;;
 import {
   getPerson,
@@ -8559,55 +8401,11 @@ function TicketOverviewRender() {
               }
               action={{ label: &#39;Add project&#39;, icon: &#39;add&#39;, onClick: () =&gt; {} }}
             /&gt;
-            &lt;div style={{ marginTop: &#39;var(--ds-space-sidebar-section-gap)&#39; }}&gt;
-              &lt;span
-                style={{
-                  fontFamily: &#39;var(--ds-text-section-header-font-family)&#39;,
-                  fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
-                  fontWeight: &#39;var(--ds-font-weight-medium)&#39;,
-                  letterSpacing: &#39;var(--ds-text-section-header-letter-spacing)&#39;,
-                  textTransform: &#39;uppercase&#39; as const,
-                  color: &#39;var(--ds-color-text-secondary)&#39;,
-                }}
-              &gt;
-                Active Workspace
-              &lt;/span&gt;
-              &lt;p
-                style={{
-                  margin: &#39;var(--ds-space-scale-sm) 0 var(--ds-space-scale-sm)&#39;,
-                  fontFamily: &#39;var(--ds-font-family-sans)&#39;,
-                  fontSize: &#39;var(--ds-text-page-title-font-size)&#39;,
-                  fontWeight: &#39;var(--ds-font-weight-bold)&#39;,
-                  color: &#39;var(--ds-color-text-primary)&#39;,
-                  lineHeight: &#39;var(--ds-text-page-title-line-height)&#39;,
-                }}
-              &gt;
-                Project / {activeProject.label}
-              &lt;/p&gt;
-              &lt;span
-                style={{
-                  display: &#39;inline-flex&#39;,
-                  alignItems: &#39;center&#39;,
-                  gap: &#39;var(--ds-space-scale-sm)&#39;,
-                }}
-              &gt;
-                &lt;span
-                  style={{
-                    fontFamily: &#39;var(--ds-font-family-mono)&#39;,
-                    fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
-                    color: &#39;var(--ds-color-text-secondary)&#39;,
-                    letterSpacing: &#39;0.05em&#39;,
-                    padding:
-                      &#39;var(--ds-space-badge-padding-y) var(--ds-space-badge-padding-x)&#39;,
-                    borderRadius: &#39;var(--ds-radius-lg)&#39;,
-                    backgroundColor: &#39;var(--ds-color-border-default)&#39;,
-                  }}
-                &gt;
-                  v4.1.0-alpha
-                &lt;/span&gt;
-                &lt;StatusDot variant=&quot;active&quot; label=&quot;Healthy&quot; /&gt;
-              &lt;/span&gt;
-            &lt;/div&gt;
+            &lt;SidebarWorkspaceHeader
+              projectLabel={activeProject.label}
+              version=&quot;v4.1.0-alpha&quot;
+              status={{ variant: &#39;active&#39;, label: &#39;Healthy&#39; }}
+            /&gt;
           &lt;/&gt;
         }
         footer={
@@ -8619,20 +8417,7 @@ function TicketOverviewRender() {
               size=&quot;sm&quot;
             /&gt;
             &lt;NavItem icon=&quot;help&quot; label=&quot;Support&quot; href=&quot;/support&quot; size=&quot;sm&quot; /&gt;
-            &lt;span
-              style={{
-                display: &#39;block&#39;,
-                marginTop: &#39;16px&#39;,
-                padding: &#39;0 12px&#39;,
-                fontSize: &#39;9px&#39;,
-                fontFamily: &#39;var(--ds-font-family-mono)&#39;,
-                textTransform: &#39;uppercase&#39;,
-                letterSpacing: &#39;0.2em&#39;,
-                color: &#39;var(--ds-color-text-secondary)&#39;,
-              }}
-            &gt;
-              System Stable
-            &lt;/span&gt;
+            &lt;SidebarStatusLabel&gt;System Stable&lt;/SidebarStatusLabel&gt;
           &lt;/&gt;
         }
       &gt;
@@ -8994,25 +8779,9 @@ function TicketOverviewRender() {
 
         &lt;Footer
           left={
-            &lt;span
-              style={{
-                display: &#39;inline-flex&#39;,
-                alignItems: &#39;center&#39;,
-                gap: &#39;var(--ds-space-scale-md)&#39;,
-              }}
-            &gt;
+            &lt;span className={styles.footerMeta}&gt;
               &lt;TicketId&gt;{ticket.footer.ticketIdLabel}&lt;/TicketId&gt;
-              &lt;span
-                style={{
-                  fontFamily: &#39;var(--ds-font-family-mono)&#39;,
-                  fontSize: &#39;var(--ds-text-section-header-font-size)&#39;,
-                  letterSpacing: &#39;0.05em&#39;,
-                  textTransform: &#39;uppercase&#39;,
-                  color: &#39;var(--ds-color-text-secondary)&#39;,
-                }}
-              &gt;
-                {ticket.footer.lastEdited}
-              &lt;/span&gt;
+              &lt;LastEditedLabel&gt;{ticket.footer.lastEdited}&lt;/LastEditedLabel&gt;
             &lt;/span&gt;
           }
         /&gt;
@@ -9081,13 +8850,15 @@ export const Default: Story = {
     Footer,
     Header,
     IconButton,
+    LastEditedLabel,
     NavItem,
     PipelineHierarchyPanel,
     PropertyRow,
     SectionHeader,
     Selector,
     Sidebar,
-    StatusDot,
+    SidebarStatusLabel,
+    SidebarWorkspaceHeader,
     Tabs,
     TicketId,
     TicketTitleBlock,
