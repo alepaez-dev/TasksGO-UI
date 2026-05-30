@@ -17,8 +17,21 @@ function formatResults(results: Result[]): string {
 }
 
 const config: TestRunnerConfig = {
-  async preVisit(page) {
+  async preVisit(page, context) {
     await injectAxe(page);
+
+    const storyContext = await getStoryContext(page, context);
+    const viewportOpts = storyContext.parameters?.viewport?.options as
+      | Record<string, { name?: string }>
+      | undefined;
+    const usesMobileViewportSet =
+      viewportOpts?.responsive?.name === 'Default';
+
+    if (usesMobileViewportSet) {
+      await page
+        .waitForSelector('html[data-ds-viewport-applied]', { timeout: 2000 })
+        .catch(() => {});
+    }
   },
   async postVisit(page, context) {
     await page.waitForLoadState('networkidle');
