@@ -75,6 +75,7 @@ export function useTicketOverviewState(): UseTicketOverviewState {
   const [branchDraft, setBranchDraft] = useState('');
   const [branchEditing, setBranchEditing] = useState(false);
   const [branchCopied, setBranchCopied] = useState(false);
+  const [branchCopyTick, setBranchCopyTick] = useState(0);
 
   const startEditBranch = useCallback(() => {
     setBranchDraft(branch);
@@ -99,7 +100,10 @@ export function useTicketOverviewState(): UseTicketOverviewState {
   const copyBranch = useCallback(() => {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return;
     navigator.clipboard.writeText(branch).then(
-      () => setBranchCopied(true),
+      () => {
+        setBranchCopied(true);
+        setBranchCopyTick((tick) => tick + 1);
+      },
       () => {},
     );
   }, [branch]);
@@ -111,7 +115,7 @@ export function useTicketOverviewState(): UseTicketOverviewState {
       BRANCH_COPIED_FLASH_MS,
     );
     return () => clearTimeout(timer);
-  }, [branchCopied]);
+  }, [branchCopied, branchCopyTick]);
 
   return {
     project,
