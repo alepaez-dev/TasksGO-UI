@@ -1,0 +1,48 @@
+.positioner {
+  position: fixed;
+  bottom: var(--ds-space-floating-action-bar-bottom-offset);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--ds-z-floating-action-bar);
+  pointer-events: none;
+  max-width: calc(100% - var(--ds-space-scale-md) * 2);
+  box-sizing: border-box;
+}
+
+.bar {
+  display: inline-flex;
+  align-items: stretch;
+  height: var(--ds-space-floating-action-bar-height);
+  background-color: var(--ds-color-floating-action-bar-background);
+  border: 1px solid var(--ds-color-floating-action-bar-border);
+  border-radius: var(--ds-radius-full);
+  box-shadow: var(--ds-elevation-floating-action-bar);
+  backdrop-filter: var(--ds-effect-blur);
+  -webkit-backdrop-filter: var(--ds-effect-blur);
+  pointer-events: auto;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+/* !important: CSS Modules hash Button's class names, so we can't outrank
+   them by specificity alone. */
+.bar > button {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-button-gap);
+  padding: 0 var(--ds-space-floating-action-bar-padding-x) !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+
+.bar > button:not(:first-child) {
+  border-left: 1px solid var(--ds-color-floating-action-bar-border) !important;
+}
+
+.bar > button:focus-visible {
+  outline: var(--ds-focus-ring-width) solid var(--ds-color-focus-ring);
+  outline-offset: calc(var(--ds-focus-ring-width) * -1);
+  box-shadow: none !important;
+}

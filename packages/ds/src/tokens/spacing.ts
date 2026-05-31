@@ -98,6 +98,11 @@ export const spacing = {
     paddingX: '16px',
     bottomOffset: '32px',
   },
+  floatingActionBar: {
+    height: '48px',
+    paddingX: '16px',
+    bottomOffset: '32px',
+  },
   iconButton: {
     smSize: '24px',
     mdSize: '32px',

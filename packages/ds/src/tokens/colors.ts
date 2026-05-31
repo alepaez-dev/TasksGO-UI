@@ -198,6 +198,11 @@ export const colors = {
     border: border.default,
   },
 
+  floatingActionBar: {
+    background: 'rgba(255, 255, 255, 0.9)',
+    border: border.default,
+  },
+
   overlay: {
     backdrop: 'rgba(0, 0, 0, 0.5)',
   },

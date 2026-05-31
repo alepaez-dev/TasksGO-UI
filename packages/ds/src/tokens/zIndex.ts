@@ -5,6 +5,7 @@ export const zIndex = {
   dropdown: '40',
   overlay: '50',
   floatingSearch: '60',
+  floatingActionBar: '60',
   modal: '70',
 } as const;
 
