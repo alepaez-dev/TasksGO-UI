@@ -252,6 +252,7 @@ function AddStageEditor({
 
   function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
+      if (event.nativeEvent.isComposing) return;
       event.preventDefault();
       if (canConfirm) onConfirm();
       return;

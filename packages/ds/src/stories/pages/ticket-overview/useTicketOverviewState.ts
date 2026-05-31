@@ -21,6 +21,12 @@ function getAddStageMessage(
   const trimmed = draft.trim();
   if (trimmed.length === 0) return undefined;
   const draftValue = toStageValue(trimmed);
+  if (draftValue === '') {
+    return {
+      kind: 'error',
+      text: 'Stage name must include a letter or number',
+    };
+  }
   const exact = stages.find(
     (stage) =>
       stage.value === draftValue ||
