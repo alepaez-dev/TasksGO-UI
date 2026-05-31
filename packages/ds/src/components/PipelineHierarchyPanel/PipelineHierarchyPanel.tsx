@@ -1,4 +1,10 @@
-import { forwardRef, useRef, type HTMLAttributes } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useRef,
+  type HTMLAttributes,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 import { Icon } from '../Icon';
 import { StatusDot } from '../StatusDot';
 import { cn } from '../../utils/cn';
@@ -17,10 +23,10 @@ export interface PipelineHierarchyStage {
   status?: PipelineHierarchyStageStatus;
 }
 
-export interface PipelineHierarchyPanelProps extends Omit<
+type PipelineHierarchyPanelBaseProps = Omit<
   HTMLAttributes<HTMLDivElement>,
   'onSelect'
-> {
+> & {
   title: string;
   stages: readonly PipelineHierarchyStage[];
   activeValue?: string;
@@ -29,7 +35,36 @@ export interface PipelineHierarchyPanelProps extends Omit<
   reorderHint?: string;
   addLabel?: string;
   onAddStage?: () => void;
-}
+  addStagePlaceholder?: string;
+};
+
+export type AddStageMessage =
+  | { kind: 'error'; text: string }
+  | { kind: 'warning'; text: string };
+
+// Consumers own validation (duplicate detection, format, allowed values, etc).
+// onAddStageConfirm receives the trimmed value, the panel only guards empty/whitespace
+// and addStageMessage.kind === 'error'.
+type AddStageEditorState =
+  | {
+      addingStage?: false;
+      addStageValue?: never;
+      onAddStageValueChange?: never;
+      onAddStageConfirm?: never;
+      onAddStageCancel?: never;
+      addStageMessage?: never;
+    }
+  | {
+      addingStage: true;
+      addStageValue: string;
+      onAddStageValueChange: (value: string) => void;
+      onAddStageConfirm: (value: string) => void;
+      onAddStageCancel: () => void;
+      addStageMessage?: AddStageMessage;
+    };
+
+export type PipelineHierarchyPanelProps = PipelineHierarchyPanelBaseProps &
+  AddStageEditorState;
 
 const statusVariant: Record<
   PipelineHierarchyStageStatus,
@@ -48,6 +83,8 @@ const statusLabel: Record<PipelineHierarchyStageStatus, string> = {
   critical: 'Failing',
 };
 
+const DEFAULT_ADD_LABEL = 'Add stage';
+
 export const PipelineHierarchyPanel = forwardRef<
   HTMLDivElement,
   PipelineHierarchyPanelProps
@@ -62,6 +99,13 @@ export const PipelineHierarchyPanel = forwardRef<
       reorderHint,
       addLabel,
       onAddStage,
+      addingStage = false,
+      addStageValue = '',
+      addStagePlaceholder,
+      onAddStageValueChange,
+      onAddStageConfirm,
+      onAddStageCancel = () => {},
+      addStageMessage,
       className,
       ...rest
     },
@@ -69,6 +113,10 @@ export const PipelineHierarchyPanel = forwardRef<
   ) => {
     const listRef = useRef<HTMLUListElement>(null);
     const reorderable = onReorder !== undefined;
+    const trimmedAddStageValue = addStageValue.trim();
+    const canConfirmAddStage =
+      trimmedAddStageValue.length > 0 && addStageMessage?.kind !== 'error';
+    const showAddRegion = onAddStage !== undefined || addingStage;
 
     const { onPointerDown, onKeyDown } = useDragReorder({
       items: stages,
@@ -137,17 +185,35 @@ export const PipelineHierarchyPanel = forwardRef<
             );
           })}
         </ul>
-        {onAddStage && (
+        {showAddRegion && (
           <>
             <div className={styles.divider} aria-hidden="true" />
-            <button
-              type="button"
-              className={styles.addButton}
-              onClick={onAddStage}
-            >
-              <Icon name="add" size="sm" />
-              <span>{addLabel ?? 'Add stage'}</span>
-            </button>
+            {addingStage ? (
+              <AddStageEditor
+                reorderable={reorderable}
+                value={addStageValue}
+                placeholder={addStagePlaceholder}
+                ariaLabel={addLabel ?? DEFAULT_ADD_LABEL}
+                canConfirm={canConfirmAddStage}
+                message={addStageMessage}
+                onValueChange={onAddStageValueChange}
+                onConfirm={() => {
+                  if (canConfirmAddStage) {
+                    onAddStageConfirm?.(trimmedAddStageValue);
+                  }
+                }}
+                onCancel={onAddStageCancel}
+              />
+            ) : (
+              <button
+                type="button"
+                className={styles.addButton}
+                onClick={onAddStage}
+              >
+                <Icon name="add" size="sm" />
+                <span>{addLabel ?? DEFAULT_ADD_LABEL}</span>
+              </button>
+            )}
           </>
         )}
       </div>
@@ -156,6 +222,105 @@ export const PipelineHierarchyPanel = forwardRef<
 );
 
 PipelineHierarchyPanel.displayName = 'PipelineHierarchyPanel';
+
+function AddStageEditor({
+  reorderable,
+  value,
+  placeholder,
+  ariaLabel,
+  canConfirm,
+  message,
+  onValueChange,
+  onConfirm,
+  onCancel,
+}: {
+  reorderable: boolean;
+  value: string;
+  placeholder?: string;
+  ariaLabel: string;
+  canConfirm: boolean;
+  message?: AddStageMessage;
+  onValueChange?: (value: string) => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') {
+      if (event.nativeEvent.isComposing) return;
+      event.preventDefault();
+      if (canConfirm) onConfirm();
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onCancel();
+    }
+  }
+
+  return (
+    <div className={styles.editor}>
+      <div className={styles.editorRow}>
+        {reorderable && (
+          <span className={styles.editorSpacer} aria-hidden="true" />
+        )}
+        <input
+          ref={inputRef}
+          type="text"
+          className={styles.editorInput}
+          value={value}
+          placeholder={placeholder}
+          aria-label={ariaLabel}
+          aria-invalid={message?.kind === 'error' || undefined}
+          onChange={(event) => onValueChange?.(event.currentTarget.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button
+          type="button"
+          className={styles.editorAction}
+          aria-label="Cancel"
+          onClick={onCancel}
+        >
+          <Icon name="close" size="sm" />
+        </button>
+        <button
+          type="button"
+          className={cn(styles.editorAction, styles.editorConfirm)}
+          aria-label="Confirm"
+          disabled={!canConfirm}
+          onClick={onConfirm}
+        >
+          <Icon name="check" size="sm" />
+        </button>
+      </div>
+      {message && (
+        <div
+          className={cn(
+            styles.editorMessage,
+            message.kind === 'error'
+              ? styles.editorMessageError
+              : styles.editorMessageWarning,
+          )}
+          role={message.kind === 'error' ? 'alert' : 'status'}
+        >
+          {reorderable && (
+            <span className={styles.editorSpacer} aria-hidden="true" />
+          )}
+          <Icon
+            name={message.kind === 'error' ? 'cancel' : 'warning'}
+            size="sm"
+          />
+          <span>{message.text}</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function RowContents({
   stage,

@@ -38,6 +38,7 @@ export {
   TagIcon,
   TaskAltIcon,
   UnfoldMoreIcon,
+  WarningIcon,
   iconRegistry,
 } from './icons';
 export { Avatar, type AvatarProps } from './components/Avatar';
@@ -132,6 +133,7 @@ export {
 export { Popover, type PopoverProps } from './components/Popover';
 export {
   PipelineHierarchyPanel,
+  type AddStageMessage,
   type PipelineHierarchyPanelProps,
   type PipelineHierarchyStage,
   type PipelineHierarchyStageStatus,

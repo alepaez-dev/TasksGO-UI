@@ -31,6 +31,7 @@ import { SignalCellularAltIcon } from './signalCellularAlt';
 import { TagIcon } from './tag';
 import { TaskAltIcon } from './taskAlt';
 import { UnfoldMoreIcon } from './unfoldMore';
+import { WarningIcon } from './warning';
 
 export const iconRegistry = {
   add: AddIcon,
@@ -65,6 +66,7 @@ export const iconRegistry = {
   tag: TagIcon,
   task_alt: TaskAltIcon,
   unfold_more: UnfoldMoreIcon,
+  warning: WarningIcon,
 } as const satisfies Record<string, ComponentType<SVGProps<SVGSVGElement>>>;
 
 export type IconName = keyof typeof iconRegistry;

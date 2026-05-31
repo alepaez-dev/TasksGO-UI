@@ -1,14 +1,56 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { PipelineHierarchyStage } from '../../../components/PipelineHierarchyPanel';
+import type {
+  AddStageMessage,
+  PipelineHierarchyStage,
+} from '../../../components/PipelineHierarchyPanel';
 import {
   useSelectorGroup,
   useSelectorState,
   type UseSelectorStateReturn,
   type SelectorGroupEntry,
 } from '../../../hooks/useSelector';
+import { toStageValue } from '../../../utils/toStageValue';
 import { ticket } from './shared';
 
 const BRANCH_COPIED_FLASH_MS = 2000;
+
+function getAddStageMessage(
+  draft: string,
+  stages: readonly PipelineHierarchyStage[],
+): AddStageMessage | undefined {
+  const trimmed = draft.trim();
+  if (trimmed.length === 0) return undefined;
+  const draftValue = toStageValue(trimmed);
+  if (draftValue === '') {
+    return {
+      kind: 'error',
+      text: 'Stage name must include a letter or number',
+    };
+  }
+  const exact = stages.find(
+    (stage) =>
+      stage.value === draftValue ||
+      stage.label.toLowerCase() === trimmed.toLowerCase(),
+  );
+  if (exact) {
+    return { kind: 'error', text: `"${exact.label}" already exists` };
+  }
+  const lower = trimmed.toLowerCase();
+  const similar = stages.filter((stage) => {
+    const other = stage.label.toLowerCase();
+    return (
+      lower.length >= 2 && (other.startsWith(lower) || lower.startsWith(other))
+    );
+  });
+  if (similar.length > 0) {
+    const list = similar.map((s) => `"${s.label}"`).join(' and ');
+    return {
+      kind: 'warning',
+      text: `Similar to ${list} — still confirm?`,
+    };
+  }
+  return undefined;
+}
 
 export interface UseTicketOverviewState {
   project: string;
@@ -45,6 +87,13 @@ export interface UseTicketOverviewState {
   confirmBranch: () => void;
   cancelBranch: () => void;
   copyBranch: () => void;
+  addingStage: boolean;
+  addStageDraft: string;
+  addStageMessage: AddStageMessage | undefined;
+  openAddStage: () => void;
+  setAddStageDraft: (value: string) => void;
+  confirmAddStage: (label: string) => void;
+  cancelAddStage: () => void;
 }
 
 export function useTicketOverviewState(): UseTicketOverviewState {
@@ -69,7 +118,35 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     ticket.pipeline.initialActiveStage,
   );
   const [pipelineOpen, setPipelineOpen] = useState(false);
-  const togglePipelineOpen = () => setPipelineOpen((current) => !current);
+  const [addingStage, setAddingStage] = useState(false);
+  const [addStageDraft, setAddStageDraft] = useState('');
+  const openAddStage = () => {
+    setAddStageDraft('');
+    setAddingStage(true);
+  };
+  const cancelAddStage = () => {
+    setAddingStage(false);
+    setAddStageDraft('');
+  };
+  const togglePipelineOpen = () => {
+    if (pipelineOpen) cancelAddStage();
+    setPipelineOpen((current) => !current);
+  };
+  const addStageMessage = addingStage
+    ? getAddStageMessage(addStageDraft, pipelineStages)
+    : undefined;
+  const confirmAddStage = (label: string) => {
+    if (getAddStageMessage(label, pipelineStages)?.kind === 'error') return;
+    setPipelineStages((current) => {
+      if (getAddStageMessage(label, current)?.kind === 'error') return current;
+      return [
+        ...current,
+        { value: toStageValue(label), label, status: 'idle' },
+      ];
+    });
+    setAddingStage(false);
+    setAddStageDraft('');
+  };
 
   const [branch, setBranch] = useState(ticket.metadata.branchValue);
   const [branchDraft, setBranchDraft] = useState('');
@@ -152,5 +229,12 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     confirmBranch,
     cancelBranch,
     copyBranch,
+    addingStage,
+    addStageDraft,
+    addStageMessage,
+    openAddStage,
+    setAddStageDraft,
+    confirmAddStage,
+    cancelAddStage,
   };
 }

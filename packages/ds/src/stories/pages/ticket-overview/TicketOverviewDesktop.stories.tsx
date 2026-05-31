@@ -101,6 +101,13 @@ function TicketOverviewRender() {
     confirmBranch,
     cancelBranch,
     copyBranch,
+    addingStage,
+    addStageDraft,
+    addStageMessage,
+    openAddStage,
+    setAddStageDraft,
+    confirmAddStage,
+    cancelAddStage,
   } = useTicketOverviewState();
   const activeProject = getProject(project);
   const activeAssignee = getPerson(assignee);
@@ -513,19 +520,35 @@ function TicketOverviewRender() {
               </PropertyRow>
             </div>
 
-            {pipelineOpen && (
-              <PipelineHierarchyPanel
-                id="ticket-pipeline-hierarchy"
-                title={ticket.pipeline.title}
-                stages={pipelineStages}
-                activeValue={activeStage}
-                onSelect={setActiveStage}
-                onReorder={setPipelineStages}
-                reorderHint={ticket.pipeline.reorderHint}
-                addLabel={ticket.pipeline.addLabel}
-                onAddStage={() => {}}
-              />
-            )}
+            {pipelineOpen &&
+              (() => {
+                const panelBaseProps = {
+                  id: 'ticket-pipeline-hierarchy',
+                  title: ticket.pipeline.title,
+                  stages: pipelineStages,
+                  activeValue: activeStage,
+                  onSelect: setActiveStage,
+                  onReorder: setPipelineStages,
+                  reorderHint: ticket.pipeline.reorderHint,
+                  addLabel: ticket.pipeline.addLabel,
+                  addStagePlaceholder: ticket.pipeline.addStagePlaceholder,
+                  onAddStage: openAddStage,
+                };
+                if (addingStage) {
+                  return (
+                    <PipelineHierarchyPanel
+                      {...panelBaseProps}
+                      addingStage
+                      addStageValue={addStageDraft}
+                      addStageMessage={addStageMessage}
+                      onAddStageValueChange={setAddStageDraft}
+                      onAddStageConfirm={confirmAddStage}
+                      onAddStageCancel={cancelAddStage}
+                    />
+                  );
+                }
+                return <PipelineHierarchyPanel {...panelBaseProps} />;
+              })()}
           </aside>
         </div>
 
