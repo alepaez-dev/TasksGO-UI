@@ -136,6 +136,7 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     ? getAddStageMessage(addStageDraft, pipelineStages)
     : undefined;
   const confirmAddStage = (label: string) => {
+    if (getAddStageMessage(label, pipelineStages)?.kind === 'error') return;
     setPipelineStages((current) => {
       if (getAddStageMessage(label, current)?.kind === 'error') return current;
       return [
