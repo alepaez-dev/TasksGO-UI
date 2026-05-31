@@ -138,16 +138,13 @@ describe('Selector', () => {
     expect(screen.getByRole('button')).toHaveAttribute('aria-expanded', 'true');
   });
 
-  it('sets aria-controls on trigger when open', () => {
-    const { rerender } = render(
-      <Selector options={options} value="a" id="test" />,
-    );
+  it('marks the trigger as a listbox popup without aria-controls', () => {
+    const { rerender } = render(<Selector options={options} value="a" />);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('aria-haspopup', 'listbox');
+    expect(button).not.toHaveAttribute('aria-controls');
+    rerender(<Selector options={options} value="a" open />);
     expect(screen.getByRole('button')).not.toHaveAttribute('aria-controls');
-    rerender(<Selector options={options} value="a" id="test" open />);
-    expect(screen.getByRole('button')).toHaveAttribute(
-      'aria-controls',
-      'test-listbox',
-    );
   });
 
   it('sets aria-label on trigger button', () => {
