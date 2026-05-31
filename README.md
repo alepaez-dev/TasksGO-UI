@@ -114,6 +114,8 @@ Tokens in `packages/ds/src/tokens/` are the single source of truth for colors, s
 
 All components must pass `axe` checks. Use semantic HTML; reach for ARIA only when native semantics are insufficient.
 
+**Open-state stories are required.** The a11y gate only audits the DOM a story renders — it never clicks. So any component with a closed-by-default state (dropdowns, expanded selectors, dialogs, drawers, bottom sheets, popovers, tooltips, accordions) **must** ship a story that renders that state open (e.g. `Open`, `Expanded`). Render it via props/args, not a `play` function — a `play` opens it transiently and the state can close again before the audit runs. If there is no open-state story, that state is never checked and regressions slip through silently.
+
 ## Adding a new component
 
 1. Create `packages/ds/src/components/<Name>/` with:
@@ -124,8 +126,9 @@ All components must pass `axe` checks. Use semantic HTML; reach for ARIA only wh
    - `index.ts`
 2. Export from `packages/ds/src/index.ts`.
 3. Write tests using RTL queries (`getByRole`, `getByText`) — test behaviour, not implementation.
-4. Stage files and commit — Husky lints automatically.
-5. Create a changeset: `npm run changeset`.
+4. If the component has an open/expanded state, add an open-state story (see Accessibility) — this is required, not optional.
+5. Stage files and commit — Husky lints automatically.
+6. Create a changeset: `npm run changeset`.
 
 ## Releases
 

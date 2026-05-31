@@ -1,7 +1,6 @@
 import {
   forwardRef,
   useCallback,
-  useId,
   useRef,
   type HTMLAttributes,
   type KeyboardEvent,
@@ -95,10 +94,8 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
     },
     ref,
   ) => {
-    const reactId = useId();
     const triggerRef = useRef<HTMLButtonElement>(null);
     const selected = options.find((o) => o.value === value);
-    const listboxId = `${rest.id ?? reactId}-listbox`;
     const hasIcons = options.some((o) => o.icon !== undefined);
     const hasPrefixes = options.some((o) => o.prefix !== undefined);
     const isInline = variant === 'inline';
@@ -207,7 +204,6 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
           className={cn(styles.trigger, isInline && styles.inlineTrigger)}
           aria-haspopup="listbox"
           aria-expanded={open}
-          aria-controls={open ? listboxId : undefined}
           aria-label={ariaLabel}
           onClick={() => onOpenChange?.(!open)}
           onKeyDown={handleTriggerKeyDown}
@@ -258,7 +254,6 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
               <div className={styles.emptyState}>{emptyState}</div>
             )}
             <div
-              id={listboxId}
               role="listbox"
               className={styles.options}
               aria-label={ariaLabel ?? 'Options'}
