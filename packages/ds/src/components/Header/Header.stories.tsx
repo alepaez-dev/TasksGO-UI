@@ -243,7 +243,6 @@ function MobileRender() {
             onClear={query ? () => setQuery('') : undefined}
             borderless
             className={searchPillStyles.searchPill}
-            style={{ fontSize: 16 }}
           />
           <button
             type="button"

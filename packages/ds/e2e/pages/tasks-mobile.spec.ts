@@ -206,6 +206,118 @@ test.describe('Mobile tasks — sort sheet', () => {
   });
 });
 
+test.describe('Mobile tasks — metadata picker sheets', () => {
+  test.beforeEach(async ({ page }) => {
+    await loadStory(page);
+    await page.getByRole('button', { name: 'New task' }).click();
+    await expect(page.getByRole('dialog', { name: 'New task' })).toBeVisible();
+  });
+
+  test('assignee: open sheet, select a member, value updates and sheet closes', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: 'Assignee: Alex H.' }).click();
+
+    const sheet = page.getByRole('dialog', { name: 'Select assignee' });
+    await expect(sheet).toBeVisible();
+
+    await sheet.getByRole('option', { name: /Cleo H\./ }).click();
+
+    await expect(sheet).not.toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Assignee: Cleo H.' }),
+    ).toBeVisible();
+  });
+
+  test('assignee: search filters the member list', async ({ page }) => {
+    await page.getByRole('button', { name: 'Assignee: Alex H.' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Select assignee' });
+
+    await sheet.getByRole('searchbox', { name: 'Search members' }).fill('cleo');
+
+    await expect(sheet.getByRole('option', { name: /Cleo H\./ })).toBeVisible();
+    await expect(sheet.getByRole('option', { name: /Vader P\./ })).toHaveCount(
+      0,
+    );
+  });
+
+  test('priority: open sheet, select an option, value updates and sheet closes', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: 'Priority: High' }).click();
+
+    const sheet = page.getByRole('dialog', { name: 'Select priority' });
+    await expect(sheet).toBeVisible();
+
+    await sheet.getByRole('option', { name: 'Critical' }).click();
+
+    await expect(sheet).not.toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Priority: Critical' }),
+    ).toBeVisible();
+  });
+
+  test('priority: selecting returns focus to the trigger', async ({ page }) => {
+    await page.getByRole('button', { name: 'Priority: High' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Select priority' });
+
+    await sheet.getByRole('option', { name: 'Low' }).click();
+
+    await expect(sheet).not.toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Priority: Low' }),
+    ).toBeFocused();
+  });
+
+  test('linked ticket: search and select updates the value', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: 'Linked ticket: None' }).click();
+
+    const sheet = page.getByRole('dialog', { name: 'Select linked ticket' });
+    await expect(sheet).toBeVisible();
+
+    await sheet
+      .getByRole('searchbox', { name: 'Search tickets' })
+      .fill('T-104');
+    await sheet.getByRole('option', { name: /T-104/ }).click();
+
+    await expect(sheet).not.toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /Linked ticket: T-104/ }),
+    ).toBeVisible();
+  });
+
+  test('linked ticket: "Create new ticket" action closes the sheet', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: 'Linked ticket: None' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Select linked ticket' });
+    await expect(sheet).toBeVisible();
+
+    await sheet.getByRole('button', { name: 'Create new ticket' }).click();
+
+    await expect(sheet).not.toBeVisible();
+  });
+
+  test('Escape closes the picker sheet but keeps the drawer open', async ({
+    page,
+  }) => {
+    const drawer = page.getByRole('dialog', { name: 'New task' });
+
+    await page.getByRole('button', { name: 'Priority: High' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Select priority' });
+    await expect(sheet).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(sheet).not.toBeVisible();
+    await expect(drawer).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(drawer).not.toBeVisible();
+  });
+});
+
 test.describe('Mobile tasks — empty state', () => {
   test('shows empty message when no tasks', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });

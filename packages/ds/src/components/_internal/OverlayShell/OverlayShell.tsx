@@ -48,13 +48,23 @@ export function OverlayShell({
   useEffect(() => {
     if (!open) return;
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && !e.defaultPrevented) {
-        onClose();
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      // Only the topmost overlay responds, so Escape never closes a lower
+      // overlay through one stacked above it. Every backdrop portals to
+      // <body> at the same z-index, so the last open one in document order
+      // is the one painted on top.
+      const openBackdrops = document.querySelectorAll(
+        '[data-ds-overlay="open"]',
+      );
+      if (backdropRef.current !== openBackdrops[openBackdrops.length - 1]) {
+        return;
       }
+      e.preventDefault();
+      onClose();
     }
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, backdropRef]);
 
   if (typeof document === 'undefined') return null;
   if (!shouldRender && !forceMount) return null;
@@ -71,6 +81,7 @@ export function OverlayShell({
   return createPortal(
     <div
       ref={backdropRef}
+      data-ds-overlay={open ? 'open' : undefined}
       className={cn(styles.backdrop, isVisible && styles.open)}
       style={durationStyle}
     >

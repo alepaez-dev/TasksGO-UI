@@ -112,3 +112,12 @@
   line-height: 1;
   white-space: nowrap;
 }
+
+/* iOS Safari auto-zooms on focus when an input is below 16px;
+   hold search inputs at 16px on touch devices to prevent it. */
+@media (pointer: coarse) {
+  .md .input,
+  .sm .input {
+    font-size: 16px;
+  }
+}

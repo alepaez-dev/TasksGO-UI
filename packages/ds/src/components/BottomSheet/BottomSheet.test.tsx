@@ -106,6 +106,64 @@ describe('BottomSheet', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it('Escape closes only the topmost overlay when sheets are nested', () => {
+    const onCloseOuter = vi.fn();
+    const onCloseInner = vi.fn();
+    const { rerender } = render(
+      <>
+        <BottomSheet open onClose={onCloseOuter} aria-label="Outer">
+          outer
+        </BottomSheet>
+        <BottomSheet open onClose={onCloseInner} aria-label="Inner">
+          inner
+        </BottomSheet>
+      </>,
+    );
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onCloseInner).toHaveBeenCalledTimes(1);
+    expect(onCloseOuter).not.toHaveBeenCalled();
+
+    rerender(
+      <>
+        <BottomSheet open onClose={onCloseOuter} aria-label="Outer">
+          outer
+        </BottomSheet>
+        <BottomSheet open={false} onClose={onCloseInner} aria-label="Inner">
+          inner
+        </BottomSheet>
+      </>,
+    );
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onCloseOuter).toHaveBeenCalledTimes(1);
+    expect(onCloseInner).toHaveBeenCalledTimes(1);
+  });
+
+  it('Escape closes the visually-topmost overlay when overlays mount nested in one commit', () => {
+    const spies = { Outer: vi.fn(), Inner: vi.fn() };
+    render(
+      <BottomSheet open onClose={spies.Outer} aria-label="Outer">
+        <BottomSheet open onClose={spies.Inner} aria-label="Inner">
+          inner
+        </BottomSheet>
+      </BottomSheet>,
+    );
+
+    const backdrops = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-ds-overlay="open"]'),
+    );
+    const topLabel = backdrops[backdrops.length - 1]
+      .querySelector('[role="dialog"]')
+      ?.getAttribute('aria-label') as 'Outer' | 'Inner';
+    const lowerLabel = topLabel === 'Outer' ? 'Inner' : 'Outer';
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(spies[topLabel]).toHaveBeenCalledTimes(1);
+    expect(spies[lowerLabel]).not.toHaveBeenCalled();
+  });
+
   it('does not call onClose on Escape when a nested handler prevented default', () => {
     const onClose = vi.fn();
     render(
