@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/43 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">43/43 infos</a><span class="filter-pill ok" aria-disabled="true">181 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/43 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">43/43 infos</a><span class="filter-pill ok" aria-disabled="true">184 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -3666,9 +3666,9 @@ size?: &#39;sm&#39; | &#39;md&#39; = &#39;md&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> PipelineHierarchyPanel</h2>
       <div class="badges">
-        <label for="c-21-components-pipelinehierarchypanel-props" class="badge ok as-toggle">8 prop types</label>
+        <label for="c-21-components-pipelinehierarchypanel-props" class="badge ok as-toggle">12 prop types</label>
         <label for="c-21-components-pipelinehierarchypanel-info" class="badge info as-toggle">1 info</label>
-        <label for="c-21-components-pipelinehierarchypanel-stories" class="badge ok as-toggle">1 story</label>
+        <label for="c-21-components-pipelinehierarchypanel-stories" class="badge ok as-toggle">4 stories</label>
         
       </div>
     </div>
@@ -3700,15 +3700,23 @@ size?: &#39;sm&#39; | &#39;md&#39; = &#39;md&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">8 prop types</span>
+              <span class="badge ok">12 prop types</span>
             </div>
             <pre><code>Component: src/components/PipelineHierarchyPanel/PipelineHierarchyPanel.tsx::PipelineHierarchyPanel</code></pre>
             <pre><code>Props:</code></pre>
             <pre><code>activeValue?: string
 
+addingStage?: any = false
+
 addLabel?: string
 
+addStagePlaceholder?: string
+
+addStageValue?: any = &#39;&#39;
+
 onAddStage?: () =&gt; void
+
+onAddStageCancel?: any = () =&gt; {}
 
 onReorder?: (newStages: readonly PipelineHierarchyStage[]) =&gt; void
 
@@ -3742,6 +3750,40 @@ title: string</code></pre>
               
               
               <pre><code>const Default = () =&gt; &lt;ControlledPanel initial={initialStages} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Adding Environment</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const AddingEnvironment = () =&gt; &lt;PipelineHierarchyPanel addStageValue=&quot;Staging-EU&quot; /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Adding Environment Duplicate</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const AddingEnvironmentDuplicate = () =&gt; &lt;PipelineHierarchyPanel
+    addStageValue=&quot;QA1&quot;
+    addStageMessage={{ kind: &#39;error&#39;, text: &#39;&quot;QA1&quot; already exists&#39; }} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Adding Environment Similar</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const AddingEnvironmentSimilar = () =&gt; &lt;PipelineHierarchyPanel
+    addStageValue=&quot;QA3&quot;
+    addStageMessage={{
+      kind: &#39;warning&#39;,
+      text: &#39;Similar to &quot;QA1&quot; and &quot;QA2&quot; — still confirm?&#39;,
+    }} /&gt;;</code></pre>
             </div>
         </div>
     
@@ -6963,13 +7005,13 @@ trailing?: ReactNode</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  543 | }
-  544 |
-&gt; 545 | const meta: Meta = {
+  566 | }
+  567 |
+&gt; 568 | const meta: Meta = {
       | ^
-  546 |   title: &#39;Pages/Ticket Overview&#39;,
-  547 |   parameters: {
-  548 |     layout: &#39;fullscreen&#39;,
+  569 |   title: &#39;Pages/Ticket Overview&#39;,
+  570 |   parameters: {
+  571 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -7075,6 +7117,13 @@ function TicketOverviewRender() {
     confirmBranch,
     cancelBranch,
     copyBranch,
+    addingStage,
+    addStageDraft,
+    addStageMessage,
+    openAddStage,
+    setAddStageDraft,
+    confirmAddStage,
+    cancelAddStage,
   } = useTicketOverviewState();
   const activeProject = getProject(project);
   const activeAssignee = getPerson(assignee);
@@ -7487,19 +7536,35 @@ function TicketOverviewRender() {
               &lt;/PropertyRow&gt;
             &lt;/div&gt;
 
-            {pipelineOpen &amp;&amp; (
-              &lt;PipelineHierarchyPanel
-                id=&quot;ticket-pipeline-hierarchy&quot;
-                title={ticket.pipeline.title}
-                stages={pipelineStages}
-                activeValue={activeStage}
-                onSelect={setActiveStage}
-                onReorder={setPipelineStages}
-                reorderHint={ticket.pipeline.reorderHint}
-                addLabel={ticket.pipeline.addLabel}
-                onAddStage={() =&gt; {}}
-              /&gt;
-            )}
+            {pipelineOpen &amp;&amp;
+              (() =&gt; {
+                const panelBaseProps = {
+                  id: &#39;ticket-pipeline-hierarchy&#39;,
+                  title: ticket.pipeline.title,
+                  stages: pipelineStages,
+                  activeValue: activeStage,
+                  onSelect: setActiveStage,
+                  onReorder: setPipelineStages,
+                  reorderHint: ticket.pipeline.reorderHint,
+                  addLabel: ticket.pipeline.addLabel,
+                  addStagePlaceholder: ticket.pipeline.addStagePlaceholder,
+                  onAddStage: openAddStage,
+                };
+                if (addingStage) {
+                  return (
+                    &lt;PipelineHierarchyPanel
+                      {...panelBaseProps}
+                      addingStage
+                      addStageValue={addStageDraft}
+                      addStageMessage={addStageMessage}
+                      onAddStageValueChange={setAddStageDraft}
+                      onAddStageConfirm={confirmAddStage}
+                      onAddStageCancel={cancelAddStage}
+                    /&gt;
+                  );
+                }
+                return &lt;PipelineHierarchyPanel {...panelBaseProps} /&gt;;
+              })()}
           &lt;/aside&gt;
         &lt;/div&gt;
 
@@ -8540,13 +8605,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  543 | }
-  544 |
-&gt; 545 | const meta: Meta = {
+  566 | }
+  567 |
+&gt; 568 | const meta: Meta = {
       | ^
-  546 |   title: &#39;Pages/Ticket Overview&#39;,
-  547 |   parameters: {
-  548 |     layout: &#39;fullscreen&#39;,
+  569 |   title: &#39;Pages/Ticket Overview&#39;,
+  570 |   parameters: {
+  571 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -8652,6 +8717,13 @@ function TicketOverviewRender() {
     confirmBranch,
     cancelBranch,
     copyBranch,
+    addingStage,
+    addStageDraft,
+    addStageMessage,
+    openAddStage,
+    setAddStageDraft,
+    confirmAddStage,
+    cancelAddStage,
   } = useTicketOverviewState();
   const activeProject = getProject(project);
   const activeAssignee = getPerson(assignee);
@@ -9064,19 +9136,35 @@ function TicketOverviewRender() {
               &lt;/PropertyRow&gt;
             &lt;/div&gt;
 
-            {pipelineOpen &amp;&amp; (
-              &lt;PipelineHierarchyPanel
-                id=&quot;ticket-pipeline-hierarchy&quot;
-                title={ticket.pipeline.title}
-                stages={pipelineStages}
-                activeValue={activeStage}
-                onSelect={setActiveStage}
-                onReorder={setPipelineStages}
-                reorderHint={ticket.pipeline.reorderHint}
-                addLabel={ticket.pipeline.addLabel}
-                onAddStage={() =&gt; {}}
-              /&gt;
-            )}
+            {pipelineOpen &amp;&amp;
+              (() =&gt; {
+                const panelBaseProps = {
+                  id: &#39;ticket-pipeline-hierarchy&#39;,
+                  title: ticket.pipeline.title,
+                  stages: pipelineStages,
+                  activeValue: activeStage,
+                  onSelect: setActiveStage,
+                  onReorder: setPipelineStages,
+                  reorderHint: ticket.pipeline.reorderHint,
+                  addLabel: ticket.pipeline.addLabel,
+                  addStagePlaceholder: ticket.pipeline.addStagePlaceholder,
+                  onAddStage: openAddStage,
+                };
+                if (addingStage) {
+                  return (
+                    &lt;PipelineHierarchyPanel
+                      {...panelBaseProps}
+                      addingStage
+                      addStageValue={addStageDraft}
+                      addStageMessage={addStageMessage}
+                      onAddStageValueChange={setAddStageDraft}
+                      onAddStageConfirm={confirmAddStage}
+                      onAddStageCancel={cancelAddStage}
+                    /&gt;
+                  );
+                }
+                return &lt;PipelineHierarchyPanel {...panelBaseProps} /&gt;;
+              })()}
           &lt;/aside&gt;
         &lt;/div&gt;
 
