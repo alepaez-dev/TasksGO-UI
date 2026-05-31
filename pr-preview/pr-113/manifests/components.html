@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/43 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">43/43 infos</a><span class="filter-pill ok" aria-disabled="true">183 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/43 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">43/43 infos</a><span class="filter-pill ok" aria-disabled="true">184 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -5009,7 +5009,7 @@ subtitle?: ReactNode</code></pre>
       <div class="badges">
         <label for="c-32-components-selector-props" class="badge ok as-toggle">14 prop types</label>
         <label for="c-32-components-selector-info" class="badge info as-toggle">1 info</label>
-        <label for="c-32-components-selector-stories" class="badge ok as-toggle">8 stories</label>
+        <label for="c-32-components-selector-stories" class="badge ok as-toggle">9 stories</label>
         
       </div>
     </div>
@@ -5101,6 +5101,21 @@ variant?: &#39;default&#39; | &#39;inline&#39; = &#39;default&#39;</code></pre>
               
               
               <pre><code>const Default = () =&gt; &lt;DefaultRender options={projects} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Open</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Open = () =&gt; &lt;Selector
+    options={projects}
+    value=&quot;eng-core&quot;
+    open
+    onOpenChange={() =&gt; {}}
+    triggerPrefix={&lt;Avatar initial=&quot;E&quot; aria-label=&quot;Engineering Core&quot; /&gt;}
+    aria-label=&quot;Select project&quot; /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
