@@ -45,6 +45,12 @@ function getAddStageMessage(
   const trimmed = draft.trim();
   if (trimmed.length === 0) return undefined;
   const draftValue = toStageValue(trimmed);
+  if (draftValue === '') {
+    return {
+      kind: 'error',
+      text: 'Stage name must include a letter or number',
+    };
+  }
   const exact = stages.find(
     (stage) =>
       stage.value === draftValue ||
@@ -103,11 +109,14 @@ function ControlledPanel({
         addStageMessage={message}
         onAddStageValueChange={setDraft}
         onAddStageConfirm={(label) => {
-          if (getAddStageMessage(label, stages)?.kind === 'error') return;
-          setStages((current) => [
-            ...current,
-            { value: toStageValue(label), label, status: 'idle' },
-          ]);
+          setStages((current) => {
+            if (getAddStageMessage(label, current)?.kind === 'error')
+              return current;
+            return [
+              ...current,
+              { value: toStageValue(label), label, status: 'idle' },
+            ];
+          });
           setIsAdding(false);
           setDraft('');
         }}

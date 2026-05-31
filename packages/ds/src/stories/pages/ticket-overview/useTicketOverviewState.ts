@@ -133,11 +133,13 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     ? getAddStageMessage(addStageDraft, pipelineStages)
     : undefined;
   const confirmAddStage = (label: string) => {
-    if (getAddStageMessage(label, pipelineStages)?.kind === 'error') return;
-    setPipelineStages((current) => [
-      ...current,
-      { value: toStageValue(label), label, status: 'idle' },
-    ]);
+    setPipelineStages((current) => {
+      if (getAddStageMessage(label, current)?.kind === 'error') return current;
+      return [
+        ...current,
+        { value: toStageValue(label), label, status: 'idle' },
+      ];
+    });
     setAddingStage(false);
     setAddStageDraft('');
   };
