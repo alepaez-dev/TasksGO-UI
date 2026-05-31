@@ -118,7 +118,6 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     ticket.pipeline.initialActiveStage,
   );
   const [pipelineOpen, setPipelineOpen] = useState(false);
-  const togglePipelineOpen = () => setPipelineOpen((current) => !current);
   const [addingStage, setAddingStage] = useState(false);
   const [addStageDraft, setAddStageDraft] = useState('');
   const openAddStage = () => {
@@ -128,6 +127,10 @@ export function useTicketOverviewState(): UseTicketOverviewState {
   const cancelAddStage = () => {
     setAddingStage(false);
     setAddStageDraft('');
+  };
+  const togglePipelineOpen = () => {
+    if (pipelineOpen) cancelAddStage();
+    setPipelineOpen((current) => !current);
   };
   const addStageMessage = addingStage
     ? getAddStageMessage(addStageDraft, pipelineStages)
