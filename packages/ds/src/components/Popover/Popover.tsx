@@ -13,13 +13,18 @@ import styles from './Popover.module.css';
 
 type PopoverPlacement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end';
 
-export interface PopoverProps extends HTMLAttributes<HTMLDivElement> {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  anchorRef: RefObject<HTMLElement | null>;
-  placement?: PopoverPlacement;
-  children: ReactNode;
-}
+type PopoverLabelProps =
+  | { 'aria-label': string; 'aria-labelledby'?: never }
+  | { 'aria-label'?: never; 'aria-labelledby': string };
+
+export type PopoverProps = PopoverLabelProps &
+  Omit<HTMLAttributes<HTMLDivElement>, 'aria-label' | 'aria-labelledby'> & {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    anchorRef: RefObject<HTMLElement | null>;
+    placement?: PopoverPlacement;
+    children: ReactNode;
+  };
 
 function setPosition(
   popoverEl: HTMLDivElement,
