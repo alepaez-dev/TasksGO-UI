@@ -38,7 +38,7 @@
 }
 
 .bar > button:not(:first-child) {
-  border-left: 1px solid var(--ds-color-floating-action-bar-border);
+  border-left: 1px solid var(--ds-color-floating-action-bar-border) !important;
 }
 
 .bar > button:focus-visible {
