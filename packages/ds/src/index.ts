@@ -75,6 +75,12 @@ export {
   type SearchPaletteResult,
   type SearchPaletteGroup,
 } from './components/SearchPalette';
+export {
+  Scratchpad,
+  type ScratchpadProps,
+  type ScratchpadLine,
+  type ScratchpadTaskRef,
+} from './components/Scratchpad';
 export { BottomSheet, type BottomSheetProps } from './components/BottomSheet';
 export { TaskSection, type TaskSectionProps } from './components/TaskSection';
 export {
@@ -180,6 +186,10 @@ export {
   type UseSelectorStateReturn,
   type SelectorGroupEntry,
 } from './hooks/useSelector';
+export {
+  useScratchpad,
+  type UseScratchpadControls,
+} from './hooks/useScratchpad';
 
 export {
   colors,

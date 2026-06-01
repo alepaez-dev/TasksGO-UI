@@ -152,6 +152,28 @@ describe('Popover', () => {
     expect(document.activeElement).toBe(screen.getByRole('dialog'));
   });
 
+  it('does not move focus to the popover when manageFocus is false', () => {
+    function NoFocusHarness() {
+      const anchorRef = useRef<HTMLButtonElement>(null);
+      return (
+        <>
+          <button ref={anchorRef}>Anchor</button>
+          <Popover
+            open={true}
+            onOpenChange={() => {}}
+            anchorRef={anchorRef}
+            manageFocus={false}
+            aria-label="Popover"
+          >
+            <div>Body</div>
+          </Popover>
+        </>
+      );
+    }
+    render(<NoFocusHarness />);
+    expect(document.activeElement).not.toBe(screen.getByRole('dialog'));
+  });
+
   it('returns focus to the previously focused element on close', () => {
     function FocusReturnHarness({ open }: { open: boolean }) {
       const anchorRef = useRef<HTMLButtonElement>(null);
