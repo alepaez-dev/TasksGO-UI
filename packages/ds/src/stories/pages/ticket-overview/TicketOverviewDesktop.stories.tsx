@@ -317,6 +317,7 @@ function TicketOverviewRender() {
                         key={item.id}
                         status={item.status}
                         label={item.label}
+                        onClick={() => {}}
                         meta={
                           item.metaVariant ? (
                             <Badge variant={item.metaVariant}>
