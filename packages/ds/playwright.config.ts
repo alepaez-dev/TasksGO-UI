@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = 'http://127.0.0.1:6006';
+const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:6006';
 
 export default defineConfig({
   testDir: './e2e',
@@ -19,7 +19,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  ...(process.env.CI
+  ...(process.env.CI || process.env.E2E_BASE_URL
     ? {}
     : {
         webServer: {

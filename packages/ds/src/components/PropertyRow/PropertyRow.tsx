@@ -8,10 +8,11 @@ export interface PropertyRowProps extends HTMLAttributes<HTMLDivElement> {
   icon?: IconName;
   label: string;
   onClick?: () => void;
+  valueLabel?: string;
 }
 
 export const PropertyRow = forwardRef<HTMLDivElement, PropertyRowProps>(
-  ({ icon, label, onClick, className, children, ...rest }, ref) => {
+  ({ icon, label, onClick, valueLabel, className, children, ...rest }, ref) => {
     const interactive = onClick !== undefined;
     const Value = interactive ? 'button' : 'div';
 
@@ -25,6 +26,7 @@ export const PropertyRow = forwardRef<HTMLDivElement, PropertyRowProps>(
           type={interactive ? 'button' : undefined}
           className={cn(styles.value, interactive && styles.interactive)}
           onClick={onClick}
+          aria-label={interactive ? valueLabel : undefined}
         >
           {children}
         </Value>

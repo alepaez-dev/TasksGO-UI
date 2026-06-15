@@ -106,6 +106,12 @@ export {
   type SelectorAction,
 } from './components/Selector';
 export {
+  OptionList,
+  type OptionListProps,
+  type OptionListOption,
+  type OptionListAction,
+} from './components/OptionList';
+export {
   ProjectPicker,
   type ProjectPickerProps,
   type ProjectPickerProject,
