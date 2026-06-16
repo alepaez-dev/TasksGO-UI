@@ -44,6 +44,7 @@ function BasicTrigger({
         onOpenChange={setOpen}
         anchorRef={anchorRef}
         placement={placement}
+        aria-label="Demo popover"
       >
         <div
           style={{
@@ -57,6 +58,35 @@ function BasicTrigger({
     </>
   );
 }
+
+function OpenRender() {
+  const anchorRef = useRef<HTMLButtonElement>(null);
+  return (
+    <>
+      <Button ref={anchorRef}>Anchor</Button>
+      <Popover
+        open
+        onOpenChange={() => {}}
+        anchorRef={anchorRef}
+        placement="bottom-start"
+        aria-label="Demo popover"
+      >
+        <div
+          style={{
+            padding: 'var(--ds-space-scale-md)',
+            minWidth: '240px',
+          }}
+        >
+          <p style={{ margin: 0 }}>Popover content goes here.</p>
+        </div>
+      </Popover>
+    </>
+  );
+}
+
+export const Open: Story = {
+  render: () => <OpenRender />,
+};
 
 export const BottomStart: Story = {
   render: () => <BasicTrigger placement="bottom-start" />,

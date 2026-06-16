@@ -97,8 +97,10 @@ export default meta;
 
 type Story = StoryObj<typeof TaskDrawer>;
 
-function DefaultRender() {
-  const [open, setOpen] = useState(false);
+function DefaultRender({
+  initialOpen = false,
+}: { initialOpen?: boolean } = {}) {
+  const [open, setOpen] = useState(initialOpen);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [assignee, setAssignee] = useState('ale');
@@ -323,6 +325,10 @@ export const Default: Story = {
     const footer = doc.querySelector('button');
     expect(footer).toBeTruthy();
   },
+};
+
+export const Open: Story = {
+  render: () => <DefaultRender initialOpen />,
 };
 
 const longDescription = Array(20)

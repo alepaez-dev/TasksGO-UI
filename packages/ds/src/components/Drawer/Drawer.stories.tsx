@@ -135,6 +135,16 @@ export const Default: Story = {
   render: (args) => <DefaultRender {...args} />,
 };
 
+export const Open: Story = {
+  render: () => (
+    <div style={{ minHeight: '100vh' }}>
+      <Drawer open onClose={() => {}} aria-label="Navigation menu">
+        <SidebarContent />
+      </Drawer>
+    </div>
+  ),
+};
+
 function RightSideRender(
   props: Omit<
     Partial<React.ComponentProps<typeof Drawer>>,
