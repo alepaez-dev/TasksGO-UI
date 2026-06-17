@@ -16,6 +16,7 @@ import {
   worstCaseCostUsd,
   renderStatusBody,
   parseStatusReviewedSha,
+  reviewFullySurfaced,
   DEFAULT_CONFIG,
 } from './review.mjs';
 
@@ -313,6 +314,19 @@ check('renderStatusBody distinguishes found-but-not-posted from a clean run', ()
   const clean = renderStatusBody({ model: 'm', posted: 0, findingsCount: 0, seenCount: 1 });
   assert.match(clean, /No new issues found ✅/);
   assert.ok(!clean.includes('but none were posted'));
+});
+
+check('reviewFullySurfaced gates the reviewed-SHA so unposted findings are not silently lost', () => {
+  // summaries on, every off-diff/fallback finding posted -> fully surfaced (advance SHA)
+  assert.equal(reviewFullySurfaced({ postSummaryComment: true, generalCount: 2, postedGeneral: 2, failedInline: 0 }), true);
+  // summaries on, the summary comment failed to post -> NOT surfaced (don't advance; re-review)
+  assert.equal(reviewFullySurfaced({ postSummaryComment: true, generalCount: 2, postedGeneral: 0, failedInline: 0 }), false);
+  // no general findings at all (all posted inline) -> fully surfaced
+  assert.equal(reviewFullySurfaced({ postSummaryComment: true, generalCount: 0, postedGeneral: 0, failedInline: 0 }), true);
+  // summaries OFF, only intentional off-diff drops (no inline failures) -> surfaced-by-policy (advance)
+  assert.equal(reviewFullySurfaced({ postSummaryComment: false, generalCount: 3, postedGeneral: 0, failedInline: 0 }), true);
+  // summaries OFF, but an inline post errored -> retryable, NOT surfaced (don't advance; re-review)
+  assert.equal(reviewFullySurfaced({ postSummaryComment: false, generalCount: 3, postedGeneral: 0, failedInline: 1 }), false);
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);

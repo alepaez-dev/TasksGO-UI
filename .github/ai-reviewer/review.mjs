@@ -512,6 +512,10 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
   const capped = kept.length > config.maxFindings;
   return { findings: kept.slice(0, config.maxFindings), dropped, capped };
 }
+export function reviewFullySurfaced({ postSummaryComment, generalCount, postedGeneral, failedInline }) {
+  const retryableUnposted = postSummaryComment ? generalCount - postedGeneral : failedInline;
+  return retryableUnposted === 0;
+}
 
 export function renderStatusBody({
   model,
@@ -802,6 +806,7 @@ async function main() {
   // 6. Post inline comments; collect any that could not be placed inline.
   const general = [];
   let postedInline = 0;
+  let failedInline = 0;
   for (const finding of findings) {
     if (!finding.inline || finding.line == null) {
       general.push(finding);
@@ -823,6 +828,7 @@ async function main() {
       const hint = err.status === 422 ? " (line not in this commit's diff — head may have advanced)" : '';
       core.warning(`Could not post inline comment on ${finding.file}:${finding.line}${hint} (${err.status || ''} ${err.message}). Moving to summary.`);
       general.push(finding);
+      failedInline += 1;
     }
   }
 
@@ -849,8 +855,26 @@ async function main() {
   }
 
   core.info(`Posted ${postedInline} inline comment(s)${postedGeneral ? ` and ${postedGeneral} finding(s) in a summary comment` : ''}.`);
+
+  const fullySurfaced = reviewFullySurfaced({
+    postSummaryComment: config.postSummaryComment,
+    generalCount: general.length,
+    postedGeneral,
+    failedInline,
+  });
+  if (!fullySurfaced) {
+    core.warning(`Some findings could not be posted; not marking ${pr.headSha.slice(0, 7)} as reviewed so they resurface on a re-run.`);
+  }
+
   await writeJobSummary({ findings, dropped, capped, config, postedInline, postedGeneral, seenCount: seenFingerprints.size, inputTokens, usage, costUsd });
-  await upsertStatus({ posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha: pr.headSha });
+  await upsertStatus({
+    posted: postedInline + postedGeneral,
+    findingsCount: findings.length,
+    inputTokens,
+    usage,
+    costUsd,
+    reviewedSha: fullySurfaced ? pr.headSha : lastReviewedSha,
+  });
 }
 
 async function writeJobSummary({
