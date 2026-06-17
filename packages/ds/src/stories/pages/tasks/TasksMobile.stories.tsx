@@ -17,7 +17,7 @@ import { SectionHeader } from '../../../components/SectionHeader';
 import { StatusDot } from '../../../components/StatusDot';
 import { TaskSection } from '../../../components/TaskSection';
 import { TaskRow } from '../../../components/TaskRow';
-import { Selector } from '../../../components/Selector';
+import { OptionList } from '../../../components/OptionList';
 import { Drawer } from '../../../components/Drawer';
 import {
   TaskDrawer,
@@ -62,21 +62,12 @@ function TasksMobileRender({
   initialTasks?: readonly TaskItem[];
 }) {
   const tasks = useTasksState(initialTasks);
-  const {
-    ref: assigneeRef,
-    open: assigneeOpen,
-    onOpenChange: onAssigneeChange,
-  } = tasks.selectors.assignee;
-  const {
-    ref: priorityRef,
-    open: priorityOpen,
-    onOpenChange: onPriorityChange,
-  } = tasks.selectors.priority;
-  const {
-    ref: ticketRef,
-    open: ticketOpen,
-    onOpenChange: onTicketChange,
-  } = tasks.selectors.ticket;
+  const { open: assigneeOpen, onOpenChange: onAssigneeChange } =
+    tasks.selectors.assignee;
+  const { open: priorityOpen, onOpenChange: onPriorityChange } =
+    tasks.selectors.priority;
+  const { open: ticketOpen, onOpenChange: onTicketChange } =
+    tasks.selectors.ticket;
 
   const [project, setProject] = useState('eng-core');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -99,6 +90,15 @@ function TasksMobileRender({
   }
 
   const activeProject = getProject(project);
+  const selectedAssignee = assigneeOptions.find(
+    (m) => m.value === tasks.form.assignee,
+  );
+  const selectedPriority = priorityOptions.find(
+    (p) => p.value === tasks.form.priority,
+  );
+  const selectedTicket = ticketOptions.find(
+    (t) => t.value === tasks.form.linkedTicket,
+  );
 
   return (
     <div className={styles.shell} style={fabOffsetOverride}>
@@ -147,7 +147,6 @@ function TasksMobileRender({
               onClear={searchQuery ? () => setSearchQuery('') : undefined}
               borderless
               className={searchPillStyles.searchPill}
-              style={{ fontSize: 16 }}
             />
             <button
               type="button"
@@ -469,132 +468,179 @@ function TasksMobileRender({
           </TaskDrawerField>
 
           <TaskDrawerSection label="Properties">
-            <PropertyRow icon="person" label="Assignee">
-              <Selector
-                ref={assigneeRef}
-                options={
-                  tasks.assigneeQuery
-                    ? assigneeOptions.filter((m) =>
-                        m.label
-                          .toLowerCase()
-                          .includes(tasks.assigneeQuery.toLowerCase()),
-                      )
-                    : assigneeOptions
+            <PropertyRow
+              icon="person"
+              label="Assignee"
+              onClick={() => onAssigneeChange(true)}
+              valueLabel={`Assignee: ${selectedAssignee?.label ?? 'Unassigned'}`}
+            >
+              <Avatar
+                variant="profile"
+                size="sm"
+                initial={selectedAssignee?.initial ?? '?'}
+                aria-label={selectedAssignee?.label ?? 'No assignee'}
+                style={
+                  selectedAssignee?.color
+                    ? { backgroundColor: selectedAssignee.color }
+                    : undefined
                 }
-                value={tasks.form.assignee}
-                onValueChange={(v) => {
-                  tasks.setForm((f) => ({ ...f, assignee: v }));
-                  tasks.setAssigneeQuery('');
-                }}
-                open={assigneeOpen}
-                onOpenChange={onAssigneeChange}
-                dropdownAlign="end"
-                variant="inline"
-                aria-label="Select assignee"
-                header={
-                  <SearchInput
-                    value={tasks.assigneeQuery}
-                    onChange={(e) => tasks.setAssigneeQuery(e.target.value)}
-                    placeholder="Search members..."
-                    size="sm"
-                  />
-                }
-                emptyState="No members found"
-                triggerPrefix={(() => {
-                  const selected = assigneeOptions.find(
-                    (m) => m.value === tasks.form.assignee,
-                  );
-                  return (
-                    <Avatar
-                      variant="profile"
-                      initial={selected?.initial ?? '?'}
-                      aria-label={selected?.label ?? 'No assignee'}
-                      style={
-                        selected?.color
-                          ? { backgroundColor: selected.color }
-                          : undefined
-                      }
-                    />
-                  );
-                })()}
-                renderTriggerLabel={(opt) => opt.label}
-                renderOptionIndicator={(opt) => {
-                  const member = assigneeOptions.find(
-                    (m) => m.value === opt.value,
-                  );
-                  return member ? (
-                    <Avatar
-                      variant="profile"
-                      size="sm"
-                      initial={member.initial}
-                      aria-label={member.label}
-                      style={{ backgroundColor: member.color }}
-                    />
-                  ) : null;
-                }}
               />
+              <span>{selectedAssignee?.label ?? 'Unassigned'}</span>
+              <Icon name="expand_more" size="sm" />
             </PropertyRow>
 
-            <PropertyRow icon="signal_cellular_alt" label="Priority">
-              <Selector
-                ref={priorityRef}
-                options={priorityOptions}
-                value={tasks.form.priority}
-                onValueChange={(v) =>
-                  tasks.setForm((f) => ({ ...f, priority: v }))
-                }
-                open={priorityOpen}
-                onOpenChange={onPriorityChange}
-                dropdownAlign="end"
-                variant="inline"
-                aria-label="Select priority"
-              />
+            <PropertyRow
+              icon="signal_cellular_alt"
+              label="Priority"
+              onClick={() => onPriorityChange(true)}
+              valueLabel={`Priority: ${selectedPriority?.label ?? 'None'}`}
+            >
+              {selectedPriority && (
+                <Icon
+                  name={selectedPriority.icon}
+                  size="sm"
+                  style={{ color: selectedPriority.iconColor }}
+                />
+              )}
+              <span>{selectedPriority?.label ?? 'None'}</span>
+              <Icon name="expand_more" size="sm" />
             </PropertyRow>
 
-            <PropertyRow icon="confirmation_number" label="Linked Ticket">
-              <Selector
-                ref={ticketRef}
-                options={
-                  tasks.ticketQuery
-                    ? ticketOptions.filter(
-                        (t) =>
-                          t.label
-                            .toLowerCase()
-                            .includes(tasks.ticketQuery.toLowerCase()) ||
-                          (t.prefix ?? '')
-                            .toLowerCase()
-                            .includes(tasks.ticketQuery.toLowerCase()),
-                      )
-                    : ticketOptions
-                }
-                value={tasks.form.linkedTicket}
-                onValueChange={(v) => {
-                  tasks.setForm((f) => ({ ...f, linkedTicket: v }));
-                  tasks.setTicketQuery('');
-                }}
-                open={ticketOpen}
-                onOpenChange={onTicketChange}
-                placeholder="Search ticket..."
-                header={
-                  <SearchInput
-                    value={tasks.ticketQuery}
-                    onChange={(e) => tasks.setTicketQuery(e.target.value)}
-                    placeholder="Search tickets..."
-                    size="sm"
-                  />
-                }
-                variant="inline"
-                dropdownAlign="end"
-                action={{
-                  label: 'Create new ticket',
-                  icon: 'add',
-                  onClick: () => {},
-                }}
-                emptyState="No results found"
-                aria-label="Linked ticket"
-              />
+            <PropertyRow
+              icon="confirmation_number"
+              label="Linked Ticket"
+              onClick={() => onTicketChange(true)}
+              valueLabel={`Linked ticket: ${
+                selectedTicket
+                  ? `${selectedTicket.prefix}, ${selectedTicket.label}`
+                  : 'None'
+              }`}
+            >
+              <span>{selectedTicket ? selectedTicket.prefix : 'None'}</span>
+              <Icon name="expand_more" size="sm" />
             </PropertyRow>
           </TaskDrawerSection>
+
+          <BottomSheet
+            open={assigneeOpen}
+            onClose={() => {
+              onAssigneeChange(false);
+              tasks.setAssigneeQuery('');
+            }}
+            aria-label="Select assignee"
+          >
+            <SectionHeader headingLevel={3}>Assignee</SectionHeader>
+            <OptionList
+              options={
+                tasks.assigneeQuery
+                  ? assigneeOptions.filter((m) =>
+                      m.label
+                        .toLowerCase()
+                        .includes(tasks.assigneeQuery.toLowerCase()),
+                    )
+                  : assigneeOptions
+              }
+              value={tasks.form.assignee}
+              onSelect={(v) => {
+                tasks.setForm((f) => ({ ...f, assignee: v }));
+                tasks.setAssigneeQuery('');
+                onAssigneeChange(false);
+              }}
+              header={
+                <SearchInput
+                  value={tasks.assigneeQuery}
+                  onChange={(e) => tasks.setAssigneeQuery(e.target.value)}
+                  placeholder="Search members..."
+                  aria-label="Search members"
+                  size="sm"
+                />
+              }
+              emptyState="No members found"
+              renderOptionIndicator={(opt) => {
+                const member = assigneeOptions.find(
+                  (m) => m.value === opt.value,
+                );
+                return member ? (
+                  <Avatar
+                    variant="profile"
+                    size="sm"
+                    initial={member.initial}
+                    aria-label={member.label}
+                    style={{ backgroundColor: member.color }}
+                  />
+                ) : null;
+              }}
+              aria-label="Members"
+            />
+          </BottomSheet>
+
+          <BottomSheet
+            open={priorityOpen}
+            onClose={() => onPriorityChange(false)}
+            aria-label="Select priority"
+          >
+            <SectionHeader headingLevel={3}>Priority</SectionHeader>
+            <OptionList
+              options={priorityOptions}
+              value={tasks.form.priority}
+              onSelect={(v) => {
+                tasks.setForm((f) => ({ ...f, priority: v }));
+                onPriorityChange(false);
+              }}
+              aria-label="Priority"
+            />
+          </BottomSheet>
+
+          <BottomSheet
+            open={ticketOpen}
+            onClose={() => {
+              onTicketChange(false);
+              tasks.setTicketQuery('');
+            }}
+            aria-label="Select linked ticket"
+          >
+            <SectionHeader headingLevel={3}>Linked Ticket</SectionHeader>
+            <OptionList
+              options={
+                tasks.ticketQuery
+                  ? ticketOptions.filter(
+                      (t) =>
+                        t.label
+                          .toLowerCase()
+                          .includes(tasks.ticketQuery.toLowerCase()) ||
+                        t.prefix
+                          .toLowerCase()
+                          .includes(tasks.ticketQuery.toLowerCase()),
+                    )
+                  : ticketOptions
+              }
+              value={tasks.form.linkedTicket}
+              onSelect={(v) => {
+                tasks.setForm((f) => ({ ...f, linkedTicket: v }));
+                tasks.setTicketQuery('');
+                onTicketChange(false);
+              }}
+              header={
+                <SearchInput
+                  value={tasks.ticketQuery}
+                  onChange={(e) => tasks.setTicketQuery(e.target.value)}
+                  placeholder="Search tickets..."
+                  aria-label="Search tickets"
+                  size="sm"
+                />
+              }
+              action={{
+                label: 'Create new ticket',
+                icon: 'add',
+                onClick: () => {
+                  onTicketChange(false);
+                  tasks.setTicketQuery('');
+                },
+              }}
+              emptyState="No results found"
+              aria-label="Tickets"
+            />
+          </BottomSheet>
 
           <TaskDrawerSection label="Recent Tasks">
             <RecentTaskList items={recentTasks} />

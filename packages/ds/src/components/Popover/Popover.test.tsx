@@ -14,7 +14,12 @@ function Harness({
   return (
     <>
       <button ref={anchorRef}>Anchor</button>
-      <Popover open={open} onOpenChange={onOpenChange} anchorRef={anchorRef}>
+      <Popover
+        open={open}
+        onOpenChange={onOpenChange}
+        anchorRef={anchorRef}
+        aria-label="Popover"
+      >
         <div>Popover body</div>
       </Popover>
       <div data-testid="outside">Outside</div>
@@ -82,6 +87,7 @@ describe('Popover', () => {
             open={true}
             onOpenChange={() => {}}
             anchorRef={anchorRef}
+            aria-label="Popover"
           >
             <div>Body</div>
           </Popover>
@@ -104,6 +110,7 @@ describe('Popover', () => {
             onOpenChange={() => {}}
             anchorRef={anchorRef}
             className="custom"
+            aria-label="Popover"
           >
             <div>Body</div>
           </Popover>
@@ -130,7 +137,12 @@ describe('Popover', () => {
       return (
         <>
           <button ref={anchorRef}>Anchor</button>
-          <Popover open={true} onOpenChange={() => {}} anchorRef={anchorRef}>
+          <Popover
+            open={true}
+            onOpenChange={() => {}}
+            anchorRef={anchorRef}
+            aria-label="Popover"
+          >
             <div>Body</div>
           </Popover>
         </>
@@ -146,7 +158,12 @@ describe('Popover', () => {
       return (
         <>
           <button ref={anchorRef}>Anchor</button>
-          <Popover open={open} onOpenChange={() => {}} anchorRef={anchorRef}>
+          <Popover
+            open={open}
+            onOpenChange={() => {}}
+            anchorRef={anchorRef}
+            aria-label="Popover"
+          >
             <div>Body</div>
           </Popover>
         </>

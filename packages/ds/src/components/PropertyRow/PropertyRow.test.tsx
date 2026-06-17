@@ -53,6 +53,22 @@ describe('PropertyRow', () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
+  it('uses valueLabel as the accessible name of the interactive value', () => {
+    render(
+      <PropertyRow
+        icon="person"
+        label="Assignee"
+        onClick={vi.fn()}
+        valueLabel="Assignee: Alex D."
+      >
+        Alex D.
+      </PropertyRow>,
+    );
+    expect(
+      screen.getByRole('button', { name: 'Assignee: Alex D.' }),
+    ).toBeInTheDocument();
+  });
+
   it('forwards ref', () => {
     const ref = createRef<HTMLDivElement>();
     render(

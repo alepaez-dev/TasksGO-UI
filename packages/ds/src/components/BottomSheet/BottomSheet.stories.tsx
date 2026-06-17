@@ -67,6 +67,14 @@ export const Default: Story = {
   ),
 };
 
+export const Open: Story = {
+  render: () => (
+    <BottomSheet open onClose={() => {}} aria-label="Demo sheet">
+      <p style={{ margin: 0 }}>Sheet content goes here.</p>
+    </BottomSheet>
+  ),
+};
+
 const moreMenuProjects: ProjectPickerProject[] = [
   {
     value: 'eng-core',
