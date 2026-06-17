@@ -1,0 +1,19 @@
+{
+  "name": "tasksgo-ai-reviewer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Claude-powered, bug-focused PR reviewer (runs on the ai-reviewer label).",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "review": "node review.mjs",
+    "test": "node review.test.mjs"
+  },
+  "dependencies": {
+    "@actions/core": "3.0.1",
+    "@actions/github": "9.1.1",
+    "@anthropic-ai/sdk": "0.104.2"
+  }
+}
