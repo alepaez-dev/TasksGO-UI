@@ -7327,13 +7327,13 @@ trailing?: ReactNode</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  567 | }
-  568 |
-&gt; 569 | const meta: Meta = {
+  572 | }
+  573 |
+&gt; 574 | const meta: Meta = {
       | ^
-  570 |   title: &#39;Pages/Ticket Overview&#39;,
-  571 |   parameters: {
-  572 |     layout: &#39;fullscreen&#39;,
+  575 |   title: &#39;Pages/Ticket Overview&#39;,
+  576 |   parameters: {
+  577 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -7816,7 +7816,12 @@ function TicketOverviewRender() {
                   variant=&quot;inline&quot;
                   dropdownAlign=&quot;end&quot;
                   renderTriggerLabel={() =&gt; (
-                    &lt;span className={styles.priorityValue}&gt;
+                    &lt;span
+                      className={styles.priorityValue}
+                      style={{
+                        color: `var(--ds-color-status-${activePriority.value})`,
+                      }}
+                    &gt;
                       {activePriority.label}
                     &lt;/span&gt;
                   )}
@@ -8928,13 +8933,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  567 | }
-  568 |
-&gt; 569 | const meta: Meta = {
+  572 | }
+  573 |
+&gt; 574 | const meta: Meta = {
       | ^
-  570 |   title: &#39;Pages/Ticket Overview&#39;,
-  571 |   parameters: {
-  572 |     layout: &#39;fullscreen&#39;,
+  575 |   title: &#39;Pages/Ticket Overview&#39;,
+  576 |   parameters: {
+  577 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -9417,7 +9422,12 @@ function TicketOverviewRender() {
                   variant=&quot;inline&quot;
                   dropdownAlign=&quot;end&quot;
                   renderTriggerLabel={() =&gt; (
-                    &lt;span className={styles.priorityValue}&gt;
+                    &lt;span
+                      className={styles.priorityValue}
+                      style={{
+                        color: `var(--ds-color-status-${activePriority.value})`,
+                      }}
+                    &gt;
                       {activePriority.label}
                     &lt;/span&gt;
                   )}
