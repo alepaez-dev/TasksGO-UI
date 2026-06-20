@@ -58,8 +58,10 @@
   cursor: pointer;
 }
 
-.selectable:not(.rowActive):not(.dragging):hover {
-  background-color: var(--ds-color-surface-hover);
+@media (hover: hover) {
+  .selectable:not(.rowActive):not(.dragging):hover {
+    background-color: var(--ds-color-surface-hover);
+  }
 }
 
 .rowActive {
@@ -140,15 +142,18 @@
   color: var(--ds-color-text-disabled);
   opacity: 0.5;
   cursor: grab;
+  touch-action: none;
   border-radius: var(--ds-radius-sm);
   transition-property: var(--ds-transition-property);
   transition-duration: var(--ds-transition-duration);
   transition-timing-function: var(--ds-transition-timing-function);
 }
 
-.dragHandle:hover {
-  opacity: 1;
-  color: var(--ds-color-text-secondary);
+@media (hover: hover) {
+  .dragHandle:hover {
+    opacity: 1;
+    color: var(--ds-color-text-secondary);
+  }
 }
 
 .dragHandle:active {
@@ -225,9 +230,11 @@
   transition-timing-function: var(--ds-transition-timing-function);
 }
 
-.addButton:hover {
-  background-color: var(--ds-color-surface-hover);
-  color: var(--ds-color-text-primary);
+@media (hover: hover) {
+  .addButton:hover {
+    background-color: var(--ds-color-surface-hover);
+    color: var(--ds-color-text-primary);
+  }
 }
 
 .addButton:focus-visible {

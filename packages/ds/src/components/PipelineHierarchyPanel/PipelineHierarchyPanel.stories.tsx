@@ -15,7 +15,7 @@ const meta: Meta<typeof PipelineHierarchyPanel> = {
     docs: {
       description: {
         component:
-          'A bordered panel listing pipeline stages with per-stage status dots, an optional active highlight, and an optional add-stage footer. When `onReorder` is provided, each row gets a drag handle for mouse drag-and-drop reorder and supports keyboard reorder via `Alt+ArrowUp` / `Alt+ArrowDown` on the focused drag handle. Touch reorder is not yet supported.',
+          'A bordered panel listing pipeline stages with per-stage status dots, an optional active highlight, and an optional add-stage footer. When `onReorder` is provided, each row gets a drag handle for pointer (mouse and touch) drag-and-drop reorder and supports keyboard reorder via `Alt+ArrowUp` / `Alt+ArrowDown` on the focused drag handle.',
       },
     },
   },
