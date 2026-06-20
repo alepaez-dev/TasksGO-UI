@@ -14,6 +14,8 @@ import {
   filterFindings,
   estimateCostUsd,
   worstCaseCostUsd,
+  summarizeUsage,
+  formatUsage,
   renderStatusBody,
   parseStatusReviewedSha,
   reviewFullySurfaced,
@@ -278,7 +280,7 @@ check('renderStatusBody shows cost and is NOT parsed as a finding marker', () =>
   });
   assert.match(body, /Posted \*\*3\*\* new issue/);
   assert.match(body, /≈ \$0\.450/);
-  assert.match(body, /input 50000 · output 8000/);
+  assert.match(body, /input 50000 \(fresh 50000\) · output 8000/);
   // critical: the status marker must NOT be picked up by the finding-marker parser
   assert.equal(parseMarkers(body).length, 0);
 });
@@ -327,6 +329,27 @@ check('reviewFullySurfaced gates the reviewed-SHA so unposted findings are not s
   assert.equal(reviewFullySurfaced({ postSummaryComment: false, generalCount: 3, postedGeneral: 0, failedInline: 0 }), true);
   // summaries OFF, but an inline post errored -> retryable, NOT surfaced (don't advance; re-review)
   assert.equal(reviewFullySurfaced({ postSummaryComment: false, generalCount: 3, postedGeneral: 0, failedInline: 1 }), false);
+});
+
+check('summarizeUsage/formatUsage report the true input across all three buckets', () => {
+  const cold = { input_tokens: 743, cache_creation_input_tokens: 4012, cache_read_input_tokens: 0, output_tokens: 56 };
+  const s = summarizeUsage(cold);
+  assert.equal(s.totalInput, 4755);
+  assert.equal(s.fresh, 743);
+  assert.equal(s.cacheWrite, 4012);
+  assert.match(formatUsage(cold), /input 4755 \(fresh 743 · cache-write 4012\) · output 56/);
+  const warm = { input_tokens: 743, cache_creation_input_tokens: 0, cache_read_input_tokens: 4012, output_tokens: 56 };
+  assert.equal(summarizeUsage(warm).totalInput, 4755);
+  assert.match(formatUsage(warm), /input 4755 \(fresh 743 · cache-read 4012\) · output 56/);
+  assert.equal(summarizeUsage(null), null);
+  assert.equal(formatUsage(null), null);
+});
+
+check('status comment reports the true total input (not just the uncached portion)', () => {
+  const usage = { input_tokens: 743, cache_creation_input_tokens: 4012, cache_read_input_tokens: 0, output_tokens: 56 };
+  const body = renderStatusBody({ model: 'claude-opus-4-8', posted: 0, findingsCount: 0, usage, costUsd: 0.03 });
+  assert.match(body, /input 4755/);
+  assert.ok(!/input 743 ·/.test(body)); // no longer reports the misleading 743 as "input"
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);

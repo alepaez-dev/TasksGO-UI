@@ -438,6 +438,23 @@ export function estimateCostUsd(usage, model, pricing) {
   return freshInput * inPerTok + cacheRead * inPerTok * 0.1 + cacheWrite * inPerTok * 1.25 + output * outPerTok;
 }
 
+export function summarizeUsage(usage) {
+  if (!usage) return null;
+  const fresh = usage.input_tokens || 0;
+  const cacheWrite = usage.cache_creation_input_tokens || 0;
+  const cacheRead = usage.cache_read_input_tokens || 0;
+  return { fresh, cacheWrite, cacheRead, totalInput: fresh + cacheWrite + cacheRead, output: usage.output_tokens || 0 };
+}
+
+export function formatUsage(usage) {
+  const u = summarizeUsage(usage);
+  if (!u) return null;
+  const parts = [`fresh ${u.fresh}`];
+  if (u.cacheWrite) parts.push(`cache-write ${u.cacheWrite}`);
+  if (u.cacheRead) parts.push(`cache-read ${u.cacheRead}`);
+  return `input ${u.totalInput} (${parts.join(' · ')}) · output ${u.output}`;
+}
+
 // Deterministic worst-case cost ceiling for one run, given the hard input/output caps.
 export function worstCaseCostUsd(config) {
   const rate = config.pricing?.[config.model];
@@ -546,8 +563,7 @@ export function renderStatusBody({
 
   const rows = [];
   if (usage) {
-    const cached = usage.cache_read_input_tokens ? ` (+${usage.cache_read_input_tokens} cached)` : '';
-    rows.push(`| Tokens | input ${usage.input_tokens ?? '?'}${cached} · output ${usage.output_tokens ?? '?'} |`);
+    rows.push(`| Tokens | ${formatUsage(usage)} |`);
   } else if (inputTokens != null) {
     rows.push(`| Tokens | input ≈ ${inputTokens} (no request made) |`);
   }
@@ -779,10 +795,7 @@ async function main() {
 
   const costUsd = estimateCostUsd(usage, config.model, config.pricing);
   if (usage) {
-    core.info(
-      `Spend: input ${usage.input_tokens}, cache-read ${usage.cache_read_input_tokens || 0}, ` +
-        `output ${usage.output_tokens}${costUsd != null ? ` → ≈ $${costUsd.toFixed(3)}` : ''}.`,
-    );
+    core.info(`Spend: ${formatUsage(usage)}${costUsd != null ? ` → ≈ $${costUsd.toFixed(3)}` : ''}.`);
   }
   if (config.costWarnUsd != null && costUsd != null && costUsd > config.costWarnUsd) {
     core.warning(`This run cost ≈ $${costUsd.toFixed(3)}, over costWarnUsd ($${config.costWarnUsd}).`);
@@ -924,8 +937,10 @@ async function writeJobSummary({
         `${capped ? `, capped at ${config.maxFindings}` : ''}.`,
     );
     const spend = [];
-    if (inputTokens != null) spend.push(`input ≈ ${inputTokens} tok`);
-    if (usage) spend.push(`output ${usage.output_tokens || 0} tok`);
+    // Use the actual billed usage (same source as the PR status comment) so the two always agree;
+    // fall back to the pre-flight count only when no request was made (e.g. the input-gate skip).
+    if (usage) spend.push(formatUsage(usage));
+    else if (inputTokens != null) spend.push(`input ≈ ${inputTokens} (no request made)`);
     if (costUsd != null) spend.push(`≈ $${costUsd.toFixed(3)}`);
     if (spend.length) core.summary.addRaw(`\n\n**Spend:** ${spend.join(' · ')}.`);
     await core.summary.write();
