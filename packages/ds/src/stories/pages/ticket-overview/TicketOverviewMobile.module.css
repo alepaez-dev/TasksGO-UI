@@ -277,7 +277,6 @@
 .priorityValue {
   font-family: var(--ds-font-family-sans);
   font-size: var(--ds-text-property-row-value-font-size);
-  color: var(--ds-color-status-high);
   font-weight: var(--ds-font-weight-medium);
 }
 

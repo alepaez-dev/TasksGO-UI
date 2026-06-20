@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type TouchEvent } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { withDefaultViewport } from '../../../../.storybook/decorators';
 import { mobileViewportOptions } from '../../../../.storybook/preview';
@@ -116,14 +116,22 @@ function TicketOverviewMobileRender() {
   const activeStageLabel = pipelineStages.find(
     (stage) => stage.value === activeStage,
   )?.label;
-  const pipelineSummary = `${pipelineStages.length} stages · ${activeStageLabel} active`;
+  const pipelineSummary = activeStageLabel
+    ? `${pipelineStages.length} stages · ${activeStageLabel} active`
+    : `${pipelineStages.length} stages`;
 
   function openDetails() {
     setDetailsView('metadata');
     setDetailsOpen(true);
   }
 
+  function closeDetails() {
+    cancelAddStage();
+    setDetailsOpen(false);
+  }
+
   function backToMetadata() {
+    cancelAddStage();
     setDetailsView('metadata');
   }
 
@@ -361,7 +369,7 @@ function TicketOverviewMobileRender() {
 
       <BottomSheet
         open={detailsOpen}
-        onClose={() => setDetailsOpen(false)}
+        onClose={closeDetails}
         aria-label={detailsView === 'metadata' ? 'Ticket details' : 'Pipeline'}
       >
         <div style={{ overflowX: 'clip' }}>
@@ -385,7 +393,7 @@ function TicketOverviewMobileRender() {
                   <IconButton
                     icon="close"
                     aria-label="Close details"
-                    onClick={() => setDetailsOpen(false)}
+                    onClick={closeDetails}
                   />
                 </div>
               </div>
@@ -460,7 +468,12 @@ function TicketOverviewMobileRender() {
                   onClick={() => onPriorityOpenChange(true)}
                   valueLabel={`Priority: ${activePriority.label}`}
                 >
-                  <span className={styles.priorityValue}>
+                  <span
+                    className={styles.priorityValue}
+                    style={{
+                      color: `var(--ds-color-status-${activePriority.value})`,
+                    }}
+                  >
                     {activePriority.label}
                   </span>
                   <Icon name="expand_more" size="sm" />
@@ -517,6 +530,12 @@ function TicketOverviewMobileRender() {
                 const panelBaseProps = {
                   title: 'Stages',
                   style: { border: 'none', padding: 0 },
+                  // Stop reorder touch-drags from bubbling to the BottomSheet's
+                  // drag-to-dismiss (it tracks touch; reorder uses pointer).
+                  onTouchStart: (e: TouchEvent<HTMLDivElement>) =>
+                    e.stopPropagation(),
+                  onTouchMove: (e: TouchEvent<HTMLDivElement>) =>
+                    e.stopPropagation(),
                   stages: pipelineStages,
                   activeValue: activeStage,
                   onSelect: setActiveStage,
