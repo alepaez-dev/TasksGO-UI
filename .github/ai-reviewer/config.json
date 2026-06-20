@@ -1,0 +1,42 @@
+{
+  "model": "claude-opus-4-8",
+  "effort": "high",
+  "maxOutputTokens": 64000,
+  "minConfidence": "medium",
+  "minSeverity": "low",
+  "maxFindings": 25,
+  "maxFilePatchChars": 30000,
+  "maxTotalDiffChars": 400000,
+  "maxInputTokens": 150000,
+  "costWarnUsd": null,
+  "pricing": {
+    "claude-opus-4-8": { "input": 5, "output": 25 },
+    "claude-sonnet-4-6": { "input": 3, "output": 15 },
+    "claude-haiku-4-5": { "input": 1, "output": 5 }
+  },
+  "includeProjectGuide": true,
+  "postSummaryComment": true,
+  "postRunStatusComment": true,
+  "skipIfHeadUnchanged": true,
+  "botActor": "github-actions[bot]",
+  "ignore": [
+    "**/package-lock.json",
+    "**/*.lock",
+    "**/*.snap",
+    "**/*.svg",
+    "**/*.png",
+    "**/*.jpg",
+    "**/*.jpeg",
+    "**/*.gif",
+    "**/*.woff",
+    "**/*.woff2",
+    "**/dist/**",
+    "**/build/**",
+    "**/storybook-static/**",
+    "**/node_modules/**",
+    "**/*.min.js",
+    "**/tokens.css",
+    "**/typography.css",
+    "**/CHANGELOG.md"
+  ]
+}

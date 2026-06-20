@@ -1,0 +1,71 @@
+name: AI Reviewer
+
+# Claude-powered, bug-focused PR review. Runs only when a maintainer applies the
+# `ai-reviewer` label, and re-runs on new commits while that label is present.
+# On every run it skips any issue it has already commented on this PR.
+#
+# SECURITY MODEL (read before editing the trigger):
+#   - Uses `pull_request_target` so the review still works on PRs from forks and has
+#     access to the ANTHROPIC_API_KEY secret + write permission to post comments.
+#   - This is gated by the `ai-reviewer` label, which only users with write access can apply, so
+#     an external contributor cannot trigger the FIRST run on their own. Auto re-runs on later
+#     pushes are additionally gated on a trusted `author_association` (see the job `if`), so an
+#     external fork author can't keep re-triggering paid runs by pushing — a maintainer re-applies
+#     the label to re-review such a PR. Remove the label to stop all further runs.
+#   - We DELIBERATELY never check out or execute the PR's head code. `actions/checkout`
+#     defaults to the trusted base branch here; the script reads the PR diff through the
+#     GitHub API (data, not code) and sends it to Claude. Do not add a checkout of
+#     `github.event.pull_request.head.*`, and do not run any PR-controlled scripts.
+#
+#   Prefer to avoid `pull_request_target` entirely (e.g. you only ever get same-repo PRs)?
+#   Change the two `pull_request_target` lines below to `pull_request`. The reviewer will
+#   then run with secrets only on same-repo PRs (fork PRs get no secret and are skipped).
+
+on:
+  pull_request_target:
+    types: [labeled, synchronize, reopened]
+
+permissions:
+  contents: read # checkout the base branch for rules/config/script
+  pull-requests: write # post review comments
+
+concurrency:
+  group: ai-reviewer-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Run when the `ai-reviewer` label is added (any PR), or — for trusted authors only — on new
+    # commits / reopen while the label is present. Gating the auto re-run on author_association
+    # stops an external fork author from re-triggering paid Claude calls by pushing commits; to
+    # re-review an external PR, a maintainer re-applies the label.
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'ai-reviewer') ||
+      (github.event.action != 'labeled' &&
+       contains(github.event.pull_request.labels.*.name, 'ai-reviewer') &&
+       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # Default ref on pull_request_target = the trusted base branch (NOT the PR head).
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: .github/ai-reviewer/package-lock.json
+
+      - name: Install reviewer dependencies
+        working-directory: .github/ai-reviewer
+        # --ignore-scripts: none of these deps need install hooks, so disable them as
+        # defense-in-depth against a compromised dependency auto-running code at install time.
+        run: npm ci --ignore-scripts
+
+      - name: Run AI bug review
+        working-directory: .github/ai-reviewer
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node review.mjs
