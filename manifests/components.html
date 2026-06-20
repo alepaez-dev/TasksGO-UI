@@ -7327,13 +7327,13 @@ trailing?: ReactNode</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  566 | }
-  567 |
-&gt; 568 | const meta: Meta = {
+  567 | }
+  568 |
+&gt; 569 | const meta: Meta = {
       | ^
-  569 |   title: &#39;Pages/Ticket Overview&#39;,
-  570 |   parameters: {
-  571 |     layout: &#39;fullscreen&#39;,
+  570 |   title: &#39;Pages/Ticket Overview&#39;,
+  571 |   parameters: {
+  572 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -7655,6 +7655,7 @@ function TicketOverviewRender() {
                         key={item.id}
                         status={item.status}
                         label={item.label}
+                        onClick={() =&gt; {}}
                         meta={
                           item.metaVariant ? (
                             &lt;Badge variant={item.metaVariant}&gt;
@@ -8927,13 +8928,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  566 | }
-  567 |
-&gt; 568 | const meta: Meta = {
+  567 | }
+  568 |
+&gt; 569 | const meta: Meta = {
       | ^
-  569 |   title: &#39;Pages/Ticket Overview&#39;,
-  570 |   parameters: {
-  571 |     layout: &#39;fullscreen&#39;,
+  570 |   title: &#39;Pages/Ticket Overview&#39;,
+  571 |   parameters: {
+  572 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -9255,6 +9256,7 @@ function TicketOverviewRender() {
                         key={item.id}
                         status={item.status}
                         label={item.label}
+                        onClick={() =&gt; {}}
                         meta={
                           item.metaVariant ? (
                             &lt;Badge variant={item.metaVariant}&gt;
