@@ -723,10 +723,11 @@ export function classifyVerifyFile(fetchKind, fileStatus) {
   return 'unfetched';
 }
 
-// A removed file is auto-resolvable WITHOUT a Claude call only when there is no reviewable diff — i.e.
-// nothing was added/modified
-export function confirmedDeletion(disposition, hasReviewableDiff) {
-  return disposition === 'removed' && !hasReviewableDiff;
+// A removed file is auto-resolvable WITHOUT a Claude call only when the PR contains NO non-removed
+// files - then there is genuinely nowhere the flagged code could have moved. This MUST come from the
+// raw listFiles set.
+export function confirmedDeletion(disposition, prHasNonRemovedFiles) {
+  return disposition === 'removed' && !prHasNonRemovedFiles;
 }
 
 export function mapVerdictsToItems(verifications, items) {
@@ -926,7 +927,7 @@ async function fetchFileAtRef(octokit, owner, repo, path, ref) {
   }
 }
 
-async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath }) {
+async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles }) {
   const stats = { verified: 0, resolved: 0, repliesPosted: 0, skippedCap: 0, usage: null, costUsd: null };
 
   let threads;
@@ -959,9 +960,6 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
 
   const fileCache = new Map();
   const radius = config.verifyWindowLines ?? 40;
-  // A removed file is a confirmed fix WITHOUT a Claude call only when nothing reviewable changed, so
-  // the code couldn't have moved anywhere.
-  const hasReviewableDiff = Boolean(String(diffText || '').trim());
   for (const item of items) {
     item.originalHunk = String(item.originalHunk || '').slice(0, 1500);
     if (!item.file) {
@@ -977,11 +975,11 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
     item.disposition = classifyVerifyFile(fetched.kind, fileStatusByPath?.get?.(item.file));
     if (item.disposition === 'verify') {
       item.currentCode = extractWindow(fetched.text, item.line, radius, { maxChars: config.maxVerifyFileChars || Infinity });
-    } else if (confirmedDeletion(item.disposition, hasReviewableDiff)) {
-      item.confirmedDeletion = true; // genuine deletion, no reviewable destination — fixed without a Claude call
+    } else if (confirmedDeletion(item.disposition, prHasNonRemovedFiles)) {
+      item.confirmedDeletion = true; // PR is all deletions — no destination exists — fixed without a Claude call
     } else if (item.disposition === 'removed') {
       item.currentCode = '';
-      item.fileNote = `The file \`${item.file}\` was removed at this path, but other files changed in this PR — the flagged code may have MOVED to an added/modified file. Decide from the diff; do NOT assume fixed.`;
+      item.fileNote = `The file \`${item.file}\` was removed at this path, but other files changed in this PR — the flagged code may have MOVED to another file. Decide from the diff; if the diff does not clearly show the code is gone (it may be in a file that is too large or otherwise omitted from the diff below), answer "unsure", NOT "fixed".`;
     } else if (item.disposition === 'moved') {
       item.currentCode = '';
       item.fileNote = `The file \`${item.file}\` is not at this path at head (renamed/moved in this PR) — decide from the diff; do NOT assume fixed.`;
@@ -1137,6 +1135,9 @@ async function main() {
     fileStatusByPath.set(f.filename, f.status);
     if (f.status === 'renamed' && f.previous_filename) fileStatusByPath.set(f.previous_filename, 'renamed');
   }
+  // Whether the PR changed any non-removed file (a possible move destination for a deleted file's
+  // code). Derived from the RAW list — not diffText, which omits ignored/binary/too-large files.
+  const prHasNonRemovedFiles = files.some((f) => f.status !== 'removed');
 
   // 2. Gather what we've already reported (for both dedup and the prompt). 
   const [reviewComments, issueComments] = await Promise.all([
@@ -1200,7 +1201,7 @@ async function main() {
     let verifyOnly = null;
     if (config.verifyResolutions) {
       try {
-        verifyOnly = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath });
+        verifyOnly = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles });
         if (verifyOnly.verified) {
           core.info(
             `Verification (no reviewable diff): re-checked ${verifyOnly.verified} finding(s), resolved ${verifyOnly.resolved}, ` +
@@ -1303,7 +1304,7 @@ async function main() {
   let verifyStats = null;
   if (config.verifyResolutions) {
     try {
-      verifyStats = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath });
+      verifyStats = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles });
       if (verifyStats.verified) {
         core.info(
           `Verification: re-checked ${verifyStats.verified} finding(s), resolved ${verifyStats.resolved}, ` +

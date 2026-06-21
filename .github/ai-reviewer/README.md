@@ -193,12 +193,15 @@ Three guarantees by design:
   Disable this stricter gate with `resolveOnlyForTrustedAuthors: false` (only if every author who
   can open a PR here is fully trusted).
 
-A removed file is treated as a confirmed fix **without** a Claude call only when the PR has **no other
-reviewable changes** — then the flagged code can't have moved anywhere. If anything else changed (a
-**rename/move**, which GitHub often reports as a delete+add rather than `renamed`, or any added/modified
-file), the removed-path finding goes to **Claude with the full diff** to confirm the code didn't simply
-move to a new file. Same for a renamed/moved file or any transient fetch error — never auto-resolved on
-a 404 alone. Reading current file content uses the GitHub API as **data** — the bot still never checks out
+A removed file is treated as a confirmed fix **without** a Claude call only when the PR contains **no
+non-removed files at all** (an all-deletions PR) — then there's genuinely nowhere the flagged code
+could have moved. This is judged from the **raw `listFiles` set**, not the diff, because the diff omits
+ignored/binary/too-large/truncated files — so an *empty diff* does **not** mean *no other changes*. If
+any file was added or modified (including a **rename/move**, which GitHub often reports as a delete+add
+rather than `renamed`), the removed-path finding goes to **Claude**, and if the diff doesn't clearly
+show the code is gone (it may have moved into a file omitted for size), Claude answers `unsure` and the
+thread stays open. Same for a renamed/moved file or any transient fetch error — never auto-resolved on a
+404 alone. Reading current file content uses the GitHub API as **data** — the bot still never checks out
 or executes PR head code, so this stays within the `pull_request_target` security model. Verification
 adds a second Claude call per run over the open threads (bounded by `maxVerifyThreads` and the same
 `maxInputTokens` gate, with its own `maxVerifyOutputTokens` output cap); turn the whole step off with

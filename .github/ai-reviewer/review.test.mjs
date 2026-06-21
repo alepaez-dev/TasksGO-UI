@@ -486,11 +486,11 @@ check('classifyVerifyFile maps fetch outcome + file status to a disposition (B1)
   assert.equal(classifyVerifyFile('error', 'removed'), 'unfetched'); // fetch error -> never assume fixed
 });
 
-check('confirmedDeletion auto-fixes a removed file ONLY when nothing reviewable changed (delete+add guard)', () => {
-  // Pure deletion (no reviewable diff) -> the code can't have moved -> safe to resolve with no Claude call.
+check('confirmedDeletion fast-paths a removed file ONLY when the PR has no non-removed files', () => {
+  // Pure all-deletions PR (no non-removed files) -> no move destination -> resolve with no Claude call.
   assert.equal(confirmedDeletion('removed', false), true);
-  // Reviewable diff present -> a "removed" path may be a low-similarity rename (delete+add) whose code
-  // moved to an added/modified file -> must go to Claude, never blind-resolve.
+  // ANY added/modified file present (even one omitted from diffText for size/ignore) -> a "removed"
+  // path may be a low-similarity rename (delete+add) whose code moved -> must go to Claude.
   assert.equal(confirmedDeletion('removed', true), false);
   // Only 'removed' is ever a candidate; renames/errors/normal files never auto-fix.
   assert.equal(confirmedDeletion('moved', false), false);
