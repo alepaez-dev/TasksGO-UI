@@ -723,6 +723,12 @@ export function classifyVerifyFile(fetchKind, fileStatus) {
   return 'unfetched';
 }
 
+// A removed file is auto-resolvable WITHOUT a Claude call only when there is no reviewable diff — i.e.
+// nothing was added/modified
+export function confirmedDeletion(disposition, hasReviewableDiff) {
+  return disposition === 'removed' && !hasReviewableDiff;
+}
+
 export function mapVerdictsToItems(verifications, items) {
   const byRef = new Map((items || []).map((i) => [i.ref, i]));
   const out = [];
@@ -953,6 +959,9 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
 
   const fileCache = new Map();
   const radius = config.verifyWindowLines ?? 40;
+  // A removed file is a confirmed fix WITHOUT a Claude call only when nothing reviewable changed, so
+  // the code couldn't have moved anywhere.
+  const hasReviewableDiff = Boolean(String(diffText || '').trim());
   for (const item of items) {
     item.originalHunk = String(item.originalHunk || '').slice(0, 1500);
     if (!item.file) {
@@ -968,6 +977,11 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
     item.disposition = classifyVerifyFile(fetched.kind, fileStatusByPath?.get?.(item.file));
     if (item.disposition === 'verify') {
       item.currentCode = extractWindow(fetched.text, item.line, radius, { maxChars: config.maxVerifyFileChars || Infinity });
+    } else if (confirmedDeletion(item.disposition, hasReviewableDiff)) {
+      item.confirmedDeletion = true; // genuine deletion, no reviewable destination — fixed without a Claude call
+    } else if (item.disposition === 'removed') {
+      item.currentCode = '';
+      item.fileNote = `The file \`${item.file}\` was removed at this path, but other files changed in this PR — the flagged code may have MOVED to an added/modified file. Decide from the diff; do NOT assume fixed.`;
     } else if (item.disposition === 'moved') {
       item.currentCode = '';
       item.fileNote = `The file \`${item.file}\` is not at this path at head (renamed/moved in this PR) — decide from the diff; do NOT assume fixed.`;
@@ -977,12 +991,12 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
     }
   }
 
-  const removed = items.filter((i) => i.disposition === 'removed');
-  const toVerify = items.filter((i) => i.disposition !== 'removed');
-  let verifications = removed.map((i) => ({
+  const confirmed = items.filter((i) => i.confirmedDeletion);
+  const toVerify = items.filter((i) => !i.confirmedDeletion);
+  let verifications = confirmed.map((i) => ({
     ref: i.ref,
     status: 'fixed',
-    reason: 'The file was removed in this PR, so the flagged code is gone.',
+    reason: 'The file was removed in this PR and nothing reviewable was added or changed, so the flagged code is gone.',
   }));
 
   if (toVerify.length) {

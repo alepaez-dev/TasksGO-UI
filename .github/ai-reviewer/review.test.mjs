@@ -29,6 +29,7 @@ import {
   shouldPostVerifyReply,
   orderThreadsForVerification,
   classifyVerifyFile,
+  confirmedDeletion,
   mapVerdictsToItems,
   isTrustedAuthor,
   DEFAULT_CONFIG,
@@ -477,12 +478,24 @@ check('orderThreadsForVerification puts never-checked + outdated first so the ca
   assert.deepEqual(ordered, ['new-outdated', 'new-fresh', 'checked-outdated', 'checked-fresh']);
 });
 
-check('classifyVerifyFile only treats a genuine removal as fixed; rename/error go to Claude (B1)', () => {
+check('classifyVerifyFile maps fetch outcome + file status to a disposition (B1)', () => {
   assert.equal(classifyVerifyFile('content', undefined), 'verify');
-  assert.equal(classifyVerifyFile('missing', 'removed'), 'removed'); // real deletion -> fixed
+  assert.equal(classifyVerifyFile('missing', 'removed'), 'removed');
   assert.equal(classifyVerifyFile('missing', 'renamed'), 'moved'); // rename -> NOT auto-fixed
   assert.equal(classifyVerifyFile('missing', undefined), 'moved'); // unknown 404 -> NOT auto-fixed
   assert.equal(classifyVerifyFile('error', 'removed'), 'unfetched'); // fetch error -> never assume fixed
+});
+
+check('confirmedDeletion auto-fixes a removed file ONLY when nothing reviewable changed (delete+add guard)', () => {
+  // Pure deletion (no reviewable diff) -> the code can't have moved -> safe to resolve with no Claude call.
+  assert.equal(confirmedDeletion('removed', false), true);
+  // Reviewable diff present -> a "removed" path may be a low-similarity rename (delete+add) whose code
+  // moved to an added/modified file -> must go to Claude, never blind-resolve.
+  assert.equal(confirmedDeletion('removed', true), false);
+  // Only 'removed' is ever a candidate; renames/errors/normal files never auto-fix.
+  assert.equal(confirmedDeletion('moved', false), false);
+  assert.equal(confirmedDeletion('unfetched', false), false);
+  assert.equal(confirmedDeletion('verify', false), false);
 });
 
 check('mapVerdictsToItems keys by unique ref so same-fp threads never collide (B2)', () => {

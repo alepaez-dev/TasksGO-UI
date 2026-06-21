@@ -193,10 +193,12 @@ Three guarantees by design:
   Disable this stricter gate with `resolveOnlyForTrustedAuthors: false` (only if every author who
   can open a PR here is fully trusted).
 
-A file **genuinely removed in the PR** is treated as a confirmed fix (the flagged code is gone)
-without spending a Claude call. A finding whose file 404s because it was **renamed/moved** — or any
-transient fetch error — is *not* auto-resolved; it goes to Claude to decide from the diff (the bug may
-have moved with the file). Reading current file content uses the GitHub API as **data** — the bot still never checks out
+A removed file is treated as a confirmed fix **without** a Claude call only when the PR has **no other
+reviewable changes** — then the flagged code can't have moved anywhere. If anything else changed (a
+**rename/move**, which GitHub often reports as a delete+add rather than `renamed`, or any added/modified
+file), the removed-path finding goes to **Claude with the full diff** to confirm the code didn't simply
+move to a new file. Same for a renamed/moved file or any transient fetch error — never auto-resolved on
+a 404 alone. Reading current file content uses the GitHub API as **data** — the bot still never checks out
 or executes PR head code, so this stays within the `pull_request_target` security model. Verification
 adds a second Claude call per run over the open threads (bounded by `maxVerifyThreads` and the same
 `maxInputTokens` gate, with its own `maxVerifyOutputTokens` output cap); turn the whole step off with
