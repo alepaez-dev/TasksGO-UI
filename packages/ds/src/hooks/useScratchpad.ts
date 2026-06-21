@@ -16,7 +16,16 @@ export interface UseScratchpadControls {
   readonly onLineStartEdit: (id: string) => void;
   readonly onLineStopEdit: (id: string) => void;
   readonly openBadgeId: string | null;
-  readonly onBadgeOpenChange: (id: string | null) => void;
+  readonly openBadgeManagesFocus: boolean;
+  readonly onBadgeOpenChange: (
+    id: string | null,
+    manageFocus?: boolean,
+  ) => void;
+}
+
+interface OpenBadge {
+  readonly id: string;
+  readonly manageFocus: boolean;
 }
 
 export function useScratchpad(
@@ -25,23 +34,26 @@ export function useScratchpad(
   const [lines, setLines] = useState<readonly ScratchpadLine[]>(initialLines);
   const [autoFocusLineId, setAutoFocusLineId] = useState<string | null>(null);
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
-  const [openBadgeId, setOpenBadgeId] = useState<string | null>(null);
+  const [openBadge, setOpenBadge] = useState<OpenBadge | null>(null);
   const nextId = useRef(0);
   const badgeCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Delay the close so the pointer can cross the gap from a [task] chip to
   // its popover card without the card unmounting first.
-  const onBadgeOpenChange = useCallback((id: string | null) => {
-    if (badgeCloseTimer.current) clearTimeout(badgeCloseTimer.current);
-    if (id === null) {
-      badgeCloseTimer.current = setTimeout(
-        () => setOpenBadgeId(null),
-        BADGE_CLOSE_DELAY,
-      );
-    } else {
-      setOpenBadgeId(id);
-    }
-  }, []);
+  const onBadgeOpenChange = useCallback(
+    (id: string | null, manageFocus = false) => {
+      if (badgeCloseTimer.current) clearTimeout(badgeCloseTimer.current);
+      if (id === null) {
+        badgeCloseTimer.current = setTimeout(
+          () => setOpenBadge(null),
+          BADGE_CLOSE_DELAY,
+        );
+      } else {
+        setOpenBadge({ id, manageFocus });
+      }
+    },
+    [],
+  );
 
   useEffect(
     () => () => {
@@ -78,13 +90,15 @@ export function useScratchpad(
 
   const onLineDelete = useCallback(
     (id: string) => {
-      const index = lines.findIndex((line) => line.id === id);
-      const focusId = index > 0 ? lines[index - 1].id : null;
-      setAutoFocusLineId(focusId);
-      setEditingLineId(focusId);
+      if (editingLineId === id) {
+        const index = lines.findIndex((line) => line.id === id);
+        const focusId = index > 0 ? lines[index - 1].id : null;
+        setAutoFocusLineId(focusId);
+        setEditingLineId(focusId);
+      }
       setLines((prev) => prev.filter((line) => line.id !== id));
     },
-    [lines],
+    [lines, editingLineId],
   );
 
   const onLineStartEdit = useCallback((id: string) => {
@@ -108,7 +122,8 @@ export function useScratchpad(
     editingLineId,
     onLineStartEdit,
     onLineStopEdit,
-    openBadgeId,
+    openBadgeId: openBadge?.id ?? null,
+    openBadgeManagesFocus: openBadge?.manageFocus ?? false,
     onBadgeOpenChange,
   };
 }

@@ -56,7 +56,8 @@ export interface ScratchpadProps extends Omit<
   // per-token resolver once linking a token to a specific task is defined.
   taskBadgeInfo?: ScratchpadTaskRef;
   openBadgeId?: string | null;
-  onBadgeOpenChange?: (id: string | null) => void;
+  openBadgeManagesFocus?: boolean;
+  onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) => void;
 }
 
 const editLabel: Record<ScratchpadBlockKind, string> = {
@@ -83,7 +84,8 @@ interface TokenBadgeProps {
   tokenKey: string;
   taskInfo?: ScratchpadTaskRef;
   open: boolean;
-  onOpenChange?: (id: string | null) => void;
+  manageFocus: boolean;
+  onOpenChange?: (id: string | null, manageFocus?: boolean) => void;
 }
 
 function TokenBadge({
@@ -91,6 +93,7 @@ function TokenBadge({
   tokenKey,
   taskInfo,
   open,
+  manageFocus,
   onOpenChange,
 }: TokenBadgeProps) {
   const ref = useRef<HTMLButtonElement>(null);
@@ -120,11 +123,16 @@ function TokenBadge({
         aria-label={`Linked task ${taskInfo.id}`}
         aria-haspopup="dialog"
         aria-expanded={open}
-        onClick={(e) => e.stopPropagation()}
-        onMouseEnter={() => onOpenChange(id)}
-        onMouseLeave={() => onOpenChange(null)}
-        onFocus={() => onOpenChange(id)}
-        onBlur={() => onOpenChange(null)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenChange(id, true);
+        }}
+        onMouseEnter={() => {
+          if (!manageFocus) onOpenChange(id);
+        }}
+        onMouseLeave={() => {
+          if (!manageFocus) onOpenChange(null);
+        }}
       >
         {token.label}
       </button>
@@ -132,14 +140,18 @@ function TokenBadge({
         open={open}
         onOpenChange={(next) => onOpenChange(next ? id : null)}
         anchorRef={ref}
-        manageFocus={false}
+        manageFocus={manageFocus}
         placement="bottom-start"
         aria-label={`Linked task ${taskInfo.id}`}
       >
         {/* Keep the card open while the pointer bridges the chip→card gap. */}
         <div
-          onMouseEnter={() => onOpenChange(id)}
-          onMouseLeave={() => onOpenChange(null)}
+          onMouseEnter={() => {
+            if (!manageFocus) onOpenChange(id);
+          }}
+          onMouseLeave={() => {
+            if (!manageFocus) onOpenChange(null);
+          }}
         >
           <LinkedTaskCard taskRef={taskInfo} />
         </div>
@@ -154,7 +166,8 @@ interface HighlightedTextProps {
   highlight: boolean;
   taskBadgeInfo?: ScratchpadTaskRef;
   openBadgeId?: string | null;
-  onBadgeOpenChange?: (id: string | null) => void;
+  openBadgeManagesFocus?: boolean;
+  onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) => void;
 }
 
 // Renders the line text with inline [task]/[qa] token chips. Plain text flows
@@ -165,6 +178,7 @@ function HighlightedText({
   highlight,
   taskBadgeInfo,
   openBadgeId,
+  openBadgeManagesFocus,
   onBadgeOpenChange,
 }: HighlightedTextProps) {
   if (!highlight) return <>{text}</>;
@@ -186,6 +200,7 @@ function HighlightedText({
         tokenKey={tokenKey}
         taskInfo={taskBadgeInfo}
         open={openBadgeId === id}
+        manageFocus={openBadgeId === id && openBadgeManagesFocus === true}
         onOpenChange={onBadgeOpenChange}
       />,
     );
@@ -244,7 +259,8 @@ interface ScratchpadRowProps {
   onStopEdit?: (id: string) => void;
   taskBadgeInfo?: ScratchpadTaskRef;
   openBadgeId?: string | null;
-  onBadgeOpenChange?: (id: string | null) => void;
+  openBadgeManagesFocus?: boolean;
+  onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) => void;
 }
 
 function ScratchpadRow({
@@ -265,6 +281,7 @@ function ScratchpadRow({
   onStopEdit,
   taskBadgeInfo,
   openBadgeId,
+  openBadgeManagesFocus,
   onBadgeOpenChange,
 }: ScratchpadRowProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -354,6 +371,7 @@ function ScratchpadRow({
           highlight={highlightBadges}
           taskBadgeInfo={taskBadgeInfo}
           openBadgeId={openBadgeId}
+          openBadgeManagesFocus={openBadgeManagesFocus}
           onBadgeOpenChange={onBadgeOpenChange}
         />
       </>
@@ -438,6 +456,7 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
       onLineStopEdit,
       taskBadgeInfo,
       openBadgeId,
+      openBadgeManagesFocus,
       onBadgeOpenChange,
       className,
       ...rest
@@ -495,6 +514,7 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
               onStopEdit={onLineStopEdit}
               taskBadgeInfo={taskBadgeInfo}
               openBadgeId={openBadgeId}
+              openBadgeManagesFocus={openBadgeManagesFocus}
               onBadgeOpenChange={onBadgeOpenChange}
             />
           ))}

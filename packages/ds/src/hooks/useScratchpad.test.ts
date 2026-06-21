@@ -38,17 +38,30 @@ describe('useScratchpad', () => {
     expect(result.current.lines[1].text).toBe('');
   });
 
-  it('deletes a line and focuses the previous one', () => {
+  it('deletes the edited line and moves edit and focus to the previous one', () => {
     const { result } = renderHook(() => useScratchpad(initial));
+    act(() => result.current.onLineStartEdit('b'));
     act(() => result.current.onLineDelete('b'));
     expect(result.current.lines.map((l) => l.id)).toEqual(['a', 'c']);
     expect(result.current.autoFocusLineId).toBe('a');
+    expect(result.current.editingLineId).toBe('a');
   });
 
-  it('focuses nothing when deleting the first line', () => {
+  it('clears edit and focus when deleting the edited first line', () => {
     const { result } = renderHook(() => useScratchpad(initial));
+    act(() => result.current.onLineStartEdit('a'));
     act(() => result.current.onLineDelete('a'));
     expect(result.current.autoFocusLineId).toBeNull();
+    expect(result.current.editingLineId).toBeNull();
+  });
+
+  it('leaves edit and focus untouched when deleting a line that is not being edited', () => {
+    const { result } = renderHook(() => useScratchpad(initial));
+    act(() => result.current.onLineStartEdit('c'));
+    act(() => result.current.onLineDelete('a'));
+    expect(result.current.lines.map((l) => l.id)).toEqual(['b', 'c']);
+    expect(result.current.autoFocusLineId).toBe('c');
+    expect(result.current.editingLineId).toBe('c');
   });
 
   it('reorders lines', () => {

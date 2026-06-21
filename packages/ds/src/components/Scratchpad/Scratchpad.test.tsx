@@ -361,7 +361,7 @@ describe('Scratchpad', () => {
       ).toBeInTheDocument();
     });
 
-    it('opens the [task] popover on chip focus (keyboard)', () => {
+    it('opens the [task] dialog with focus management when the chip is activated', () => {
       const onBadgeOpenChange = vi.fn();
       render(
         <Scratchpad
@@ -372,10 +372,10 @@ describe('Scratchpad', () => {
           onBadgeOpenChange={onBadgeOpenChange}
         />,
       );
-      fireEvent.focus(
+      fireEvent.click(
         screen.getByRole('button', { name: 'Linked task TSK-9' }),
       );
-      expect(onBadgeOpenChange).toHaveBeenCalledWith('l1#0');
+      expect(onBadgeOpenChange).toHaveBeenCalledWith('l1#0', true);
     });
 
     it('fires onBadgeOpenChange when a [task] chip is hovered', () => {
@@ -409,6 +409,24 @@ describe('Scratchpad', () => {
       const dialog = screen.getByRole('dialog');
       expect(within(dialog).getByText('TSK-9')).toBeInTheDocument();
       expect(within(dialog).getByText('Write tests')).toBeInTheDocument();
+    });
+
+    it('moves focus into the task dialog so its link is keyboard-reachable', () => {
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={tokenLine}
+          highlightBadges
+          taskBadgeInfo={taskBadgeInfo}
+          openBadgeId="l1#0"
+          openBadgeManagesFocus
+          onBadgeOpenChange={() => {}}
+        />,
+      );
+      expect(screen.getByRole('dialog')).toHaveFocus();
+      expect(
+        screen.getByRole('link', { name: 'View Task' }),
+      ).toBeInTheDocument();
     });
 
     it('does not make [qa] chips interactive', () => {
