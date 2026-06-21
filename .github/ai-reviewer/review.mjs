@@ -819,21 +819,21 @@ function renderSummaryBlock(f) {
   return lines.join('\n');
 }
 
-export function buildBoundedSummary(findings, maxChars = 60000) {
-  const included = [];
-  let body = SUMMARY_HEADER;
+export function chunkSummaryComments(findings, maxChars = 60000) {
+  const chunks = [];
+  let current = { findings: [], body: SUMMARY_HEADER };
   for (const f of findings) {
     const block = renderSummaryBlock(f);
-    // The first finding is always included (its block is bounded by the per-finding clamps above).
-    if (included.length > 0 && body.length + 1 + block.length > maxChars) break;
-    body += `\n${block}`;
-    included.push(f);
+    // Start a new comment when the next block would exceed the cap.
+    if (current.findings.length > 0 && current.body.length + 1 + block.length > maxChars) {
+      chunks.push(current);
+      current = { findings: [], body: SUMMARY_HEADER };
+    }
+    current.body += `\n${block}`;
+    current.findings.push(f);
   }
-  const omittedCount = findings.length - included.length;
-  if (omittedCount > 0) {
-    body += `\n> ⚠️ ${omittedCount} more off-diff finding(s) were omitted to keep this comment under GitHub's size limit — they are listed in the run's job summary.`;
-  }
-  return { body, includedCount: included.length, omittedCount };
+  if (current.findings.length > 0) chunks.push(current);
+  return chunks;
 }
 
 function renderVerifyReply({ status, reason, sha, fp, outcome = 'left-open' }) {
@@ -1124,12 +1124,7 @@ async function main() {
     if (f.status === 'renamed' && f.previous_filename) fileStatusByPath.set(f.previous_filename, 'renamed');
   }
 
-  if (!diffText.trim()) {
-    core.info('No reviewable changed lines after filtering (binary/ignored/too-large files only). Skipping.');
-    return;
-  }
-
-  // 2. Gather what we've already reported (for both dedup and the prompt).
+  // 2. Gather what we've already reported (for both dedup and the prompt). 
   const [reviewComments, issueComments] = await Promise.all([
     octokit.paginate(octokit.rest.pulls.listReviewComments, { owner, repo, pull_number, per_page: 100 }),
     octokit.paginate(octokit.rest.issues.listComments, { owner, repo, issue_number: pull_number, per_page: 100 }),
@@ -1180,6 +1175,34 @@ async function main() {
     return;
   }
 
+  const client = new Anthropic({ apiKey });
+  const allowResolve = config.resolveOnlyForTrustedAuthors === false || isTrustedAuthor(pr.authorAssociation);
+  if (config.verifyResolutions && config.resolveVerifiedFixes && !allowResolve) {
+    core.info(`PR author association \`${pr.authorAssociation}\` is untrusted; will verify + reply but NOT auto-resolve threads.`);
+  }
+
+  if (!diffText.trim()) {
+    core.info('No reviewable changed lines this run; re-checking open threads only.');
+    let verifyOnly = null;
+    if (config.verifyResolutions) {
+      try {
+        verifyOnly = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath });
+        if (verifyOnly.verified) {
+          core.info(
+            `Verification (no reviewable diff): re-checked ${verifyOnly.verified} finding(s), resolved ${verifyOnly.resolved}, ` +
+              `posted ${verifyOnly.repliesPosted} repl(y/ies).`,
+          );
+        }
+      } catch (err) {
+        core.warning(`Thread verification step failed: ${err.message}`);
+      }
+    }
+    const resolved = verifyOnly?.resolved ?? 0;
+    await writeJobSummary({ findings: [], config, seenCount: seenFingerprints.size, resolved, note: 'No reviewable diff this run — only re-checked open threads.' });
+    await upsertStatus({ posted: 0, findingsCount: 0, reviewedSha: pr.headSha, resolved });
+    return;
+  }
+
   // 3. Build the prompt (rules + project guide are the stable, cacheable prefix).
   const rules = loadTextFile(resolve(SCRIPT_DIR, 'rules.md'), 'rules.md');
   const projectGuide = config.includeProjectGuide
@@ -1201,8 +1224,6 @@ async function main() {
   }
 
   const userMessage = buildUserMessage({ pr, diffText, priorFindings: priorMarkers, skippedForSize, truncated });
-
-  const client = new Anthropic({ apiKey });
 
   // 3b. Pre-flight budget gate. count_tokens is free, so we measure the exact input size and
   // refuse to send anything that would exceed maxInputTokens — a hard cap on spend per run.
@@ -1267,10 +1288,6 @@ async function main() {
 
   let verifyStats = null;
   if (config.verifyResolutions) {
-    const allowResolve = config.resolveOnlyForTrustedAuthors === false || isTrustedAuthor(pr.authorAssociation);
-    if (config.resolveVerifiedFixes && !allowResolve) {
-      core.info(`PR author association \`${pr.authorAssociation}\` is untrusted; will verify + reply but NOT auto-resolve threads.`);
-    }
     try {
       verifyStats = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath });
       if (verifyStats.verified) {
@@ -1333,19 +1350,16 @@ async function main() {
   let postedGeneral = 0;
   if (general.length) {
     if (config.postSummaryComment) {
-      const { body, includedCount, omittedCount } = buildBoundedSummary(general, config.maxSummaryChars ?? 60000);
-      try {
-        await octokit.rest.issues.createComment({ owner, repo, issue_number: pull_number, body });
-        postedGeneral = general.length;
-        if (omittedCount) {
-          core.warning(
-            `Summary exceeded the size budget: posted ${includedCount} of ${general.length} off-diff finding(s); ` +
-              `${omittedCount} omitted (kept in the job summary, not retried).`,
-          );
+      const chunks = chunkSummaryComments(general, config.maxSummaryChars ?? 60000);
+      for (const chunk of chunks) {
+        try {
+          await octokit.rest.issues.createComment({ owner, repo, issue_number: pull_number, body: chunk.body });
+          postedGeneral += chunk.findings.length;
+        } catch (err) {
+          core.warning(`Could not post a summary comment (${chunk.findings.length} finding(s)): ${err.message}`);
         }
-      } catch (err) {
-        core.warning(`Could not post summary comment: ${err.message}`);
       }
+      if (chunks.length > 1) core.info(`Off-diff summary split into ${chunks.length} comments to fit GitHub's size limit.`);
     } else {
       core.warning(
         `${general.length} off-diff/fallback finding(s) were NOT posted because postSummaryComment is disabled; they will be re-evaluated on the next run.`,

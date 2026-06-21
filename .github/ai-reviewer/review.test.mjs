@@ -10,7 +10,7 @@ import {
   isTrustedMarkerComment,
   buildMarker,
   parseMarkers,
-  buildBoundedSummary,
+  chunkSummaryComments,
   buildDiffContext,
   filterFindings,
   estimateCostUsd,
@@ -550,7 +550,7 @@ check('estimateInputTokens: char-based fallback so the budget gate never fails o
   assert.equal(estimateInputTokens([{}], undefined), 0);
 });
 
-check('buildBoundedSummary stays under the size cap and reports omissions', () => {
+check('chunkSummaryComments posts EVERY finding (split across comments), dropping none', () => {
   const makeFinding = (i) => ({
     file: `src/file${i}.ts`,
     line: i,
@@ -563,18 +563,22 @@ check('buildBoundedSummary stays under the size cap and reports omissions', () =
     fp: `fp${i}`,
   });
   const many = Array.from({ length: 50 }, (_, i) => makeFinding(i));
-  const { body, includedCount, omittedCount } = buildBoundedSummary(many, 20000);
-  assert.ok(body.length <= 20000 + 300, `body ${body.length} should be within the cap (+ note margin)`);
-  assert.ok(includedCount >= 1 && includedCount < many.length); // some included, some omitted
-  assert.equal(omittedCount, many.length - includedCount);
-  assert.match(body, /more off-diff finding\(s\) were omitted/);
-  // When everything fits, nothing is omitted and no note is added.
-  const few = [makeFinding(1)];
-  const small = buildBoundedSummary(few, 60000);
-  assert.equal(small.omittedCount, 0);
-  assert.ok(!/were omitted/.test(small.body));
-  // Each included finding keeps its dedup marker so re-runs still skip it.
-  assert.match(small.body, /<!-- ai-reviewer v1 /);
+  const chunks = chunkSummaryComments(many, 20000);
+  // Every chunk is under the cap, and every finding lands in exactly one chunk (nothing dropped).
+  assert.ok(chunks.length > 1, 'should split when over the cap');
+  for (const c of chunks) {
+    assert.ok(c.body.length <= 20000, `chunk body ${c.body.length} should be within the cap`);
+    assert.ok(c.findings.length >= 1);
+  }
+  const totalPosted = chunks.reduce((n, c) => n + c.findings.length, 0);
+  assert.equal(totalPosted, many.length); // postedGeneral will equal general.length only by posting ALL
+  const refs = new Set(chunks.flatMap((c) => c.findings.map((f) => f.fp)));
+  assert.equal(refs.size, many.length); // each finding present exactly once
+  // Every finding carries its dedup marker on the PR.
+  assert.match(chunks[0].body, /<!-- ai-reviewer v1 /);
+  // Everything fits -> a single chunk.
+  assert.equal(chunkSummaryComments([makeFinding(1)], 60000).length, 1);
+  assert.equal(chunkSummaryComments([], 60000).length, 0);
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);
