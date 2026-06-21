@@ -5000,7 +5000,7 @@ variant?: &#39;attachment&#39; | &#39;doc&#39; | &#39;general&#39; = &#39;genera
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Scratchpad</h2>
       <div class="badges">
-        <label for="c-31-components-scratchpad-props" class="badge ok as-toggle">18 prop types</label>
+        <label for="c-31-components-scratchpad-props" class="badge ok as-toggle">19 prop types</label>
         <label for="c-31-components-scratchpad-info" class="badge info as-toggle">1 info</label>
         <label for="c-31-components-scratchpad-stories" class="badge ok as-toggle">3 stories</label>
         
@@ -5034,7 +5034,7 @@ variant?: &#39;attachment&#39; | &#39;doc&#39; | &#39;general&#39; = &#39;genera
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">18 prop types</span>
+              <span class="badge ok">19 prop types</span>
             </div>
             <pre><code>Component: src/components/Scratchpad/Scratchpad.tsx::Scratchpad</code></pre>
             <pre><code>Props:</code></pre>
@@ -5050,7 +5050,7 @@ lines: unknown
 
 onAddLine?: (afterId: string) =&gt; void
 
-onBadgeOpenChange?: (id: string | null) =&gt; void
+onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) =&gt; void
 
 onLineDelete?: (id: string) =&gt; void
 
@@ -5065,6 +5065,8 @@ onLineToggle?: (id: string) =&gt; void
 onReorder?: (next: readonly ScratchpadLine[]) =&gt; void
 
 openBadgeId?: string | null
+
+openBadgeManagesFocus?: boolean
 
 placeholder?: string = &#39;Type something…&#39;
 
