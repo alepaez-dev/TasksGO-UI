@@ -94,6 +94,7 @@ export function useScratchpad(
 
   const onLineStopEdit = useCallback((id: string) => {
     setEditingLineId((prev) => (prev === id ? null : prev));
+    setAutoFocusLineId((prev) => (prev === id ? null : prev));
   }, []);
 
   return {
