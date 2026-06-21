@@ -23,6 +23,7 @@ export type PopoverProps = PopoverLabelProps &
     onOpenChange: (open: boolean) => void;
     anchorRef: RefObject<HTMLElement | null>;
     placement?: PopoverPlacement;
+    manageFocus?: boolean;
     children: ReactNode;
   };
 
@@ -66,6 +67,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
       onOpenChange,
       anchorRef,
       placement = 'bottom-start',
+      manageFocus = true,
       children,
       className,
       ...rest
@@ -122,7 +124,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
     }, [open, anchorRef, onOpenChange]);
 
     useEffect(() => {
-      if (!open) return;
+      if (!open || !manageFocus) return;
       const popoverEl = innerRef.current;
       const previouslyFocused = document.activeElement as HTMLElement | null;
       popoverEl?.focus();
@@ -130,7 +132,7 @@ export const Popover = forwardRef<HTMLDivElement, PopoverProps>(
         // Return focus to the previously focused element on close (typically the anchor).
         previouslyFocused?.focus();
       };
-    }, [open]);
+    }, [open, manageFocus]);
 
     if (!open) return null;
     if (typeof document === 'undefined') return null;

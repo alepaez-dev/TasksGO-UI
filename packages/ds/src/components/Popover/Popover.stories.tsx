@@ -11,7 +11,7 @@ const meta: Meta<typeof Popover> = {
     docs: {
       description: {
         component:
-          'A portal-rendered floating surface anchored to a consumer-provided ref. Non-modal — no backdrop, focus is moved into the popover on open and returned to the previously focused element on close. Dismissible via Escape or click outside (clicks on the anchor are ignored — the anchor handles its own toggling).',
+          'A portal-rendered floating surface anchored to a consumer-provided ref. Non-modal — no backdrop, focus is moved into the popover on open and returned to the previously focused element on close. Dismissible via Escape or click outside (clicks on the anchor are ignored — the anchor handles its own toggling). Set `manageFocus={false}` for hover-triggered surfaces (e.g. a hover card) so the popover does not steal focus from whatever the user is interacting with.',
       },
     },
   },
@@ -84,12 +84,47 @@ function OpenRender() {
   );
 }
 
+function HoverTrigger() {
+  const anchorRef = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button
+        ref={anchorRef}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+      >
+        Hover me
+      </Button>
+      <Popover
+        open={open}
+        onOpenChange={setOpen}
+        anchorRef={anchorRef}
+        manageFocus={false}
+        aria-label="Hover card"
+      >
+        <div style={{ padding: 'var(--ds-space-scale-md)', minWidth: '240px' }}>
+          <p style={{ margin: 0 }}>
+            This card appears on hover and does not steal focus.
+          </p>
+        </div>
+      </Popover>
+    </>
+  );
+}
+
 export const Open: Story = {
   render: () => <OpenRender />,
 };
 
 export const BottomStart: Story = {
   render: () => <BasicTrigger placement="bottom-start" />,
+};
+
+export const WithoutFocusManagement: Story = {
+  render: () => <HoverTrigger />,
 };
 
 export const BottomEnd: Story = {

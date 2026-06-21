@@ -1,0 +1,414 @@
+.scratchpad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-xs);
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-card-body-font-size);
+  line-height: var(--ds-text-card-body-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-scale-md);
+  margin-bottom: var(--ds-space-scale-sm);
+}
+
+.title {
+  font-size: var(--ds-text-section-header-font-size);
+  font-family: var(--ds-text-section-header-font-family);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: var(--ds-text-section-header-letter-spacing);
+  text-transform: uppercase;
+  color: var(--ds-color-text-secondary);
+}
+
+.status {
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-section-header-subtitle-font-size);
+  color: var(--ds-color-text-secondary);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  border-radius: var(--ds-radius-md);
+  transition-property: background-color;
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.row:hover:not(.dragging) {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.dragHandle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ds-color-text-disabled);
+  opacity: 0.5;
+  cursor: grab;
+  border-radius: var(--ds-radius-sm);
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.dragHandle:hover {
+  opacity: 1;
+  color: var(--ds-color-text-secondary);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragHandle:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.dropAbove::before,
+.dropBelow::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--ds-color-status-info);
+}
+
+.dropAbove::before {
+  top: -1px;
+}
+
+.dropBelow::after {
+  bottom: -1px;
+}
+
+.dragging {
+  opacity: 0.4;
+}
+
+.dragging .dragHandle,
+.dragging .content {
+  opacity: 0;
+}
+
+.floatingClone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  margin: 0;
+  list-style: none;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  background-color: var(--ds-color-surface-primary);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-elevation-dropdown);
+  /* The clone is portaled to <body>, outside .scratchpad, so it no longer
+     inherits the mono font — restate the type styling here. */
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-card-body-font-size);
+  line-height: var(--ds-text-card-body-line-height);
+  color: var(--ds-color-text-primary);
+  transform-origin: top left;
+  transition: box-shadow var(--ds-transition-duration)
+    var(--ds-transition-timing-function);
+  will-change: transform;
+}
+
+.floatingCloneLifted {
+  box-shadow: var(--ds-elevation-drag-lift);
+}
+
+.content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-scale-sm);
+  min-width: 0;
+  flex: 1;
+}
+
+.checkbox {
+  flex-shrink: 0;
+  white-space: pre;
+  color: var(--ds-color-text-secondary);
+}
+
+button.checkbox {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--ds-radius-sm);
+}
+
+button.checkbox:hover {
+  color: var(--ds-color-text-primary);
+}
+
+button.checkbox:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.text {
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.headingText {
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.textDone {
+  color: var(--ds-color-text-secondary);
+}
+
+/* Auto-growing textarea: the wrapper mirrors the value in a hidden ::after
+   pseudo so the grid row sizes to the content; the textarea overlays it in
+   the same grid cell. No JS height math, no internal state. */
+.textGrid {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.textGrid::after {
+  content: attr(data-value) ' ';
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  visibility: hidden;
+}
+
+.textGrid > .textArea,
+.textGrid::after {
+  grid-area: 1 / 1 / 2 / 2;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+.textArea {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  resize: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.textArea:focus-visible {
+  outline: none;
+}
+
+.textArea::placeholder {
+  color: var(--ds-color-text-disabled);
+  font-family: var(--ds-font-family-sans);
+}
+
+.renderedText {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+
+.renderedText:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-sm);
+}
+
+.renderedEditable {
+  position: relative;
+}
+
+/* Full-line edit target sitting behind the content. The content lets clicks
+   fall through (pointer-events: none) except the toggle/chips, which opt back
+   in, so clicking anywhere on the line — text or empty space — starts editing
+   without nesting interactive elements. */
+.editLayer {
+  position: absolute;
+  inset: 0;
+  cursor: text;
+}
+
+.editLayer:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-sm);
+}
+
+.lineContent {
+  position: relative;
+  pointer-events: none;
+}
+
+.lineContent button {
+  pointer-events: auto;
+}
+
+.placeholderText {
+  font-family: var(--ds-font-family-sans);
+  color: var(--ds-color-text-secondary);
+}
+
+.tokenBadge {
+  display: inline-block;
+  padding: 0 var(--ds-space-badge-padding-x);
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-surface-primary);
+  font-size: var(--ds-text-badge-label-font-size);
+  font-weight: var(--ds-font-weight-medium);
+  letter-spacing: 0.05em;
+  vertical-align: baseline;
+}
+
+.tokenBadgeButton {
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.tokenBadgeButton:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.tokenTask {
+  background-color: var(--ds-color-accent-primary);
+}
+
+.tokenQa {
+  background-color: var(--ds-color-status-critical);
+}
+
+.taskCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-sm);
+  width: 280px;
+  padding: var(--ds-space-scale-md);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-card-body-font-size);
+  line-height: var(--ds-text-card-body-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.taskCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-scale-sm);
+}
+
+.taskCardTitle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  min-width: 0;
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.taskCardDescription {
+  margin: 0;
+  color: var(--ds-color-text-secondary);
+}
+
+.taskCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-scale-sm);
+  padding-top: var(--ds-space-scale-sm);
+  border-top: 1px solid var(--ds-color-border-default);
+}
+
+.taskCardMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  color: var(--ds-color-text-secondary);
+}
+
+.viewTask {
+  flex-shrink: 0;
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-accent-primary);
+  text-decoration: none;
+}
+
+.viewTask:hover {
+  text-decoration: underline;
+}
+
+.deleteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ds-color-text-disabled);
+  cursor: pointer;
+  border-radius: var(--ds-radius-sm);
+  opacity: 0;
+  transition-property: var(--ds-transition-property), opacity;
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.row:hover .deleteButton,
+.row:focus-within .deleteButton {
+  opacity: 1;
+}
+
+.deleteButton:hover {
+  color: var(--ds-color-status-critical);
+}
+
+.deleteButton:focus-visible {
+  opacity: 1;
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
