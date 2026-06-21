@@ -21,12 +21,16 @@ maintained by you.
    fingerprint marker used for de-duplication).
 4. Re-runs read those markers back, so the **same issue is never posted twice** — even across
    commits and re-labels.
+5. On each re-run it also **re-checks every open thread it owns** against the current code and the
+   full PR diff, and **auto-resolves** the ones Claude confirms are fixed (see
+   [Auto-resolving fixed findings](#auto-resolving-fixed-findings)).
 
 Everything is in `.github/ai-reviewer/`:
 
 | File | What it is |
 |---|---|
 | `review.mjs` | The reviewer (single Node ESM script, no build step). |
+| `prompts.mjs` | **The engine's system prompts** (bug-finding + resolution-verification), kept separate so the wording is easy to tune. |
 | `rules.md` | **The rules you maintain.** Plain Markdown, sent to Claude every run. |
 | `config.json` | Thresholds and knobs (model, confidence floor, ignore globs, …). |
 | `package.json` / `package-lock.json` | Pinned dependencies (`@anthropic-ai/sdk`, `@actions/*`). |
@@ -40,6 +44,11 @@ Everything is in `.github/ai-reviewer/`:
 Edit [`rules.md`](./rules.md). It's sent verbatim to Claude as authoritative project guidance.
 When the bot reports a false positive, add a line describing the intentional pattern so it stops.
 When you want it to watch for something specific, add a rule. Concrete beats verbose.
+
+> **`rules.md` vs `prompts.mjs`:** `rules.md` is *your* project guidance (an injected, cacheable
+> context block) and is the knob you'll reach for most. [`prompts.mjs`](./prompts.mjs) holds the
+> *engine's* system prompts — the bug-finding and resolution-verification instructions. Edit those
+> only to change how the reviewer fundamentally behaves; for day-to-day tuning, prefer `rules.md`.
 
 ### `config.json` — thresholds
 
@@ -58,9 +67,18 @@ When you want it to watch for something specific, add a rule. Concrete beats ver
 | `pricing` | see file | Per-model `$/1M tokens` (`input`/`output`), used for cost reporting + the worst-case ceiling. Edit if pricing changes. |
 | `includeProjectGuide` | `true` | Feed `CLAUDE.md` to Claude as conventions context. |
 | `postSummaryComment` | `true` | Post findings that can't attach to a changed line as one summary comment. |
+| `maxSummaryChars` | `60000` | Size cap for that summary comment (GitHub rejects bodies over ~65,536). Findings beyond the cap are noted and kept in the run's job summary, so an oversized body can't fail to post and wedge the per-commit idempotency (which would re-bill the same commit on every re-trigger). |
 | `postRunStatusComment` | `true` | Keep one **sticky** comment on the PR showing the latest run's findings, token usage, and estimated cost. Upserted (updated in place), so no spam. `false` keeps cost only in the run log/summary. |
 | `skipIfHeadUnchanged` | `true` | Skip the (billable) review when the PR's head commit hasn't changed since the last completed review — so removing and re-adding the label on the same commit is a **free no-op**. Stores the reviewed SHA in the status comment, so keep `postRunStatusComment` on. To force a re-review of the same commit: set `false`, push an empty commit, or edit `rules.md` and push. |
 | `botActor` | `github-actions[bot]` | The exact comment-author **login** trusted as the source of de-dup markers. Defaults to the login the standard `GITHUB_TOKEN` posts as. Set to your bot/user login if you post with a PAT/App token. Set to `null` to trust **any** bot author — looser; only safe on a private repo where no untrusted GitHub App can comment. |
+| `verifyResolutions` | `true` | Master switch for re-checking open threads and auto-resolving the fixed ones. `false` disables the whole step (no extra API/Claude calls). |
+| `resolveVerifiedFixes` | `true` | Actually run the `resolveReviewThread` mutation on a confirmed fix. Set `false` to only post the ✅ reply without collapsing the thread. |
+| `resolveOnlyForTrustedAuthors` | `true` | Only auto-resolve on PRs whose author is `OWNER`/`MEMBER`/`COLLABORATOR`. Untrusted/fork PRs get the reply but their threads stay open for a human. `false` to auto-resolve regardless of author. |
+| `postResolutionReplies` | `true` | Leave a short `✅ verified fixed` / `🤔 couldn't verify` reply explaining each outcome. |
+| `maxVerifyThreads` | `20` | Max threads re-checked per run. Never-checked and outdated threads are verified first; any beyond the cap are checked on a later run **once earlier ones resolve and free a slot** (not guaranteed "next run"). Raise it to cover more at once. |
+| `verifyWindowLines` | `40` | Lines of current code shown around each finding's location during verification. |
+| `maxVerifyFileChars` | `60000` | Cap on the per-file code excerpt sent to Claude during verification. |
+| `maxVerifyOutputTokens` | `24000` | Output cap for the verify call (its output is small JSON). Smaller than `maxOutputTokens` to lower the worst-case ceiling; keep it big enough to cover adaptive thinking over `maxVerifyThreads` findings, or the call truncates and resolves nothing. |
 | `ignore` | see file | Glob list of paths never reviewed (lockfiles, generated CSS, assets, …). |
 
 **Too noisy?** Set `minConfidence: "high"` (and/or `minSeverity: "medium"`).
@@ -76,18 +94,25 @@ caps and the pre-flight gate, which make the **maximum cost per run deterministi
 
 - **`maxInputTokens` (hard, free to enforce):** before any paid call, a free `count_tokens`
   measures the exact prompt. If it's over the cap, the run is **skipped without calling Claude** —
-  zero spend. This is the precise version of `maxTotalDiffChars`.
+  zero spend. This is the precise version of `maxTotalDiffChars`. If `count_tokens` itself is
+  unavailable (rate-limit/5xx), the gate does **not** fail open — it falls back to a conservative
+  char-based estimate (`~3.5` chars/token) so an oversized prompt is still skipped (best-effort when
+  the exact count can't be obtained, rather than billing blindly).
 - **`maxOutputTokens` (hard):** the API will not generate beyond this. You only pay for tokens
   actually produced, but it can never exceed the cap.
-- **Worst-case ceiling:** with both caps + `pricing`, the max possible cost is
-  `maxInputTokens × input$ + maxOutputTokens × output$`. At the defaults (Opus 4.8, 150k in / 64k
-  out) that's **≈ $2.35/run** — printed in the run log and job summary. Typical runs cost far less
-  (~$0.30–0.60) and the **actual** input/output/$ is reported every run.
-- **`costWarnUsd` (soft):** logs a ⚠️ if a run's estimated cost exceeds it (visibility, not a block).
+- **Worst-case ceiling:** with both caps + `pricing`, the review call's max cost is
+  `maxInputTokens × input$ + maxOutputTokens × output$` — at the defaults (Opus 4.8, 150k in / 64k
+  out), **≈ $2.35**. With `verifyResolutions` on, a run makes a **second** bounded call (the
+  resolution check), also gated by `maxInputTokens` but with its own smaller `maxVerifyOutputTokens`
+  (24k) — **≈ $1.35** — so the per-run worst case is **≈ $3.70**. `worstCaseCostUsd` reports this
+  combined figure. Typical runs cost far less (~$0.30–0.60 each), and the **actual** combined
+  input/output/$ is reported every run.
+- **`costWarnUsd` (soft):** logs a ⚠️ if a run's estimated cost (review + verification) exceeds it.
 
 **Where cost shows up:** every run prints `input / cache-read / output tokens → ≈ $X` in the Actions
 log *and* the job summary, and (with `postRunStatusComment: true`) updates a single sticky comment on
-the PR with the latest run's tokens + cost. The Anthropic API returns exact **token counts** in
+the PR with the latest run's tokens + cost. **Both** the review call and the verification call are
+summed into that figure, so it reflects the run's true total spend. The Anthropic API returns exact **token counts** in
 `usage`, not dollars — the `$` is computed from the `pricing` table, so it's only as accurate as
 those rates (token counts are exact).
 
@@ -96,11 +121,13 @@ spends ~30–45s on checkout + install before it ever calls Claude, so a second 
 almost always cancels the first *before* any billable call — you pay for one review, of the latest
 commit (the free `count_tokens` pre-flight also costs nothing).
 
-**Label removed and re-added repeatedly?** Only users with write/triage access can touch labels (not
-external contributors). `cancel-in-progress` collapses rapid toggles into ~one run, and
-`skipIfHeadUnchanged` makes any toggle on an **already-reviewed commit a free no-op** — the bot
-reviews each commit at most once, no matter how many times the label flips. So the cost is bounded
-by the number of *distinct commits* labeled, each ≤ the per-run ceiling.
+**Label removed and re-added repeatedly?** Applying the label only *starts* a run if the user has
+**write/admin** access — a guard step enforces this, because GitHub's Triage role can apply labels
+without write access (so the label alone is not a trust boundary). `cancel-in-progress` collapses
+rapid toggles into ~one run, and `skipIfHeadUnchanged` makes any toggle on an **already-reviewed
+commit a free no-op** — the bot reviews each commit at most once, no matter how many times the label
+flips. So the cost is bounded by the number of *distinct commits* labeled by a maintainer, each ≤ the
+per-run ceiling.
 
 Cheaper without losing much:
 
@@ -134,4 +161,55 @@ collects those fingerprints, and:
 
 Markers are only trusted from the bot's own comments, so a PR author cannot forge a marker to
 suppress a real finding. So re-labeling or pushing new commits only ever surfaces **new** issues.
+
+---
+
+## Auto-resolving fixed findings
+
+On each re-run, after surfacing new issues, the bot **re-checks every still-open thread it
+authored** and resolves the ones that are genuinely fixed — so a PR doesn't accumulate stale,
+already-addressed comments.
+
+Claude classifies each as:
+
+| Verdict | What happens |
+|---|---|
+| **fixed** (positively confirmed gone) | Thread is **resolved**, with a `✅ Verified fixed in <sha>` reply. |
+| **still-present** (positively confirmed) | Thread stays **open** (no reply — the open thread is the signal). |
+| **unsure** (can't confirm) | Thread stays **open** with a one-time `🤔 couldn't auto-verify` reply, so a human settles it. |
+
+Three guarantees by design:
+
+- **One-directional.** The bot moves a thread **open → resolved** only. It **never re-opens** a
+  thread — if a human resolved one (even "wrongly"), that decision is final and untouched.
+- **Precision-first.** A thread is resolved **only** on a positive "fixed". Anything less keeps it
+  open, so an uncertain check never hides a real bug. *Resolved = Claude is certain it's fixed;
+  open = still broken or unconfirmed.*
+- **Trusted authors only.** Auto-resolve trusts Claude's read of code that, on a fork/external PR,
+  is **attacker-influenced** — and a resolved thread is **hidden by default** in the GitHub UI. So a
+  thread is only auto-resolved when the PR author is `OWNER`/`MEMBER`/`COLLABORATOR` (the same set
+  the workflow trusts for auto re-runs). On an untrusted PR the bot still posts a "✅ looks fixed —
+  left open for a maintainer to confirm" reply, but **leaves the thread open** so a human decides.
+  Disable this stricter gate with `resolveOnlyForTrustedAuthors: false` (only if every author who
+  can open a PR here is fully trusted).
+
+A file **genuinely removed in the PR** is treated as a confirmed fix (the flagged code is gone)
+without spending a Claude call. A finding whose file 404s because it was **renamed/moved** — or any
+transient fetch error — is *not* auto-resolved; it goes to Claude to decide from the diff (the bug may
+have moved with the file). Reading current file content uses the GitHub API as **data** — the bot still never checks out
+or executes PR head code, so this stays within the `pull_request_target` security model. Verification
+adds a second Claude call per run over the open threads (bounded by `maxVerifyThreads` and the same
+`maxInputTokens` gate, with its own `maxVerifyOutputTokens` output cap); turn the whole step off with
+`verifyResolutions: false`. It runs once per **new** commit — `skipIfHeadUnchanged` early-returns the
+entire run (review *and* verification) when the head SHA is unchanged, so re-labeling an
+already-reviewed commit re-verifies nothing.
+
+> **Permissions:** the workflow grants only `contents: read` + `pull-requests: write`. Resolving a
+> review *thread* (`resolveReviewThread`) is a comment operation under `pull-requests: write` — it is
+> **not** resolving, closing, or merging the *pull request*. The bot has no `contents: write`, so it
+> **cannot** push, merge, or modify code, and it never calls any PR-state API (`pulls.merge`,
+> `pulls.update`) — only comment/thread reads and writes.
+
+> **Timing:** the workflow runs on label / new commit / reopen — *not* when someone clicks "Resolve".
+> So a fix is recognized on the **next push or label re-apply**, not the instant the code lands.
 

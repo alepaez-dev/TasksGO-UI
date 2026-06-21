@@ -10,15 +10,27 @@ import {
   isTrustedMarkerComment,
   buildMarker,
   parseMarkers,
+  buildBoundedSummary,
   buildDiffContext,
   filterFindings,
   estimateCostUsd,
   worstCaseCostUsd,
   summarizeUsage,
   formatUsage,
+  addUsage,
+  estimateInputTokens,
   renderStatusBody,
   parseStatusReviewedSha,
   reviewFullySurfaced,
+  buildVerifyMarker,
+  parseVerifyMarker,
+  selectThreadsToVerify,
+  extractWindow,
+  shouldPostVerifyReply,
+  orderThreadsForVerification,
+  classifyVerifyFile,
+  mapVerdictsToItems,
+  isTrustedAuthor,
   DEFAULT_CONFIG,
 } from './review.mjs';
 
@@ -261,8 +273,13 @@ check('worstCaseCostUsd is the deterministic per-run ceiling from the hard caps'
     maxOutputTokens: 64000,
     pricing: { 'claude-opus-4-8': { input: 5, output: 25 } },
   };
-  // 150k input @ $5/1M = $0.75 + 64k output @ $25/1M = $1.60 => $2.35
+  // One call (verification off): 150k input @ $5/1M = $0.75 + 64k output @ $25/1M = $1.60 => $2.35
   assert.ok(Math.abs(worstCaseCostUsd(config) - 2.35) < 1e-9);
+  // Verification on adds a SECOND billable call (same input gate + its own output cap):
+  // review $2.35 + verify (150k @ $5/1M = $0.75 + 24k @ $25/1M = $0.60 = $1.35) => $3.70
+  assert.ok(Math.abs(worstCaseCostUsd({ ...config, verifyResolutions: true, maxVerifyOutputTokens: 24000 }) - 3.7) < 1e-9);
+  // Verify falls back to maxOutputTokens when no dedicated cap is set => $2.35 + $2.35 = $4.70
+  assert.ok(Math.abs(worstCaseCostUsd({ ...config, verifyResolutions: true }) - 4.7) < 1e-9);
   // no cap configured => null
   assert.equal(worstCaseCostUsd({ ...config, maxInputTokens: null }), null);
 });
@@ -350,6 +367,214 @@ check('status comment reports the true total input (not just the uncached portio
   const body = renderStatusBody({ model: 'claude-opus-4-8', posted: 0, findingsCount: 0, usage, costUsd: 0.03 });
   assert.match(body, /input 4755/);
   assert.ok(!/input 743 ·/.test(body)); // no longer reports the misleading 743 as "input"
+});
+
+check('buildVerifyMarker/parseVerifyMarker round-trip the verdict', () => {
+  const marker = buildVerifyMarker({ fp: 'abc123', status: 'fixed', sha: 'deadbeefcafe' });
+  const parsed = parseVerifyMarker(`some reply text\n${marker}`);
+  assert.equal(parsed.fp, 'abc123');
+  assert.equal(parsed.status, 'fixed');
+  assert.equal(parsed.sha, 'deadbeefcafe');
+  assert.equal(parseVerifyMarker('no marker here'), null);
+});
+
+const BOT = DEFAULT_CONFIG.botActor;
+const findingMarker = (f) => buildMarker({ fp: f.fp, file: f.file, line: f.line, title: f.title });
+const botComment = (body, diffHunk = '@@ -1 +1 @@') => ({ body, diffHunk, user: { login: BOT } });
+const humanComment = (body) => ({ body, diffHunk: '', user: { login: 'someone' } });
+
+check('selectThreadsToVerify picks open bot threads and parses the finding marker', () => {
+  const f = { fp: 'fp1', file: 'src/a.ts', line: 42, title: 'Null deref' };
+  const threads = [
+    {
+      id: 'T_open',
+      isResolved: false,
+      isOutdated: true,
+      viewerCanResolve: true,
+      comments: [botComment(`Bug body\n${findingMarker(f)}`, '@@ hunk @@')],
+    },
+  ];
+  const picked = selectThreadsToVerify(threads, { botActor: BOT });
+  assert.equal(picked.length, 1);
+  assert.deepEqual(
+    { threadId: picked[0].threadId, fp: picked[0].fp, file: picked[0].file, line: picked[0].line, isOutdated: picked[0].isOutdated, viewerCanResolve: picked[0].viewerCanResolve, originalHunk: picked[0].originalHunk },
+    { threadId: 'T_open', fp: 'fp1', file: 'src/a.ts', line: 42, isOutdated: true, viewerCanResolve: true, originalHunk: '@@ hunk @@' },
+  );
+});
+
+check('selectThreadsToVerify never returns resolved threads, non-bot roots, or marker-less threads', () => {
+  const f = { fp: 'fp1', file: 'src/a.ts', line: 1, title: 'x' };
+  const threads = [
+    { id: 'resolved', isResolved: true, isOutdated: true, viewerCanResolve: true, comments: [botComment(findingMarker(f))] },
+    { id: 'human-root', isResolved: false, isOutdated: false, viewerCanResolve: true, comments: [humanComment(findingMarker(f))] },
+    { id: 'no-marker', isResolved: false, isOutdated: false, viewerCanResolve: true, comments: [botComment('just a comment, no marker')] },
+    { id: 'empty', isResolved: false, isOutdated: false, viewerCanResolve: true, comments: [] },
+  ];
+  assert.deepEqual(selectThreadsToVerify(threads, { botActor: BOT }), []);
+});
+
+check('selectThreadsToVerify reads the latest verify status from our own replies', () => {
+  const f = { fp: 'fp1', file: 'src/a.ts', line: 9, title: 'x' };
+  const threads = [
+    {
+      id: 'T',
+      isResolved: false,
+      isOutdated: false,
+      viewerCanResolve: true,
+      comments: [
+        botComment(findingMarker(f)),
+        botComment(`still open\n${buildVerifyMarker({ fp: 'fp1', status: 'still_present' })}`),
+        botComment(`hmm\n${buildVerifyMarker({ fp: 'fp1', status: 'unsure' })}`),
+      ],
+    },
+  ];
+  assert.equal(selectThreadsToVerify(threads, { botActor: BOT })[0].lastVerifyStatus, 'unsure');
+});
+
+check('extractWindow numbers lines 1-based and clamps at file boundaries', () => {
+  const file = Array.from({ length: 10 }, (_, i) => `line${i + 1}`).join('\n');
+  const win = extractWindow(file, 5, 2);
+  assert.match(win, /^\s+3 {2}line3/m);
+  assert.match(win, /^\s+7 {2}line7/m);
+  assert.ok(!/line2\b/.test(win) && !/line8\b/.test(win));
+  // Near the top: never emits line 0 or negative numbers.
+  const top = extractWindow(file, 1, 3);
+  assert.match(top, /^\s+1 {2}line1/m);
+  assert.ok(!/ 0 {2}/.test(top));
+});
+
+check('extractWindow clamps long lines and keeps the flagged line under a char budget (M4)', () => {
+  // A file of very long lines; the flagged line (50) carries a unique marker mid-line.
+  const lines = Array.from({ length: 100 }, (_, i) =>
+    i + 1 === 50 ? `${'a'.repeat(400)}FLAG${'b'.repeat(400)}` : 'z'.repeat(2000),
+  );
+  const win = extractWindow(lines.join('\n'), 50, 40, { maxLineChars: 120, maxChars: 4000 });
+  assert.ok(win.length <= 4000, `window ${win.length} should respect the char budget`);
+  // The flagged line's number is present AND its content survived (prefix-slice would have dropped it).
+  assert.match(win, /\b50 {2}/);
+  assert.ok(win.includes('FLAG') || win.includes('a'.repeat(50)), 'flagged line content must be kept');
+  // Long context lines are clamped, not emitted at full 2000 chars.
+  assert.ok(!/z{200}/.test(win), 'long lines should be clamped');
+});
+
+check('shouldPostVerifyReply is idempotent: announce fixed/unsure once, quiet on still-present (M1)', () => {
+  assert.equal(shouldPostVerifyReply('fixed', null), true);
+  assert.equal(shouldPostVerifyReply('fixed', 'fixed'), false); // already announced -> idempotent
+  assert.equal(shouldPostVerifyReply('unsure', null), true);
+  assert.equal(shouldPostVerifyReply('unsure', 'unsure'), false);
+  assert.equal(shouldPostVerifyReply('still_present', null), false);
+  assert.equal(shouldPostVerifyReply('still_present', 'fixed'), false);
+});
+
+check('orderThreadsForVerification puts never-checked + outdated first so the cap does not starve them (M3)', () => {
+  const c = (id, lastVerifyStatus, isOutdated) => ({ threadId: id, lastVerifyStatus, isOutdated });
+  const ordered = orderThreadsForVerification([
+    c('checked-fresh', 'still_present', false),
+    c('new-outdated', null, true),
+    c('checked-outdated', 'still_present', true),
+    c('new-fresh', null, false),
+  ]).map((t) => t.threadId);
+  assert.deepEqual(ordered, ['new-outdated', 'new-fresh', 'checked-outdated', 'checked-fresh']);
+});
+
+check('classifyVerifyFile only treats a genuine removal as fixed; rename/error go to Claude (B1)', () => {
+  assert.equal(classifyVerifyFile('content', undefined), 'verify');
+  assert.equal(classifyVerifyFile('missing', 'removed'), 'removed'); // real deletion -> fixed
+  assert.equal(classifyVerifyFile('missing', 'renamed'), 'moved'); // rename -> NOT auto-fixed
+  assert.equal(classifyVerifyFile('missing', undefined), 'moved'); // unknown 404 -> NOT auto-fixed
+  assert.equal(classifyVerifyFile('error', 'removed'), 'unfetched'); // fetch error -> never assume fixed
+});
+
+check('mapVerdictsToItems keys by unique ref so same-fp threads never collide (B2)', () => {
+  // Two distinct threads, SAME fp (line-agnostic), different lines + refs.
+  const items = [
+    { ref: 't0', fp: 'samefp', threadId: 'A', line: 10 },
+    { ref: 't1', fp: 'samefp', threadId: 'B', line: 99 },
+  ];
+  const mapped = mapVerdictsToItems(
+    [
+      { ref: 't1', status: 'fixed', reason: 'b' },
+      { ref: 't0', status: 'still_present', reason: 'a' },
+      { ref: 'bogus', status: 'fixed', reason: 'ignored' },
+    ],
+    items,
+  );
+  assert.equal(mapped.length, 2); // bogus ref dropped
+  assert.deepEqual(
+    mapped.map((m) => [m.item.threadId, m.status]),
+    [['B', 'fixed'], ['A', 'still_present']],
+  );
+  // An out-of-enum status is coerced to 'unsure' (never silently treated as fixed).
+  assert.equal(mapVerdictsToItems([{ ref: 't0', status: 'lol' }], items)[0].status, 'unsure');
+});
+
+check('isTrustedAuthor gates auto-resolve to the same set the workflow trusts', () => {
+  for (const a of ['OWNER', 'MEMBER', 'COLLABORATOR', 'collaborator']) assert.equal(isTrustedAuthor(a), true);
+  for (const a of ['CONTRIBUTOR', 'FIRST_TIME_CONTRIBUTOR', 'NONE', '', null, undefined]) {
+    assert.equal(isTrustedAuthor(a), false);
+  }
+});
+
+check('addUsage sums review + verification spend into one true total', () => {
+  const review = { input_tokens: 700, cache_creation_input_tokens: 4000, cache_read_input_tokens: 0, output_tokens: 50 };
+  const verify = { input_tokens: 300, cache_creation_input_tokens: 0, cache_read_input_tokens: 4000, output_tokens: 20 };
+  const total = addUsage(review, verify);
+  assert.deepEqual(total, {
+    input_tokens: 1000,
+    cache_creation_input_tokens: 4000,
+    cache_read_input_tokens: 4000,
+    output_tokens: 70,
+  });
+  // Combined total flows through the existing reporters; cost over the sum equals the sum of costs.
+  assert.equal(summarizeUsage(total).totalInput, 9000);
+  const pricing = { m: { input: 5, output: 25 } };
+  assert.equal(
+    estimateCostUsd(total, 'm', pricing).toFixed(6),
+    (estimateCostUsd(review, 'm', pricing) + estimateCostUsd(verify, 'm', pricing)).toFixed(6),
+  );
+  // Absent verification usage (step skipped) leaves the review total unchanged; all-null -> null.
+  assert.deepEqual(addUsage(review, null), { ...review });
+  assert.equal(addUsage(null, undefined), null);
+});
+
+check('estimateInputTokens: char-based fallback so the budget gate never fails open', () => {
+  const system = [{ text: 'a'.repeat(700) }, { text: 'b'.repeat(700) }]; // 1400 chars
+  const user = 'c'.repeat(700); // 700 chars; 2100 total / 3.5 = 600
+  assert.equal(estimateInputTokens(system, user), 600);
+  // Conservative divisor over-counts vs a 4-chars/token rule, so it errs toward skipping near the cap.
+  assert.ok(estimateInputTokens(system, user) > Math.ceil(2100 / 4));
+  // An over-cap estimate trips the same gate the exact count would: 600k chars / 3.5 ≈ 171k > 150k.
+  assert.ok(estimateInputTokens([{ text: 'x'.repeat(600000) }], '') > 150000);
+  // Robust to missing/odd inputs.
+  assert.equal(estimateInputTokens(null, null), 0);
+  assert.equal(estimateInputTokens([{}], undefined), 0);
+});
+
+check('buildBoundedSummary stays under the size cap and reports omissions', () => {
+  const makeFinding = (i) => ({
+    file: `src/file${i}.ts`,
+    line: i,
+    severity: 'low',
+    confidence: 'medium',
+    category: 'bug',
+    title: `Finding ${i}`,
+    body: 'x'.repeat(3000), // clamped to 2000 in the block, so each block is bounded
+    suggestion: 'y'.repeat(3000),
+    fp: `fp${i}`,
+  });
+  const many = Array.from({ length: 50 }, (_, i) => makeFinding(i));
+  const { body, includedCount, omittedCount } = buildBoundedSummary(many, 20000);
+  assert.ok(body.length <= 20000 + 300, `body ${body.length} should be within the cap (+ note margin)`);
+  assert.ok(includedCount >= 1 && includedCount < many.length); // some included, some omitted
+  assert.equal(omittedCount, many.length - includedCount);
+  assert.match(body, /more off-diff finding\(s\) were omitted/);
+  // When everything fits, nothing is omitted and no note is added.
+  const few = [makeFinding(1)];
+  const small = buildBoundedSummary(few, 60000);
+  assert.equal(small.omittedCount, 0);
+  assert.ok(!/were omitted/.test(small.body));
+  // Each included finding keeps its dedup marker so re-runs still skip it.
+  assert.match(small.body, /<!-- ai-reviewer v1 /);
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);
