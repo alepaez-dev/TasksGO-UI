@@ -15,20 +15,42 @@ const MARKER_RE = /<!-- ai-reviewer v1 (\{.*?\}) -->/g;
 const STATUS_MARKER_RE = /<!-- ai-reviewer-status v1(?: (\{.*?\}))? -->/;
 const VERIFY_MARKER_RE = /<!-- ai-reviewer-verify v1 (\{.*?\}) -->/;
 
-function buildStatusMarker(reviewedSha) {
-  return reviewedSha
-    ? `<!-- ai-reviewer-status v1 ${JSON.stringify({ sha: reviewedSha })} -->`
+// `sha` = the head whose findings review fully completed (skip the findings pass when head matches).
+// `vsha` = the head whose thread VERIFICATION fully completed (skip verification when head matches).
+// They are tracked separately so a re-label can retry incomplete verification (cap-deferred / over its
+// own budget / failed) WITHOUT re-billing the findings review.
+function buildStatusMarker(reviewedSha, verifiedSha) {
+  const payload = {};
+  if (reviewedSha) payload.sha = reviewedSha;
+  if (verifiedSha) payload.vsha = verifiedSha;
+  return Object.keys(payload).length
+    ? `<!-- ai-reviewer-status v1 ${JSON.stringify(payload)} -->`
     : '<!-- ai-reviewer-status v1 -->';
 }
 
-export function parseStatusReviewedSha(body) {
+function parseStatusMarker(body) {
   const match = (body || '').match(STATUS_MARKER_RE);
-  if (!match || !match[1]) return null;
+  if (!match || !match[1]) return {};
   try {
-    return JSON.parse(match[1]).sha ?? null;
+    return JSON.parse(match[1]) || {};
   } catch {
-    return null;
+    return {};
   }
+}
+
+export function parseStatusReviewedSha(body) {
+  return parseStatusMarker(body).sha ?? null;
+}
+
+export function parseStatusVerifiedSha(body) {
+  return parseStatusMarker(body).vsha ?? null;
+}
+
+// Whether thread verification left no pending work at this head. null = verification disabled, not
+// run, or no open threads — nothing pending, so the verified-SHA may advance.
+export function verificationComplete(verifyStats) {
+  if (!verifyStats) return true;
+  return verifyStats.complete !== false;
 }
 
 export const DEFAULT_CONFIG = {
@@ -754,6 +776,7 @@ export function renderStatusBody({
   costUsd = null,
   runUrl = null,
   reviewedSha = null,
+  verifiedSha = null,
   resolved = 0,
 }) {
   const lines = ['### 🤖 AI bug review — latest run', ''];
@@ -785,7 +808,7 @@ export function renderStatusBody({
   if (rows.length) lines.push('| | |', '|---|---|', ...rows, '');
 
   if (runUrl) lines.push(`<sub>[run log & full report](${runUrl})</sub>`, '');
-  lines.push(buildStatusMarker(reviewedSha));
+  lines.push(buildStatusMarker(reviewedSha, verifiedSha));
   return lines.join('\n');
 }
 
@@ -928,7 +951,7 @@ async function fetchFileAtRef(octokit, owner, repo, path, ref) {
 }
 
 async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles }) {
-  const stats = { verified: 0, resolved: 0, repliesPosted: 0, skippedCap: 0, usage: null, costUsd: null };
+  const stats = { verified: 0, resolved: 0, repliesPosted: 0, skippedCap: 0, usage: null, costUsd: null, complete: true };
 
   let threads;
   try {
@@ -948,10 +971,11 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
   let items = candidates;
   if (candidates.length > cap) {
     stats.skippedCap = candidates.length - cap;
+    stats.complete = false; // deferred threads remain — don't let the verified-SHA advance
     items = candidates.slice(0, cap);
     core.warning(
       `Verifying the first ${cap} of ${candidates.length} open thread(s) this run (never-checked/outdated first); ` +
-        `the other ${stats.skippedCap} are checked once these resolve, or raise maxVerifyThreads.`,
+        `the other ${stats.skippedCap} are re-checked on a later run.`,
     );
   }
   items.forEach((item, i) => {
@@ -1014,6 +1038,7 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
       }
       if (verifyInputTokens > config.maxInputTokens) {
         overBudget = true;
+        stats.complete = false; // verification didn't run — leave it pending for a retry
         core.warning(`Skipping thread verification: ${verifyEstimated ? 'estimated input' : 'input'} ${verifyInputTokens} tokens exceeds maxInputTokens (${config.maxInputTokens}).`);
       }
     }
@@ -1025,6 +1050,7 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
         stats.costUsd = estimateCostUsd(res.usage, config.model, config.pricing);
         if (stats.usage) core.info(`Verification spend: ${formatUsage(stats.usage)}${stats.costUsd != null ? ` → ≈ $${stats.costUsd.toFixed(3)}` : ''}.`);
       } catch (err) {
+        stats.complete = false; // request failed — leave verification pending for a retry
         core.warning(`Thread verification request failed: ${err.message}`);
       }
     }
@@ -1159,6 +1185,7 @@ async function main() {
   const statusComment = issueComments.find((c) => trusted(c) && STATUS_MARKER_RE.test(c.body || '')) ?? null;
   const statusCommentId = statusComment?.id ?? null;
   const lastReviewedSha = parseStatusReviewedSha(statusComment?.body);
+  const lastVerifiedSha = parseStatusVerifiedSha(statusComment?.body);
   const runUrl =
     process.env.GITHUB_SERVER_URL && process.env.GITHUB_RUN_ID
       ? `${process.env.GITHUB_SERVER_URL}/${owner}/${repo}/actions/runs/${process.env.GITHUB_RUN_ID}`
@@ -1177,35 +1204,23 @@ async function main() {
     }
   };
 
-  // 2b. Idempotency: if we already reviewed this exact commit, do nothing (no Claude call). This
-  // makes the bot a free no-op when the label is removed and re-added on an unchanged commit.
-  if (config.skipIfHeadUnchanged !== false && lastReviewedSha && lastReviewedSha === pr.headSha) {
-    core.info(`Head ${pr.headSha.slice(0, 7)} was already reviewed; skipping (no new commits since the last run).`);
-    await writeJobSummary({
-      findings: [],
-      config,
-      seenCount: seenFingerprints.size,
-      note: `Commit \`${pr.headSha.slice(0, 7)}\` was already reviewed — no new commits since the last run. No request made.`,
-    });
-    return;
-  }
-
   const client = new Anthropic({ apiKey });
   const allowResolve = config.resolveOnlyForTrustedAuthors === false || isTrustedAuthor(pr.authorAssociation);
   if (config.verifyResolutions && config.resolveVerifiedFixes && !allowResolve) {
     core.info(`PR author association \`${pr.authorAssociation}\` is untrusted; will verify + reply but NOT auto-resolve threads.`);
   }
 
-  if (!diffText.trim()) {
-    core.info('No reviewable changed lines this run; re-checking open threads only.');
+  const idempotent = config.skipIfHeadUnchanged !== false;
+  const needVerify = config.verifyResolutions && (!idempotent || lastVerifiedSha !== pr.headSha);
+  const verifyOnlyAndFinish = async ({ reviewedSha, note, skipped = false, inputTokens = null }) => {
     let verifyOnly = null;
-    if (config.verifyResolutions) {
+    if (needVerify) {
       try {
         verifyOnly = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles });
         if (verifyOnly.verified) {
           core.info(
-            `Verification (no reviewable diff): re-checked ${verifyOnly.verified} finding(s), resolved ${verifyOnly.resolved}, ` +
-              `posted ${verifyOnly.repliesPosted} repl(y/ies).`,
+            `Verification: re-checked ${verifyOnly.verified} finding(s), resolved ${verifyOnly.resolved}, ` +
+              `posted ${verifyOnly.repliesPosted} repl(y/ies)${verifyOnly.skippedCap ? `, ${verifyOnly.skippedCap} deferred (cap)` : ''}.`,
           );
         }
       } catch (err) {
@@ -1213,8 +1228,32 @@ async function main() {
       }
     }
     const resolved = verifyOnly?.resolved ?? 0;
-    await writeJobSummary({ findings: [], config, seenCount: seenFingerprints.size, resolved, note: 'No reviewable diff this run — only re-checked open threads.' });
-    await upsertStatus({ posted: 0, findingsCount: 0, reviewedSha: pr.headSha, resolved });
+    const verifiedSha = verificationComplete(verifyOnly) ? pr.headSha : lastVerifiedSha;
+    await writeJobSummary({ findings: [], config, seenCount: seenFingerprints.size, inputTokens, note, resolved });
+    await upsertStatus({ skipped, note, inputTokens, posted: 0, findingsCount: 0, reviewedSha, verifiedSha, resolved });
+  };
+
+  const findingsDone = idempotent && Boolean(lastReviewedSha) && lastReviewedSha === pr.headSha;
+  const verifyDone = idempotent && Boolean(lastVerifiedSha) && lastVerifiedSha === pr.headSha;
+  if (findingsDone && verifyDone) {
+    core.info(`Head ${pr.headSha.slice(0, 7)} already reviewed and verified; skipping (no new commits since the last run).`);
+    await writeJobSummary({
+      findings: [],
+      config,
+      seenCount: seenFingerprints.size,
+      note: `Commit \`${pr.headSha.slice(0, 7)}\` was already reviewed and verified — no new commits since the last run. No request made.`,
+    });
+    return;
+  }
+  if (findingsDone) {
+    core.info(`Head ${pr.headSha.slice(0, 7)} already reviewed; re-checking incomplete verification only.`);
+    await verifyOnlyAndFinish({ reviewedSha: pr.headSha, note: 'Findings already posted for this commit — re-checked open threads only.' });
+    return;
+  }
+
+  if (!diffText.trim()) {
+    core.info('No reviewable changed lines this run; re-checking open threads only.');
+    await verifyOnlyAndFinish({ reviewedSha: pr.headSha, note: 'No reviewable diff this run — only re-checked open threads.' });
     return;
   }
 
@@ -1270,9 +1309,8 @@ async function main() {
       `Skipping review without calling Claude: ${measure} is ${inputTokens} tokens, over maxInputTokens (${config.maxInputTokens}). ` +
         `Split the PR, tighten the ignore list, or raise maxInputTokens.`,
     );
-    const note = `Skipped — ${measure} ${inputTokens} tokens exceeds maxInputTokens (${config.maxInputTokens}). No request was made.`;
-    await writeJobSummary({ findings: [], config, seenCount: seenFingerprints.size, inputTokens, note });
-    await upsertStatus({ skipped: true, note, inputTokens, reviewedSha: lastReviewedSha });
+    const note = `Skipped findings — ${measure} ${inputTokens} tokens exceeds maxInputTokens (${config.maxInputTokens}). No findings request was made.`;
+    await verifyOnlyAndFinish({ reviewedSha: lastReviewedSha, note, skipped: true, inputTokens });
     return;
   }
 
@@ -1302,7 +1340,7 @@ async function main() {
   );
 
   let verifyStats = null;
-  if (config.verifyResolutions) {
+  if (needVerify) {
     try {
       verifyStats = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles });
       if (verifyStats.verified) {
@@ -1316,6 +1354,7 @@ async function main() {
     }
   }
   const resolvedCount = verifyStats?.resolved ?? 0;
+  const verifiedSha = verificationComplete(verifyStats) ? pr.headSha : lastVerifiedSha;
   const usage = addUsage(reviewUsage, verifyStats?.usage);
   const costUsd = estimateCostUsd(usage, config.model, config.pricing);
   if (verifyStats?.usage) {
@@ -1328,7 +1367,7 @@ async function main() {
   if (findings.length === 0) {
     core.info('No new issues to post. Done.');
     await writeJobSummary({ findings, dropped, capped, config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, resolved: resolvedCount });
-    await upsertStatus({ posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha: pr.headSha, resolved: resolvedCount });
+    await upsertStatus({ posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha: pr.headSha, verifiedSha, resolved: resolvedCount });
     return;
   }
 
@@ -1402,6 +1441,7 @@ async function main() {
     usage,
     costUsd,
     reviewedSha: fullySurfaced ? pr.headSha : lastReviewedSha,
+    verifiedSha,
     resolved: resolvedCount,
   });
 }

@@ -21,6 +21,8 @@ import {
   estimateInputTokens,
   renderStatusBody,
   parseStatusReviewedSha,
+  parseStatusVerifiedSha,
+  verificationComplete,
   reviewFullySurfaced,
   buildVerifyMarker,
   parseVerifyMarker,
@@ -316,6 +318,29 @@ check('status comment round-trips the reviewed SHA for per-commit idempotency', 
   assert.equal(parseMarkers(body).length, 0);
   assert.equal(parseStatusReviewedSha('### x\n<!-- ai-reviewer-status v1 -->'), null);
   assert.equal(parseStatusReviewedSha('no marker here'), null);
+});
+
+check('status marker tracks findings (sha) and verification (vsha) SHAs independently', () => {
+  const sha = 'rev1234567890';
+  const vsha = 'ver9876543210';
+  // Both present -> both round-trip; verifying without findings (or vice-versa) is representable.
+  const both = renderStatusBody({ model: 'claude-opus-4-8', posted: 0, reviewedSha: sha, verifiedSha: vsha });
+  assert.equal(parseStatusReviewedSha(both), sha);
+  assert.equal(parseStatusVerifiedSha(both), vsha);
+  // Findings done but verification not yet -> vsha absent (so a re-run still verifies).
+  const findingsOnly = renderStatusBody({ model: 'claude-opus-4-8', posted: 1, reviewedSha: sha });
+  assert.equal(parseStatusReviewedSha(findingsOnly), sha);
+  assert.equal(parseStatusVerifiedSha(findingsOnly), null);
+  // Verification done on a commit whose findings weren't fully posted -> sha absent, vsha present.
+  const verifyOnly = renderStatusBody({ model: 'claude-opus-4-8', posted: 0, verifiedSha: vsha });
+  assert.equal(parseStatusReviewedSha(verifyOnly), null);
+  assert.equal(parseStatusVerifiedSha(verifyOnly), vsha);
+});
+
+check('verificationComplete lets the verified-SHA advance only when no work is pending', () => {
+  assert.equal(verificationComplete(null), true); // disabled / not run / no open threads
+  assert.equal(verificationComplete({ complete: true }), true);
+  assert.equal(verificationComplete({ complete: false }), false); // cap-deferred / over-budget / failed
 });
 
 check('default botActor pins to github-actions[bot] and rejects other bots (public-repo hardening)', () => {
