@@ -46,8 +46,11 @@ export function parseStatusVerifiedSha(body) {
   return parseStatusMarker(body).vsha ?? null;
 }
 
-// Whether thread verification left no pending work at this head. null = verification disabled, not
-// run, or no open threads — nothing pending, so the verified-SHA may advance.
+// Whether thread verification left no pending work at this head (so the verified-SHA may advance).
+// null means verification was NOT ATTEMPTED — disabled, already done, or no open threads — which is
+// "nothing pending" → true. A verification that ran but FAILED or deferred must pass `{ complete:
+// false }` (the sentinel), NOT null — otherwise a failure would read as "not attempted" and wrongly
+// advance the verified-SHA, skipping re-verification on that commit forever.
 export function verificationComplete(verifyStats) {
   if (!verifyStats) return true;
   return verifyStats.complete !== false;
@@ -764,6 +767,11 @@ export function mapVerdictsToItems(verifications, items) {
   return out;
 }
 
+export function unjudgedThreads(items, verifications) {
+  const judged = new Set((verifications || []).map((v) => v?.ref).filter(Boolean));
+  return (items || []).filter((i) => !judged.has(i.ref));
+}
+
 export function renderStatusBody({
   model,
   skipped = false,
@@ -957,6 +965,7 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
   try {
     threads = await fetchReviewThreads(octokit, owner, repo, pull_number);
   } catch (err) {
+    stats.complete = false; // couldn't even list threads — verification did not complete, don't advance vsha
     core.warning(`Could not fetch review threads for verification: ${err.message}`);
     return stats;
   }
@@ -1056,7 +1065,14 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
     }
   }
 
-  stats.verified = verifications.length;
+  const missing = unjudgedThreads(items, verifications);
+  // Count threads that actually received a verdict — not raw verdict count, which would include any
+  // hallucinated refs that mapVerdictsToItems discards (keeps this in step with the "judged N/M" log).
+  stats.verified = items.length - missing.length;
+  if (missing.length) {
+    stats.complete = false;
+    core.warning(`Verification judged ${stats.verified}/${items.length} thread(s); ${missing.length} got no verdict and will be re-checked.`);
+  }
   for (const { item, status, reason } of mapVerdictsToItems(verifications, items)) {
     const willResolve = status === 'fixed' && allowResolve && config.resolveVerifiedFixes && item.viewerCanResolve;
 
@@ -1068,6 +1084,8 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
         outcome = 'resolved';
         core.info(`Resolved thread for ${item.file}:${item.line ?? '?'} (${item.fp}) — verified fixed.`);
       } catch (err) {
+        // Deliberate: a failed resolve does NOT set stats.complete = false. Retrying would re-bill a
+        // full Claude verification just to re-attempt a pure GraphQL mutation.
         outcome = 'resolve-failed';
         core.warning(`Could not resolve thread ${item.threadId}: ${err.message}`);
       }
@@ -1224,6 +1242,7 @@ async function main() {
           );
         }
       } catch (err) {
+        verifyOnly = { complete: false };
         core.warning(`Thread verification step failed: ${err.message}`);
       }
     }
@@ -1350,6 +1369,7 @@ async function main() {
         );
       }
     } catch (err) {
+      verifyStats = { complete: false };
       core.warning(`Thread verification step failed (continuing): ${err.message}`);
     }
   }

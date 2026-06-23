@@ -33,6 +33,7 @@ import {
   classifyVerifyFile,
   confirmedDeletion,
   mapVerdictsToItems,
+  unjudgedThreads,
   isTrustedAuthor,
   DEFAULT_CONFIG,
 } from './review.mjs';
@@ -338,9 +339,9 @@ check('status marker tracks findings (sha) and verification (vsha) SHAs independ
 });
 
 check('verificationComplete lets the verified-SHA advance only when no work is pending', () => {
-  assert.equal(verificationComplete(null), true); // disabled / not run / no open threads
+  assert.equal(verificationComplete(null), true); // NOT attempted: disabled / already done / no threads
   assert.equal(verificationComplete({ complete: true }), true);
-  assert.equal(verificationComplete({ complete: false }), false); // cap-deferred / over-budget / failed
+  assert.equal(verificationComplete({ complete: false }), false);
 });
 
 check('default botActor pins to github-actions[bot] and rejects other bots (public-repo hardening)', () => {
@@ -544,6 +545,21 @@ check('mapVerdictsToItems keys by unique ref so same-fp threads never collide (B
   );
   // An out-of-enum status is coerced to 'unsure' (never silently treated as fixed).
   assert.equal(mapVerdictsToItems([{ ref: 't0', status: 'lol' }], items)[0].status, 'unsure');
+});
+
+check('unjudgedThreads flags items Claude omitted, so a partial verdict set is not "complete"', () => {
+  const items = [{ ref: 't0' }, { ref: 't1' }, { ref: 't2' }];
+  // Claude returned verdicts for t0 and t2 only -> t1 went un-judged.
+  const missing = unjudgedThreads(items, [
+    { ref: 't0', status: 'fixed' },
+    { ref: 't2', status: 'unsure' },
+    { ref: 'bogus', status: 'fixed' }, // extra/hallucinated ref doesn't count as judging any item
+  ]);
+  assert.deepEqual(missing.map((i) => i.ref), ['t1']);
+  // Every item judged -> nothing missing (verification is complete).
+  assert.deepEqual(unjudgedThreads(items, [{ ref: 't0' }, { ref: 't1' }, { ref: 't2' }]), []);
+  // No verdicts at all -> everything is missing.
+  assert.equal(unjudgedThreads(items, []).length, 3);
 });
 
 check('isTrustedAuthor gates auto-resolve to the same set the workflow trusts', () => {
