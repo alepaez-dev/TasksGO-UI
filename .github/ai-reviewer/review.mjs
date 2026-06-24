@@ -475,9 +475,18 @@ async function requestFindings(client, config, system, userMessage) {
   };
 }
 
-function buildVerifyUserMessage({ pr, items, diffText }) {
+function buildVerifyUserMessage({ pr, items, diffText, skippedForSize = [], truncated = false }) {
   const parts = [];
   parts.push(`Pull request #${pr.number} — re-checking ${items.length} previously-reported finding(s) at head ${pr.headSha}.`);
+  if (skippedForSize.length || truncated) {
+    const omissions = [];
+    if (skippedForSize.length) omissions.push(`these files are omitted because their diff is too large: ${skippedForSize.join(', ')}`);
+    if (truncated) omissions.push('the diff was truncated to fit a size budget — later files are not shown');
+    parts.push(
+      `\n== ⚠️ INCOMPLETE DIFF ==\nThe diff below does NOT contain every change in this PR (${omissions.join('; ')}). ` +
+        'If you cannot see whether the flagged code is gone or merely moved into an omitted file, answer "unsure", NOT "fixed".',
+    );
+  }
   parts.push('\n== PREVIOUSLY REPORTED FINDINGS TO RE-CHECK (untrusted context) ==');
   for (const item of items) {
     const loc = `${item.file ?? '(unknown)'}${item.line != null ? `:${item.line}` : ''}`;
@@ -755,6 +764,10 @@ export function confirmedDeletion(disposition, prHasNonRemovedFiles) {
   return disposition === 'removed' && !prHasNonRemovedFiles;
 }
 
+export function diffIsComplete(skippedForSize, truncated) {
+  return !(skippedForSize && skippedForSize.length) && !truncated;
+}
+
 export function mapVerdictsToItems(verifications, items) {
   const byRef = new Map((items || []).map((i) => [i.ref, i]));
   const out = [];
@@ -883,6 +896,8 @@ function renderVerifyReply({ status, reason, sha, fp, outcome = 'left-open' }) {
       headline = `✅ **Verified fixed**${shortSha ? ` in \`${shortSha}\`` : ''} — resolved this thread.`;
     } else if (outcome === 'resolve-failed') {
       headline = `✅ **Looks fixed**${shortSha ? ` in \`${shortSha}\`` : ''}, but I couldn't auto-resolve this thread — resolve it manually if you agree.`;
+    } else if (outcome === 'diff-incomplete') {
+      headline = `✅ **Looks fixed**${shortSha ? ` in \`${shortSha}\`` : ''}, but the PR diff is incomplete (some files too large to include) — not auto-resolving; confirm and resolve manually.`;
     } else {
       headline = `✅ **Looks fixed**${shortSha ? ` in \`${shortSha}\`` : ''} — leaving this thread open for a maintainer to confirm (external PR).`;
     }
@@ -958,8 +973,9 @@ async function fetchFileAtRef(octokit, owner, repo, path, ref) {
   }
 }
 
-async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles }) {
+async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles, skippedForSize = [], truncated = false }) {
   const stats = { verified: 0, resolved: 0, repliesPosted: 0, skippedCap: 0, usage: null, costUsd: null, complete: true };
+  const diffComplete = diffIsComplete(skippedForSize, truncated);
 
   let threads;
   try {
@@ -1032,7 +1048,7 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
 
   if (toVerify.length) {
     const system = [{ type: 'text', text: VERIFY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }];
-    const userMessage = buildVerifyUserMessage({ pr, items: toVerify, diffText });
+    const userMessage = buildVerifyUserMessage({ pr, items: toVerify, diffText, skippedForSize, truncated });
     let overBudget = false;
     if (config.maxInputTokens) {
       let verifyInputTokens = null;
@@ -1074,9 +1090,9 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
     core.warning(`Verification judged ${stats.verified}/${items.length} thread(s); ${missing.length} got no verdict and will be re-checked.`);
   }
   for (const { item, status, reason } of mapVerdictsToItems(verifications, items)) {
-    const willResolve = status === 'fixed' && allowResolve && config.resolveVerifiedFixes && item.viewerCanResolve;
+    const willResolve = status === 'fixed' && allowResolve && config.resolveVerifiedFixes && item.viewerCanResolve && diffComplete;
 
-    let outcome = status === 'fixed' ? 'left-open' : status;
+    let outcome = status === 'fixed' ? (diffComplete ? 'left-open' : 'diff-incomplete') : status;
     if (willResolve) {
       try {
         await octokit.graphql(RESOLVE_THREAD_MUTATION, { id: item.threadId });
@@ -1234,7 +1250,7 @@ async function main() {
     let verifyOnly = null;
     if (needVerify) {
       try {
-        verifyOnly = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles });
+        verifyOnly = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles, skippedForSize, truncated });
         if (verifyOnly.verified) {
           core.info(
             `Verification: re-checked ${verifyOnly.verified} finding(s), resolved ${verifyOnly.resolved}, ` +
@@ -1271,8 +1287,13 @@ async function main() {
   }
 
   if (!diffText.trim()) {
-    core.info('No reviewable changed lines this run; re-checking open threads only.');
-    await verifyOnlyAndFinish({ reviewedSha: pr.headSha, note: 'No reviewable diff this run — only re-checked open threads.' });
+    const reviewable = diffIsComplete(skippedForSize, truncated);
+    const note = reviewable
+      ? 'No reviewable diff this run — only re-checked open threads.'
+      : `No findings review: the only changed file(s) were too large to review (${[...skippedForSize].join(', ') || 'truncated'}). Raise maxFilePatchChars/maxTotalDiffChars to review them. Re-checked open threads only.`;
+    if (!reviewable) core.warning(note);
+    else core.info('No reviewable changed lines this run; re-checking open threads only.');
+    await verifyOnlyAndFinish({ reviewedSha: reviewable ? pr.headSha : lastReviewedSha, note });
     return;
   }
 
@@ -1361,7 +1382,7 @@ async function main() {
   let verifyStats = null;
   if (needVerify) {
     try {
-      verifyStats = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles });
+      verifyStats = await verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles, skippedForSize, truncated });
       if (verifyStats.verified) {
         core.info(
           `Verification: re-checked ${verifyStats.verified} finding(s), resolved ${verifyStats.resolved}, ` +

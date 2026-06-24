@@ -32,6 +32,7 @@ import {
   orderThreadsForVerification,
   classifyVerifyFile,
   confirmedDeletion,
+  diffIsComplete,
   mapVerdictsToItems,
   unjudgedThreads,
   isTrustedAuthor,
@@ -545,6 +546,14 @@ check('mapVerdictsToItems keys by unique ref so same-fp threads never collide (B
   );
   // An out-of-enum status is coerced to 'unsure' (never silently treated as fixed).
   assert.equal(mapVerdictsToItems([{ ref: 't0', status: 'lol' }], items)[0].status, 'unsure');
+});
+
+check('diffIsComplete gates auto-resolve: false when any file was dropped for size or truncated', () => {
+  assert.equal(diffIsComplete([], false), true); // whole change is in the diff -> safe to auto-resolve
+  assert.equal(diffIsComplete(['huge.ts'], false), false); // a file omitted for size -> incomplete
+  assert.equal(diffIsComplete([], true), false); // diff truncated past the budget -> incomplete
+  assert.equal(diffIsComplete(['huge.ts'], true), false);
+  assert.equal(diffIsComplete(undefined, undefined), true);
 });
 
 check('unjudgedThreads flags items Claude omitted, so a partial verdict set is not "complete"', () => {

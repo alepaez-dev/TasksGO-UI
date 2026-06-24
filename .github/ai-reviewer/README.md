@@ -179,13 +179,19 @@ Claude classifies each as:
 | **still-present** (positively confirmed) | Thread stays **open** (no reply — the open thread is the signal). |
 | **unsure** (can't confirm) | Thread stays **open** with a one-time `🤔 couldn't auto-verify` reply, so a human settles it. |
 
-Three guarantees by design:
+Four guarantees by design:
 
 - **One-directional.** The bot moves a thread **open → resolved** only. It **never re-opens** a
   thread — if a human resolved one (even "wrongly"), that decision is final and untouched.
 - **Precision-first.** A thread is resolved **only** on a positive "fixed". Anything less keeps it
   open, so an uncertain check never hides a real bug. *Resolved = Claude is certain it's fixed;
   open = still broken or unconfirmed.*
+- **Complete diff only.** Auto-resolve requires the *whole* change to be visible. If any file was
+  dropped for size (`maxFilePatchChars`) or the diff was truncated (`maxTotalDiffChars`), the code
+  could have moved into a file Claude can't see — so the bot still judges and replies (*"looks fixed,
+  but the diff is incomplete — confirm and resolve manually"*) but does **not** collapse the thread.
+  Claude is also told the diff is incomplete so it leans `unsure`. (A skip-induced *empty* diff
+  likewise does **not** mark the commit "reviewed" — the findings pass never ran.)
 - **Trusted authors only.** Auto-resolve trusts Claude's read of code that, on a fork/external PR,
   is **attacker-influenced** — and a resolved thread is **hidden by default** in the GitHub UI. So a
   thread is only auto-resolved when the PR author is `OWNER`/`MEMBER`/`COLLABORATOR` (the same set
