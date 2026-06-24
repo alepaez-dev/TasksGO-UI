@@ -7,11 +7,13 @@ name: AI Reviewer
 # SECURITY MODEL (read before editing the trigger):
 #   - Uses `pull_request_target` so the review still works on PRs from forks and has
 #     access to the ANTHROPIC_API_KEY secret + write permission to post comments.
-#   - This is gated by the `ai-reviewer` label, which only users with write access can apply, so
-#     an external contributor cannot trigger the FIRST run on their own. Auto re-runs on later
-#     pushes are additionally gated on a trusted `author_association` (see the job `if`), so an
-#     external fork author can't keep re-triggering paid runs by pushing — a maintainer re-applies
-#     the label to re-review such a PR. Remove the label to stop all further runs.
+#   - This is gated by the `ai-reviewer` label PLUS a guard step that requires the user who applied
+#     it to have write/admin access. (Triage-role users CAN apply labels without write access, so the
+#     label alone is not a trust boundary — the guard step is.) An external contributor therefore
+#     cannot trigger the FIRST run on their own. Auto re-runs on later pushes are additionally gated
+#     on a trusted `author_association` (see the job `if`), so an external fork author can't keep
+#     re-triggering paid runs by pushing — a maintainer re-applies the label to re-review such a PR.
+#     Remove the label to stop all further runs.
 #   - We DELIBERATELY never check out or execute the PR's head code. `actions/checkout`
 #     defaults to the trusted base branch here; the script reads the PR diff through the
 #     GitHub API (data, not code) and sends it to Claude. Do not add a checkout of
@@ -35,10 +37,11 @@ concurrency:
 
 jobs:
   review:
-    # Run when the `ai-reviewer` label is added (any PR), or — for trusted authors only — on new
-    # commits / reopen while the label is present. Gating the auto re-run on author_association
-    # stops an external fork author from re-triggering paid Claude calls by pushing commits; to
-    # re-review an external PR, a maintainer re-applies the label.
+    # Run when the `ai-reviewer` label is added (any PR — but the first step then requires the
+    # labeler to have write acces]s), or — for trusted authors only — on new commits / reopen while
+    # the label is present. Gating the auto re-run on author_association stops an external fork author
+    # from re-triggering paid Claude calls by pushing commits; to re-review an external PR, a
+    # maintainer re-applies the label.
     if: >-
       (github.event.action == 'labeled' && github.event.label.name == 'ai-reviewer') ||
       (github.event.action != 'labeled' &&
@@ -48,6 +51,30 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      # A `labeled` event can be fired by anyone who can apply labels — and GitHub's Triage role can
+      # apply labels WITHOUT code-write access. So before spending anything, require the user who
+      # applied the label to actually have write/admin. Runs first (before checkout/install) so a
+      # disallowed trigger fails in ~2s with zero Claude spend. Skipped on synchronize/reopened,
+      # which are already gated on the PR author's association in the job `if:` above.
+      - name: Require write access to start a review
+        if: github.event.action == 'labeled'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.sender.login,
+            });
+            // GitHub collapses triage -> 'read' and maintain -> 'write' in this field, so this
+            // admits write/admin/maintain and blocks triage/read/none.
+            if (!['admin', 'write'].includes(data.permission)) {
+              core.setFailed(
+                `@${context.payload.sender.login} has '${data.permission}' permission; the ai-reviewer ` +
+                  `label must be applied by a user with write access. (Triage can apply labels but not trigger a run.)`,
+              );
+            }
+
       # Default ref on pull_request_target = the trusted base branch (NOT the PR head).
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
