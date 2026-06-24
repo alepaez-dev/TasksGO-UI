@@ -36,6 +36,11 @@ import {
   mapVerdictsToItems,
   unjudgedThreads,
   isTrustedAuthor,
+  parseImports,
+  isLocalSpecifier,
+  resolveImportPath,
+  gatherContextFiles,
+  buildFileContextSection,
   DEFAULT_CONFIG,
 } from './review.mjs';
 
@@ -133,7 +138,7 @@ check('buildDiffContext skips removed/binary/ignored/oversized files', () => {
     { filename: 'src/a.tsx', status: 'modified', additions: 1, deletions: 0, patch: '@@ -1,1 +1,2 @@\n a\n+b' },
     { filename: 'gone.ts', status: 'removed', additions: 0, deletions: 3, patch: '@@ -1,3 +0,0 @@\n-x\n-y\n-z' },
     { filename: 'logo.svg', status: 'added', additions: 1, deletions: 0, patch: '@@ -0,0 +1 @@\n+<svg/>' },
-    { filename: 'huge.ts', status: 'modified', additions: 1, deletions: 0, patch: '@@ -1,1 +1,2 @@\n a\n+' + 'x'.repeat(40000) },
+    { filename: 'huge.ts', status: 'modified', additions: 1, deletions: 0, patch: '@@ -1,1 +1,2 @@\n a\n+' + 'x'.repeat(60000) },
     { filename: 'bin.png', status: 'modified', additions: 0, deletions: 0 }, // no patch
   ];
   const { commentableByFile, skippedForSize, diffText } = buildDiffContext(files, DEFAULT_CONFIG);
@@ -642,6 +647,124 @@ check('chunkSummaryComments posts EVERY finding (split across comments), droppin
   // Everything fits -> a single chunk.
   assert.equal(chunkSummaryComments([makeFinding(1)], 60000).length, 1);
   assert.equal(chunkSummaryComments([], 60000).length, 0);
+});
+
+check('parseImports extracts static, type, side-effect, re-export and dynamic specifiers', () => {
+  const src = [
+    "import a from './a';",
+    "import { b } from '../b';",
+    "import type { T } from './t';",
+    "import * as ns from './ns';",
+    "import './sideEffect.css';",
+    "export { x } from './x';",
+    "const m = await import('./dyn');",
+    "import pkg from 'react';",
+  ].join('\n');
+  const specs = parseImports(src);
+  for (const s of ['./a', '../b', './t', './ns', './sideEffect.css', './x', './dyn', 'react']) {
+    assert.ok(specs.includes(s), `missing ${s}`);
+  }
+  assert.equal(isLocalSpecifier('./a'), true);
+  assert.equal(isLocalSpecifier('../b'), true);
+  assert.equal(isLocalSpecifier('react'), false);
+});
+
+check('resolveImportPath probes extensions and falls through to index files', () => {
+  const FS = new Set([
+    'pkg/stories/useState.ts',
+    'pkg/components/BottomSheet/index.ts',
+    'pkg/components/BottomSheet/BottomSheet.tsx',
+  ]);
+  const isFile = (p) => FS.has(p);
+  // bare relative -> .ts
+  assert.equal(resolveImportPath('pkg/stories/Mobile.tsx', './useState', isFile), 'pkg/stories/useState.ts');
+  // directory import -> index.ts (because the dir itself is not a file)
+  assert.equal(
+    resolveImportPath('pkg/stories/Mobile.tsx', '../components/BottomSheet', isFile),
+    'pkg/components/BottomSheet/index.ts',
+  );
+  // unresolvable
+  assert.equal(resolveImportPath('pkg/stories/Mobile.tsx', './nope', isFile), null);
+});
+
+const CONTEXT_FS = {
+  'pkg/stories/Mobile.stories.tsx':
+    "import { BottomSheet } from '../components/BottomSheet';\nimport { useS } from './useState';",
+  'pkg/stories/useState.ts': 'export const useS = () => {};',
+  'pkg/components/BottomSheet/index.ts': "export { BottomSheet } from './BottomSheet';",
+  'pkg/components/BottomSheet/BottomSheet.tsx':
+    "import { useDragToDismiss } from '../../hooks/useDragToDismiss';\nexport const BottomSheet = 1;",
+  'pkg/hooks/useDragToDismiss.ts': 'export const useDragToDismiss = () => {};',
+};
+const posixDir = (p) => p.slice(0, p.lastIndexOf('/'));
+const posixBase = (p) => p.slice(p.lastIndexOf('/') + 1);
+const ctxAccessors = {
+  read: (p) => CONTEXT_FS[p] ?? null,
+  isFile: (p) => p in CONTEXT_FS,
+  listDir: (dir) => Object.keys(CONTEXT_FS).filter((p) => posixDir(p) === dir).map(posixBase),
+};
+const ctxConfig = (over) => ({
+  ...DEFAULT_CONFIG,
+  ignore: [],
+  contextExtensions: ['.ts', '.tsx', '.css'],
+  importExtensions: ['.ts', '.tsx'],
+  maxContextFiles: 50,
+  maxContextFileBytes: 60000,
+  maxContextChars: 300000,
+  includeSiblingFiles: true,
+  followImports: true,
+  importDepth: 2,
+  ...over,
+});
+
+check('gatherContextFiles follows imports through barrels to depth 2 (reaches the deep hook)', () => {
+  const out = gatherContextFiles({
+    changedPaths: ['pkg/stories/Mobile.stories.tsx'],
+    ...ctxAccessors,
+    config: ctxConfig(),
+  });
+  const paths = out.map((f) => f.path).sort();
+  assert.deepEqual(paths, [
+    'pkg/components/BottomSheet/BottomSheet.tsx', // depth 1 (barrel index.ts was transparent)
+    'pkg/hooks/useDragToDismiss.ts', // depth 2 — the deep target Tier 2 is meant to reach
+    'pkg/stories/useState.ts', // sibling
+  ]);
+  // the barrel itself and the changed file are never emitted as context
+  assert.ok(!paths.includes('pkg/components/BottomSheet/index.ts'));
+  assert.ok(!paths.includes('pkg/stories/Mobile.stories.tsx'));
+});
+
+check('gatherContextFiles respects importDepth (1 stops before the hook)', () => {
+  const out = gatherContextFiles({
+    changedPaths: ['pkg/stories/Mobile.stories.tsx'],
+    ...ctxAccessors,
+    config: ctxConfig({ importDepth: 1 }),
+  });
+  const paths = out.map((f) => f.path).sort();
+  assert.deepEqual(paths, ['pkg/components/BottomSheet/BottomSheet.tsx', 'pkg/stories/useState.ts']);
+  assert.ok(!paths.includes('pkg/hooks/useDragToDismiss.ts')); // depth 2 not reached
+});
+
+check('gatherContextFiles enforces the maxContextFiles cap', () => {
+  const out = gatherContextFiles({
+    changedPaths: ['pkg/stories/Mobile.stories.tsx'],
+    ...ctxAccessors,
+    config: ctxConfig({ maxContextFiles: 1 }),
+  });
+  assert.equal(out.length, 1);
+});
+
+check('buildFileContextSection numbers changed files and labels reference files as do-not-report', () => {
+  const section = buildFileContextSection(
+    [{ path: 'a.tsx', content: 'const x = 1;\nconst y = 2;' }],
+    [{ path: 'b.ts', kind: 'import', content: 'export const z = 3;' }],
+  );
+  assert.match(section, /CHANGED FILES/);
+  assert.match(section, /### a\.tsx/);
+  assert.match(section, /1 {2}const x = 1;/); // line-numbered
+  assert.match(section, /REFERENCE FILES/);
+  assert.match(section, /do NOT report issues/i);
+  assert.match(section, /### b\.ts {2}\(import\)/);
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);
