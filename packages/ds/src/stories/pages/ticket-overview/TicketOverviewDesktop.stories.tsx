@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { desktopViewports } from '../../../../.storybook/preview';
 import { Sidebar } from '../../../components/Sidebar';
@@ -15,7 +16,9 @@ import { Badge } from '../../../components/Badge';
 import { Breadcrumb } from '../../../components/Breadcrumb';
 import { TicketTitleBlock } from '../../../components/TicketTitleBlock';
 import { Tabs, getTabId, getTabPanelId } from '../../../components/Tabs';
-import { Card } from '../../../components/Card';
+import { Icon } from '../../../components/Icon';
+import { Markdown } from '../../../components/Markdown';
+import { MarkdownEditor } from '../../../components/MarkdownEditor';
 import { CollapsibleCard } from '../../../components/CollapsibleCard';
 import { ChecklistRow } from '../../../components/ChecklistRow';
 import { PropertyRow } from '../../../components/PropertyRow';
@@ -27,6 +30,7 @@ import {
   SidebarStatusLabel,
   LastEditedLabel,
 } from '../../helpers/pageChrome';
+import { useMarkdownEditor } from '../../../hooks/useMarkdownEditor';
 import { useTicketOverviewState } from './useTicketOverviewState';
 import {
   getPerson,
@@ -45,6 +49,8 @@ import styles from './TicketOverviewDesktop.module.css';
 
 const TAB_ID_PREFIX = 'ticket-overview';
 
+const uploadImage = (file: File) => Promise.resolve(URL.createObjectURL(file));
+
 function TicketOverviewRender() {
   const {
     project,
@@ -58,6 +64,10 @@ function TicketOverviewRender() {
     setActiveNav,
     activeTab,
     setActiveTab,
+    body,
+    setBody,
+    bodyMode,
+    setBodyMode,
     assignee,
     setAssignee,
     assigneeSelector: {
@@ -114,6 +124,27 @@ function TicketOverviewRender() {
   const activeReporter = getPerson(reporter);
   const activeStatus = getStatusOption(status);
   const activePriority = getPriorityOption(priority);
+
+  const { wordCount, isUploading, textareaRef, applyAction, insertImageFiles } =
+    useMarkdownEditor({
+      value: body,
+      setValue: setBody,
+      onImageUpload: uploadImage,
+    });
+
+  const freeformButtonRef = useRef<HTMLButtonElement>(null);
+  const bodyModeMounted = useRef(false);
+  useEffect(() => {
+    if (!bodyModeMounted.current) {
+      bodyModeMounted.current = true;
+      return;
+    }
+    if (bodyMode === 'freeform') {
+      textareaRef.current?.focus();
+    } else {
+      freeformButtonRef.current?.focus();
+    }
+  }, [bodyMode, textareaRef]);
 
   const navClick = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -201,34 +232,34 @@ function TicketOverviewRender() {
         />
 
         <div className={styles.body}>
-          <div className={styles.titleAndTabs}>
-            <div className={styles.titleSection}>
-              <TicketTitleBlock
-                title={ticket.title}
-                badges={ticket.badges}
-                avatar={
-                  <AvatarGroup aria-label="Assignee and reporter">
-                    <Avatar
-                      variant="profile"
-                      size="sm"
-                      initial={activeAssignee.initial}
-                      aria-label={activeAssignee.label}
-                      style={{ backgroundColor: activeAssignee.color }}
-                    />
-                    <Avatar
-                      variant="profile"
-                      size="sm"
-                      initial={activeReporter.initial}
-                      aria-label={activeReporter.label}
-                      style={{ backgroundColor: activeReporter.color }}
-                    />
-                  </AvatarGroup>
-                }
-              />
-            </div>
+          <div className={styles.titleSection}>
+            <TicketTitleBlock
+              title={ticket.title}
+              badges={ticket.badges}
+              avatar={
+                <AvatarGroup aria-label="Assignee and reporter">
+                  <Avatar
+                    variant="profile"
+                    size="sm"
+                    initial={activeAssignee.initial}
+                    aria-label={activeAssignee.label}
+                    style={{ backgroundColor: activeAssignee.color }}
+                  />
+                  <Avatar
+                    variant="profile"
+                    size="sm"
+                    initial={activeReporter.initial}
+                    aria-label={activeReporter.label}
+                    style={{ backgroundColor: activeReporter.color }}
+                  />
+                </AvatarGroup>
+              }
+            />
+          </div>
+
+          <div className={styles.tabCard}>
             <div className={styles.tabsBar}>
               <Tabs
-                className={styles.tabs}
                 items={tabs}
                 value={activeTab}
                 onValueChange={setActiveTab}
@@ -237,114 +268,137 @@ function TicketOverviewRender() {
                 aria-label="Ticket sections"
               />
             </div>
-          </div>
 
-          <div className={styles.scrollArea}>
-            <div className={styles.content}>
-              <div
-                role="tabpanel"
-                id={getTabPanelId(TAB_ID_PREFIX, 'overview')}
-                aria-labelledby={getTabId(TAB_ID_PREFIX, 'overview')}
-                className={styles.overviewPanel}
-                hidden={activeTab !== 'overview'}
-              >
-                <section className={styles.section}>
-                  <SectionHeader headingLevel={2}>Description</SectionHeader>
-                  <p className={styles.prose}>{ticket.description}</p>
-                </section>
-
-                <section className={styles.section}>
-                  <SectionHeader headingLevel={2}>Why</SectionHeader>
-                  <ul className={styles.bulletList}>
-                    {ticket.why.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </section>
-
-                <section className={styles.section}>
-                  <SectionHeader headingLevel={2}>Scope</SectionHeader>
-                  <div className={styles.scopeGrid}>
-                    <Card
-                      header={
-                        <span className={styles.scopeCardLabel}>
-                          {ticket.scope.included.title}
-                        </span>
-                      }
-                    >
-                      <ul className={styles.scopeList}>
-                        {ticket.scope.included.items.map((item) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    </Card>
-                    <Card
-                      header={
-                        <span className={styles.scopeCardLabel}>
-                          {ticket.scope.excluded.title}
-                        </span>
-                      }
-                    >
-                      <ul className={styles.scopeList}>
-                        {ticket.scope.excluded.items.map((item) => (
-                          <li key={item}>{item}</li>
-                        ))}
-                      </ul>
-                    </Card>
-                  </div>
-                </section>
-
-                <section className={styles.section}>
-                  <SectionHeader headingLevel={2}>QA Summary</SectionHeader>
-                  <CollapsibleCard
-                    defaultOpen
-                    header={
-                      <span className={styles.qaCardHeader}>
-                        <span className={styles.qaCardTitle}>
-                          {ticket.qaSummary.title}
-                        </span>
-                        <Badge variant="critical">
-                          {ticket.qaSummary.failedCount} Failed
-                        </Badge>
-                        <span className={styles.qaCardMeta}>
-                          {ticket.qaSummary.lastChecked}
-                        </span>
-                      </span>
-                    }
-                  >
-                    {ticket.qaSummary.items.map((item) => (
-                      <ChecklistRow
-                        key={item.id}
-                        status={item.status}
-                        label={item.label}
-                        onClick={() => {}}
-                        meta={
-                          item.metaVariant ? (
-                            <Badge variant={item.metaVariant}>
-                              {item.meta}
-                            </Badge>
-                          ) : (
-                            item.meta
-                          )
-                        }
-                      />
-                    ))}
-                  </CollapsibleCard>
-                </section>
-              </div>
-
-              {(['dev', 'qa', 'activity'] as const).map((tabValue) => (
+            <div className={styles.scrollArea}>
+              <div className={styles.content}>
                 <div
-                  key={tabValue}
                   role="tabpanel"
-                  id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
-                  aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
-                  className={styles.tabPanelEmpty}
-                  hidden={activeTab !== tabValue}
+                  id={getTabPanelId(TAB_ID_PREFIX, 'overview')}
+                  aria-labelledby={getTabId(TAB_ID_PREFIX, 'overview')}
+                  className={styles.overviewPanel}
+                  hidden={activeTab !== 'overview'}
                 >
-                  Nothing here yet.
+                  <div className={styles.bodyCard}>
+                    {bodyMode === 'template' ? (
+                      <>
+                        <div className={styles.bodyBar}>
+                          <span className={styles.bodyModeLabel}>
+                            <Icon name="description" size="sm" />
+                            Template
+                          </span>
+                          <button
+                            ref={freeformButtonRef}
+                            type="button"
+                            className={styles.bodySwitch}
+                            onClick={() => setBodyMode('freeform')}
+                          >
+                            Freeform
+                            <Icon name="chevron_right" size="sm" />
+                          </button>
+                        </div>
+                        <Markdown
+                          source={body}
+                          className={styles.bodyContent}
+                        />
+                      </>
+                    ) : (
+                      <MarkdownEditor
+                        header={
+                          <div className={styles.bodyBar}>
+                            <span className={styles.bodyModeLabel}>
+                              <Icon name="description" size="sm" />
+                              Freeform
+                            </span>
+                            <button
+                              type="button"
+                              className={styles.bodySwitch}
+                              onClick={() => setBodyMode('template')}
+                            >
+                              <Icon name="chevron_left" size="sm" />
+                              Template
+                            </button>
+                          </div>
+                        }
+                        value={body}
+                        onChange={setBody}
+                        textareaRef={textareaRef}
+                        onAction={applyAction}
+                        wordCount={wordCount}
+                        isUploading={isUploading}
+                        onInsertImageFiles={insertImageFiles}
+                      />
+                    )}
+
+                    <section className={styles.section}>
+                      <div className={styles.qaHeader}>
+                        <SectionHeader headingLevel={2}>
+                          QA Summary
+                        </SectionHeader>
+                        <span className={styles.autoGenerated}>
+                          <Icon name="lock" size="sm" />
+                          auto-generated
+                        </span>
+                      </div>
+                      <CollapsibleCard
+                        defaultOpen
+                        header={
+                          <span className={styles.qaCardHeader}>
+                            <span className={styles.qaCardTitle}>
+                              {ticket.qaSummary.title}
+                            </span>
+                            <Badge variant="critical">
+                              {ticket.qaSummary.failedCount} Failed
+                            </Badge>
+                            <span className={styles.qaCardMeta}>
+                              {ticket.qaSummary.lastChecked}
+                            </span>
+                          </span>
+                        }
+                      >
+                        {ticket.qaSummary.items.map((item) => (
+                          <ChecklistRow
+                            key={item.id}
+                            status={item.status}
+                            label={item.label}
+                            onClick={() => {}}
+                            meta={
+                              item.metaVariant ? (
+                                <Badge variant={item.metaVariant}>
+                                  {item.meta}
+                                </Badge>
+                              ) : (
+                                item.meta
+                              )
+                            }
+                          />
+                        ))}
+                      </CollapsibleCard>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={styles.createScenario}
+                        onClick={() => setActiveTab('qa')}
+                      >
+                        <Icon name="add" size="sm" />
+                        Create scenario
+                      </Button>
+                    </section>
+                  </div>
                 </div>
-              ))}
+
+                {(['dev', 'qa', 'activity'] as const).map((tabValue) => (
+                  <div
+                    key={tabValue}
+                    role="tabpanel"
+                    id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
+                    aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
+                    className={styles.tabPanelEmpty}
+                    hidden={activeTab !== tabValue}
+                  >
+                    Nothing here yet.
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -478,12 +532,7 @@ function TicketOverviewRender() {
                   variant="inline"
                   dropdownAlign="end"
                   renderTriggerLabel={() => (
-                    <span
-                      className={styles.priorityValue}
-                      style={{
-                        color: `var(--ds-color-status-${activePriority.value})`,
-                      }}
-                    >
+                    <span className={styles.priorityValue}>
                       {activePriority.label}
                     </span>
                   )}

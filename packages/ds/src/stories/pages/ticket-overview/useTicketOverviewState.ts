@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import type {
   AddStageMessage,
   PipelineHierarchyStage,
@@ -11,6 +17,9 @@ import {
 } from '../../../hooks/useSelector';
 import { toStageValue } from '../../../utils/toStageValue';
 import { ticket } from './shared';
+import { serializeTicketBody } from './serializeTicketBody';
+
+export type BodyMode = 'template' | 'freeform';
 
 const BRANCH_COPIED_FLASH_MS = 2000;
 
@@ -60,6 +69,10 @@ export interface UseTicketOverviewState {
   setActiveNav: (id: string) => void;
   activeTab: string;
   setActiveTab: (value: string) => void;
+  body: string;
+  setBody: Dispatch<SetStateAction<string>>;
+  bodyMode: BodyMode;
+  setBodyMode: Dispatch<SetStateAction<BodyMode>>;
   assignee: string;
   setAssignee: (value: string) => void;
   assigneeSelector: SelectorGroupEntry;
@@ -101,6 +114,8 @@ export function useTicketOverviewState(): UseTicketOverviewState {
   const projectSelector = useSelectorState();
   const [activeNav, setActiveNav] = useState('tickets');
   const [activeTab, setActiveTab] = useState('overview');
+  const [bodyMode, setBodyMode] = useState<BodyMode>('template');
+  const [body, setBody] = useState(() => serializeTicketBody(ticket));
   const [assignee, setAssignee] = useState(ticket.metadata.assigneeValue);
   const [reporter, setReporter] = useState(ticket.metadata.reporterValue);
   const [status, setStatus] = useState(ticket.metadata.statusValue);
@@ -202,6 +217,10 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     setActiveNav,
     activeTab,
     setActiveTab,
+    body,
+    setBody,
+    bodyMode,
+    setBodyMode,
     assignee,
     setAssignee,
     assigneeSelector: metadataSelectors.assignee,

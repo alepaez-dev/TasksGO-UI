@@ -10,12 +10,14 @@ export {
   AttachFileIcon,
   AttachmentIcon,
   AutoAwesomeIcon,
+  CallMergeIcon,
   CancelIcon,
   CheckIcon,
   CheckCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CloseIcon,
+  CodeIcon,
   ConfirmationNumberIcon,
   ConfirmationNumberFilledIcon,
   ContentCopyIcon,
@@ -25,8 +27,15 @@ export {
   ExpandMoreIcon,
   FlagIcon,
   ForkRightIcon,
+  FormatBoldIcon,
+  FormatItalicIcon,
+  FormatListBulletedIcon,
+  FormatQuoteIcon,
+  HeadingIcon,
   HelpIcon,
+  ImageIcon,
   LinkIcon,
+  LockIcon,
   MenuIcon,
   MoreHorizIcon,
   OpenInNewIcon,
@@ -171,8 +180,33 @@ export {
   type RecentTaskListProps,
   type RecentTaskItem,
 } from './components/RecentTaskList';
+export { Markdown, type MarkdownProps } from './components/Markdown';
+export {
+  SegmentedControl,
+  getSegmentId,
+  getSegmentPanelId,
+  type SegmentedControlProps,
+  type SegmentedControlOption,
+} from './components/SegmentedControl';
+export {
+  MarkdownToolbar,
+  type MarkdownToolbarProps,
+  type MarkdownToolbarAction,
+} from './components/MarkdownToolbar';
+export type { MarkdownAction } from './utils/markdown/applyMarkdownAction';
+export {
+  MarkdownEditor,
+  type MarkdownEditorProps,
+  type MarkdownEditorStatus,
+} from './components/MarkdownEditor';
 
 export { useClickOutside } from './hooks/useClickOutside';
+export {
+  useMarkdownEditor,
+  type UseMarkdownEditorOptions,
+  type UseMarkdownEditorResult,
+} from './hooks/useMarkdownEditor';
+export { useAutoGrowTextarea } from './hooks/useAutoGrowTextarea';
 export { useFocusTrap } from './hooks/useFocusTrap';
 export {
   useDragToDismiss,

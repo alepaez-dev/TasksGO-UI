@@ -43,3 +43,6 @@ test-results/
 # Claude
 CLAUDE.md
 .claude/
+
+# Local Explanation docs
+docs/

@@ -43,4 +43,10 @@ describe('sanitizeHref', () => {
     expect(sanitizeHref('\x08javascript:alert(1)')).toBe('#');
     expect(sanitizeHref('\x1fjavascript:alert(1)')).toBe('#');
   });
+
+  it('returns safe URLs unchanged (does not mutate consumer input)', () => {
+    expect(sanitizeHref('  /dashboard  ')).toBe('  /dashboard  ');
+    expect(sanitizeHref('/my path')).toBe('/my path');
+    expect(sanitizeHref('/safe\x01path')).toBe('/safe\x01path');
+  });
 });

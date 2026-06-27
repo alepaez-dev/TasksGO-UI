@@ -1,0 +1,43 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ds-space-scale-md);
+}
+
+.label {
+  font-family: var(--ds-text-section-header-font-family);
+  font-size: var(--ds-text-section-header-font-size);
+  font-weight: var(--ds-text-section-header-font-weight);
+  letter-spacing: var(--ds-text-section-header-letter-spacing);
+  text-transform: var(--ds-text-section-header-text-transform);
+  line-height: var(--ds-text-section-header-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+/* .grid scope outranks Card's low-specificity `.card > :where(ul)` padding-left */
+.grid .list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-card-body-font-size);
+  line-height: 1.6;
+  color: var(--ds-color-text-secondary);
+}
+
+.list li::before {
+  margin-right: var(--ds-space-scale-xs);
+}
+
+.included li::before {
+  content: '+';
+  color: var(--ds-color-status-success);
+}
+
+.excluded li::before {
+  content: '\2013';
+  color: var(--ds-color-text-disabled);
+}

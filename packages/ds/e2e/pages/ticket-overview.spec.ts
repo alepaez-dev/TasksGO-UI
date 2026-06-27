@@ -204,3 +204,54 @@ test.describe('Ticket Overview page — header actions', () => {
     ).toBeVisible();
   });
 });
+
+test.describe('Ticket Overview page — freeform markdown body', () => {
+  test.beforeEach(async ({ page }) => {
+    await loadStory(page);
+  });
+
+  test('starts in template mode with no editor toolbar', async ({ page }) => {
+    await expect(
+      page.getByRole('heading', { name: 'Description' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('toolbar', { name: 'Formatting' }),
+    ).not.toBeVisible();
+  });
+
+  test('switching to freeform reveals the editor seeded with the markdown and moves focus there', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: 'Freeform' }).click();
+    await expect(
+      page.getByRole('toolbar', { name: 'Formatting' }),
+    ).toBeVisible();
+    const textarea = page.getByRole('textbox', { name: 'Markdown' });
+    await expect(textarea).toBeVisible();
+    await expect(textarea).toBeFocused();
+    await expect(textarea).toHaveValue(/## Description/);
+    // QA Summary stays inside the same card in freeform mode
+    await expect(
+      page.getByRole('heading', { name: 'QA Summary' }),
+    ).toBeVisible();
+  });
+
+  test('switching back to template preserves content and restores focus', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: 'Freeform' }).click();
+    await page.getByRole('button', { name: 'Template' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Description' }),
+    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Freeform' })).toBeFocused();
+  });
+
+  test('Create scenario navigates to the QA tab', async ({ page }) => {
+    await page.getByRole('button', { name: /create scenario/i }).click();
+    await expect(page.getByRole('tab', { name: 'QA' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+});

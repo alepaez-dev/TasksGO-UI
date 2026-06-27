@@ -1,0 +1,67 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+}
+
+.head {
+  background: var(--ds-color-surface-primary);
+  box-shadow: var(--ds-elevation-none);
+  transition: box-shadow var(--ds-transition-duration-normal)
+    var(--ds-transition-timing-function);
+}
+
+/* While the editor is focused, keep the header + toolbar pinned as you scroll,
+   lifting it with a soft shadow that eases in and out. */
+.editor:focus-within .head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: var(--ds-elevation-dropdown);
+}
+
+.toolbarRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-scale-md);
+  padding: var(--ds-space-scale-sm) var(--ds-space-scale-md);
+  border-bottom: 1px solid var(--ds-color-border-default);
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-micro-label-font-size);
+  color: var(--ds-color-text-secondary);
+  white-space: nowrap;
+}
+
+.textarea {
+  display: block;
+  width: 100%;
+  min-height: 160px;
+  box-sizing: border-box;
+  padding: var(--ds-space-scale-md);
+  border: none;
+  background: none;
+  resize: none;
+  overflow: hidden;
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-card-body-font-size);
+  line-height: var(--ds-text-card-body-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.textarea::placeholder {
+  color: var(--ds-color-text-disabled);
+}
+
+.textarea:focus-visible {
+  outline: none;
+}
+
+.fileInput {
+  display: none;
+}

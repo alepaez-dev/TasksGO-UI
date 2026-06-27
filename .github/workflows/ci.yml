@@ -27,6 +27,8 @@ jobs:
 
       - run: npx tsc --noEmit --project packages/ds/tsconfig.json
 
+      - run: npx tsc --noEmit --project packages/ds/tsconfig.stories.json
+
       - run: npm run test:ci
 
   a11y:
