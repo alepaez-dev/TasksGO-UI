@@ -1738,7 +1738,7 @@ async function main() {
 
 async function writeJobSummary({
   findings,
-  dropped = { byConfidence: 0, bySeverity: 0, byFile: 0, duplicate: 0, invalid: 0 },
+  dropped = { byConfidence: 0, bySeverity: 0, byFile: 0, duplicate: 0, invalid: 0, offDiff: 0 },
   capped = false,
   config,
   postedInline = 0,
