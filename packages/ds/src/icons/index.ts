@@ -3,6 +3,7 @@ export { AddIcon } from './add';
 export { AttachFileIcon } from './attachFile';
 export { AttachmentIcon } from './attachment';
 export { AutoAwesomeIcon } from './autoAwesome';
+export { CallMergeIcon } from './callMerge';
 export { CancelIcon } from './cancel';
 export { CheckIcon } from './check';
 export { CheckCircleIcon } from './checkCircle';
