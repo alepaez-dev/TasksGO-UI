@@ -601,12 +601,10 @@ async function fetchHeadContent(octokit, owner, repo, path, ref, maxBytes) {
 // Tier 2: assemble the full changed-file bodies + sibling/imported reference code as one prompt
 // section. Changed-file head content comes from the API; reference files are read from the
 // checked-out base tree on disk (imports are overwhelmingly unchanged by the PR).
-async function buildFileContext({ octokit, owner, repo, headSha, files, config }) {
+async function buildFileContext({ octokit, owner, repo, headSha, files, commentableByFile, config }) {
   if (!config.includeChangedFileContents && !config.includeSiblingFiles && !config.followImports) return '';
 
-  const changedPaths = files
-    .filter((f) => f.status !== 'removed' && !isIgnored(f.filename, config.ignore))
-    .map((f) => f.filename);
+  const changedPaths = [...commentableByFile.keys()];
 
   const changedContent = new Map();
   for (const path of changedPaths) {
@@ -614,9 +612,16 @@ async function buildFileContext({ octokit, owner, repo, headSha, files, config }
     if (content != null) changedContent.set(path, content);
   }
 
+  const prTouchedPaths = new Set();
+  for (const f of files) {
+    prTouchedPaths.add(f.filename);
+    if (f.previous_filename) prTouchedPaths.add(f.previous_filename);
+  }
+
   const diskPath = (rel) => confineToRepo(REPO_ROOT, rel);
   const isFile = (rel) => {
     if (changedContent.has(rel)) return true;
+    if (prTouchedPaths.has(rel)) return false;
     const abs = diskPath(rel);
     if (abs == null) return false;
     try {
@@ -627,6 +632,7 @@ async function buildFileContext({ octokit, owner, repo, headSha, files, config }
   };
   const read = (rel) => {
     if (changedContent.has(rel)) return changedContent.get(rel);
+    if (prTouchedPaths.has(rel)) return null;
     const abs = diskPath(rel);
     if (abs == null) return null;
     try {
@@ -1553,7 +1559,7 @@ async function main() {
     system.push({ type: 'text', text: contextParts.join('\n\n---\n\n'), cache_control: { type: 'ephemeral' } });
   }
 
-  const fileContext = await buildFileContext({ octokit, owner, repo, headSha: pr.headSha, files, config });
+  const fileContext = await buildFileContext({ octokit, owner, repo, headSha: pr.headSha, files, commentableByFile, config });
 
   const userMessage = buildUserMessage({
     pr,
