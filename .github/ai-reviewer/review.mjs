@@ -604,10 +604,13 @@ async function fetchHeadContent(octokit, owner, repo, path, ref, maxBytes) {
 async function buildFileContext({ octokit, owner, repo, headSha, files, commentableByFile, config }) {
   if (!config.includeChangedFileContents && !config.includeSiblingFiles && !config.followImports) return '';
 
-  const changedPaths = [...commentableByFile.keys()];
+  const reviewedPaths = [...commentableByFile.keys()];
+  const fetchPaths = files
+    .filter((f) => f.status !== 'removed' && !isIgnored(f.filename, config.ignore))
+    .map((f) => f.filename);
 
   const changedContent = new Map();
-  for (const path of changedPaths) {
+  for (const path of fetchPaths) {
     const content = await fetchHeadContent(octokit, owner, repo, path, headSha, config.maxContextFileBytes);
     if (content != null) changedContent.set(path, content);
   }
@@ -653,12 +656,12 @@ async function buildFileContext({ octokit, owner, repo, headSha, files, commenta
   };
 
   const changedContents = config.includeChangedFileContents
-    ? changedPaths.filter((p) => changedContent.has(p)).map((p) => ({ path: p, content: changedContent.get(p) }))
+    ? reviewedPaths.filter((p) => changedContent.has(p)).map((p) => ({ path: p, content: changedContent.get(p) }))
     : [];
   const usedChars = changedContents.reduce((sum, c) => sum + c.content.length, 0);
 
   const contextFiles = gatherContextFiles({
-    changedPaths,
+    changedPaths: reviewedPaths,
     read,
     isFile,
     listDir,
