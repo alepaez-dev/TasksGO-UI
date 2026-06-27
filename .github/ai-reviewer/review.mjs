@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
-import { dirname, resolve, posix as posixPath } from 'node:path';
+import { dirname, resolve, posix as posixPath, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import * as core from '@actions/core';
@@ -436,6 +436,12 @@ function hasContextExtension(path, extensions) {
   return extensions.some((ext) => path.endsWith(ext));
 }
 
+export function confineToRepo(root, rel) {
+  const abs = resolve(root, rel);
+  if (abs !== root && !abs.startsWith(root + sep)) return null;
+  return abs;
+}
+
 export function resolveImportPath(fromPath, spec, isFile) {
   const base = posixPath.normalize(posixPath.join(posixPath.dirname(fromPath), spec));
   for (const ext of RESOLVE_EXTENSIONS) {
@@ -452,16 +458,16 @@ export function resolveImportPath(fromPath, spec, isFile) {
 export function gatherContextFiles({ changedPaths, read, isFile, listDir, config, charBudget }) {
   const seen = new Set(changedPaths); // changed files are shown separately, never as context
   const out = [];
-  let files = config.maxContextFiles;
-  let chars = charBudget ?? config.maxContextChars;
+  let remainingFiles = config.maxContextFiles;
+  let remainingChars = charBudget ?? config.maxContextChars;
 
   const tryInclude = (path, kind) => {
-    if (files <= 0 || chars <= 0) return;
+    if (remainingFiles <= 0 || remainingChars <= 0) return;
     const content = read(path);
-    if (content == null || content.length > config.maxContextFileBytes || content.length > chars) return;
+    if (content == null || content.length > config.maxContextFileBytes || content.length > remainingChars) return;
     out.push({ path, kind, content });
-    files -= 1;
-    chars -= content.length;
+    remainingFiles -= 1;
+    remainingChars -= content.length;
   };
 
   if (config.includeSiblingFiles) {
@@ -478,7 +484,7 @@ export function gatherContextFiles({ changedPaths, read, isFile, listDir, config
 
   if (config.followImports) {
     let frontier = changedPaths.map((path) => ({ path, depth: 0 }));
-    while (frontier.length && files > 0 && chars > 0) {
+    while (frontier.length && remainingFiles > 0 && remainingChars > 0) {
       const next = [];
       for (const node of frontier) {
         const content = read(node.path);
@@ -608,26 +614,33 @@ async function buildFileContext({ octokit, owner, repo, headSha, files, config }
     if (content != null) changedContent.set(path, content);
   }
 
-  const diskPath = (rel) => resolve(REPO_ROOT, rel);
+  const diskPath = (rel) => confineToRepo(REPO_ROOT, rel);
   const isFile = (rel) => {
     if (changedContent.has(rel)) return true;
+    const abs = diskPath(rel);
+    if (abs == null) return false;
     try {
-      return statSync(diskPath(rel)).isFile();
+      return statSync(abs).isFile();
     } catch {
       return false;
     }
   };
   const read = (rel) => {
     if (changedContent.has(rel)) return changedContent.get(rel);
+    const abs = diskPath(rel);
+    if (abs == null) return null;
     try {
-      return readFileSync(diskPath(rel), 'utf8');
+      if (statSync(abs).size > config.maxContextFileBytes) return null;
+      return readFileSync(abs, 'utf8');
     } catch {
       return null;
     }
   };
   const listDir = (rel) => {
+    const abs = diskPath(rel);
+    if (abs == null) return [];
     try {
-      return readdirSync(diskPath(rel));
+      return readdirSync(abs);
     } catch {
       return [];
     }
@@ -832,7 +845,8 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
 
   const kept = [];
   const runFingerprints = new Set();
-  const dropped = { byConfidence: 0, bySeverity: 0, byFile: 0, duplicate: 0, invalid: 0 };
+  const dropped = { byConfidence: 0, bySeverity: 0, byFile: 0, duplicate: 0, invalid: 0, offDiff: 0 };
+  const offDiffDropped = []; // off-diff findings filtered by the high-confidence guard, for logging
 
   for (const f of rawFindings) {
     if (!f || typeof f.file !== 'string' || typeof f.title !== 'string' || !f.title.trim()) {
@@ -858,6 +872,14 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
     const rawLine = Number(f.line);
     const line = Number.isInteger(rawLine) ? rawLine : null;
     const inline = line != null && commentable.has(line);
+
+    // Whole-file context (Tier 2) makes the model more likely to flag PRE-EXISTING lines that
+    // aren't part of the diff.=only surface them when high-confidence
+    if (!inline && (CONFIDENCE_RANK[confidence] ?? 1) < CONFIDENCE_RANK.high) {
+      dropped.offDiff += 1;
+      offDiffDropped.push({ file: f.file, line, confidence, category: f.category, title: f.title.trim() });
+      continue;
+    }
 
     // Cross-run key (line-agnostic) matches prior markers even after lines shift on later commits;
     // within-run key (line-aware) keeps two distinct same-title bugs in one file from collapsing.
@@ -890,7 +912,7 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
   );
 
   const capped = kept.length > config.maxFindings;
-  return { findings: kept.slice(0, config.maxFindings), dropped, capped };
+  return { findings: kept.slice(0, config.maxFindings), dropped, capped, offDiffDropped };
 }
 export function reviewFullySurfaced({ postSummaryComment, generalCount, postedGeneral, failedInline }) {
   const retryableUnposted = postSummaryComment ? generalCount - postedGeneral : failedInline;
@@ -1596,11 +1618,15 @@ async function main() {
   core.info(`Claude returned ${rawFindings.length} raw finding(s).`);
 
   // 5. Filter + de-duplicate.
-  const { findings, dropped, capped } = filterFindings(rawFindings, { config, commentableByFile, seenFingerprints });
+  const { findings, dropped, capped, offDiffDropped } = filterFindings(rawFindings, { config, commentableByFile, seenFingerprints });
   core.info(
     `Kept ${findings.length} new finding(s). Dropped — confidence:${dropped.byConfidence} severity:${dropped.bySeverity} ` +
-      `unchanged-file:${dropped.byFile} duplicate:${dropped.duplicate} invalid:${dropped.invalid}${capped ? ` (capped at ${config.maxFindings})` : ''}.`,
+      `unchanged-file:${dropped.byFile} duplicate:${dropped.duplicate} invalid:${dropped.invalid} off-diff:${dropped.offDiff}${capped ? ` (capped at ${config.maxFindings})` : ''}.`,
   );
+  // Surface exactly which findings the off-diff guard filtered, so a real-but-medium one isn't lost silently.
+  for (const d of offDiffDropped) {
+    core.info(`  off-diff drop (not on a changed line; needs high confidence): [${d.category}/${d.confidence}] ${d.file}:${d.line ?? '?'} — "${d.title}"`);
+  }
 
   let verifyStats = null;
   if (needVerify) {
@@ -1755,7 +1781,7 @@ async function writeJobSummary({
     }
     core.summary.addRaw(
       `Dropped this run — low confidence: ${dropped.byConfidence}, low severity: ${dropped.bySeverity}, ` +
-        `unchanged file: ${dropped.byFile}, duplicate: ${dropped.duplicate}, invalid: ${dropped.invalid}` +
+        `unchanged file: ${dropped.byFile}, duplicate: ${dropped.duplicate}, invalid: ${dropped.invalid}, off-diff (low-confidence): ${dropped.offDiff}` +
         `${capped ? `, capped at ${config.maxFindings}` : ''}.`,
     );
     const spend = [];

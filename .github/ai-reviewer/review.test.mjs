@@ -39,6 +39,7 @@ import {
   parseImports,
   isLocalSpecifier,
   resolveImportPath,
+  confineToRepo,
   gatherContextFiles,
   buildFileContextSection,
   DEFAULT_CONFIG,
@@ -765,6 +766,39 @@ check('buildFileContextSection numbers changed files and labels reference files 
   assert.match(section, /REFERENCE FILES/);
   assert.match(section, /do NOT report issues/i);
   assert.match(section, /### b\.ts {2}\(import\)/);
+});
+
+check('confineToRepo refuses paths that escape the repo (PR-controlled import strings)', () => {
+  const root = '/work/repo';
+  // in-repo paths resolve normally
+  assert.equal(confineToRepo(root, 'packages/ds/src/a.ts'), '/work/repo/packages/ds/src/a.ts');
+  assert.equal(confineToRepo(root, 'a/b/../c.ts'), '/work/repo/a/c.ts');
+  assert.equal(confineToRepo(root, '.'), root); // the root itself is allowed
+  // escapes are refused
+  assert.equal(confineToRepo(root, '../../../../tmp/evil.js'), null);
+  assert.equal(confineToRepo(root, 'packages/../../etc/passwd'), null);
+  // a sibling dir that merely shares a name prefix must NOT pass (the `+ sep` guard)
+  assert.equal(confineToRepo(root, '../repo-evil/x.js'), null);
+});
+
+check('filterFindings drops off-diff findings unless high-confidence (Tier 2 noise guard)', () => {
+  const commentableByFile = new Map([['a.ts', new Set([10])]]);
+  const config = { ...DEFAULT_CONFIG, minConfidence: 'low', minSeverity: 'low', maxFindings: 25 };
+  const raw = [
+    { file: 'a.ts', line: 99, severity: 'high', confidence: 'medium', category: 'bug', title: 'pre-existing medium off-diff', body: '', suggestion: '' },
+    { file: 'a.ts', line: 99, severity: 'high', confidence: 'high', category: 'bug', title: 'strong off-diff', body: '', suggestion: '' },
+    { file: 'a.ts', line: 10, severity: 'low', confidence: 'low', category: 'bug', title: 'inline low conf', body: '', suggestion: '' },
+  ];
+  const { findings, dropped, offDiffDropped } = filterFindings(raw, { config, commentableByFile, seenFingerprints: new Set() });
+  const titles = findings.map((f) => f.title);
+  assert.ok(!titles.includes('pre-existing medium off-diff')); // off-diff + below high -> dropped
+  assert.equal(dropped.offDiff, 1);
+  assert.ok(titles.includes('strong off-diff')); // off-diff but high-confidence -> kept
+  assert.ok(titles.includes('inline low conf')); // inline (added line) -> not subject to the guard
+  // the dropped finding is returned with detail so main() can log exactly what was filtered
+  assert.deepEqual(offDiffDropped, [
+    { file: 'a.ts', line: 99, confidence: 'medium', category: 'bug', title: 'pre-existing medium off-diff' },
+  ]);
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);
