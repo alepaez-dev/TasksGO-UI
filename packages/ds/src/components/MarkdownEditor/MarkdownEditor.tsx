@@ -89,6 +89,11 @@ export const MarkdownEditor = forwardRef<HTMLDivElement, MarkdownEditorProps>(
       onInsertImageFiles(files);
     };
 
+    const handleDragOver = (event: DragEvent<HTMLTextAreaElement>) => {
+      if (!onInsertImageFiles) return;
+      event.preventDefault();
+    };
+
     const handlePaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
       if (!onInsertImageFiles) return;
       const files = imageFilesFrom(event.clipboardData.files);
@@ -124,6 +129,7 @@ export const MarkdownEditor = forwardRef<HTMLDivElement, MarkdownEditorProps>(
           value={value}
           onChange={(event) => onChange(event.target.value)}
           onDrop={handleDrop}
+          onDragOver={handleDragOver}
           onPaste={handlePaste}
           placeholder={placeholder}
           aria-label="Markdown"
