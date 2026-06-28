@@ -8050,13 +8050,13 @@ trailing?: ReactNode</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  621 | }
-  622 |
-&gt; 623 | const meta: Meta = {
+  626 | }
+  627 |
+&gt; 628 | const meta: Meta = {
       | ^
-  624 |   title: &#39;Pages/Ticket Overview&#39;,
-  625 |   parameters: {
-  626 |     layout: &#39;fullscreen&#39;,
+  629 |   title: &#39;Pages/Ticket Overview&#39;,
+  630 |   parameters: {
+  631 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef } from &#39;react&#39;;
@@ -8593,7 +8593,12 @@ function TicketOverviewRender() {
                   variant=&quot;inline&quot;
                   dropdownAlign=&quot;end&quot;
                   renderTriggerLabel={() =&gt; (
-                    &lt;span className={styles.priorityValue}&gt;
+                    &lt;span
+                      className={styles.priorityValue}
+                      style={{
+                        color: `var(--ds-color-status-${activePriority.value})`,
+                      }}
+                    &gt;
                       {activePriority.label}
                     &lt;/span&gt;
                   )}
@@ -9707,13 +9712,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  621 | }
-  622 |
-&gt; 623 | const meta: Meta = {
+  626 | }
+  627 |
+&gt; 628 | const meta: Meta = {
       | ^
-  624 |   title: &#39;Pages/Ticket Overview&#39;,
-  625 |   parameters: {
-  626 |     layout: &#39;fullscreen&#39;,
+  629 |   title: &#39;Pages/Ticket Overview&#39;,
+  630 |   parameters: {
+  631 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef } from &#39;react&#39;;
@@ -10250,7 +10255,12 @@ function TicketOverviewRender() {
                   variant=&quot;inline&quot;
                   dropdownAlign=&quot;end&quot;
                   renderTriggerLabel={() =&gt; (
-                    &lt;span className={styles.priorityValue}&gt;
+                    &lt;span
+                      className={styles.priorityValue}
+                      style={{
+                        color: `var(--ds-color-status-${activePriority.value})`,
+                      }}
+                    &gt;
                       {activePriority.label}
                     &lt;/span&gt;
                   )}
