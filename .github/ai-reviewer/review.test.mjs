@@ -871,4 +871,33 @@ check('filterFindings drops off-diff findings unless high-confidence (Tier 2 noi
   ]);
 });
 
+check('filterFindings: unchanged-file findings drop by default (Tier 2) but route via the off-diff guard when allowed (Tier 3)', () => {
+  const commentableByFile = new Map([['changed.ts', new Set([5])]]);
+  const raw = [
+    { file: 'other.ts', line: 12, severity: 'high', confidence: 'high', category: 'bug', title: 'cross-file high in undiffed file', body: '', suggestion: '' },
+    { file: 'other.ts', line: 13, severity: 'high', confidence: 'medium', category: 'bug', title: 'cross-file medium in undiffed file', body: '', suggestion: '' },
+  ];
+
+  // Default (Tier 2): both dropped as byFile; nothing kept, nothing logged per-item.
+  const t2cfg = { ...DEFAULT_CONFIG, minConfidence: 'low', minSeverity: 'low', maxFindings: 25 };
+  const t2 = filterFindings(raw, { config: t2cfg, commentableByFile, seenFingerprints: new Set() });
+  assert.equal(t2.findings.length, 0);
+  assert.equal(t2.dropped.byFile, 2);
+  assert.equal(t2.dropped.offDiff, 0);
+  assert.deepEqual(t2.offDiffDropped, []);
+
+  // Tier 3 (allowUnchangedFileFindings): high-confidence kept as non-inline; lower-confidence dropped + logged.
+  const t3cfg = { ...t2cfg, allowUnchangedFileFindings: true };
+  const t3 = filterFindings(raw, { config: t3cfg, commentableByFile, seenFingerprints: new Set() });
+  const titles = t3.findings.map((f) => f.title);
+  assert.ok(titles.includes('cross-file high in undiffed file'));
+  assert.equal(t3.findings.find((f) => f.title === 'cross-file high in undiffed file').inline, false);
+  assert.ok(!titles.includes('cross-file medium in undiffed file'));
+  assert.equal(t3.dropped.byFile, 0);
+  assert.equal(t3.dropped.offDiff, 1);
+  assert.deepEqual(t3.offDiffDropped, [
+    { file: 'other.ts', line: 13, confidence: 'medium', category: 'bug', title: 'cross-file medium in undiffed file' },
+  ]);
+});
+
 console.log(`\nAll ${passed} self-tests passed.`);

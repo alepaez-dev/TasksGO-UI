@@ -11,25 +11,26 @@ import { REVIEW_SYSTEM_PROMPT, VERIFY_SYSTEM_PROMPT } from './prompts.mjs';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, '..', '..');
-const MARKER_RE = /<!-- ai-reviewer v1 (\{.*?\}) -->/g;
-const STATUS_MARKER_RE = /<!-- ai-reviewer-status v1(?: (\{.*?\}))? -->/;
-const VERIFY_MARKER_RE = /<!-- ai-reviewer-verify v1 (\{.*?\}) -->/;
+export const findingsMarkerRe = (markerPrefix = 'ai-reviewer') => new RegExp(`<!-- ${markerPrefix} v1 (\\{.*?\\}) -->`, 'g');
+export const statusMarkerRe = (markerPrefix = 'ai-reviewer') => new RegExp(`<!-- ${markerPrefix}-status v1(?: (\\{.*?\\}))? -->`);
+export const verifyMarkerRe = (markerPrefix = 'ai-reviewer') => new RegExp(`<!-- ${markerPrefix}-verify v1 (\\{.*?\\}) -->`);
+const STATUS_MARKER_RE = statusMarkerRe();
 
 // `sha` = the head whose findings review fully completed (skip the findings pass when head matches).
 // `vsha` = the head whose thread VERIFICATION fully completed (skip verification when head matches).
 // They are tracked separately so a re-label can retry incomplete verification (cap-deferred / over its
 // own budget / failed) WITHOUT re-billing the findings review.
-function buildStatusMarker(reviewedSha, verifiedSha) {
+function buildStatusMarker(reviewedSha, verifiedSha, markerPrefix = 'ai-reviewer') {
   const payload = {};
   if (reviewedSha) payload.sha = reviewedSha;
   if (verifiedSha) payload.vsha = verifiedSha;
   return Object.keys(payload).length
-    ? `<!-- ai-reviewer-status v1 ${JSON.stringify(payload)} -->`
-    : '<!-- ai-reviewer-status v1 -->';
+    ? `<!-- ${markerPrefix}-status v1 ${JSON.stringify(payload)} -->`
+    : `<!-- ${markerPrefix}-status v1 -->`;
 }
 
-function parseStatusMarker(body) {
-  const match = (body || '').match(STATUS_MARKER_RE);
+function parseStatusMarker(body, markerPrefix = 'ai-reviewer') {
+  const match = (body || '').match(statusMarkerRe(markerPrefix));
   if (!match || !match[1]) return {};
   try {
     return JSON.parse(match[1]) || {};
@@ -38,12 +39,12 @@ function parseStatusMarker(body) {
   }
 }
 
-export function parseStatusReviewedSha(body) {
-  return parseStatusMarker(body).sha ?? null;
+export function parseStatusReviewedSha(body, markerPrefix = 'ai-reviewer') {
+  return parseStatusMarker(body, markerPrefix).sha ?? null;
 }
 
-export function parseStatusVerifiedSha(body) {
-  return parseStatusMarker(body).vsha ?? null;
+export function parseStatusVerifiedSha(body, markerPrefix = 'ai-reviewer') {
+  return parseStatusMarker(body, markerPrefix).vsha ?? null;
 }
 
 // Whether thread verification left no pending work at this head (so the verified-SHA may advance).
@@ -145,7 +146,7 @@ const SEVERITY_LABEL = {
   low: '⚪ Low',
 };
 
-const FINDINGS_SCHEMA = {
+export const FINDINGS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
@@ -298,20 +299,20 @@ export function isTrustedMarkerComment(comment, botActor) {
   return user.type === 'Bot';
 }
 
-export function buildMarker(finding) {
+export function buildMarker(finding, markerPrefix = 'ai-reviewer') {
   const payload = {
     fp: finding.fp,
     file: finding.file,
     line: finding.line,
     title: finding.title.replace(/-->/g, '→').replace(/\s+/g, ' ').slice(0, 200),
   };
-  return `<!-- ai-reviewer v1 ${JSON.stringify(payload)} -->`;
+  return `<!-- ${markerPrefix} v1 ${JSON.stringify(payload)} -->`;
 }
 
-export function parseMarkers(text) {
+export function parseMarkers(text, markerPrefix = 'ai-reviewer') {
   const out = [];
   if (!text) return out;
-  for (const match of text.matchAll(MARKER_RE)) {
+  for (const match of text.matchAll(findingsMarkerRe(markerPrefix))) {
     try {
       out.push(JSON.parse(match[1]));
     } catch {
@@ -321,14 +322,14 @@ export function parseMarkers(text) {
   return out;
 }
 
-export function buildVerifyMarker({ fp, status, sha }) {
+export function buildVerifyMarker({ fp, status, sha }, markerPrefix = 'ai-reviewer') {
   const payload = { fp, status };
   if (sha) payload.sha = String(sha).slice(0, 40);
-  return `<!-- ai-reviewer-verify v1 ${JSON.stringify(payload)} -->`;
+  return `<!-- ${markerPrefix}-verify v1 ${JSON.stringify(payload)} -->`;
 }
 
-export function parseVerifyMarker(body) {
-  const match = (body || '').match(VERIFY_MARKER_RE);
+export function parseVerifyMarker(body, markerPrefix = 'ai-reviewer') {
+  const match = (body || '').match(verifyMarkerRe(markerPrefix));
   if (!match) return null;
   try {
     return JSON.parse(match[1]);
@@ -875,7 +876,8 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
       dropped.bySeverity += 1;
       continue;
     }
-    if (!changedFiles.has(f.file)) {
+    const isChangedFile = changedFiles.has(f.file);
+    if (!isChangedFile && !config.allowUnchangedFileFindings) {
       dropped.byFile += 1;
       continue;
     }
@@ -883,7 +885,7 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
     const commentable = commentableByFile.get(f.file);
     const rawLine = Number(f.line);
     const line = Number.isInteger(rawLine) ? rawLine : null;
-    const inline = line != null && commentable.has(line);
+    const inline = isChangedFile && line != null && commentable.has(line);
 
     // Whole-file context (Tier 2) makes the model more likely to flag PRE-EXISTING lines that
     // aren't part of the diff.=only surface them when high-confidence
@@ -931,19 +933,19 @@ export function reviewFullySurfaced({ postSummaryComment, generalCount, postedGe
   return retryableUnposted === 0;
 }
 
-export function selectThreadsToVerify(threads, { botActor } = {}) {
+export function selectThreadsToVerify(threads, { botActor, markerPrefix = 'ai-reviewer' } = {}) {
   const out = [];
   for (const thread of threads || []) {
     if (!thread || thread.isResolved) continue;
     const comments = thread.comments || [];
     const root = comments[0];
     if (!root || !isTrustedMarkerComment(root, botActor)) continue;
-    const [finding] = parseMarkers(root.body);
+    const [finding] = parseMarkers(root.body, markerPrefix);
     if (!finding || !finding.fp) continue;
     let lastVerifyStatus = null;
     for (const comment of comments) {
       if (!isTrustedMarkerComment(comment, botActor)) continue;
-      const vm = parseVerifyMarker(comment.body);
+      const vm = parseVerifyMarker(comment.body, markerPrefix);
       if (vm && vm.status) lastVerifyStatus = vm.status;
     }
     const rawLine = Number(finding.line);
@@ -1047,6 +1049,7 @@ export function renderStatusBody({
   reviewedSha = null,
   verifiedSha = null,
   resolved = 0,
+  markerPrefix = 'ai-reviewer',
 }) {
   const lines = ['### 🤖 AI bug review — latest run', ''];
   if (skipped) {
@@ -1077,11 +1080,11 @@ export function renderStatusBody({
   if (rows.length) lines.push('| | |', '|---|---|', ...rows, '');
 
   if (runUrl) lines.push(`<sub>[run log & full report](${runUrl})</sub>`, '');
-  lines.push(buildStatusMarker(reviewedSha, verifiedSha));
+  lines.push(buildStatusMarker(reviewedSha, verifiedSha, markerPrefix));
   return lines.join('\n');
 }
 
-function renderInlineBody(finding) {
+export function renderInlineBody(finding, markerPrefix = 'ai-reviewer') {
   const meta = CATEGORY_META[finding.category];
   const lines = [`**${meta.emoji} ${meta.label} · ${SEVERITY_LABEL[finding.severity]}** — ${finding.title}`, ''];
   if (finding.body) lines.push(finding.body, '');
@@ -1089,7 +1092,7 @@ function renderInlineBody(finding) {
   lines.push(
     `<sub>🤖 AI bug review (Claude) · confidence: ${finding.confidence}. If this is a false positive, react 👎 or reply — and consider updating <code>.github/ai-reviewer/rules.md</code>.</sub>`,
   );
-  lines.push(buildMarker(finding));
+  lines.push(buildMarker(finding, markerPrefix));
   return lines.join('\n');
 }
 
@@ -1105,7 +1108,7 @@ const SUMMARY_HEADER = [
   '',
 ].join('\n');
 
-function renderSummaryBlock(f) {
+export function renderSummaryBlock(f, markerPrefix = 'ai-reviewer') {
   const meta = CATEGORY_META[f.category];
   const lines = [
     `### ${meta.emoji} ${f.title}`,
@@ -1114,15 +1117,15 @@ function renderSummaryBlock(f) {
   ];
   if (f.body) lines.push(clampText(f.body, 2000), '');
   if (f.suggestion) lines.push(`**Suggested fix:** ${clampText(f.suggestion, 2000)}`, '');
-  lines.push(buildMarker(f), '');
+  lines.push(buildMarker(f, markerPrefix), '');
   return lines.join('\n');
 }
 
-export function chunkSummaryComments(findings, maxChars = 60000) {
+export function chunkSummaryComments(findings, maxChars = 60000, markerPrefix = 'ai-reviewer') {
   const chunks = [];
   let current = { findings: [], body: SUMMARY_HEADER };
   for (const f of findings) {
-    const block = renderSummaryBlock(f);
+    const block = renderSummaryBlock(f, markerPrefix);
     // Start a new comment when the next block would exceed the cap.
     if (current.findings.length > 0 && current.body.length + 1 + block.length > maxChars) {
       chunks.push(current);
@@ -1135,7 +1138,7 @@ export function chunkSummaryComments(findings, maxChars = 60000) {
   return chunks;
 }
 
-export function renderVerifyReply({ status, reason, sha, fp, outcome = 'left-open' }) {
+export function renderVerifyReply({ status, reason, sha, fp, outcome = 'left-open', markerPrefix = 'ai-reviewer' }) {
   const shortSha = sha ? String(sha).slice(0, 7) : '';
   const why = sanitizeText(reason, 400);
   let headline;
@@ -1159,7 +1162,7 @@ export function renderVerifyReply({ status, reason, sha, fp, outcome = 'left-ope
   const lines = [headline];
   if (why) lines.push('', why);
   lines.push('', '<sub>🤖 AI bug review (Claude) · automated re-check. Reply or react 👎 if this is wrong.</sub>');
-  lines.push(buildVerifyMarker({ fp, status, sha }));
+  lines.push(buildVerifyMarker({ fp, status, sha }, markerPrefix));
   return lines.join('\n');
 }
 
@@ -1243,9 +1246,10 @@ export function shouldResolveThread({ status, allowResolve, resolveVerifiedFixes
   return status === 'fixed' && !!allowResolve && !!resolveVerifiedFixes && !!diffComplete;
 }
 
-async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles, skippedForSize = [], truncated = false }) {
+export async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles, skippedForSize = [], truncated = false }) {
   const stats = { verified: 0, resolved: 0, repliesPosted: 0, skippedCap: 0, usage: null, costUsd: null, complete: true };
   const diffComplete = diffIsComplete(skippedForSize, truncated);
+  const markerPrefix = config.markerPrefix ?? 'ai-reviewer';
   // TODO: remove the [resolve-debug] logs once auto-resolve is confirmed working
   core.info(
     `[resolve-debug] verify entry: allowResolve=${allowResolve} resolveVerifiedFixes=${config.resolveVerifiedFixes} ` +
@@ -1261,7 +1265,7 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
     return stats;
   }
 
-  const candidates = orderThreadsForVerification(selectThreadsToVerify(threads, { botActor: config.botActor }));
+  const candidates = orderThreadsForVerification(selectThreadsToVerify(threads, { botActor: config.botActor, markerPrefix }));
   core.info(`[resolve-debug] fetched ${threads.length} review thread(s); ${candidates.length} are open + ours (marker match).`);
   if (candidates.length === 0) {
     core.info('No open AI-reviewer threads to verify.');
@@ -1410,7 +1414,7 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
       try {
         await octokit.graphql(REPLY_THREAD_MUTATION, {
           id: item.threadId,
-          body: renderVerifyReply({ status, reason, sha: pr.headSha, fp: item.fp, outcome }),
+          body: renderVerifyReply({ status, reason, sha: pr.headSha, fp: item.fp, outcome, markerPrefix }),
         });
         stats.repliesPosted += 1;
       } catch (err) {
@@ -1803,7 +1807,7 @@ async function main() {
   });
 }
 
-async function writeJobSummary({
+export async function writeJobSummary({
   findings,
   dropped = { byConfidence: 0, bySeverity: 0, byFile: 0, duplicate: 0, invalid: 0, offDiff: 0 },
   capped = false,
