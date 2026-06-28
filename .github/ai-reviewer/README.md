@@ -60,9 +60,18 @@ When you want it to watch for something specific, add a rule. Concrete beats ver
 | `minConfidence` | `medium` | Only post findings at/above this confidence (`low`/`medium`/`high`). Raise to `high` for less noise. |
 | `minSeverity` | `low` | Only post at/above this severity (`low`/`medium`/`high`/`critical`). |
 | `maxFindings` | `25` | Hard cap on findings posted per run. |
-| `maxFilePatchChars` | `30000` | Skip reviewing a single file whose diff is larger than this (it's noted as skipped). |
+| `maxFilePatchChars` | `50000` | Skip reviewing a single file whose **diff** is larger than this (noted as skipped). Raise it if large refactors are going unreviewed — a skipped file's findings are dropped even if Tier 2 still sends its full body as context. |
 | `maxTotalDiffChars` | `400000` | **Input** budget (~100k tokens) — the file-count knob. Once the diff exceeds this, later files are dropped (and Claude is told). ~400k chars comfortably covers ~40 files; raise it for bigger PRs (Opus 4.8 has a 1M-token context window). |
-| `maxInputTokens` | `150000` | **Hard spend cap.** Before any billable call, `count_tokens` (free) measures the prompt; if it's over this, the run is **skipped with no request made**. `null` disables. |
+| `includeChangedFileContents` | `true` | Send the **full body** of each changed file (whole functions/imports), not just the diff hunks. |
+| `includeSiblingFiles` | `true` | Also send co-located files in the same directory (e.g. a component's hook/CSS). |
+| `followImports` | `true` | **Tier 2.** Follow local `import`s from changed files into the imported modules' source. |
+| `importDepth` | `2` | Non-barrel hops to follow: `1` = direct imports; `2` = their imports too (reaches a component's hooks). `index.*` barrels are transparent and don't count. |
+| `maxReferenceFiles` | `80` | Cap on sibling + imported reference files included. |
+| `maxContextFileBytes` | `60000` | Skip a single context/changed file larger than this. |
+| `maxReferenceChars` | `300000` | Budget (~75k tokens) for the sibling/imported reference slice. Changed-file bodies are capped per-file by `maxContextFileBytes` and bounded overall by the `maxInputTokens` gate. |
+| `contextExtensions` | `.ts/.tsx/.js/.jsx/.css` | Sibling files worth including (CSS for a component's own styles). |
+| `importExtensions` | `.ts/.tsx/.js/.jsx` | Which **imports** to follow (CSS excluded — imported style modules are mostly noise). |
+| `maxInputTokens` | `300000` | **Hard spend cap.** Before any billable call, `count_tokens` (free) measures the prompt; if it's over this, the run is **skipped with no request made**. `null` disables. |
 | `costWarnUsd` | `null` | Soft alarm: log a warning if a run's estimated cost exceeds this (USD). `null` = off. |
 | `pricing` | see file | Per-model `$/1M tokens` (`input`/`output`), used for cost reporting + the worst-case ceiling. Edit if pricing changes. |
 | `includeProjectGuide` | `true` | Feed `CLAUDE.md` to Claude as conventions context. |
@@ -100,14 +109,21 @@ caps and the pre-flight gate, which make the **maximum cost per run deterministi
   the exact count can't be obtained, rather than billing blindly).
 - **`maxOutputTokens` (hard):** the API will not generate beyond this. You only pay for tokens
   actually produced, but it can never exceed the cap.
-- **Worst-case ceiling:** with both caps + `pricing`, the review call's max cost is
-  `maxInputTokens × input$ + maxOutputTokens × output$` — at the defaults (Opus 4.8, 150k in / 64k
-  out), **≈ $2.35**. With `verifyResolutions` on, a run makes a **second** bounded call (the
-  resolution check), also gated by `maxInputTokens` but with its own smaller `maxVerifyOutputTokens`
-  (24k) — **≈ $1.35** — so the per-run worst case is **≈ $3.70**. `worstCaseCostUsd` reports this
-  combined figure. Typical runs cost far less (~$0.30–0.60 each), and the **actual** combined
-  input/output/$ is reported every run.
+- **Worst-case ceiling:** with the caps + `pricing`, the review call's max cost is
+  `maxInputTokens × input$ + maxOutputTokens × output$` — at the defaults (Opus 4.8, 300k in / 64k
+  out) **≈ $3.10**. With `verifyResolutions` on, a run makes a **second** bounded call (the
+  resolution check), also gated by `maxInputTokens` but with its own smaller `maxVerifyOutputTokens`,
+  adding up to ~$2 more — so the per-run worst case is roughly **$5**. `worstCaseCostUsd` reports the
+  exact combined figure. Typical runs cost far less, and the **actual** combined input/output/$ is
+  reported every run.
 - **`costWarnUsd` (soft):** logs a ⚠️ if a run's estimated cost (review + verification) exceeds it.
+
+**Tier 2 context cost.** Sending full files + imported modules raises input from "the diff" to the
+relevant slice of the codebase. A small component PR adds little; a **page-level composition** (which
+imports ~20 components) pulls ~70 code files ≈ **~30k tokens of context ≈ ~$0.20–0.40/run**. To trim:
+lower `importDepth` to `1` (skips a component's hooks), lower `maxReferenceFiles`, or set `followImports:
+false` to fall back to changed-files-only. The `maxReferenceChars`/`maxReferenceFiles` caps bound it, and
+the `maxInputTokens` gate is the hard ceiling.
 
 **Where cost shows up:** every run prints `input / cache-read / output tokens → ≈ $X` in the Actions
 log *and* the job summary, and (with `postRunStatusComment: true`) updates a single sticky comment on

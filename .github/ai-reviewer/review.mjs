@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, existsSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { dirname, resolve, posix as posixPath, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import * as core from '@actions/core';
@@ -63,11 +63,22 @@ export const DEFAULT_CONFIG = {
   minConfidence: 'medium', // low | medium | high
   minSeverity: 'low', // low | medium | high | critical
   maxFindings: 25,
-  maxFilePatchChars: 30000,
+  maxFilePatchChars: 50000,
   maxTotalDiffChars: 400000,
+  // Tier 2 context: how much surrounding code to send beyond the diff hunks.
+  includeChangedFileContents: true, // full body of each changed file (whole functions, imports)
+  includeSiblingFiles: true, // co-located files in the same directory (e.g. the component's hook/css)
+  followImports: true, // pull in imported local modules (and their imports, up to importDepth)
+  importDepth: 2, // non-barrel hops from a changed file: 1 = direct imports, 2 = their imports too
+  maxReferenceFiles: 80, // cap on sibling + imported reference files included
+  maxContextFileBytes: 60000, // skip a single context/changed file larger than this
+  maxReferenceChars: 300000,// budget for the sibling/imported reference slice (~75k tokens)
+  contextExtensions: ['.ts', '.tsx', '.js', '.jsx', '.css'], // siblings worth including (incl. styles)
+  importExtensions: ['.ts', '.tsx', '.js', '.jsx'], // follow only code imports (CSS modules add noise)
   // Hard pre-flight cap: if the prompt counts above this many input tokens, the run is SKIPPED
-  // before any billable request is made (no spend). null disables the gate.
-  maxInputTokens: 150000,
+  // before any billable request is made (no spend). null disables the gate. Raised for Tier 2 —
+  // deep context is much larger than a diff; the maxReference*/maxContextFileBytes caps keep typical runs well under it.
+  maxInputTokens: 300000,
   // Soft post-run alarm: warn in the log if a run's estimated cost exceeds this (USD). null = off.
   costWarnUsd: null,
   // Per-model rates ($/1M tokens), used for cost reporting + the worst-case ceiling. Edit if
@@ -397,7 +408,139 @@ export function buildDiffContext(files, config) {
   return { diffText: blocks.join('\n\n'), commentableByFile, skippedForSize, truncated };
 }
 
-function buildUserMessage({ pr, diffText, priorFindings, skippedForSize, truncated }) {
+// Tier 2 context gathering: changed files + siblings + imported local modules ----
+
+const IMPORT_FROM_RE = /(?:import|export)\b[^'"]*?\bfrom\s*['"]([^'"]+)['"]/g;
+const SIDE_EFFECT_IMPORT_RE = /\bimport\s*['"]([^'"]+)['"]/g;
+const DYNAMIC_IMPORT_RE = /\bimport\(\s*['"]([^'"]+)['"]\s*\)/g;
+const RESOLVE_EXTENSIONS = ['', '.ts', '.tsx', '.js', '.jsx', '.css'];
+const INDEX_FILES = ['index.ts', 'index.tsx', 'index.js', 'index.jsx'];
+
+export function parseImports(source) {
+  const specs = new Set();
+  for (const re of [IMPORT_FROM_RE, SIDE_EFFECT_IMPORT_RE, DYNAMIC_IMPORT_RE]) {
+    for (const match of source.matchAll(re)) specs.add(match[1]);
+  }
+  return [...specs];
+}
+
+export function isLocalSpecifier(spec) {
+  return spec.startsWith('./') || spec.startsWith('../');
+}
+
+function isBarrelPath(path) {
+  return INDEX_FILES.includes(posixPath.basename(path));
+}
+
+function hasContextExtension(path, extensions) {
+  return extensions.some((ext) => path.endsWith(ext));
+}
+
+export function confineToRepo(root, rel) {
+  const abs = resolve(root, rel);
+  if (abs !== root && !abs.startsWith(root + sep)) return null;
+  return abs;
+}
+
+export function resolveImportPath(fromPath, spec, isFile) {
+  const base = posixPath.normalize(posixPath.join(posixPath.dirname(fromPath), spec));
+  for (const ext of RESOLVE_EXTENSIONS) {
+    const candidate = base + ext;
+    if (isFile(candidate)) return candidate;
+  }
+  for (const index of INDEX_FILES) {
+    const candidate = posixPath.join(base, index);
+    if (isFile(candidate)) return candidate;
+  }
+  return null;
+}
+
+export function gatherContextFiles({ changedPaths, read, isFile, listDir, config, charBudget }) {
+  const seen = new Set(changedPaths); // changed files are shown separately, never as context
+  const out = [];
+  let remainingFiles = config.maxReferenceFiles;
+  let remainingChars = charBudget ?? config.maxReferenceChars;
+
+  const tryInclude = (path, kind) => {
+    if (remainingFiles <= 0 || remainingChars <= 0) return;
+    const content = read(path);
+    if (content == null || content.length > config.maxContextFileBytes || content.length > remainingChars) return;
+    out.push({ path, kind, content });
+    remainingFiles -= 1;
+    remainingChars -= content.length;
+  };
+
+  if (config.includeSiblingFiles) {
+    for (const dir of [...new Set(changedPaths.map((p) => posixPath.dirname(p)))]) {
+      for (const name of listDir(dir)) {
+        const path = posixPath.join(dir, name);
+        if (seen.has(path)) continue;
+        if (!hasContextExtension(path, config.contextExtensions) || isIgnored(path, config.ignore)) continue;
+        seen.add(path);
+        tryInclude(path, 'sibling');
+      }
+    }
+  }
+
+  if (config.followImports) {
+    let frontier = changedPaths.map((path) => ({ path, depth: 0 }));
+    while (frontier.length && remainingFiles > 0 && remainingChars > 0) {
+      const next = [];
+      for (const node of frontier) {
+        const content = read(node.path);
+        if (content == null) continue;
+        for (const spec of parseImports(content)) {
+          if (!isLocalSpecifier(spec)) continue;
+          const resolved = resolveImportPath(node.path, spec, isFile);
+          if (!resolved || seen.has(resolved)) continue;
+          seen.add(resolved);
+          if (isIgnored(resolved, config.ignore)) continue;
+          const barrel = isBarrelPath(resolved);
+          const childDepth = barrel ? node.depth : node.depth + 1;
+          if (!barrel && hasContextExtension(resolved, config.importExtensions)) {
+            tryInclude(resolved, 'import');
+          }
+          // Barrels are always followed (transparent); real files only while under importDepth.
+          if (barrel || childDepth < config.importDepth) next.push({ path: resolved, depth: childDepth });
+        }
+      }
+      frontier = next;
+    }
+  }
+
+  return out;
+}
+
+function numberLines(content) {
+  return content
+    .split('\n')
+    .map((line, i) => `${String(i + 1).padStart(5)}  ${line}`)
+    .join('\n');
+}
+
+export function buildFileContextSection(changedContents, contextFiles) {
+  const parts = [];
+  if (changedContents.length) {
+    parts.push(
+      '== CHANGED FILES (full content; line numbers match the diff — still only report issues on the `+` lines) ==',
+    );
+    for (const { path, content } of changedContents) {
+      parts.push(`### ${path}\n${numberLines(content)}`);
+    }
+  }
+  if (contextFiles.length) {
+    parts.push(
+      '\n== REFERENCE FILES (imported/sibling code, for context only — do NOT report issues located in these files; ' +
+        'use them to understand the changed code, e.g. how an imported component/hook behaves) ==',
+    );
+    for (const { path, kind, content } of contextFiles) {
+      parts.push(`### ${path}  (${kind})\n${content}`);
+    }
+  }
+  return parts.join('\n\n');
+}
+
+function buildUserMessage({ pr, diffText, priorFindings, skippedForSize, truncated, fileContext }) {
   const parts = [];
   parts.push(`Pull request #${pr.number}`);
   parts.push(`Base: ${pr.base} … Head: ${pr.headSha}`);
@@ -434,7 +577,100 @@ function buildUserMessage({ pr, diffText, priorFindings, skippedForSize, truncat
     parts.push('\n(Note: the diff was truncated to fit the size budget; later files were not included.)');
   }
 
+  if (fileContext) {
+    parts.push('\n' + fileContext);
+  }
+
   return parts.join('\n');
+}
+
+async function fetchHeadContent(octokit, owner, repo, path, ref, maxBytes) {
+  try {
+    const { data } = await octokit.rest.repos.getContent({ owner, repo, path, ref });
+    if (Array.isArray(data) || data.type !== 'file' || typeof data.content !== 'string') return null;
+    if (typeof data.size === 'number' && data.size > maxBytes) return null;
+    const decoded = Buffer.from(data.content, data.encoding === 'base64' ? 'base64' : 'utf8').toString('utf8');
+    // Guard against binary content slipping through (NUL byte).
+    if (decoded.includes('\u0000')) return null;
+    return decoded;
+  } catch {
+    return null;
+  }
+}
+
+// Tier 2: assemble the full changed-file bodies + sibling/imported reference code as one prompt
+// section. Changed-file head content comes from the API; reference files are read from the
+// checked-out base tree on disk (imports are overwhelmingly unchanged by the PR).
+async function buildFileContext({ octokit, owner, repo, headSha, files, commentableByFile, config }) {
+  if (!config.includeChangedFileContents && !config.includeSiblingFiles && !config.followImports) return '';
+
+  const reviewedPaths = [...commentableByFile.keys()];
+  const fetchPaths = files
+    .filter((f) => f.status !== 'removed' && !isIgnored(f.filename, config.ignore))
+    .map((f) => f.filename);
+
+  const changedContent = new Map();
+  for (const path of fetchPaths) {
+    const content = await fetchHeadContent(octokit, owner, repo, path, headSha, config.maxContextFileBytes);
+    if (content != null) changedContent.set(path, content);
+  }
+
+  const prTouchedPaths = new Set();
+  for (const f of files) {
+    prTouchedPaths.add(f.filename);
+    if (f.previous_filename) prTouchedPaths.add(f.previous_filename);
+  }
+
+  const diskPath = (rel) => confineToRepo(REPO_ROOT, rel);
+  const isFile = (rel) => {
+    if (changedContent.has(rel)) return true;
+    if (prTouchedPaths.has(rel)) return false;
+    const abs = diskPath(rel);
+    if (abs == null) return false;
+    try {
+      return statSync(abs).isFile();
+    } catch {
+      return false;
+    }
+  };
+  const read = (rel) => {
+    if (changedContent.has(rel)) return changedContent.get(rel);
+    if (prTouchedPaths.has(rel)) return null;
+    const abs = diskPath(rel);
+    if (abs == null) return null;
+    try {
+      if (statSync(abs).size > config.maxContextFileBytes) return null;
+      return readFileSync(abs, 'utf8');
+    } catch {
+      return null;
+    }
+  };
+  const listDir = (rel) => {
+    const abs = diskPath(rel);
+    if (abs == null) return [];
+    try {
+      return readdirSync(abs);
+    } catch {
+      return [];
+    }
+  };
+
+  const changedContents = config.includeChangedFileContents
+    ? reviewedPaths.filter((p) => changedContent.has(p)).map((p) => ({ path: p, content: changedContent.get(p) }))
+    : [];
+  const usedChars = changedContents.reduce((sum, c) => sum + c.content.length, 0);
+
+  const contextFiles = gatherContextFiles({
+    changedPaths: reviewedPaths,
+    read,
+    isFile,
+    listDir,
+    config,
+    charBudget: Math.max(0, config.maxReferenceChars - usedChars),
+  });
+
+  core.info(`Tier 2 context: ${changedContents.length} changed file body(ies) + ${contextFiles.length} reference file(s).`);
+  return buildFileContextSection(changedContents, contextFiles);
 }
 
 async function requestFindings(client, config, system, userMessage) {
@@ -618,7 +854,8 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
 
   const kept = [];
   const runFingerprints = new Set();
-  const dropped = { byConfidence: 0, bySeverity: 0, byFile: 0, duplicate: 0, invalid: 0 };
+  const dropped = { byConfidence: 0, bySeverity: 0, byFile: 0, duplicate: 0, invalid: 0, offDiff: 0 };
+  const offDiffDropped = []; // off-diff findings filtered by the high-confidence guard, for logging
 
   for (const f of rawFindings) {
     if (!f || typeof f.file !== 'string' || typeof f.title !== 'string' || !f.title.trim()) {
@@ -644,6 +881,14 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
     const rawLine = Number(f.line);
     const line = Number.isInteger(rawLine) ? rawLine : null;
     const inline = line != null && commentable.has(line);
+
+    // Whole-file context (Tier 2) makes the model more likely to flag PRE-EXISTING lines that
+    // aren't part of the diff.=only surface them when high-confidence
+    if (!inline && (CONFIDENCE_RANK[confidence] ?? 1) < CONFIDENCE_RANK.high) {
+      dropped.offDiff += 1;
+      offDiffDropped.push({ file: f.file, line, confidence, category: f.category, title: f.title.trim() });
+      continue;
+    }
 
     // Cross-run key (line-agnostic) matches prior markers even after lines shift on later commits;
     // within-run key (line-aware) keeps two distinct same-title bugs in one file from collapsing.
@@ -676,7 +921,7 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
   );
 
   const capped = kept.length > config.maxFindings;
-  return { findings: kept.slice(0, config.maxFindings), dropped, capped };
+  return { findings: kept.slice(0, config.maxFindings), dropped, capped, offDiffDropped };
 }
 export function reviewFullySurfaced({ postSummaryComment, generalCount, postedGeneral, failedInline }) {
   const retryableUnposted = postSummaryComment ? generalCount - postedGeneral : failedInline;
@@ -1317,7 +1562,16 @@ async function main() {
     system.push({ type: 'text', text: contextParts.join('\n\n---\n\n'), cache_control: { type: 'ephemeral' } });
   }
 
-  const userMessage = buildUserMessage({ pr, diffText, priorFindings: priorMarkers, skippedForSize, truncated });
+  const fileContext = await buildFileContext({ octokit, owner, repo, headSha: pr.headSha, files, commentableByFile, config });
+
+  const userMessage = buildUserMessage({
+    pr,
+    diffText,
+    priorFindings: priorMarkers,
+    skippedForSize,
+    truncated,
+    fileContext,
+  });
 
   // 3b. Pre-flight budget gate. count_tokens is free, so we measure the exact input size and
   // refuse to send anything that would exceed maxInputTokens — a hard cap on spend per run.
@@ -1373,11 +1627,15 @@ async function main() {
   core.info(`Claude returned ${rawFindings.length} raw finding(s).`);
 
   // 5. Filter + de-duplicate.
-  const { findings, dropped, capped } = filterFindings(rawFindings, { config, commentableByFile, seenFingerprints });
+  const { findings, dropped, capped, offDiffDropped } = filterFindings(rawFindings, { config, commentableByFile, seenFingerprints });
   core.info(
     `Kept ${findings.length} new finding(s). Dropped — confidence:${dropped.byConfidence} severity:${dropped.bySeverity} ` +
-      `unchanged-file:${dropped.byFile} duplicate:${dropped.duplicate} invalid:${dropped.invalid}${capped ? ` (capped at ${config.maxFindings})` : ''}.`,
+      `unchanged-file:${dropped.byFile} duplicate:${dropped.duplicate} invalid:${dropped.invalid} off-diff:${dropped.offDiff}${capped ? ` (capped at ${config.maxFindings})` : ''}.`,
   );
+  // Surface exactly which findings the off-diff guard filtered, so a real-but-medium one isn't lost silently.
+  for (const d of offDiffDropped) {
+    core.info(`  off-diff drop (not on a changed line; needs high confidence): [${d.category}/${d.confidence}] ${d.file}:${d.line ?? '?'} — "${d.title}"`);
+  }
 
   let verifyStats = null;
   if (needVerify) {
@@ -1489,7 +1747,7 @@ async function main() {
 
 async function writeJobSummary({
   findings,
-  dropped = { byConfidence: 0, bySeverity: 0, byFile: 0, duplicate: 0, invalid: 0 },
+  dropped = { byConfidence: 0, bySeverity: 0, byFile: 0, duplicate: 0, invalid: 0, offDiff: 0 },
   capped = false,
   config,
   postedInline = 0,
@@ -1532,7 +1790,7 @@ async function writeJobSummary({
     }
     core.summary.addRaw(
       `Dropped this run — low confidence: ${dropped.byConfidence}, low severity: ${dropped.bySeverity}, ` +
-        `unchanged file: ${dropped.byFile}, duplicate: ${dropped.duplicate}, invalid: ${dropped.invalid}` +
+        `unchanged file: ${dropped.byFile}, duplicate: ${dropped.duplicate}, invalid: ${dropped.invalid}, off-diff (low-confidence): ${dropped.offDiff}` +
         `${capped ? `, capped at ${config.maxFindings}` : ''}.`,
     );
     const spend = [];
