@@ -709,9 +709,9 @@ const ctxConfig = (over) => ({
   ignore: [],
   contextExtensions: ['.ts', '.tsx', '.css'],
   importExtensions: ['.ts', '.tsx'],
-  maxContextFiles: 50,
+  maxReferenceFiles: 50,
   maxContextFileBytes: 60000,
-  maxContextChars: 300000,
+  maxReferenceChars: 300000,
   includeSiblingFiles: true,
   followImports: true,
   importDepth: 2,
@@ -746,11 +746,11 @@ check('gatherContextFiles respects importDepth (1 stops before the hook)', () =>
   assert.ok(!paths.includes('pkg/hooks/useDragToDismiss.ts')); // depth 2 not reached
 });
 
-check('gatherContextFiles enforces the maxContextFiles cap', () => {
+check('gatherContextFiles enforces the maxReferenceFiles cap', () => {
   const out = gatherContextFiles({
     changedPaths: ['pkg/stories/Mobile.stories.tsx'],
     ...ctxAccessors,
-    config: ctxConfig({ maxContextFiles: 1 }),
+    config: ctxConfig({ maxReferenceFiles: 1 }),
   });
   assert.equal(out.length, 1);
 });

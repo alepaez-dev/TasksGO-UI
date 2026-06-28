@@ -66,9 +66,9 @@ When you want it to watch for something specific, add a rule. Concrete beats ver
 | `includeSiblingFiles` | `true` | Also send co-located files in the same directory (e.g. a component's hook/CSS). |
 | `followImports` | `true` | **Tier 2.** Follow local `import`s from changed files into the imported modules' source. |
 | `importDepth` | `2` | Non-barrel hops to follow: `1` = direct imports; `2` = their imports too (reaches a component's hooks). `index.*` barrels are transparent and don't count. |
-| `maxContextFiles` | `80` | Cap on sibling + imported files included. |
+| `maxReferenceFiles` | `80` | Cap on sibling + imported reference files included. |
 | `maxContextFileBytes` | `60000` | Skip a single context/changed file larger than this. |
-| `maxContextChars` | `300000` | Total budget (~75k tokens) for all file-context text. |
+| `maxReferenceChars` | `300000` | Budget (~75k tokens) for the sibling/imported reference slice. Changed-file bodies are capped per-file by `maxContextFileBytes` and bounded overall by the `maxInputTokens` gate. |
 | `contextExtensions` | `.ts/.tsx/.js/.jsx/.css` | Sibling files worth including (CSS for a component's own styles). |
 | `importExtensions` | `.ts/.tsx/.js/.jsx` | Which **imports** to follow (CSS excluded — imported style modules are mostly noise). |
 | `maxInputTokens` | `300000` | **Hard spend cap.** Before any billable call, `count_tokens` (free) measures the prompt; if it's over this, the run is **skipped with no request made**. `null` disables. |
@@ -121,8 +121,8 @@ caps and the pre-flight gate, which make the **maximum cost per run deterministi
 **Tier 2 context cost.** Sending full files + imported modules raises input from "the diff" to the
 relevant slice of the codebase. A small component PR adds little; a **page-level composition** (which
 imports ~20 components) pulls ~70 code files ≈ **~30k tokens of context ≈ ~$0.20–0.40/run**. To trim:
-lower `importDepth` to `1` (skips a component's hooks), lower `maxContextFiles`, or set `followImports:
-false` to fall back to changed-files-only. The `maxContextChars`/`maxContextFiles` caps bound it, and
+lower `importDepth` to `1` (skips a component's hooks), lower `maxReferenceFiles`, or set `followImports:
+false` to fall back to changed-files-only. The `maxReferenceChars`/`maxReferenceFiles` caps bound it, and
 the `maxInputTokens` gate is the hard ceiling.
 
 **Where cost shows up:** every run prints `input / cache-read / output tokens → ≈ $X` in the Actions

@@ -70,14 +70,14 @@ export const DEFAULT_CONFIG = {
   includeSiblingFiles: true, // co-located files in the same directory (e.g. the component's hook/css)
   followImports: true, // pull in imported local modules (and their imports, up to importDepth)
   importDepth: 2, // non-barrel hops from a changed file: 1 = direct imports, 2 = their imports too
-  maxContextFiles: 80, // cap on sibling + imported files included
+  maxReferenceFiles: 80, // cap on sibling + imported reference files included
   maxContextFileBytes: 60000, // skip a single context/changed file larger than this
-  maxContextChars: 300000, // total budget for all file-context text (~75k tokens)
+  maxReferenceChars: 300000,// budget for the sibling/imported reference slice (~75k tokens)
   contextExtensions: ['.ts', '.tsx', '.js', '.jsx', '.css'], // siblings worth including (incl. styles)
   importExtensions: ['.ts', '.tsx', '.js', '.jsx'], // follow only code imports (CSS modules add noise)
   // Hard pre-flight cap: if the prompt counts above this many input tokens, the run is SKIPPED
   // before any billable request is made (no spend). null disables the gate. Raised for Tier 2 —
-  // deep context is much larger than a diff; the maxContext* caps keep typical runs well under it.
+  // deep context is much larger than a diff; the maxReference*/maxContextFileBytes caps keep typical runs well under it.
   maxInputTokens: 300000,
   // Soft post-run alarm: warn in the log if a run's estimated cost exceeds this (USD). null = off.
   costWarnUsd: null,
@@ -458,8 +458,8 @@ export function resolveImportPath(fromPath, spec, isFile) {
 export function gatherContextFiles({ changedPaths, read, isFile, listDir, config, charBudget }) {
   const seen = new Set(changedPaths); // changed files are shown separately, never as context
   const out = [];
-  let remainingFiles = config.maxContextFiles;
-  let remainingChars = charBudget ?? config.maxContextChars;
+  let remainingFiles = config.maxReferenceFiles;
+  let remainingChars = charBudget ?? config.maxReferenceChars;
 
   const tryInclude = (path, kind) => {
     if (remainingFiles <= 0 || remainingChars <= 0) return;
@@ -666,7 +666,7 @@ async function buildFileContext({ octokit, owner, repo, headSha, files, commenta
     isFile,
     listDir,
     config,
-    charBudget: Math.max(0, config.maxContextChars - usedChars),
+    charBudget: Math.max(0, config.maxReferenceChars - usedChars),
   });
 
   core.info(`Tier 2 context: ${changedContents.length} changed file body(ies) + ${contextFiles.length} reference file(s).`);
