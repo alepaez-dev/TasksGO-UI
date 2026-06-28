@@ -532,7 +532,12 @@ function TicketOverviewRender() {
                   variant="inline"
                   dropdownAlign="end"
                   renderTriggerLabel={() => (
-                    <span className={styles.priorityValue}>
+                    <span
+                      className={styles.priorityValue}
+                      style={{
+                        color: `var(--ds-color-status-${activePriority.value})`,
+                      }}
+                    >
                       {activePriority.label}
                     </span>
                   )}
