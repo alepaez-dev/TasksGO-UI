@@ -25,10 +25,14 @@ export interface UseMarkdownEditorResult {
   insertImageFiles: (files: readonly File[]) => void;
 }
 
+function escapeAltText(name: string): string {
+  // newlines and brackets would break the ![alt](url) syntax this becomes alt text for
+  return name.replace(/[\r\n]+/g, ' ').replace(/[\\[\]]/g, '\\$&');
+}
+
 function baseName(name: string): string {
   const withoutExtension = name.replace(/\.[^./\\]+$/, '') || name;
-  // brackets would break the ![alt](url) syntax this name becomes alt text for
-  return withoutExtension.replace(/[[\]]/g, '');
+  return escapeAltText(withoutExtension);
 }
 
 function replaceFirst(
@@ -81,7 +85,7 @@ export function useMarkdownEditor({
     if (files.length === 0) return;
     const uploads = files.map((file) => ({
       file,
-      placeholder: `![Uploading ${file.name}…](#uploading-${++uploadCounter.current})`,
+      placeholder: `![Uploading ${escapeAltText(file.name)}…](#uploading-${++uploadCounter.current})`,
     }));
     const block = uploads.map((upload) => upload.placeholder).join('\n');
     const textarea = textareaRef.current;
