@@ -4,6 +4,12 @@
   gap: var(--ds-space-scale-md);
 }
 
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .label {
   font-family: var(--ds-text-section-header-font-family);
   font-size: var(--ds-text-section-header-font-size);
@@ -22,6 +28,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  overflow-wrap: anywhere;
   font-family: var(--ds-font-family-mono);
   font-size: var(--ds-text-card-body-font-size);
   line-height: 1.6;

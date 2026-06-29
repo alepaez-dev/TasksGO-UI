@@ -13,7 +13,8 @@ import { Breadcrumb } from '../../../components/Breadcrumb';
 import { TicketTitleBlock } from '../../../components/TicketTitleBlock';
 import { Tabs, getTabId, getTabPanelId } from '../../../components/Tabs';
 import { SectionHeader } from '../../../components/SectionHeader';
-import { Card } from '../../../components/Card';
+import { Markdown } from '../../../components/Markdown';
+import { MarkdownEditor } from '../../../components/MarkdownEditor';
 import { CollapsibleCard } from '../../../components/CollapsibleCard';
 import { ChecklistRow } from '../../../components/ChecklistRow';
 import { BottomTabBar } from '../../../components/BottomTabBar';
@@ -23,6 +24,7 @@ import { PropertyRow } from '../../../components/PropertyRow';
 import { EditableRefField } from '../../../components/EditableRefField';
 import { OptionList } from '../../../components/OptionList';
 import { PipelineHierarchyPanel } from '../../../components/PipelineHierarchyPanel';
+import { useMarkdownEditor } from '../../../hooks/useMarkdownEditor';
 import { useTicketOverviewState } from './useTicketOverviewState';
 import {
   getPerson,
@@ -40,12 +42,18 @@ import styles from './TicketOverviewMobile.module.css';
 
 const TAB_ID_PREFIX = 'ticket-overview-mobile';
 
+const uploadImage = (file: File) => Promise.resolve(URL.createObjectURL(file));
+
 type DetailsView = 'metadata' | 'pipeline';
 
 function TicketOverviewMobileRender() {
   const {
     activeTab,
     setActiveTab,
+    body,
+    setBody,
+    bodyMode,
+    setBodyMode,
     assignee,
     setAssignee,
     assigneeSelector: {
@@ -93,6 +101,28 @@ function TicketOverviewMobileRender() {
   const activeReporter = getPerson(reporter);
   const activeStatus = getStatusOption(status);
   const activePriority = getPriorityOption(priority);
+
+  const { wordCount, isUploading, textareaRef, applyAction, insertImageFiles } =
+    useMarkdownEditor({
+      value: body,
+      setValue: setBody,
+      onImageUpload: uploadImage,
+    });
+
+  const freeformButtonRef = useRef<HTMLButtonElement>(null);
+  const didMountRef = useRef(false);
+  useEffect(() => {
+    // Skip the initial render so we don't steal focus on page load
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+    if (bodyMode === 'freeform') {
+      textareaRef.current?.focus();
+    } else {
+      freeformButtonRef.current?.focus();
+    }
+  }, [bodyMode, textareaRef]);
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsView, setDetailsView] = useState<DetailsView>('metadata');
@@ -223,87 +253,97 @@ function TicketOverviewMobileRender() {
             className={styles.overviewPanel}
             hidden={activeTab !== 'overview'}
           >
-            <section className={styles.section}>
-              <SectionHeader headingLevel={2}>Description</SectionHeader>
-              <p className={styles.prose}>{ticket.description}</p>
-            </section>
-
-            <section className={styles.section}>
-              <SectionHeader headingLevel={2}>Why</SectionHeader>
-              <ul className={styles.bulletList}>
-                {ticket.why.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </section>
-
-            <section className={styles.section}>
-              <SectionHeader headingLevel={2}>Scope</SectionHeader>
-              <div className={styles.scopeStack}>
-                <Card
+            <div className={styles.bodyCard}>
+              {bodyMode === 'template' ? (
+                <>
+                  <div className={styles.bodyBar}>
+                    <span className={styles.bodyModeLabel}>
+                      <Icon name="description" size="sm" />
+                      Template
+                    </span>
+                    <button
+                      ref={freeformButtonRef}
+                      type="button"
+                      className={styles.bodySwitch}
+                      onClick={() => setBodyMode('freeform')}
+                    >
+                      Freeform
+                      <Icon name="chevron_right" size="sm" />
+                    </button>
+                  </div>
+                  <Markdown source={body} className={styles.bodyContent} />
+                </>
+              ) : (
+                <MarkdownEditor
+                  stickyHeader={false}
                   header={
-                    <span className={styles.scopeCardLabel}>
-                      {ticket.scope.included.title}
-                    </span>
+                    <div className={styles.bodyBar}>
+                      <span className={styles.bodyModeLabel}>
+                        <Icon name="description" size="sm" />
+                        Freeform
+                      </span>
+                      <button
+                        type="button"
+                        className={styles.bodySwitch}
+                        onClick={() => setBodyMode('template')}
+                      >
+                        <Icon name="chevron_left" size="sm" />
+                        Template
+                      </button>
+                    </div>
                   }
-                >
-                  <ul className={styles.scopeList}>
-                    {ticket.scope.included.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </Card>
-                <Card
-                  header={
-                    <span className={styles.scopeCardLabel}>
-                      {ticket.scope.excluded.title}
-                    </span>
-                  }
-                >
-                  <ul className={styles.scopeList}>
-                    {ticket.scope.excluded.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </Card>
-              </div>
-            </section>
+                  value={body}
+                  onChange={setBody}
+                  textareaRef={textareaRef}
+                  onAction={applyAction}
+                  wordCount={wordCount}
+                  isUploading={isUploading}
+                  onInsertImageFiles={insertImageFiles}
+                />
+              )}
 
-            <section className={styles.section}>
-              <SectionHeader headingLevel={2}>QA Summary</SectionHeader>
-              <CollapsibleCard
-                defaultOpen
-                header={
-                  <span className={styles.qaCardHeader}>
-                    <span className={styles.qaCardTitle}>
-                      {ticket.qaSummary.title}
-                    </span>
-                    <Badge variant="critical">
-                      {ticket.qaSummary.failedCount} Failed
-                    </Badge>
-                    <span className={styles.qaCardMeta}>
-                      {ticket.qaSummary.lastChecked}
-                    </span>
+              <section className={styles.section}>
+                <div className={styles.qaHeader}>
+                  <SectionHeader headingLevel={2}>QA Summary</SectionHeader>
+                  <span className={styles.autoGenerated}>
+                    <Icon name="lock" size="sm" />
+                    auto-generated
                   </span>
-                }
-              >
-                {ticket.qaSummary.items.map((item) => (
-                  <ChecklistRow
-                    key={item.id}
-                    status={item.status}
-                    label={item.label}
-                    onClick={() => {}}
-                    meta={
-                      item.metaVariant ? (
-                        <Badge variant={item.metaVariant}>{item.meta}</Badge>
-                      ) : (
-                        item.meta
-                      )
-                    }
-                  />
-                ))}
-              </CollapsibleCard>
-            </section>
+                </div>
+                <CollapsibleCard
+                  defaultOpen
+                  header={
+                    <span className={styles.qaCardHeader}>
+                      <span className={styles.qaCardTitle}>
+                        {ticket.qaSummary.title}
+                      </span>
+                      <Badge variant="critical">
+                        {ticket.qaSummary.failedCount} Failed
+                      </Badge>
+                      <span className={styles.qaCardMeta}>
+                        {ticket.qaSummary.lastChecked}
+                      </span>
+                    </span>
+                  }
+                >
+                  {ticket.qaSummary.items.map((item) => (
+                    <ChecklistRow
+                      key={item.id}
+                      status={item.status}
+                      label={item.label}
+                      onClick={() => {}}
+                      meta={
+                        item.metaVariant ? (
+                          <Badge variant={item.metaVariant}>{item.meta}</Badge>
+                        ) : (
+                          item.meta
+                        )
+                      }
+                    />
+                  ))}
+                </CollapsibleCard>
+              </section>
+            </div>
           </div>
 
           {(['dev', 'qa', 'activity'] as const).map((tabValue) => (
