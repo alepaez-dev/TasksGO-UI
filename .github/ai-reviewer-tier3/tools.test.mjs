@@ -98,3 +98,16 @@ test('list_dir rejects an in-repo symlink to an outside directory', async () => 
   const r = await run('list_dir', { path: 'src/linkdir' });
   assert.equal(r.isError, true);
 });
+
+test('grep skips files over the byte cap and reports it, but searches them under the cap', async () => {
+  const root = fixtureRoot();
+  writeFileSync(join(root, 'src', 'big.ts'), 'const needleXYZ = 1;\n' + 'x'.repeat(5000));
+  // tiny cap → big.ts is skipped, and the skip is noted (not a silent "no matches")
+  const skip = await makeToolRunner({ root, config: { ...cfg, maxGrepFileBytes: 100 } })('grep', { pattern: 'needleXYZ' });
+  assert.equal(skip.isError, false);
+  assert.doesNotMatch(skip.content, /big\.ts/);
+  assert.match(skip.content, /not searched/);
+  // generous cap → the same file is searched normally
+  const found = await makeToolRunner({ root, config: { ...cfg, maxGrepFileBytes: 999999 } })('grep', { pattern: 'needleXYZ' });
+  assert.match(found.content, /big\.ts:1:/);
+});

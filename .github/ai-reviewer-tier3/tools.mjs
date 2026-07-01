@@ -80,6 +80,7 @@ async function* walkFiles(rootDir) {
 
 export function makeToolRunner({ root, config }) {
   const maxBytes = config.maxFileReadBytes ?? 200000;
+  const grepMaxBytes = config.maxGrepFileBytes ?? 2000000;
   const maxMatches = config.maxGrepMatches ?? 200;
   const exts = config.toolExtensions ?? null;
   const ignore = config.ignore ?? [];
@@ -139,6 +140,7 @@ export function makeToolRunner({ root, config }) {
     const globRe = pathGlob ? globToRegExp(pathGlob) : null;
     const out = [];
     let total = 0;
+    let skippedLarge = 0;
     for await (const full of walkFiles(root)) {
       const relPosix = relative(root, full).split(sep).join('/');
       if (exts && !exts.includes(extname(relPosix))) continue;
@@ -146,6 +148,11 @@ export function makeToolRunner({ root, config }) {
       if (globRe && !globRe.test(relPosix)) continue;
       let text;
       try {
+        const st = await stat(full);
+        if (st.size > grepMaxBytes) {
+          skippedLarge += 1; // bound per-file memory/time; noted below so it is not a silent skip
+          continue;
+        }
         text = await readFile(full, 'utf8');
       } catch {
         continue;
@@ -160,9 +167,12 @@ export function makeToolRunner({ root, config }) {
         }
       }
     }
-    if (total === 0) return { content: '(no matches)', isError: false };
-    const suffix = total > out.length ? `\n… (${total - out.length} more matches truncated)` : '';
-    return { content: out.join('\n') + suffix, isError: false };
+    if (total === 0 && skippedLarge === 0) return { content: '(no matches)', isError: false };
+    const notes = [];
+    if (total > out.length) notes.push(`${total - out.length} more matches truncated`);
+    if (skippedLarge > 0) notes.push(`${skippedLarge} file(s) not searched — larger than ${grepMaxBytes} bytes`);
+    const suffix = notes.length ? `\n… (${notes.join('; ')})` : '';
+    return { content: (out.length ? out.join('\n') : '(no matches)') + suffix, isError: false };
   }
 
   async function listDirTool({ path }) {

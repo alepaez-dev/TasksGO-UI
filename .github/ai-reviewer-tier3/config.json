@@ -16,6 +16,7 @@
   "maxToolCalls": 120,
   "maxFileReadBytes": 200000,
   "maxGrepMatches": 200,
+  "maxGrepFileBytes": 2000000,
   "toolExtensions": [".ts", ".tsx", ".js", ".jsx", ".css", ".json", ".md", ".mjs", ".cjs", ".yml", ".yaml"],
   "pricing": {
     "claude-opus-4-8": { "input": 5, "output": 25 },
