@@ -82,7 +82,7 @@ export function useMarkdownEditor({
   };
 
   const insertImageFiles = (files: readonly File[]) => {
-    if (files.length === 0) return;
+    if (files.length === 0 || !onImageUpload) return;
     const uploads = files.map((file) => ({
       file,
       placeholder: `![Uploading ${escapeAltText(file.name)}…](#uploading-${++uploadCounter.current})`,
@@ -110,8 +110,6 @@ export function useMarkdownEditor({
           `${prev}${prev && !prev.endsWith('\n') ? '\n' : ''}${block}\n`,
       );
     }
-
-    if (!onImageUpload) return;
 
     uploads.forEach(({ file, placeholder }) => {
       setUploadingCount((count) => count + 1);
