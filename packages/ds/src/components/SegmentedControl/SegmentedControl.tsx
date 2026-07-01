@@ -1,37 +1,43 @@
 import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '../../utils/cn';
 import { useRovingTabList } from '../../hooks/useRovingTabList';
-import styles from './Tabs.module.css';
+import styles from './SegmentedControl.module.css';
 
-export interface TabItem {
+export interface SegmentedControlOption {
   value: string;
   label: string;
   disabled?: boolean;
 }
 
-type TabsSize = 'sm' | 'md';
+type SegmentedControlSize = 'sm' | 'md';
 
-export interface TabsProps extends HTMLAttributes<HTMLDivElement> {
-  items: readonly TabItem[];
+export interface SegmentedControlProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'onChange'
+> {
+  options: readonly SegmentedControlOption[];
   value: string;
   onValueChange: (value: string) => void;
-  size?: TabsSize;
+  size?: SegmentedControlSize;
   idPrefix?: string;
   'aria-label'?: string;
 }
 
-export function getTabId(idPrefix: string, value: string): string {
-  return `${idPrefix}-tab-${value}`;
+export function getSegmentId(idPrefix: string, value: string): string {
+  return `${idPrefix}-segment-${value}`;
 }
 
-export function getTabPanelId(idPrefix: string, value: string): string {
+export function getSegmentPanelId(idPrefix: string, value: string): string {
   return `${idPrefix}-panel-${value}`;
 }
 
-export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
+export const SegmentedControl = forwardRef<
+  HTMLDivElement,
+  SegmentedControlProps
+>(
   (
     {
-      items,
+      options,
       value,
       onValueChange,
       size = 'md',
@@ -43,7 +49,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
     ref,
   ) => {
     const { selectedIndex, getTabProps } = useRovingTabList(
-      items,
+      options,
       value,
       onValueChange,
     );
@@ -54,28 +60,30 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
         role="tablist"
         aria-label={ariaLabel}
         aria-orientation="horizontal"
-        className={cn(styles.tablist, styles[size], className)}
+        className={cn(styles.segmented, styles[size], className)}
         {...rest}
       >
-        {items.map((item, index) => {
+        {options.map((option, index) => {
           const selected = index === selectedIndex;
           return (
             <button
-              key={item.value}
+              key={option.value}
               type="button"
               role="tab"
-              id={idPrefix ? getTabId(idPrefix, item.value) : undefined}
+              id={idPrefix ? getSegmentId(idPrefix, option.value) : undefined}
               aria-controls={
-                idPrefix ? getTabPanelId(idPrefix, item.value) : undefined
+                selected && idPrefix
+                  ? getSegmentPanelId(idPrefix, option.value)
+                  : undefined
               }
               className={cn(
-                styles.tab,
+                styles.segment,
                 selected && styles.selected,
-                item.disabled && styles.disabled,
+                option.disabled && styles.disabled,
               )}
               {...getTabProps(index)}
             >
-              {item.label}
+              {option.label}
             </button>
           );
         })}
@@ -84,4 +92,4 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
   },
 );
 
-Tabs.displayName = 'Tabs';
+SegmentedControl.displayName = 'SegmentedControl';

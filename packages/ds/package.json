@@ -32,6 +32,8 @@
     "test:ci": "vitest run",
     "lint": "eslint src/ && prettier --check src/",
     "lint:fix": "eslint src/ --fix && prettier --write src/",
+    "pretypecheck:stories": "npm run typings",
+    "typecheck:stories": "tsc --noEmit -p tsconfig.stories.json",
     "storybook": "concurrently -n types,sb -k -c blue,magenta \"npm:typings:watch\" \"storybook dev -p 6006\"",
     "prebuild-storybook": "npm run typings",
     "build-storybook": "storybook build",
@@ -81,5 +83,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alepaez-dev/TasksGO-UI.git"
+  },
+  "dependencies": {
+    "markdown-to-jsx": "9.8.2"
   }
 }

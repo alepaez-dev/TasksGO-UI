@@ -10,6 +10,7 @@ import { CheckCircleIcon } from './checkCircle';
 import { ChevronLeftIcon } from './chevronLeft';
 import { ChevronRightIcon } from './chevronRight';
 import { CloseIcon } from './close';
+import { CodeIcon } from './code';
 import { ConfirmationNumberIcon } from './confirmationNumber';
 import { ConfirmationNumberFilledIcon } from './confirmationNumberFilled';
 import { ContentCopyIcon } from './contentCopy';
@@ -19,8 +20,15 @@ import { DragIndicatorIcon } from './dragIndicator';
 import { ExpandMoreIcon } from './expandMore';
 import { FlagIcon } from './flag';
 import { ForkRightIcon } from './forkRight';
+import { FormatBoldIcon } from './formatBold';
+import { FormatItalicIcon } from './formatItalic';
+import { FormatListBulletedIcon } from './formatListBulleted';
+import { FormatQuoteIcon } from './formatQuote';
+import { HeadingIcon } from './heading';
 import { HelpIcon } from './help';
+import { ImageIcon } from './image';
 import { LinkIcon } from './link';
+import { LockIcon } from './lock';
 import { MenuIcon } from './menu';
 import { MoreHorizIcon } from './moreHoriz';
 import { OpenInNewIcon } from './openInNew';
@@ -46,6 +54,7 @@ export const iconRegistry = {
   chevron_left: ChevronLeftIcon,
   chevron_right: ChevronRightIcon,
   close: CloseIcon,
+  code: CodeIcon,
   confirmation_number: ConfirmationNumberIcon,
   confirmation_number_filled: ConfirmationNumberFilledIcon,
   content_copy: ContentCopyIcon,
@@ -55,8 +64,15 @@ export const iconRegistry = {
   expand_more: ExpandMoreIcon,
   flag: FlagIcon,
   fork_right: ForkRightIcon,
+  format_bold: FormatBoldIcon,
+  format_italic: FormatItalicIcon,
+  format_list_bulleted: FormatListBulletedIcon,
+  format_quote: FormatQuoteIcon,
+  heading: HeadingIcon,
   help: HelpIcon,
+  image: ImageIcon,
   link: LinkIcon,
+  lock: LockIcon,
   menu: MenuIcon,
   more_horiz: MoreHorizIcon,
   open_in_new: OpenInNewIcon,
