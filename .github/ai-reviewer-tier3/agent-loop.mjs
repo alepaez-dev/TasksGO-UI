@@ -22,6 +22,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let lastUsage = null;
   let windingDown = false;
   let toolBudgetExhausted = false;
+  let nudgedToSubmit = false;
+  let submitted = false;
 
   const clearUserBreakpoints = () => {
     for (const m of messages) {
@@ -85,7 +87,24 @@ export async function runReviewAgent({ client, config, system, userMessage, root
 
     const uses = findToolUses(msg.content);
     if (uses.length === 0) {
-      // Model ended its turn without submitting — treat as "no findings".
+      if (!nudgedToSubmit && !windingDown) {
+        nudgedToSubmit = true;
+        clearUserBreakpoints();
+        messages.push({
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text:
+                'You ended your turn without calling submit_findings. You MUST finish by calling ' +
+                'submit_findings exactly once — with every genuine bug you found, or an empty list if the ' +
+                'change is clean. Call it now; do not reply with prose.',
+              cache_control: { type: 'ephemeral' },
+            },
+          ],
+        });
+        continue;
+      }
       findings = findings ?? [];
       break;
     }
@@ -94,6 +113,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
 
     const submit = uses.find((u) => u.name === 'submit_findings');
     if (submit) {
+      submitted = true;
       findings = Array.isArray(submit.input?.findings) ? submit.input.findings : [];
       break;
     }
@@ -131,5 +151,6 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     interruptedReason: governor.interruptedReason,
     rounds,
     toolBudgetExhausted,
+    submitted,
   };
 }

@@ -48,6 +48,7 @@ test('captures findings from submit_findings and stops', async () => {
   assert.deepEqual(out.findings, findings);
   assert.equal(out.interruptedReason, null);
   assert.equal(out.rounds, 1);
+  assert.equal(out.submitted, true);
 });
 
 test('runs tools then submits (multi-round)', async () => {
@@ -64,11 +65,26 @@ test('runs tools then submits (multi-round)', async () => {
   assert.equal(out.interruptedReason, null);
 });
 
-test('end_turn with no submit_findings yields empty findings', async () => {
-  const client = stubClient([{ content: [{ type: 'text', text: 'looks clean' }], usage: { input_tokens: 1000, output_tokens: 10 } }]);
+test('a prose-only turn is nudged once, then recovers when the model submits', async () => {
+  const client = stubClient([
+    { content: [{ type: 'text', text: 'The change looks clean.' }], usage: { input_tokens: 1000, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [] } }], usage: { input_tokens: 500, output_tokens: 5 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.deepEqual(out.findings, []);
+  assert.equal(out.submitted, true); // recovered via the nudge → review-agent WILL mark reviewed
+  assert.equal(out.rounds, 2);
+});
+
+test('two prose-only turns give up with submitted=false (review-agent will NOT mark reviewed)', async () => {
+  const client = stubClient([
+    { content: [{ type: 'text', text: 'looks clean' }], usage: { input_tokens: 1000, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'still clean' }], usage: { input_tokens: 500, output_tokens: 5 } },
+  ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.deepEqual(out.findings, []);
   assert.equal(out.interruptedReason, null);
+  assert.equal(out.submitted, false);
 });
 
 test('budget interrupt runs one wind-down turn that captures partial findings', async () => {

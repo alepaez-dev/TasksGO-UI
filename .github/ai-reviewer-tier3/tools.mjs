@@ -1,4 +1,6 @@
 import { readFile, readdir, stat, realpath } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { createInterface } from 'node:readline';
 import { join, relative, extname, sep, resolve } from 'node:path';
 import { confineToRepo, FINDINGS_SCHEMA, globToRegExp, isIgnored } from '../ai-reviewer/review.mjs';
 
@@ -116,18 +118,51 @@ export function makeToolRunner({ root, config }) {
       return err(`File not found: ${path}`);
     }
     if (!st.isFile()) return err(`Not a file: ${path}`);
-    if (st.size > maxBytes) {
-      return err(`File too large (${st.size} bytes > ${maxBytes}); pass startLine/endLine to read a slice.`);
+
+    const wantsSlice = Number.isInteger(startLine) || Number.isInteger(endLine);
+
+    // Whole-file read: only when it fits the cap (it goes straight into the model's context). Over the
+    // cap, tell the model to slice — which now actually works, via the streaming path below.
+    if (!wantsSlice) {
+      if (st.size > maxBytes) {
+        return err(`File too large (${st.size} bytes > ${maxBytes}); pass startLine/endLine to read a slice.`);
+      }
+      const lines = (await readFile(abs, 'utf8')).split('\n');
+      const body = lines.map((l, i) => `${i + 1}: ${l}`).join('\n');
+      return { content: body || '(empty file)', isError: false };
     }
-    const text = await readFile(abs, 'utf8');
-    const lines = text.split('\n');
+
+    // Sliced read: stream just the requested line range so an over-cap file can still be sliced, with
+    // memory bounded to the slice (maxBytes of output), not the whole file.
     const from = Number.isInteger(startLine) ? Math.max(1, startLine) : 1;
-    const to = Number.isInteger(endLine) ? Math.min(lines.length, endLine) : lines.length;
-    const body = lines
-      .slice(from - 1, to)
-      .map((l, i) => `${from + i}: ${l}`)
-      .join('\n');
-    return { content: body || '(empty file)', isError: false };
+    const to = Number.isInteger(endLine) ? endLine : Infinity;
+    const input = createReadStream(abs, { encoding: 'utf8' });
+    const rl = createInterface({ input, crlfDelay: Infinity });
+    const out = [];
+    let n = 0;
+    let bytes = 0;
+    let truncated = false;
+    try {
+      for await (const line of rl) {
+        n += 1;
+        if (n < from) continue;
+        if (n > to) break;
+        const numbered = `${n}: ${line}`;
+        bytes += numbered.length + 1;
+        if (bytes > maxBytes) {
+          truncated = true;
+          break;
+        }
+        out.push(numbered);
+      }
+    } catch (e) {
+      return err(`Could not read ${path}: ${e && e.message ? e.message : 'read error'}`);
+    } finally {
+      rl.close();
+      input.destroy();
+    }
+    if (out.length === 0) return { content: '(no lines in range)', isError: false };
+    return { content: out.join('\n') + (truncated ? '\n… (slice truncated at the byte cap)' : ''), isError: false };
   }
 
   async function grepTool({ pattern, pathGlob }) {

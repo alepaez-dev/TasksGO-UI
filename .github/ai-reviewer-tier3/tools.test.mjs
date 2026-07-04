@@ -111,3 +111,23 @@ test('grep skips files over the byte cap and reports it, but searches them under
   const found = await makeToolRunner({ root, config: { ...cfg, maxGrepFileBytes: 999999 } })('grep', { pattern: 'needleXYZ' });
   assert.match(found.content, /big\.ts:1:/);
 });
+
+test('read_file slices an over-cap file (the size gate no longer blocks slices)', async () => {
+  const root = fixtureRoot();
+  const big = Array.from({ length: 500 }, (_, i) => `line ${i + 1}`).join('\n');
+  writeFileSync(join(root, 'src', 'big.ts'), big);
+  // whole-file read of an over-cap file → still errors (correctly)
+  const whole = await makeToolRunner({ root, config: { ...cfg, maxFileReadBytes: 50 } })('read_file', { path: 'src/big.ts' });
+  assert.equal(whole.isError, true);
+  assert.match(whole.content, /too large/i);
+  // sliced read of the SAME over-cap file → returns just the requested lines, not the error
+  const sliced = await makeToolRunner({ root, config: { ...cfg, maxFileReadBytes: 50 } })('read_file', {
+    path: 'src/big.ts',
+    startLine: 3,
+    endLine: 5,
+  });
+  assert.equal(sliced.isError, false);
+  assert.match(sliced.content, /3: line 3/);
+  assert.match(sliced.content, /5: line 5/);
+  assert.doesNotMatch(sliced.content, /line 6/);
+});

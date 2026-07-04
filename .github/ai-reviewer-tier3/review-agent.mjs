@@ -315,9 +315,14 @@ async function main() {
   const usage = addUsage(result.usage, verifyStats?.usage);
   const costUsd = estimateCostUsd(usage, config.model, config.pricing);
 
-  // A budget/round interrupt means the review did NOT finish — do not mark this commit reviewed,
-  // so re-applying the label resumes instead of skipping.
-  const reviewComplete = !result.interruptedReason;
+  // A budget/round/error interrupt — OR the model ending without ever calling submit_findings — means
+  // the review did NOT finish; do not mark this commit reviewed, so re-applying the label retries.
+  const reviewComplete = result.submitted && !result.interruptedReason;
+  if (!result.submitted && !result.interruptedReason) {
+    core.warning(
+      'Tier 3 ended without calling submit_findings (model returned prose only); not marking the commit reviewed so a re-run retries.',
+    );
+  }
 
   if (findings.length === 0) {
     core.info('No new tier-3 issues to post. Done.');
