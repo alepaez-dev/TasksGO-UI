@@ -161,7 +161,14 @@ export function makeToolRunner({ root, config }) {
       rl.close();
       input.destroy();
     }
-    if (out.length === 0) return { content: '(no lines in range)', isError: false };
+    if (out.length === 0) {
+      return {
+        content: truncated
+          ? '(line(s) in range exceed the byte cap; narrow the range or read fewer lines)'
+          : '(no lines in range)',
+        isError: false,
+      };
+    }
     return { content: out.join('\n') + (truncated ? '\n… (slice truncated at the byte cap)' : ''), isError: false };
   }
 

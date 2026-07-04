@@ -131,3 +131,20 @@ test('read_file slices an over-cap file (the size gate no longer blocks slices)'
   assert.match(sliced.content, /5: line 5/);
   assert.doesNotMatch(sliced.content, /line 6/);
 });
+
+test('read_file slice reports the byte cap (not "no lines in range") when the first line is too big', async () => {
+  const root = fixtureRoot();
+  writeFileSync(join(root, 'src', 'wide.ts'), 'x'.repeat(500) + '\nsecond\n');
+  // first in-range line alone exceeds the cap → say so, don't claim the range is empty
+  const capped = await makeToolRunner({ root, config: { ...cfg, maxFileReadBytes: 50 } })('read_file', {
+    path: 'src/wide.ts',
+    startLine: 1,
+    endLine: 1,
+  });
+  assert.equal(capped.isError, false);
+  assert.match(capped.content, /exceed the byte cap/i);
+  assert.doesNotMatch(capped.content, /no lines in range/);
+  // a genuinely empty range (past EOF) still reports "(no lines in range)"
+  const empty = await makeToolRunner({ root, config: cfg })('read_file', { path: 'src/wide.ts', startLine: 100, endLine: 101 });
+  assert.match(empty.content, /no lines in range/);
+});
