@@ -361,6 +361,38 @@ check('default botActor pins to github-actions[bot] and rejects other bots (publ
   assert.equal(isTrustedMarkerComment(otherBot, null), true);
 });
 
+check('isTrustedMarkerComment matches the bot across REST/GraphQL login forms', () => {
+  // REST returns "github-actions[bot]"; GraphQL (fetchReviewThreads) returns bare "github-actions".
+  // Both must match the configured botActor, or the verify pass silently selects zero threads.
+  const rest = { user: { type: 'Bot', login: 'github-actions[bot]' } };
+  const graphql = { user: { login: 'github-actions' } };
+  assert.equal(isTrustedMarkerComment(rest, 'github-actions[bot]'), true);
+  assert.equal(isTrustedMarkerComment(graphql, 'github-actions[bot]'), true);
+  // a genuinely different bot is still rejected under either form
+  assert.equal(isTrustedMarkerComment({ user: { login: 'codecov' } }, 'github-actions[bot]'), false);
+  assert.equal(isTrustedMarkerComment({ user: { type: 'Bot', login: 'codecov[bot]' } }, 'github-actions[bot]'), false);
+});
+
+check('selectThreadsToVerify picks up an open bot thread with a GraphQL bare login (regression)', () => {
+  const marker = buildMarker({ fp: 'fp123456', file: 'src/x.ts', line: 10, title: 'a real prior finding' });
+  // Thread shape as fetchReviewThreads builds it from GraphQL: author login WITHOUT the "[bot]" suffix.
+  const openThread = {
+    id: 'T1',
+    isResolved: false,
+    isOutdated: true,
+    viewerCanResolve: true,
+    comments: [{ body: marker, diffHunk: '', user: { login: 'github-actions' } }],
+  };
+  const selected = selectThreadsToVerify([openThread], { botActor: 'github-actions[bot]' });
+  assert.equal(selected.length, 1);
+  assert.equal(selected[0].fp, 'fp123456');
+  assert.equal(selected[0].file, 'src/x.ts');
+  // resolved threads and other bots are never selected
+  const resolved = { ...openThread, id: 'T2', isResolved: true };
+  const otherBot = { id: 'T3', isResolved: false, comments: [{ body: marker, user: { login: 'codecov' } }] };
+  assert.equal(selectThreadsToVerify([resolved, otherBot], { botActor: 'github-actions[bot]' }).length, 0);
+});
+
 check('renderStatusBody distinguishes found-but-not-posted from a clean run', () => {
   const notPosted = renderStatusBody({ model: 'm', posted: 0, findingsCount: 2, seenCount: 1 });
   assert.match(notPosted, /Found \*\*2\*\* new issue\(s\), but none were posted/);

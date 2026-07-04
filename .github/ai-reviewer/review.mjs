@@ -291,7 +291,10 @@ export function sanitizeText(value, max = 200) {
 export function isTrustedMarkerComment(comment, botActor) {
   const user = comment?.user;
   if (!user) return false;
-  if (botActor) return user.login === botActor;
+  if (botActor) {
+    // REST returns the bot login as "<name>[bot]"; GraphQL returns bare "<name>".
+    return user.login === botActor || user.login === botActor.replace(/\[bot\]$/, '');
+  }
   return user.type === 'Bot';
 }
 
