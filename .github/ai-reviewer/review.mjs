@@ -291,7 +291,10 @@ export function sanitizeText(value, max = 200) {
 export function isTrustedMarkerComment(comment, botActor) {
   const user = comment?.user;
   if (!user) return false;
-  if (botActor) return user.login === botActor;
+  if (botActor) {
+    if (user.login === botActor) return true;
+    return user.login === botActor.replace(/\[bot\]$/, '') && user.type === 'Bot';
+  }
   return user.type === 'Bot';
 }
 
@@ -1169,7 +1172,7 @@ query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
           isResolved
           isOutdated
           viewerCanResolve
-          comments(first: 50) { nodes { body diffHunk author { login } } }
+          comments(first: 50) { nodes { body diffHunk author { login __typename } } }
         }
       }
     }
@@ -1195,7 +1198,7 @@ async function fetchReviewThreads(octokit, owner, repo, number) {
         comments: (t.comments?.nodes || []).map((c) => ({
           body: c.body,
           diffHunk: c.diffHunk,
-          user: { login: c.author?.login },
+          user: { login: c.author?.login, type: c.author?.__typename },
         })),
       });
     }
