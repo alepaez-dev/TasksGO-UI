@@ -1,0 +1,1 @@
+function f(e){return e.findIndex(n=>!n.disabled)}function a(e){for(let n=e.length-1;n>=0;n--)if(!e[n].disabled)return n;return-1}function l(e,n,r){const d=e.length;for(let i=1;i<=d;i++){const t=(n+r*i+d)%d;if(!e[t].disabled)return t}return n}export{a,l as b,f};
