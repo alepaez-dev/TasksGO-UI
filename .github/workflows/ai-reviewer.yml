@@ -28,8 +28,20 @@ on:
     types: [labeled, synchronize, reopened]
 
 permissions:
-  contents: read # checkout the base branch for rules/config/script
-  pull-requests: write # post review comments
+  # contents:write is REQUIRED for resolveReviewThread (auto-resolving verified fixes). With
+  # contents:read the mutation fails "FORBIDDEN: Resource not accessible by integration" (observed on
+  # PR #150 @0229ef3;). Do NOT downgrade to read.
+  # Safe here: this workflow NEVER checks out or executes PR-head code (see the SECURITY MODEL note
+  # above) and passes only API data to Claude, so a fork author has no path to abuse the elevated token.
+  contents: write
+  pull-requests: write # post review comments + resolve threads
+  # TODO(hardening, deferred): isolate this write scope from the code that reads untrusted PR input.
+  #   EXTERNAL — a dedicated GitHub App / fine-grained PAT scoped to contents:write just for the
+  #       resolveReviewThread call (the natural pattern once managing multiple repos, backend, AI repo, etc).
+  #   Safe to defer: the real boundary is that this workflow never executes PR-head code (see above).
+  #   ai-reviewer-guard.yml adds two hard checks (no PR-head checkout, --ignore-scripts) + a BEST-EFFORT
+  #   sink scan (a tripwire for honest mistakes, trivially evadable — not a guarantee). Mark it a REQUIRED
+  #   status check on main.
 
 concurrency:
   group: ai-reviewer-pr-${{ github.event.pull_request.number }}

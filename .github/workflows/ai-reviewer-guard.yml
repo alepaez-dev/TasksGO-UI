@@ -1,0 +1,52 @@
+name: AI Reviewer Guard
+
+on:
+  # No `paths:` filter — runs on EVERY PR so it can be a required status check. A path-filtered
+  # required check never reports on unrelated PRs and blocks them; this is cheap (checkout + grep).
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Enforce reviewer security invariants
+        run: |
+          set -uo pipefail
+          shopt -s nullglob
+          fail=0
+          note() { echo "::error::$1"; fail=1; }
+
+          # 1. No PR-HEAD checkout in any reviewer pull_request_target workflow.
+          for wf in .github/workflows/ai-reviewer*.yml; do
+            [ -f "$wf" ] || continue
+            case "$wf" in */ai-reviewer-guard.yml) continue ;; esac # the guard is the checker, not a reviewer
+            if grep -nE 'ref:[[:space:]]*.*(pull_request\.head|head\.(sha|ref)|github\.head_ref)' "$wf"; then
+              note "$wf checks out PR-head code — forbidden on a pull_request_target reviewer holding write scope."
+            fi
+            # 2. Any npm ci/install must keep --ignore-scripts.
+            if grep -nE 'npm[[:space:]]+(ci|install)' "$wf" | grep -vqF -- '--ignore-scripts'; then
+              note "$wf runs npm ci/install without --ignore-scripts — a malicious dependency install hook could run with the elevated token."
+            fi
+          done
+
+          # 3. Reviewer scripts must not introduce a shell / eval / file-write / network sink.
+          srcs=()
+          for f in .github/ai-reviewer*/*.mjs; do
+            case "$f" in *.test.mjs) ;; *) srcs+=("$f") ;; esac
+          done
+          if [ ${#srcs[@]} -gt 0 ]; then
+            if grep -nE 'child_process|execSync|new Function|\beval\(|writeFile|appendFile|[^.[:alnum:]_]spawn\(|[^.[:alnum:]_]fetch\(' "${srcs[@]}"; then
+              note "A reviewer script introduced a shell/eval/file-write/network sink. With contents:write this can become a repo-compromise vector — remove it, or if genuinely needed, justify it and update this guard's allowlist."
+            fi
+          fi
+
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::ai-reviewer security invariant violated — see errors above. See ai-reviewer.yml SECURITY MODEL."
+            exit 1
+          fi
+          echo "ai-reviewer security invariants OK."

@@ -1239,9 +1239,14 @@ function graphqlErrorMessage(err) {
   return err.status ? `${base} (HTTP ${err.status})` : base;
 }
 
+export function shouldResolveThread({ status, allowResolve, resolveVerifiedFixes, diffComplete }) {
+  return status === 'fixed' && !!allowResolve && !!resolveVerifiedFixes && !!diffComplete;
+}
+
 async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles, skippedForSize = [], truncated = false }) {
   const stats = { verified: 0, resolved: 0, repliesPosted: 0, skippedCap: 0, usage: null, costUsd: null, complete: true };
   const diffComplete = diffIsComplete(skippedForSize, truncated);
+  // TODO: remove the [resolve-debug] logs once auto-resolve is confirmed working
   core.info(
     `[resolve-debug] verify entry: allowResolve=${allowResolve} resolveVerifiedFixes=${config.resolveVerifiedFixes} ` +
       `diffComplete=${diffComplete} postResolutionReplies=${config.postResolutionReplies}`,
@@ -1365,7 +1370,7 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
     core.warning(`Verification judged ${stats.verified}/${items.length} thread(s); ${missing.length} got no verdict and will be re-checked.`);
   }
   for (const { item, status, reason } of mapVerdictsToItems(verifications, items)) {
-    const shouldTryResolve = status === 'fixed' && allowResolve && config.resolveVerifiedFixes && diffComplete;
+    const shouldTryResolve = shouldResolveThread({ status, allowResolve, resolveVerifiedFixes: config.resolveVerifiedFixes, diffComplete });
     const where = `${item.file ?? '?'}:${item.line ?? '?'}`;
 
     let outcome;
