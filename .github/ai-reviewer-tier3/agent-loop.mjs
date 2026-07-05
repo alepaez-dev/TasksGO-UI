@@ -86,6 +86,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     governor.record(msg.usage);
 
     const uses = findToolUses(msg.content);
+    messages.push({ role: 'assistant', content: msg.content });
     if (uses.length === 0) {
       if (!nudgedToSubmit && !windingDown) {
         nudgedToSubmit = true;
@@ -109,12 +110,15 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       break;
     }
 
-    messages.push({ role: 'assistant', content: msg.content });
-
     const submit = uses.find((u) => u.name === 'submit_findings');
     if (submit) {
-      submitted = true;
-      findings = Array.isArray(submit.input?.findings) ? submit.input.findings : [];
+      const submittedFindings = submit.input?.findings;
+      if (Array.isArray(submittedFindings)) {
+        submitted = true;
+        findings = submittedFindings;
+      } else {
+        findings = [];
+      }
       break;
     }
 

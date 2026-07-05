@@ -15,7 +15,7 @@
   "maxRounds": 40,
   "maxToolCalls": 120,
   "maxFileReadBytes": 200000,
-  "maxGrepMatches": 200,
+  "maxGrepMatches": 400,
   "maxGrepFileBytes": 2000000,
   "toolExtensions": [".ts", ".tsx", ".js", ".jsx", ".css", ".json", ".md", ".mjs", ".cjs", ".yml", ".yaml"],
   "pricing": {

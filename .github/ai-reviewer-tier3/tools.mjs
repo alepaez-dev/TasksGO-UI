@@ -183,6 +183,7 @@ export function makeToolRunner({ root, config }) {
     const out = [];
     let total = 0;
     let skippedLarge = 0;
+    const cappedFiles = [];
     for await (const full of walkFiles(root)) {
       const relPosix = relative(root, full).split(sep).join('/');
       if (exts && !exts.includes(extname(relPosix))) continue;
@@ -200,18 +201,29 @@ export function makeToolRunner({ root, config }) {
         continue;
       }
       const lines = text.split('\n');
-      let perFile = 0;
+      let perFile = 0; // ALL matches in this file — accurate count even past the display cap
+      let shownForFile = 0;
       for (let i = 0; i < lines.length; i++) {
         if (re.test(lines[i])) {
           total += 1;
-          if (out.length < maxMatches) out.push(`${relPosix}:${i + 1}:${lines[i].slice(0, 300)}`);
-          if (++perFile >= PER_FILE_MATCH_CAP) break;
+          perFile += 1;
+          if (out.length < maxMatches && shownForFile < PER_FILE_MATCH_CAP) {
+            out.push(`${relPosix}:${i + 1}:${lines[i].slice(0, 300)}`);
+            shownForFile += 1;
+          }
         }
       }
+      if (perFile > PER_FILE_MATCH_CAP) cappedFiles.push({ file: relPosix, count: perFile });
     }
     if (total === 0 && skippedLarge === 0) return { content: '(no matches)', isError: false };
     const notes = [];
     if (total > out.length) notes.push(`${total - out.length} more matches truncated`);
+    if (cappedFiles.length) {
+      const top = cappedFiles.sort((a, b) => b.count - a.count).slice(0, 10);
+      const list = top.map((c) => `${c.file} (${c.count})`).join(', ');
+      const more = cappedFiles.length - top.length;
+      notes.push(`dense file(s) — read directly for full usage: ${list}${more > 0 ? `, +${more} more` : ''}`);
+    }
     if (skippedLarge > 0) notes.push(`${skippedLarge} file(s) not searched — larger than ${grepMaxBytes} bytes`);
     const suffix = notes.length ? `\n… (${notes.join('; ')})` : '';
     return { content: (out.length ? out.join('\n') : '(no matches)') + suffix, isError: false };

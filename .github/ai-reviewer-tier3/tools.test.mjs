@@ -57,6 +57,17 @@ test('grep caps results and notes truncation', async () => {
   assert.match(r.content, /more matches truncated/);
 });
 
+test('grep counts all matches per file (accurate total) and names dense files to read directly', async () => {
+  const root = fixtureRoot();
+  writeFileSync(join(root, 'src', 'dense.ts'), Array.from({ length: 120 }, () => 'needleZZ here').join('\n'));
+  const r = await makeToolRunner({ root, config: cfg })('grep', { pattern: 'needleZZ' });
+  assert.equal(r.isError, false);
+  const shown = r.content.split('\n').filter((l) => l.startsWith('src/dense.ts:')).length;
+  assert.ok(shown <= 50, `showed ${shown} lines from dense.ts, expected <= 50 (per-file cap)`);
+  assert.match(r.content, /more matches truncated/); // total is accurate (120), not silently capped at 50
+  assert.match(r.content, /src\/dense\.ts \(120\)/); // dense file named with its TRUE count, not the cap
+});
+
 test('grep with no matches is not an error', async () => {
   const run = makeToolRunner({ root: fixtureRoot(), config: cfg });
   const r = await run('grep', { pattern: 'nonexistent_token_xyzzy' });
