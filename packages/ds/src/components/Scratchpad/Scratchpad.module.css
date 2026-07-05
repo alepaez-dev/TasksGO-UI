@@ -412,3 +412,58 @@ button.checkbox:focus-visible {
   outline: var(--ds-focus-ring-width) solid transparent;
   box-shadow: var(--ds-focus-ring);
 }
+
+/* Markdown rendered inside a row. A row is one block — a heading or inline
+   text; soft breaks within it render as <br> line breaks (so a row keeps a
+   single heading level). Kept mono to match the notes aesthetic,
+   but headings reuse the same per-level size scale as the Markdown component so
+   #, ##, ### are visually distinct. Content lives in .text / .lineContent. */
+:is(.text, .lineContent) :is(h1, h2, h3, h4, h5, h6) {
+  margin: 0;
+  line-height: var(--ds-text-section-header-line-height);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+:is(.text, .lineContent) h1 {
+  font-size: var(--ds-text-heading1-font-size);
+}
+
+:is(.text, .lineContent) h2 {
+  font-size: var(--ds-text-heading2-font-size);
+}
+
+:is(.text, .lineContent) h3 {
+  font-size: var(--ds-text-heading3-font-size);
+}
+
+:is(.text, .lineContent) h4 {
+  font-size: var(--ds-text-heading4-font-size);
+}
+
+:is(.text, .lineContent) h5 {
+  font-size: var(--ds-text-heading5-font-size);
+}
+
+:is(.text, .lineContent) h6 {
+  font-size: var(--ds-text-heading6-font-size);
+}
+
+:is(.text, .lineContent) :is(strong, b) {
+  font-weight: var(--ds-font-weight-bold);
+}
+
+:is(.text, .lineContent) :is(em, i) {
+  font-style: italic;
+}
+
+:is(.text, .lineContent) code {
+  font-family: var(--ds-font-family-mono);
+}
+
+/* Links stay clickable through the editable row's edit overlay (the overlay is
+   a sibling of .lineContent, not an ancestor — not a nested-interactive issue). */
+:is(.text, .lineContent) a {
+  pointer-events: auto;
+  color: var(--ds-color-accent-primary);
+  text-decoration: underline;
+}
