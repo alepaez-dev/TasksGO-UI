@@ -1135,19 +1135,21 @@ export function chunkSummaryComments(findings, maxChars = 60000) {
   return chunks;
 }
 
-function renderVerifyReply({ status, reason, sha, fp, outcome = 'left-open' }) {
+export function renderVerifyReply({ status, reason, sha, fp, outcome = 'left-open' }) {
   const shortSha = sha ? String(sha).slice(0, 7) : '';
   const why = sanitizeText(reason, 400);
   let headline;
   if (status === 'fixed') {
     if (outcome === 'resolved') {
       headline = `✅ **Verified fixed**${shortSha ? ` in \`${shortSha}\`` : ''} — resolved this thread.`;
-    } else if (outcome === 'resolve-failed') {
+    } else if (outcome === 'resolve-failed' || outcome === 'no-permission') {
       headline = `✅ **Looks fixed**${shortSha ? ` in \`${shortSha}\`` : ''}, but I couldn't auto-resolve this thread — resolve it manually if you agree.`;
     } else if (outcome === 'diff-incomplete') {
       headline = `✅ **Looks fixed**${shortSha ? ` in \`${shortSha}\`` : ''}, but the PR diff is incomplete (some files too large to include) — not auto-resolving; confirm and resolve manually.`;
-    } else {
+    } else if (outcome === 'external') {
       headline = `✅ **Looks fixed**${shortSha ? ` in \`${shortSha}\`` : ''} — leaving this thread open for a maintainer to confirm (external PR).`;
+    } else {
+      headline = `✅ **Looks fixed**${shortSha ? ` in \`${shortSha}\`` : ''} — resolve this thread if you agree.`;
     }
   } else if (status === 'unsure') {
     headline = `🤔 **Couldn't auto-verify this fix** — leaving the thread open for a human to confirm.`;
@@ -1221,9 +1223,29 @@ async function fetchFileAtRef(octokit, owner, repo, path, ref) {
   }
 }
 
+function isPermissionError(err) {
+  if (!err) return false;
+  if (err.status === 403) return true;
+  const types = Array.isArray(err.errors) ? err.errors.map((e) => e && e.type) : [];
+  return types.includes('FORBIDDEN') || /not accessible by integration|resource not accessible/i.test(err.message || '');
+}
+
+function graphqlErrorMessage(err) {
+  if (!err) return 'unknown error';
+  const gql = Array.isArray(err.errors)
+    ? err.errors.map((e) => (e && e.type ? `${e.type}: ${e.message}` : e && e.message)).filter(Boolean).join('; ')
+    : '';
+  const base = gql || err.message || 'unknown error';
+  return err.status ? `${base} (HTTP ${err.status})` : base;
+}
+
 async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_number, pr, diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles, skippedForSize = [], truncated = false }) {
   const stats = { verified: 0, resolved: 0, repliesPosted: 0, skippedCap: 0, usage: null, costUsd: null, complete: true };
   const diffComplete = diffIsComplete(skippedForSize, truncated);
+  core.info(
+    `[resolve-debug] verify entry: allowResolve=${allowResolve} resolveVerifiedFixes=${config.resolveVerifiedFixes} ` +
+      `diffComplete=${diffComplete} postResolutionReplies=${config.postResolutionReplies}`,
+  );
 
   let threads;
   try {
@@ -1235,6 +1257,7 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
   }
 
   const candidates = orderThreadsForVerification(selectThreadsToVerify(threads, { botActor: config.botActor }));
+  core.info(`[resolve-debug] fetched ${threads.length} review thread(s); ${candidates.length} are open + ours (marker match).`);
   if (candidates.length === 0) {
     core.info('No open AI-reviewer threads to verify.');
     return stats;
@@ -1254,6 +1277,10 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
   items.forEach((item, i) => {
     item.ref = `t${i}`;
   });
+  core.info(
+    `Verifying ${items.length} open thread(s): ` +
+      items.map((it) => `${it.file ?? '?'}:${it.line ?? '?'} (${it.fp})`).join(', '),
+  );
 
   const fileCache = new Map();
   const radius = config.verifyWindowLines ?? 40;
@@ -1338,24 +1365,43 @@ async function verifyAndResolveThreads(octokit, client, { owner, repo, pull_numb
     core.warning(`Verification judged ${stats.verified}/${items.length} thread(s); ${missing.length} got no verdict and will be re-checked.`);
   }
   for (const { item, status, reason } of mapVerdictsToItems(verifications, items)) {
-    const willResolve = status === 'fixed' && allowResolve && config.resolveVerifiedFixes && item.viewerCanResolve && diffComplete;
+    const shouldTryResolve = status === 'fixed' && allowResolve && config.resolveVerifiedFixes && diffComplete;
+    const where = `${item.file ?? '?'}:${item.line ?? '?'}`;
 
-    let outcome = status === 'fixed' ? (diffComplete ? 'left-open' : 'diff-incomplete') : status;
-    if (willResolve) {
+    let outcome;
+    if (status !== 'fixed') outcome = status;
+    else if (!diffComplete) outcome = 'diff-incomplete';
+    else if (!allowResolve) outcome = 'external';
+    else outcome = 'left-open';
+
+    core.info(
+      `[resolve-debug] ${where} (${item.fp}) verdict=${status} viewerCanResolve=${item.viewerCanResolve} ` +
+        `shouldTryResolve=${shouldTryResolve} (allowResolve=${allowResolve} resolveVerifiedFixes=${config.resolveVerifiedFixes} diffComplete=${diffComplete})`,
+    );
+
+    if (shouldTryResolve) {
+      core.info(`[resolve-debug] attempting resolveReviewThread for ${where} (thread ${item.threadId})`);
       try {
         await octokit.graphql(RESOLVE_THREAD_MUTATION, { id: item.threadId });
         stats.resolved += 1;
         outcome = 'resolved';
-        core.info(`Resolved thread for ${item.file}:${item.line ?? '?'} (${item.fp}) — verified fixed.`);
+        core.info(`[resolve-debug] RESOLVED ${where}`);
       } catch (err) {
-        // Deliberate: a failed resolve does NOT set stats.complete = false. Retrying would re-bill a
-        // full Claude verification just to re-attempt a pure GraphQL mutation.
-        outcome = 'resolve-failed';
-        core.warning(`Could not resolve thread ${item.threadId}: ${err.message}`);
+        // A failed resolve does NOT set stats.complete = false — retrying re-bills a full Claude
+        // verification just for a pure GraphQL mutation. Log the real error (message + type, no
+        // secrets) so a permission gap like a missing contents:write is visible.
+        outcome = isPermissionError(err) ? 'no-permission' : 'resolve-failed';
+        core.warning(`[resolve-debug] resolve FAILED for ${where} (thread ${item.threadId}) [outcome=${outcome}]: ${graphqlErrorMessage(err)}`);
       }
     }
 
-    if (config.postResolutionReplies && shouldPostVerifyReply(status, item.lastVerifyStatus)) {
+    const willReply = config.postResolutionReplies && shouldPostVerifyReply(status, item.lastVerifyStatus);
+    core.info(
+      `[resolve-debug] ${where} outcome=${outcome} — reply=${willReply} ` +
+        `(postResolutionReplies=${config.postResolutionReplies} lastVerifyStatus=${item.lastVerifyStatus ?? 'none'})`,
+    );
+
+    if (willReply) {
       try {
         await octokit.graphql(REPLY_THREAD_MUTATION, {
           id: item.threadId,
@@ -1494,6 +1540,10 @@ async function main() {
 
   const idempotent = config.skipIfHeadUnchanged !== false;
   const needVerify = config.verifyResolutions && (!idempotent || lastVerifiedSha !== pr.headSha);
+  core.info(
+    `[resolve-debug] idempotency: idempotent=${idempotent} verifyResolutions=${config.verifyResolutions} ` +
+      `lastVerifiedSha=${lastVerifiedSha ? lastVerifiedSha.slice(0, 7) : 'none'} head=${pr.headSha.slice(0, 7)} needVerify=${needVerify}`,
+  );
   const verifyOnlyAndFinish = async ({ reviewedSha, note, skipped = false, inputTokens = null }) => {
     let verifyOnly = null;
     if (needVerify) {

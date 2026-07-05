@@ -26,6 +26,7 @@ import {
   reviewFullySurfaced,
   buildVerifyMarker,
   parseVerifyMarker,
+  renderVerifyReply,
   selectThreadsToVerify,
   extractWindow,
   shouldPostVerifyReply,
@@ -382,6 +383,19 @@ check('isTrustedMarkerComment rejects a human squatting a custom botActor bare n
   const realApp = { user: { type: 'Bot', login: 'acme-bot' } };
   assert.equal(isTrustedMarkerComment(squatter, 'acme-bot[bot]'), false);
   assert.equal(isTrustedMarkerComment(realApp, 'acme-bot[bot]'), true);
+});
+
+check('renderVerifyReply distinguishes an external PR from a can-not-resolve permission block', () => {
+  const base = { status: 'fixed', reason: '', sha: 'abcdef1234', fp: 'fp1' };
+  const external = renderVerifyReply({ ...base, outcome: 'external' });
+  const noPerm = renderVerifyReply({ ...base, outcome: 'no-permission' });
+  const resolved = renderVerifyReply({ ...base, outcome: 'resolved' });
+  // untrusted author → the "external PR" wording is correct here
+  assert.match(external, /external PR/);
+  // trusted author but the token can't resolve → must NOT claim "external PR"; ask for a manual resolve
+  assert.match(noPerm, /couldn't auto-resolve/);
+  assert.doesNotMatch(noPerm, /external PR/);
+  assert.match(resolved, /resolved this thread/);
 });
 
 check('selectThreadsToVerify picks up an open bot thread with a GraphQL bare login (regression)', () => {
