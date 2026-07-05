@@ -28,8 +28,8 @@ on:
     types: [labeled, synchronize, reopened]
 
 permissions:
-  contents: write
-  pull-requests: write # post review comments + resolve threads
+  contents: read # checkout the base branch for rules/config/script
+  pull-requests: write # post review comments
 
 concurrency:
   group: ai-reviewer-pr-${{ github.event.pull_request.number }}
