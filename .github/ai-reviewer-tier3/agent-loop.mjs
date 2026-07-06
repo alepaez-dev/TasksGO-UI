@@ -44,13 +44,16 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         if (governor.spentUsd() >= config.costCeilingUsd) break;
         windingDown = true;
         clearUserBreakpoints();
+        const limitReached = overRounds
+          ? 'You have reached the review round limit.'
+          : 'You are out of review budget.';
         messages.push({
           role: 'user',
           content: [
             {
               type: 'text',
               text:
-                'You are out of review budget. Call submit_findings now with every genuine bug you have ' +
+                `${limitReached} Call submit_findings now with every genuine bug you have ` +
                 'confirmed so far (or an empty list if none). Do not call any other tool or read more files.',
               cache_control: { type: 'ephemeral' },
             },
