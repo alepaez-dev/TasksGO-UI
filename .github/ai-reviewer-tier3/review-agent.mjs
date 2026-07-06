@@ -185,8 +185,10 @@ async function main() {
     }
     const resolved = verifyOnly?.resolved ?? 0;
     const verifiedSha = verificationComplete(verifyOnly) ? pr.headSha : lastVerifiedSha;
-    await writeJobSummary({ findings: [], config, seenCount: seenFingerprints.size, inputTokens, note, resolved });
-    await upsertStatus({ skipped, note, inputTokens, posted: 0, findingsCount: 0, reviewedSha, verifiedSha, resolved });
+    const usage = verifyOnly?.usage ?? null;
+    const costUsd = usage ? estimateCostUsd(usage, config.model, config.pricing) : null;
+    await writeJobSummary({ findings: [], config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved });
+    await upsertStatus({ skipped, note, inputTokens, posted: 0, findingsCount: 0, usage, costUsd, reviewedSha, verifiedSha, resolved });
   };
 
   const findingsDone = idempotent && Boolean(lastReviewedSha) && lastReviewedSha === pr.headSha;
@@ -217,7 +219,8 @@ async function main() {
   }
 
   // Build the agent's system blocks (prompt + optional rules + CLAUDE.md) and opening user message.
-  const rules = loadTextFile(resolve(SCRIPT_DIR, 'rules.md'));
+  const rules = loadTextFile(resolve(SCRIPT_DIR, '..', 'ai-reviewer', 'rules.md'));
+  if (!rules.trim()) core.warning('Team rules (.github/ai-reviewer/rules.md) came back empty — reviewing without them.');
   const projectGuide = config.includeProjectGuide ? loadTextFile(resolve(REPO_ROOT, 'CLAUDE.md')) : '';
   const system = [{ type: 'text', text: REVIEW_AGENT_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }];
   const contextParts = [];
