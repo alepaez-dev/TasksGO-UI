@@ -20,16 +20,44 @@ jobs:
           shopt -s nullglob
           fail=0
           note() { echo "::error::$1"; fail=1; }
+          # Scans run on comment-stripped content so they match real config, not prose — a comment that
+          # mentions `npm ci` or the head dir must not trip the guard.
+          strip() { sed -E 's/[[:space:]]*#.*$//' "$1"; }
 
-          # 1. No PR-HEAD checkout in any reviewer pull_request_target workflow.
           for wf in .github/workflows/ai-reviewer*.yml; do
             [ -f "$wf" ] || continue
             case "$wf" in */ai-reviewer-guard.yml) continue ;; esac # the guard is the checker, not a reviewer
-            if grep -nE 'ref:[[:space:]]*.*(pull_request\.head|head\.(sha|ref)|github\.head_ref)' "$wf"; then
-              note "$wf checks out PR-head code — forbidden on a pull_request_target reviewer holding write scope."
+            S="$(strip "$wf")"
+
+            if printf '%s\n' "$S" | grep -qE '(pull_request\.head|head\.(sha|ref)|github\.head_ref)'; then
+              # (a) the write token must never persist into an attacker-controlled worktree.
+              if ! printf '%s\n' "$S" | grep -qE 'persist-credentials:[[:space:]]*false'; then
+                note "$wf checks out PR-head without persist-credentials: false — the token would live in an attacker-controlled worktree."
+              fi
+              # (b) head must land in an isolated path: — never overlay the trusted base checkout.
+              hp="$(printf '%s\n' "$S" | grep -A3 -E '(head\.(sha|ref)|pull_request\.head|github\.head_ref)' \
+                     | grep -oE 'path:[[:space:]]*[^[:space:]]+' | head -1 | sed -E 's/path:[[:space:]]*//' || true)"
+              if [ -z "$hp" ]; then
+                note "$wf checks out PR-head without an isolated path: — it overlays the trusted base, so later steps would run attacker code."
+              fi
+              # (c) execution must stay in the trusted base: every working-directory under .github/ai-reviewer,
+              #     and the head path may appear ONLY in its path: decl and an (UPPERCASE) env var — never in a
+              #     run:/cd/working-directory. Catches `working-directory: _head`, `run: node _head/x`, a multiline
+              #     `cd _head`, and even head overlaid onto the reviewer's own trusted dir.
+              if printf '%s\n' "$S" | grep -oE 'working-directory:[[:space:]]*[^[:space:]]+' | grep -qvE 'working-directory:[[:space:]]*\.github/ai-reviewer'; then
+                note "$wf sets a working-directory outside .github/ai-reviewer while checking out PR-head — it may execute head code."
+              fi
+              if [ -n "$hp" ]; then
+                hpre="$(printf '%s' "$hp" | sed -E 's/[][(){}.^$*+?|\\/-]/\\&/g')" # treat the path literally in regex
+                if printf '%s\n' "$S" | grep -nE "(^|[^[:alnum:]_])${hpre}([^[:alnum:]_]|$)" \
+                     | grep -vE "path:[[:space:]]*[^[:space:]]*${hpre}" \
+                     | grep -vqE "^[0-9]+:[[:space:]]*[A-Z][A-Z0-9_]*:[[:space:]]"; then
+                  note "$wf references the PR-head checkout ($hp) outside its path:/env — a reviewer must only READ head (pass it as an env dir), never cd/run into it."
+                fi
+              fi
             fi
-            # 2. Any npm ci/install must keep --ignore-scripts.
-            if grep -nE 'npm[[:space:]]+(ci|install)' "$wf" | grep -vqF -- '--ignore-scripts'; then
+
+            if printf '%s\n' "$S" | grep -nE 'npm[[:space:]]+(ci|install)' | grep -vqF -- '--ignore-scripts'; then
               note "$wf runs npm ci/install without --ignore-scripts — a malicious dependency install hook could run with the elevated token."
             fi
           done
