@@ -22,7 +22,7 @@ on:
     types: [labeled, synchronize, reopened]
 
 permissions:
-  contents: read # checkout base (script/config/deps) + head (read-only, for the tools)
+  contents: write # resolveReviewThread needs write; safe — head is checked out read-only & never executed (ai-reviewer-guard.yml)
   pull-requests: write # post review comments
 
 concurrency:
