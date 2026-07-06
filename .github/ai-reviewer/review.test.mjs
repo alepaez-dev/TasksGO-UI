@@ -30,6 +30,7 @@ import {
   selectThreadsToVerify,
   extractWindow,
   shouldPostVerifyReply,
+  shouldResolveThread,
   orderThreadsForVerification,
   classifyVerifyFile,
   confirmedDeletion,
@@ -640,6 +641,17 @@ check('isTrustedAuthor gates auto-resolve to the same set the workflow trusts', 
   for (const a of ['CONTRIBUTOR', 'FIRST_TIME_CONTRIBUTOR', 'NONE', '', null, undefined]) {
     assert.equal(isTrustedAuthor(a), false);
   }
+});
+
+check('shouldResolveThread never auto-resolves for an untrusted author (allowResolve=false)', () => {
+  const ok = { status: 'fixed', allowResolve: true, resolveVerifiedFixes: true, diffComplete: true };
+  assert.equal(shouldResolveThread(ok), true);
+  // the security gate: an untrusted PR author (allowResolve=false) is NEVER auto-resolved, whatever else is true
+  assert.equal(shouldResolveThread({ ...ok, allowResolve: false }), false);
+  // the other guards still each block on their own
+  assert.equal(shouldResolveThread({ ...ok, status: 'still_present' }), false);
+  assert.equal(shouldResolveThread({ ...ok, resolveVerifiedFixes: false }), false);
+  assert.equal(shouldResolveThread({ ...ok, diffComplete: false }), false);
 });
 
 check('addUsage sums review + verification spend into one true total', () => {
