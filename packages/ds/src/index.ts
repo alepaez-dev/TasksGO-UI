@@ -145,6 +145,10 @@ export {
   EditableRefField,
   type EditableRefFieldProps,
 } from './components/EditableRefField';
+export {
+  EditableMarkdown,
+  type EditableMarkdownProps,
+} from './components/EditableMarkdown';
 export { Card, type CardProps } from './components/Card';
 export {
   CollapsibleCard,

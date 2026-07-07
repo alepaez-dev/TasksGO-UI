@@ -24,8 +24,15 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-scale-md);
-  padding: var(--ds-space-scale-sm) var(--ds-space-scale-md);
+  padding: var(--ds-space-scale-sm)
+    var(--ds-space-markdown-editor-padding-x, var(--ds-space-scale-md));
   border-bottom: 1px solid var(--ds-color-border-default);
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
 }
 
 .status {
@@ -43,7 +50,8 @@
   width: 100%;
   min-height: 160px;
   box-sizing: border-box;
-  padding: var(--ds-space-scale-md);
+  padding: var(--ds-space-scale-md)
+    var(--ds-space-markdown-editor-padding-x, var(--ds-space-scale-md));
   border: none;
   background: none;
   resize: none;

@@ -17,8 +17,7 @@ import { Breadcrumb } from '../../../components/Breadcrumb';
 import { TicketTitleBlock } from '../../../components/TicketTitleBlock';
 import { Tabs, getTabId, getTabPanelId } from '../../../components/Tabs';
 import { Icon } from '../../../components/Icon';
-import { Markdown } from '../../../components/Markdown';
-import { MarkdownEditor } from '../../../components/MarkdownEditor';
+import { EditableMarkdown } from '../../../components/EditableMarkdown';
 import { CollapsibleCard } from '../../../components/CollapsibleCard';
 import { ChecklistRow } from '../../../components/ChecklistRow';
 import { PropertyRow } from '../../../components/PropertyRow';
@@ -66,8 +65,8 @@ function TicketOverviewRender() {
     setActiveTab,
     body,
     setBody,
-    bodyMode,
-    setBodyMode,
+    bodyEditing,
+    setBodyEditing,
     assignee,
     setAssignee,
     assigneeSelector: {
@@ -132,19 +131,20 @@ function TicketOverviewRender() {
       onImageUpload: uploadImage,
     });
 
-  const freeformButtonRef = useRef<HTMLButtonElement>(null);
-  const bodyModeMounted = useRef(false);
+  const editButtonRef = useRef<HTMLButtonElement>(null);
+  const bodySnapshot = useRef(body);
+  const bodyEditingMounted = useRef(false);
   useEffect(() => {
-    if (!bodyModeMounted.current) {
-      bodyModeMounted.current = true;
+    if (!bodyEditingMounted.current) {
+      bodyEditingMounted.current = true;
       return;
     }
-    if (bodyMode === 'freeform') {
+    if (bodyEditing) {
       textareaRef.current?.focus();
     } else {
-      freeformButtonRef.current?.focus();
+      editButtonRef.current?.focus();
     }
-  }, [bodyMode, textareaRef]);
+  }, [bodyEditing, textareaRef]);
 
   const navClick = (id: string) => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -279,55 +279,28 @@ function TicketOverviewRender() {
                   hidden={activeTab !== 'overview'}
                 >
                   <div className={styles.bodyCard}>
-                    {bodyMode === 'template' ? (
-                      <>
-                        <div className={styles.bodyBar}>
-                          <span className={styles.bodyModeLabel}>
-                            <Icon name="description" size="sm" />
-                            Template
-                          </span>
-                          <button
-                            ref={freeformButtonRef}
-                            type="button"
-                            className={styles.bodySwitch}
-                            onClick={() => setBodyMode('freeform')}
-                          >
-                            Freeform
-                            <Icon name="chevron_right" size="sm" />
-                          </button>
-                        </div>
-                        <Markdown
-                          source={body}
-                          className={styles.bodyContent}
-                        />
-                      </>
-                    ) : (
-                      <MarkdownEditor
-                        header={
-                          <div className={styles.bodyBar}>
-                            <span className={styles.bodyModeLabel}>
-                              <Icon name="description" size="sm" />
-                              Freeform
-                            </span>
-                            <button
-                              type="button"
-                              className={styles.bodySwitch}
-                              onClick={() => setBodyMode('template')}
-                            >
-                              <Icon name="chevron_left" size="sm" />
-                              Template
-                            </button>
-                          </div>
-                        }
-                        value={body}
-                        onChange={setBody}
-                        textareaRef={textareaRef}
-                        onAction={applyAction}
-                        wordCount={wordCount}
-                        isUploading={isUploading}
-                        onInsertImageFiles={insertImageFiles}
-                      />
-                    )}
+                    <EditableMarkdown
+                      className={styles.bodyEditable}
+                      editing={bodyEditing}
+                      value={body}
+                      onChange={setBody}
+                      onRequestEdit={() => {
+                        bodySnapshot.current = body;
+                        setBodyEditing(true);
+                      }}
+                      onCancel={() => {
+                        setBody(bodySnapshot.current);
+                        setBodyEditing(false);
+                      }}
+                      onSave={() => setBodyEditing(false)}
+                      textareaRef={textareaRef}
+                      editButtonRef={editButtonRef}
+                      onAction={applyAction}
+                      wordCount={wordCount}
+                      isUploading={isUploading}
+                      onInsertImageFiles={insertImageFiles}
+                      editLabel="Edit ticket template"
+                    />
 
                     <section className={styles.section}>
                       <div className={styles.qaHeader}>

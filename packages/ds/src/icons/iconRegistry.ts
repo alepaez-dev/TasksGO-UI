@@ -17,6 +17,7 @@ import { ContentCopyIcon } from './contentCopy';
 import { DescriptionIcon } from './description';
 import { DescriptionFilledIcon } from './descriptionFilled';
 import { DragIndicatorIcon } from './dragIndicator';
+import { EditIcon } from './edit';
 import { ExpandMoreIcon } from './expandMore';
 import { FlagIcon } from './flag';
 import { ForkRightIcon } from './forkRight';
@@ -61,6 +62,7 @@ export const iconRegistry = {
   description: DescriptionIcon,
   description_filled: DescriptionFilledIcon,
   drag_indicator: DragIndicatorIcon,
+  edit: EditIcon,
   expand_more: ExpandMoreIcon,
   flag: FlagIcon,
   fork_right: ForkRightIcon,

@@ -25,6 +25,7 @@ export interface MarkdownEditorProps extends Omit<
   value: string;
   onChange: (value: string) => void;
   header?: ReactNode;
+  toolbarActions?: ReactNode;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   onAction: (action: MarkdownToolbarAction) => void;
   wordCount: number;
@@ -51,6 +52,7 @@ export const MarkdownEditor = forwardRef<HTMLDivElement, MarkdownEditorProps>(
       value,
       onChange,
       header,
+      toolbarActions,
       textareaRef,
       onAction,
       wordCount,
@@ -111,15 +113,18 @@ export const MarkdownEditor = forwardRef<HTMLDivElement, MarkdownEditorProps>(
           {header}
           <div className={styles.toolbarRow}>
             <MarkdownToolbar onAction={handleAction} size="md" />
-            <span className={styles.status}>
-              {statusText ? (
-                <>
-                  <span role="status">{statusText}</span>
-                  <span aria-hidden="true">·</span>
-                </>
-              ) : null}
-              <span>{words}</span>
-            </span>
+            <div className={styles.toolbarRight}>
+              <span className={styles.status}>
+                {statusText ? (
+                  <>
+                    <span role="status">{statusText}</span>
+                    <span aria-hidden="true">·</span>
+                  </>
+                ) : null}
+                <span>{words}</span>
+              </span>
+              {toolbarActions}
+            </div>
           </div>
         </div>
 

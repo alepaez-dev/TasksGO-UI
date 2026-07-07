@@ -1,0 +1,44 @@
+.wrapper {
+  position: relative;
+}
+
+.content {
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  border-radius: var(--ds-radius-md);
+  padding: var(--ds-space-scale-md)
+    var(--ds-space-markdown-editor-padding-x, var(--ds-space-scale-md));
+  transition: background-color var(--ds-transition-duration-normal)
+    var(--ds-transition-timing-function);
+}
+
+@media (hover: hover) {
+  .wrapper:hover .content {
+    background-color: var(--ds-color-surface-hover);
+  }
+
+  .wrapper:hover .editButton {
+    opacity: 1;
+  }
+}
+
+.editButton {
+  position: absolute;
+  top: var(--ds-space-scale-sm);
+  right: var(--ds-space-scale-sm);
+  opacity: 0;
+  transition: opacity var(--ds-transition-duration-normal)
+    var(--ds-transition-timing-function);
+}
+
+.editButton:focus-visible {
+  opacity: 1;
+}
+
+.editZone {
+  border-left: 2px solid var(--ds-color-text-primary);
+}
+
+.editAction {
+  color: var(--ds-color-text-secondary);
+}
