@@ -1,0 +1,161 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync, mkdirSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { makeToolRunner, TOOL_DEFS } from './tools.mjs';
+
+function fixtureRoot() {
+  const root = mkdtempSync(join(tmpdir(), 't3-'));
+  mkdirSync(join(root, 'src'));
+  writeFileSync(join(root, 'src', 'a.ts'), 'export const a = 1;\nconst secret = 2;\n');
+  writeFileSync(join(root, 'src', 'b.ts'), 'import { a } from "./a";\n');
+  writeFileSync(join(root, 'src', 'many.ts'), 'zz\nzz\nzz\n');
+  return root;
+}
+const cfg = { maxFileReadBytes: 200000, maxGrepMatches: 200 };
+
+test('read_file returns numbered content inside root', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: cfg });
+  const r = await run('read_file', { path: 'src/a.ts' });
+  assert.equal(r.isError, false);
+  assert.match(r.content, /1: export const a = 1;/);
+});
+
+test('read_file supports a line slice', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: cfg });
+  const r = await run('read_file', { path: 'src/a.ts', startLine: 2, endLine: 2 });
+  assert.match(r.content, /2: const secret = 2;/);
+  assert.doesNotMatch(r.content, /export const a/);
+});
+
+test('read_file rejects path escape', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: cfg });
+  const r = await run('read_file', { path: '../../../../etc/passwd' });
+  assert.equal(r.isError, true);
+  assert.match(r.content, /outside the repository|not allowed/i);
+});
+
+test('read_file enforces the byte cap', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: { ...cfg, maxFileReadBytes: 5 } });
+  const r = await run('read_file', { path: 'src/a.ts' });
+  assert.equal(r.isError, true);
+  assert.match(r.content, /too large/i);
+});
+
+test('grep finds a unique token with file:line', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: cfg });
+  const r = await run('grep', { pattern: 'secret' });
+  assert.equal(r.isError, false);
+  assert.match(r.content, /a\.ts:2:/);
+});
+
+test('grep caps results and notes truncation', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: { ...cfg, maxGrepMatches: 2 } });
+  const r = await run('grep', { pattern: 'zz' });
+  assert.equal(r.isError, false);
+  assert.match(r.content, /more matches truncated/);
+});
+
+test('grep counts all matches per file (accurate total) and names dense files to read directly', async () => {
+  const root = fixtureRoot();
+  writeFileSync(join(root, 'src', 'dense.ts'), Array.from({ length: 120 }, () => 'needleZZ here').join('\n'));
+  const r = await makeToolRunner({ root, config: cfg })('grep', { pattern: 'needleZZ' });
+  assert.equal(r.isError, false);
+  const shown = r.content.split('\n').filter((l) => l.startsWith('src/dense.ts:')).length;
+  assert.ok(shown <= 50, `showed ${shown} lines from dense.ts, expected <= 50 (per-file cap)`);
+  assert.match(r.content, /more matches truncated/); // total is accurate (120), not silently capped at 50
+  assert.match(r.content, /src\/dense\.ts \(120\)/); // dense file named with its TRUE count, not the cap
+});
+
+test('grep with no matches is not an error', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: cfg });
+  const r = await run('grep', { pattern: 'nonexistent_token_xyzzy' });
+  assert.equal(r.isError, false);
+  assert.match(r.content, /no matches/);
+});
+
+test('list_dir lists entries and rejects escape', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: cfg });
+  const ok = await run('list_dir', { path: 'src' });
+  assert.match(ok.content, /a\.ts/);
+  const bad = await run('list_dir', { path: '..' });
+  assert.equal(bad.isError, true);
+});
+
+test('TOOL_DEFS includes four tools and submit_findings carries the findings schema', () => {
+  const names = TOOL_DEFS.map((t) => t.name).sort();
+  assert.deepEqual(names, ['grep', 'list_dir', 'read_file', 'submit_findings']);
+  const submit = TOOL_DEFS.find((t) => t.name === 'submit_findings');
+  assert.ok(submit.input_schema && submit.input_schema.properties.findings);
+});
+
+test('read_file rejects an in-repo symlink whose target escapes the repo', async () => {
+  const root = fixtureRoot();
+  const outside = join(mkdtempSync(join(tmpdir(), 't3-outside-')), 'secret.txt');
+  writeFileSync(outside, 'TOP SECRET ANTHROPIC_API_KEY=sk-ant-leak');
+  symlinkSync(outside, join(root, 'src', 'evil.ts'));
+  const run = makeToolRunner({ root, config: cfg });
+  const r = await run('read_file', { path: 'src/evil.ts' });
+  assert.equal(r.isError, true);
+  assert.doesNotMatch(r.content, /TOP SECRET/);
+});
+
+test('list_dir rejects an in-repo symlink to an outside directory', async () => {
+  const root = fixtureRoot();
+  const outsideDir = mkdtempSync(join(tmpdir(), 't3-outdir-'));
+  symlinkSync(outsideDir, join(root, 'src', 'linkdir'));
+  const run = makeToolRunner({ root, config: cfg });
+  const r = await run('list_dir', { path: 'src/linkdir' });
+  assert.equal(r.isError, true);
+});
+
+test('grep skips files over the byte cap and reports it, but searches them under the cap', async () => {
+  const root = fixtureRoot();
+  writeFileSync(join(root, 'src', 'big.ts'), 'const needleXYZ = 1;\n' + 'x'.repeat(5000));
+  // tiny cap → big.ts is skipped, and the skip is noted (not a silent "no matches")
+  const skip = await makeToolRunner({ root, config: { ...cfg, maxGrepFileBytes: 100 } })('grep', { pattern: 'needleXYZ' });
+  assert.equal(skip.isError, false);
+  assert.doesNotMatch(skip.content, /big\.ts/);
+  assert.match(skip.content, /not searched/);
+  // generous cap → the same file is searched normally
+  const found = await makeToolRunner({ root, config: { ...cfg, maxGrepFileBytes: 999999 } })('grep', { pattern: 'needleXYZ' });
+  assert.match(found.content, /big\.ts:1:/);
+});
+
+test('read_file slices an over-cap file (the size gate no longer blocks slices)', async () => {
+  const root = fixtureRoot();
+  const big = Array.from({ length: 500 }, (_, i) => `line ${i + 1}`).join('\n');
+  writeFileSync(join(root, 'src', 'big.ts'), big);
+  // whole-file read of an over-cap file → still errors (correctly)
+  const whole = await makeToolRunner({ root, config: { ...cfg, maxFileReadBytes: 50 } })('read_file', { path: 'src/big.ts' });
+  assert.equal(whole.isError, true);
+  assert.match(whole.content, /too large/i);
+  // sliced read of the SAME over-cap file → returns just the requested lines, not the error
+  const sliced = await makeToolRunner({ root, config: { ...cfg, maxFileReadBytes: 50 } })('read_file', {
+    path: 'src/big.ts',
+    startLine: 3,
+    endLine: 5,
+  });
+  assert.equal(sliced.isError, false);
+  assert.match(sliced.content, /3: line 3/);
+  assert.match(sliced.content, /5: line 5/);
+  assert.doesNotMatch(sliced.content, /line 6/);
+});
+
+test('read_file slice reports the byte cap (not "no lines in range") when the first line is too big', async () => {
+  const root = fixtureRoot();
+  writeFileSync(join(root, 'src', 'wide.ts'), 'x'.repeat(500) + '\nsecond\n');
+  // first in-range line alone exceeds the cap → say so, don't claim the range is empty
+  const capped = await makeToolRunner({ root, config: { ...cfg, maxFileReadBytes: 50 } })('read_file', {
+    path: 'src/wide.ts',
+    startLine: 1,
+    endLine: 1,
+  });
+  assert.equal(capped.isError, false);
+  assert.match(capped.content, /exceed the byte cap/i);
+  assert.doesNotMatch(capped.content, /no lines in range/);
+  // a genuinely empty range (past EOF) still reports "(no lines in range)"
+  const empty = await makeToolRunner({ root, config: cfg })('read_file', { path: 'src/wide.ts', startLine: 100, endLine: 101 });
+  assert.match(empty.content, /no lines in range/);
+});

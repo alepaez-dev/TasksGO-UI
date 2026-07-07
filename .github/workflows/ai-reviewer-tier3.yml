@@ -1,0 +1,101 @@
+name: AI Reviewer Tier 3
+
+# Autonomous, agentic deep review. Triggered only when a maintainer applies
+# the `ai-reviewer-tier3` label; re-runs on new commits while it is present. Independent of Tier 2
+# (`ai-reviewer`): its own comment namespace, its own sticky status, its own resolve-threads.
+#
+# SECURITY MODEL (read before editing the trigger):
+#   - Uses `pull_request_target`, so it has the ANTHROPIC_API_KEY secret + write to post comments.
+#   - Gated by the `ai-reviewer-tier3` label PLUS a guard step requiring the triggering user to be on
+#     an ALLOW-LIST (and, on `labeled`, to have write/admin). The allow-list applies to label events AND
+#     to push/reopen auto re-runs, so only a listed user can ever cause a paid run. A trusted
+#     `author_association` clause in the job `if:` is a cheap pre-filter on auto re-runs.
+#   - DIVERGENCE FROM TIER 2: this reviewer must READ the PR head (read_file/grep/list_dir), so it
+#     checks the head out into `_head` READ-ONLY and NEVER executes it — no `npm ci`, no build, no
+#     PR-controlled scripts on head, and `persist-credentials: false`. Tier 3's OWN script + deps come
+#     from the trusted base checkout and install with `--ignore-scripts`. The reviewer's tools are
+#     read-only, repo-confined, and have no shell/network, so the secrets cannot be exfiltrated.
+#   - Do NOT add a step that runs anything from `_head` (npm install, build, test, node _head/...).
+
+on:
+  pull_request_target:
+    types: [labeled, synchronize, reopened]
+
+permissions:
+  contents: write # resolveReviewThread needs write; safe — head is checked out read-only & never executed (ai-reviewer-guard.yml)
+  pull-requests: write # post review comments
+
+concurrency:
+  group: ai-reviewer-tier3-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'ai-reviewer-tier3') ||
+      (github.event.action != 'labeled' &&
+       contains(github.event.pull_request.labels.*.name, 'ai-reviewer-tier3') &&
+       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      # Only an allow-listed user may trigger Tier 3 — on a `labeled` event OR on a push/reopen while the
+      # label is present (so even auto re-runs are gated on the person who pushed). On `labeled` they must
+      # also have write access. Runs first (before checkout/install) so a disallowed trigger fails in ~2s
+      # with zero Claude spend.
+      - name: Require an allow-listed trigger
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            // GitHub usernames permitted to trigger this paid review. Add more logins to widen it.
+            const ALLOWLIST = ['alepaez-dev'];
+            const actor = context.payload.sender?.login;
+            if (!ALLOWLIST.includes(actor)) {
+              core.setFailed(
+                `@${actor} is not on the ai-reviewer-tier3 allow-list (${ALLOWLIST.join(', ')}). ` +
+                  `Only an allow-listed user can trigger this review.`,
+              );
+              return;
+            }
+            if (context.payload.action === 'labeled') {
+              const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: actor,
+              });
+              if (!['admin', 'write'].includes(data.permission)) {
+                core.setFailed(`@${actor} has '${data.permission}' permission; write access is required to trigger a run.`);
+              }
+            }
+
+      # Base checkout (TRUSTED): the Tier 3 script, config, and deps. Default ref on
+      # pull_request_target = the base branch, NOT the PR head.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      # Head checkout (UNTRUSTED) into _head — read ONLY
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: _head
+          persist-credentials: false
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: .github/ai-reviewer-tier3/package-lock.json
+
+      - name: Install reviewer dependencies (base only)
+        working-directory: .github/ai-reviewer-tier3
+        run: npm ci --ignore-scripts
+
+      - name: Run AI tier 3 review
+        working-directory: .github/ai-reviewer-tier3
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_DIR: ${{ github.workspace }}/_head
+        run: node review-agent.mjs

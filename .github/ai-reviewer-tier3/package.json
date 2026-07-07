@@ -1,0 +1,19 @@
+{
+  "name": "tasksgo-ai-reviewer-tier3",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Autonomous, agentic Cursor-Bugbot-class PR reviewer (runs on the ai-reviewer-tier3 label).",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "review": "node review-agent.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@actions/core": "3.0.1",
+    "@actions/github": "9.1.1",
+    "@anthropic-ai/sdk": "0.104.2"
+  }
+}
