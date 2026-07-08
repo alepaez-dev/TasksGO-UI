@@ -86,10 +86,16 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: .github/ai-reviewer-tier3/package-lock.json
+          cache-dependency-path: |
+            .github/ai-reviewer-tier3/package-lock.json
+            .github/ai-reviewer/package-lock.json
 
       - name: Install reviewer dependencies (base only)
         working-directory: .github/ai-reviewer-tier3
+        run: npm ci --ignore-scripts
+
+      - name: Install Tier 2 reviewer dependencies (imported by the Tier 3 agent)
+        working-directory: .github/ai-reviewer
         run: npm ci --ignore-scripts
 
       - name: Run AI tier 3 review
