@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/51 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">51/51 infos</a><span class="filter-pill ok" aria-disabled="true">222 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/51 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">51/51 infos</a><span class="filter-pill ok" aria-disabled="true">224 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -5557,7 +5557,7 @@ variant?: &#39;attachment&#39; | &#39;doc&#39; | &#39;general&#39; = &#39;genera
       <div class="badges">
         <label for="c-35-components-scratchpad-props" class="badge ok as-toggle">19 prop types</label>
         <label for="c-35-components-scratchpad-info" class="badge info as-toggle">1 info</label>
-        <label for="c-35-components-scratchpad-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-35-components-scratchpad-stories" class="badge ok as-toggle">5 stories</label>
         
       </div>
     </div>
@@ -5676,6 +5676,52 @@ title?: ReactNode</code></pre>
               
               
               <pre><code>const Empty = () =&gt; &lt;ControlledScratchpad initial={[{ id: &#39;first&#39;, text: &#39;&#39; }]} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Headings</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Headings = () =&gt; (
+  &lt;ControlledScratchpad
+    initial={[
+      { id: &#39;g1&#39;, text: &#39;# Heading 1&#39; },
+      { id: &#39;g2&#39;, text: &#39;## Heading 2&#39; },
+      { id: &#39;g3&#39;, text: &#39;### Heading 3&#39; },
+      { id: &#39;g4&#39;, text: &#39;#### Heading 4&#39; },
+      { id: &#39;gb&#39;, text: &#39;Body text for comparison&#39; },
+    ]}
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Multi Line Row</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const MultiLineRow = () =&gt; (
+  &lt;ControlledScratchpad
+    highlightBadges
+    initial={[
+      {
+        id: &#39;r1&#39;,
+        text: &#39;A soft-break row keeps one heading level:&#39;,
+      },
+      {
+        id: &#39;r2&#39;,
+        text: &#39;# header 1\n## header 2\n### header 3\n#### header 4&#39;,
+      },
+      {
+        id: &#39;r3&#39;,
+        text: &#39;Only the first marker is stripped; later lines stay literal.&#39;,
+      },
+    ]}
+  /&gt;
+);</code></pre>
             </div>
         </div>
     
