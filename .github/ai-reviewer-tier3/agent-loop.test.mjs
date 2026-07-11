@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { runReviewAgent } from './agent-loop.mjs';
+import { runReviewAgent, describeToolUse, summarizeToolResult, budgetGuidance, budgetPhase } from './agent-loop.mjs';
 
 const config = {
   model: 'claude-opus-4-8',
@@ -205,6 +205,66 @@ test('a first-request API error throws (fail loud on misconfig)', async () => {
     },
   };
   await assert.rejects(runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} }), /400/);
+});
+
+test('describeToolUse renders args, not just the tool name', () => {
+  assert.equal(describeToolUse({ name: 'read_file', input: { path: 'a/b.tsx', startLine: 1, endLine: 80 } }), 'read_file a/b.tsx:1-80');
+  assert.equal(describeToolUse({ name: 'read_file', input: { path: 'a/b.tsx' } }), 'read_file a/b.tsx');
+  assert.equal(describeToolUse({ name: 'grep', input: { pattern: 'useX', pathGlob: '**/*.tsx' } }), 'grep /useX/ glob:**/*.tsx');
+  assert.equal(describeToolUse({ name: 'grep', input: { pattern: 'useX' } }), 'grep /useX/');
+  assert.equal(describeToolUse({ name: 'list_dir', input: { path: 'src/hooks' } }), 'list_dir src/hooks');
+  assert.equal(describeToolUse({ name: 'submit_findings', input: { findings: [1, 2, 3] } }), 'submit_findings (3)');
+});
+
+test('summarizeToolResult surfaces errors, grep match/file counts, and read_file line counts', () => {
+  assert.match(summarizeToolResult({ isError: true, content: 'File not found: x.ts' }), /^ERROR: File not found/);
+  assert.equal(summarizeToolResult({ isError: false, content: '(no matches)' }), 'no matches');
+  // grep output (path:line:content, two colons) across two files + a truncation note
+  const grep = 'src/a.tsx:12:foo\nsrc/b.tsx:3:foo\n… (5 more matches truncated)';
+  assert.match(summarizeToolResult({ isError: false, content: grep }), /2 match\(es\) in 2 file\(s\).*5 more matches truncated/);
+  // read_file output (N: content, one colon) must NOT be mistaken for grep matches
+  assert.equal(summarizeToolResult({ isError: false, content: '1: const x = 1\n2: return x' }), '2 line(s)');
+});
+
+test('budgetPhase / budgetGuidance escalate across phases (explore → prioritize → converge)', () => {
+  assert.equal(budgetPhase(0.1), 'explore');
+  assert.equal(budgetPhase(0.5), 'prioritize'); // 0.5 ≥ 0.75*0.6 and < 0.75
+  assert.equal(budgetPhase(0.8), 'converge');
+  assert.match(budgetGuidance(0.1), /Explore freely/);
+  assert.match(budgetGuidance(0.5), /prioritize/i);
+  assert.match(budgetGuidance(0.8), /CONVERGE NOW/);
+});
+
+test('feeds the model a running [budget] status that escalates with spend', async () => {
+  function capturing(msgs) {
+    const captured = [];
+    let i = 0;
+    return { captured, client: { beta: { messages: { stream(p) { captured.push(p); return { finalMessage: async () => msgs[i++] }; } } } } };
+  }
+  const budgetBlocks = (captured) => {
+    const out = [];
+    for (const p of captured) for (const m of p.messages || []) {
+      if (Array.isArray(m.content)) for (const b of m.content) {
+        if (b && b.type === 'text' && typeof b.text === 'string' && b.text.startsWith('[budget]')) out.push(b.text);
+      }
+    }
+    return out;
+  };
+  // Cheap round → low fraction → "Explore freely".
+  const lo = capturing([
+    { content: [{ type: 'tool_use', id: 't1', name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 1000, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 't2', name: 'submit_findings', input: { findings: [] } }], usage: { input_tokens: 100, output_tokens: 5 } },
+  ]);
+  await runReviewAgent({ client: lo.client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.ok(budgetBlocks(lo.captured).some((t) => /Explore freely/.test(t)), 'low spend should say explore freely');
+
+  // Expensive round ($2.50 of $3 ≈ 83%) → "CONVERGE NOW".
+  const hi = capturing([
+    { content: [{ type: 'tool_use', id: 't1', name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 500000, output_tokens: 0 } },
+    { content: [{ type: 'tool_use', id: 't2', name: 'submit_findings', input: { findings: [] } }], usage: { input_tokens: 100, output_tokens: 5 } },
+  ]);
+  await runReviewAgent({ client: hi.client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.ok(budgetBlocks(hi.captured).some((t) => /CONVERGE NOW/.test(t)), 'high spend should say converge');
 });
 
 test('sets toolBudgetExhausted once maxToolCalls is exceeded', async () => {

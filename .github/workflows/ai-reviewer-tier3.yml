@@ -104,4 +104,8 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_DIR: ${{ github.workspace }}/_head
+          # The `ai-reviewer-tier3-max` label runs a deep thorough pass for large/important PRs: it bumps
+          # effort high→max AND the cost ceiling $2→$3
+          REVIEWER_EFFORT: ${{ contains(github.event.pull_request.labels.*.name, 'ai-reviewer-tier3-max') && 'max' || '' }}
+          REVIEWER_COST_CEILING: ${{ contains(github.event.pull_request.labels.*.name, 'ai-reviewer-tier3-max') && '3' || '' }}
         run: node review-agent.mjs

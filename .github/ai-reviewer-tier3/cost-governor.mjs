@@ -17,6 +17,9 @@ export function createGovernor({ config }) {
   function wouldExceed(projectedNextUsd) {
     return spentUsd() + (projectedNextUsd ?? 0) > config.costCeilingUsd;
   }
+  function budgetFraction() {
+    return config.costCeilingUsd > 0 ? spentUsd() / config.costCeilingUsd : 0;
+  }
   function interrupt(reason) {
     interruptedReason = reason;
   }
@@ -24,6 +27,7 @@ export function createGovernor({ config }) {
   return {
     record,
     spentUsd,
+    budgetFraction,
     totalUsage: () => total,
     projectNextRoundUsd,
     wouldExceed,

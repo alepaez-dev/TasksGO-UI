@@ -7,10 +7,110 @@ function findToolUses(content) {
   return (content || []).filter((b) => b && b.type === 'tool_use');
 }
 
+function formatTokens(n) {
+  n = n || 0;
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`;
+}
+
+export function describeToolUse(use) {
+  const input = (use && use.input) || {};
+  switch (use && use.name) {
+    case 'read_file': {
+      const hasRange = Number.isInteger(input.startLine) || Number.isInteger(input.endLine);
+      const range = hasRange ? `:${input.startLine ?? 1}-${input.endLine ?? ''}` : '';
+      return `read_file ${input.path ?? '?'}${range}`;
+    }
+    case 'grep':
+      return `grep /${input.pattern ?? ''}/${input.pathGlob ? ` glob:${input.pathGlob}` : ''}`;
+    case 'list_dir':
+      return `list_dir ${input.path ?? '?'}`;
+    case 'submit_findings':
+      return `submit_findings (${Array.isArray(input.findings) ? input.findings.length : 0})`;
+    default:
+      return (use && use.name) || 'unknown_tool';
+  }
+}
+
+export function summarizeToolResult(out) {
+  if (!out) return '';
+  const content = String(out.content ?? '');
+  if (out.isError) return `ERROR: ${content.replace(/\s+/g, ' ').trim().slice(0, 80)}`;
+  if (content.startsWith('(no matches)')) return 'no matches';
+  const note = content.match(/\(([^)]*(?:match|truncat|no lines|byte cap|dense)[^)]*)\)\s*$/i);
+  // grep emits `path:line:content` (two colons); read_file emits `N: content` (one) → count grep hits + files.
+  const grepLines = content.split('\n').filter((l) => /^[^\s:]+:\d+:/.test(l));
+  if (grepLines.length) {
+    const files = new Set(grepLines.map((l) => l.slice(0, l.indexOf(':'))));
+    return `${grepLines.length} match(es) in ${files.size} file(s)${note ? ` · ${note[1]}` : ''}`;
+  }
+  const lines = content ? content.split('\n').length : 0;
+  return note ? `${lines} line(s) · ${note[1]}` : `${lines} line(s)`;
+}
+
+export function budgetPhase(frac, softFraction = 0.75) {
+  if (frac >= softFraction) return 'converge';
+  if (frac >= softFraction * 0.6) return 'prioritize';
+  return 'explore';
+}
+
+const BUDGET_GUIDANCE = {
+  explore: 'Explore freely — read whole functions and trace callers/state.',
+  prioritize:
+    'Past the mid-point of your budget — prioritize the highest-risk changes (security, correctness, data-loss) and avoid low-value exploration.',
+  converge:
+    'Budget is running low — CONVERGE NOW: confirm only the most important (high/critical) issues, stop opening new low-severity threads, and call submit_findings soon.',
+};
+
+// The exact guidance sentence handed to the model each round (thresholds live in budgetPhase).
+export function budgetGuidance(frac, softFraction = 0.75) {
+  return BUDGET_GUIDANCE[budgetPhase(frac, softFraction)];
+}
+
+function collectReasoning(content) {
+  const text = [];
+  const thinking = [];
+  for (const b of content || []) {
+    if (!b) continue;
+    if (b.type === 'text' && typeof b.text === 'string') text.push(b.text);
+    else if (b.type === 'thinking' && typeof b.thinking === 'string') thinking.push(b.thinking);
+  }
+  return { text: text.join(' '), thinking: thinking.join(' ') };
+}
+
+function surfaceReasoning(log, content) {
+  const { text: narration, thinking } = collectReasoning(content);
+  if (thinking.trim()) log(`Thinking -> ${thinking.trim()}`);
+  if (narration.trim()) log(`Reasoning -> ${narration.trim()}`);
+}
+
+function logRound({ log, logLevel, config, rounds, msg, uses, outs, spentUsd, frac, softFraction, elapsedMs }) {
+  if (logLevel === 'quiet') {
+    log(`round ${rounds}: ${uses.map((u) => u.name).join(', ')} · spent ≈ $${spentUsd.toFixed(3)}`);
+    return;
+  }
+  const u = msg.usage || {};
+  log(
+    `round ${rounds}/${config.maxRounds} · in ${formatTokens(u.input_tokens)} out ${formatTokens(u.output_tokens)} · ` +
+      `$${spentUsd.toFixed(2)} (${Math.round(frac * 100)}%) · ${Math.round(elapsedMs / 1000)}s`,
+  );
+  surfaceReasoning(log, msg.content); // WHY it acted
+  for (let k = 0; k < uses.length; k++) {
+    log(`  ↳ ${describeToolUse(uses[k])} -> ${summarizeToolResult(outs[k])}`);
+    if (logLevel === 'debug') {
+      const raw = String(outs[k].content ?? '').trim();
+      if (raw) log(`      ⤷ ${raw}`);
+    }
+  }
+  // debug: what we told the model 
+  log(`  budget -> model: ${budgetPhase(frac, softFraction)} (${Math.round(frac * 100)}% spent)`);
+}
+
 export async function runReviewAgent({ client, config, system, userMessage, root, log }) {
   const runTool = makeToolRunner({ root, config });
   const governor = createGovernor({ config });
   const tools = TOOL_DEFS;
+  const logLevel = config.logLevel ?? 'info';
+  const softFraction = config.softWindDownFraction ?? 0.75;
 
   const messages = [
     { role: 'user', content: [{ type: 'text', text: userMessage, cache_control: { type: 'ephemeral' } }] },
@@ -34,13 +134,16 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   };
 
   while (true) {
+    const roundStart = Date.now();
     // When budget/rounds are about to be exceeded, give the model ONE final turn to submit the
-    // findings it already hass
+    // findings it already has.
     if (!windingDown) {
       const overBudget = lastUsage && governor.wouldExceed(governor.projectNextRoundUsd(lastUsage));
       const overRounds = rounds >= config.maxRounds;
       if (overBudget || overRounds) {
         governor.interrupt(overRounds ? 'max_rounds' : 'budget');
+        if (logLevel !== 'quiet')
+          log(`[wind-down] ${overRounds ? 'round cap' : 'budget'} reached at $${governor.spentUsd().toFixed(2)} — asking the model to submit and stop.`);
         if (governor.spentUsd() >= config.costCeilingUsd) break;
         windingDown = true;
         clearUserBreakpoints();
@@ -93,6 +196,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     if (uses.length === 0) {
       if (!nudgedToSubmit && !windingDown) {
         nudgedToSubmit = true;
+        if (logLevel !== 'quiet')
+          log(`round ${rounds}/${config.maxRounds}: model ended without a tool call — nudging it to call submit_findings.`);
         clearUserBreakpoints();
         messages.push({
           role: 'user',
@@ -122,16 +227,21 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       } else {
         findings = [];
       }
+      if (logLevel !== 'quiet') {
+        log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
+        for (const f of findings) log(`  · ${f?.severity ?? '?'}/${f?.confidence ?? '?'} ${f?.title ?? '(untitled)'}`);
+      }
       break;
     }
 
-    // Force the stop in case the model keeps trying to explore more files (or just loops) after the wind-down turn
+    // Force the stop in case the model keeps trying to explore more files (or just loops) after the wind-down turn.
     if (windingDown) {
       findings = findings ?? [];
       break;
     }
 
     const results = [];
+    const outs = [];
     for (const use of uses) {
       toolCalls += 1;
       let out;
@@ -141,15 +251,33 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       } else {
         out = await runTool(use.name, use.input);
       }
+      outs.push(out);
       results.push({ type: 'tool_result', tool_use_id: use.id, content: out.content, is_error: out.isError });
     }
-    // Roll the single message-side cache breakpoint forward (drop the prior round's, set the new one)
-    // so each request stays within the 4-breakpoint cap (2 system + 1 rolling). The lone rolling
-    // breakpoint still caches the whole prefix before it (earlier writes remain read points).
+
+    const frac = governor.budgetFraction();
+    const budgetLine =
+      `[budget] round ${rounds}/${config.maxRounds} · spent $${governor.spentUsd().toFixed(2)} of ` +
+      `$${config.costCeilingUsd} (${Math.round(frac * 100)}%). ${budgetGuidance(frac, softFraction)}`;
     clearUserBreakpoints();
-    results[results.length - 1].cache_control = { type: 'ephemeral' };
-    messages.push({ role: 'user', content: results });
-    log(`round ${rounds}: ${uses.map((u) => u.name).join(', ')} · spent ≈ $${governor.spentUsd().toFixed(3)}`);
+    messages.push({
+      role: 'user',
+      content: [...results, { type: 'text', text: budgetLine, cache_control: { type: 'ephemeral' } }],
+    });
+
+    logRound({
+      log,
+      logLevel,
+      config,
+      rounds,
+      msg,
+      uses,
+      outs,
+      spentUsd: governor.spentUsd(),
+      frac,
+      softFraction,
+      elapsedMs: Date.now() - roundStart,
+    });
   }
 
   return {

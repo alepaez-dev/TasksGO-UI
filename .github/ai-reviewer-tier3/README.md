@@ -7,8 +7,8 @@ for itself what to read. It exists to catch the bugs a diff-only pass misses —
 required work, guards derived from incomplete data, state advanced on an error/skip path.
 
 - **Label:** `ai-reviewer-tier3` (new, separate from Tier 2's `ai-reviewer`).
-- **Model:** `claude-opus-4-8` (1M context), `effort: max`, adaptive thinking.
-- **Budget:** target ~$2/run, **hard ceiling $3** — enforced deterministically (see below). (for now, I'll reduce it I just want to see how far it can go)
+- **Model:** `claude-opus-4-8` (1M context), `effort: high` (bump to `max` with the `ai-reviewer-tier3-max` label), adaptive thinking.
+- **Budget:** **hard ceiling $2** — enforced deterministically (see below); the `ai-reviewer-tier3-max` label raises it to **$3** for a deep pass on large/important PRs.
 
 ## How it works
 
@@ -28,7 +28,7 @@ existing **filter → de-dup → post → verify/auto-resolve** machinery (reuse
 the PR makes wrong/reachable may be reported too (routed through Tier 2's off-diff high-confidence
 guard). It is not a whole-repo audit — every finding traces back to the PR's change.
 
-## Cost governance (the $2 / $3 contract)
+## Cost governance (the $2 ceiling — $3 under `ai-reviewer-tier3-max`)
 
 Three layers, plus a loud interrupt:
 
@@ -63,8 +63,9 @@ mistaken for a clean pass:
 
 It also does **not** mark the commit "reviewed." Re-applying the label runs a **fresh review, billed
 again** (there is no exploration memory across runs) — the partial findings already posted persist and
-are de-duplicated, but a PR large enough to hit the ceiling is best handled by raising `costCeilingUsd`
-or splitting the PR, not by re-labeling.
+are de-duplicated, but a PR large enough to hit the ceiling is best handled by the `ai-reviewer-tier3-max`
+label (deeper pass, $3 ceiling), raising `costCeilingUsd`, or splitting the PR — not by re-labeling at the
+same budget.
 
 ## Independence from Tier 2
 
@@ -107,9 +108,9 @@ repo-confined (reuse `confineToRepo`), with no shell and no network, so secrets 
 
 | Key | Default | Meaning |
 |---|---|---|
-| `effort` | `"max"` | Thinking/agentic depth. Drop to `"xhigh"` if spend runs hot. |
-| `costCeilingUsd` | `3` | Hard per-run spend ceiling (deterministic abort). |
-| `costWarnUsd` | `2` | Warn when a run exceeds this. |
+| `effort` | `"high"` | Thinking/agentic depth. Bump to `"max"` per-run with the `ai-reviewer-tier3-max` label. |
+| `costCeilingUsd` | `2` | Hard per-run spend ceiling (deterministic abort); the `ai-reviewer-tier3-max` label raises it to `3`. |
+| `costWarnUsd` | `1.5` | Warn when a run exceeds this. |
 | `taskBudgetTokens` | `1200000` | Cumulative-token budget the model self-moderates against (≥ 20000). |
 | `maxInputTokens` | `1000000` | Per-request hard cap on the **initial** prompt (graceful skip, not truncation). |
 | `maxRounds` / `maxToolCalls` | `40` / `120` | Loop backstops. |
