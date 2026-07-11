@@ -133,10 +133,11 @@ function TicketOverviewRender() {
     });
 
   const freeformButtonRef = useRef<HTMLButtonElement>(null);
-  const bodyModeMounted = useRef(false);
+  const didMountRef = useRef(false);
   useEffect(() => {
-    if (!bodyModeMounted.current) {
-      bodyModeMounted.current = true;
+    // Skip the initial render so we don't steal focus on page load
+    if (!didMountRef.current) {
+      didMountRef.current = true;
       return;
     }
     if (bodyMode === 'freeform') {

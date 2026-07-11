@@ -10,9 +10,10 @@
     var(--ds-transition-timing-function);
 }
 
-/* While the editor is focused, keep the header + toolbar pinned as you scroll,
-   lifting it with a soft shadow that eases in and out. */
-.editor:focus-within .head {
+/* With stickyHeader (default), keep the header + toolbar pinned while the editor
+   is focused, lifting it with a soft shadow that eases in and out. Consumers with
+   their own sticky context (e.g. the mobile page's sticky tab bar) opt out. */
+.sticky:focus-within .head {
   position: sticky;
   top: 0;
   z-index: 1;
@@ -28,8 +29,15 @@
   border-bottom: 1px solid var(--ds-color-border-default);
 }
 
+/* Let the toolbar take the row and scroll within it; keep the word count fixed. */
+.editorToolbar {
+  flex: 1;
+  min-width: 0;
+}
+
 .status {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: var(--ds-space-scale-xs);
   font-family: var(--ds-font-family-sans);
@@ -60,6 +68,14 @@
 
 .textarea:focus-visible {
   outline: none;
+}
+
+/* iOS Safari auto-zooms on focus when a field is below 16px;
+   hold the editor at 16px on touch devices to prevent it. */
+@media (pointer: coarse) {
+  .textarea {
+    font-size: 16px;
+  }
 }
 
 .fileInput {

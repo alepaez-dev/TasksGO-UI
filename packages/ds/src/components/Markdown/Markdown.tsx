@@ -42,6 +42,13 @@ const markdownOptions: MarkdownToJSX.Options = {
         />
       );
     }
+    if (node.type === RuleType.table) {
+      return (
+        <div key={state.key} className={styles.tableWrap}>
+          {next()}
+        </div>
+      );
+    }
     return next();
   },
 };

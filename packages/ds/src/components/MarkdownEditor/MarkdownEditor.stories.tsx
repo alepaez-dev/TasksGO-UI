@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { MarkdownEditor, type MarkdownEditorStatus } from './MarkdownEditor';
 import { Markdown } from '../Markdown';
 import { useMarkdownEditor } from '../../hooks/useMarkdownEditor';
+import { mobileViewportOptions } from '../../../.storybook/preview';
 import styles from './MarkdownEditor.stories.module.css';
 
 const VADER =
@@ -126,6 +127,19 @@ export const WithLivePreview: Story = {
       description: {
         story:
           'The two markdown components composed the way a consumer pairs them: `MarkdownEditor` edits the raw string on the left, `<Markdown>` renders the same string on the right. Edit the text or insert an image and the preview updates live — markdown images render as real images (the sample includes one).',
+      },
+    },
+  },
+};
+
+export const Mobile: Story = {
+  render: () => <StatefulEditor initialValue={sampleDoc} uploadsVader />,
+  parameters: {
+    viewport: { options: mobileViewportOptions },
+    docs: {
+      description: {
+        story:
+          'On a narrow screen the formatting toolbar scrolls horizontally (swipe) instead of wrapping or clipping, the word count stays pinned to the right, and the markdown source flows full-width.',
       },
     },
   },
