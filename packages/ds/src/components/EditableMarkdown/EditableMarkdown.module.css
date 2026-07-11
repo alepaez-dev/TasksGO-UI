@@ -24,8 +24,9 @@
 
 .editButton {
   position: absolute;
-  top: var(--ds-space-scale-sm);
+  top: calc(var(--ds-space-scale-md) + var(--ds-space-scale-sm));
   right: var(--ds-space-scale-sm);
+  transform: translateY(-50%);
   opacity: 0;
   transition: opacity var(--ds-transition-duration-normal)
     var(--ds-transition-timing-function);
@@ -41,4 +42,16 @@
 
 .editAction {
   color: var(--ds-color-text-secondary);
+}
+
+.editButtonVisible {
+  opacity: 1;
+}
+
+@media (pointer: coarse) {
+  .editButton,
+  .editAction {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }

@@ -13,8 +13,8 @@ import { Breadcrumb } from '../../../components/Breadcrumb';
 import { TicketTitleBlock } from '../../../components/TicketTitleBlock';
 import { Tabs, getTabId, getTabPanelId } from '../../../components/Tabs';
 import { SectionHeader } from '../../../components/SectionHeader';
-import { Card } from '../../../components/Card';
 import { CollapsibleCard } from '../../../components/CollapsibleCard';
+import { EditableMarkdown } from '../../../components/EditableMarkdown';
 import { ChecklistRow } from '../../../components/ChecklistRow';
 import { BottomTabBar } from '../../../components/BottomTabBar';
 import { NavItem } from '../../../components/NavItem';
@@ -23,6 +23,7 @@ import { PropertyRow } from '../../../components/PropertyRow';
 import { EditableRefField } from '../../../components/EditableRefField';
 import { OptionList } from '../../../components/OptionList';
 import { PipelineHierarchyPanel } from '../../../components/PipelineHierarchyPanel';
+import { useMarkdownEditor } from '../../../hooks/useMarkdownEditor';
 import { useTicketOverviewState } from './useTicketOverviewState';
 import {
   getPerson,
@@ -40,12 +41,18 @@ import styles from './TicketOverviewMobile.module.css';
 
 const TAB_ID_PREFIX = 'ticket-overview-mobile';
 
+const uploadImage = (file: File) => Promise.resolve(URL.createObjectURL(file));
+
 type DetailsView = 'metadata' | 'pipeline';
 
 function TicketOverviewMobileRender() {
   const {
     activeTab,
     setActiveTab,
+    body,
+    setBody,
+    bodyEditing,
+    setBodyEditing,
     assignee,
     setAssignee,
     assigneeSelector: {
@@ -101,6 +108,28 @@ function TicketOverviewMobileRender() {
   const titleRef = useRef<HTMLDivElement>(null);
   const [condensed, setCondensed] = useState(false);
 
+  const { wordCount, isUploading, textareaRef, applyAction, insertImageFiles } =
+    useMarkdownEditor({
+      value: body,
+      setValue: setBody,
+      onImageUpload: uploadImage,
+    });
+  const editButtonRef = useRef<HTMLButtonElement>(null);
+  const bodySnapshot = useRef(body);
+  const hasMounted = useRef(false);
+  useEffect(() => {
+    // Only move focus on edit-mode transitions, not the initial mount.
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    if (bodyEditing) {
+      textareaRef.current?.focus();
+    } else {
+      editButtonRef.current?.focus();
+    }
+  }, [bodyEditing, textareaRef]);
+
   useEffect(() => {
     const root = scrollRef.current;
     const target = titleRef.current;
@@ -151,7 +180,14 @@ function TicketOverviewMobileRender() {
                   : undefined
               }
             />
-            <span className={headerLayoutStyles.pageTitle}>Tickets</span>
+            {condensed ? (
+              <span className={styles.headerCondensedTitle}>
+                <span className={styles.condensedId}>{ticket.id}</span>
+                <span className={styles.condensedName}>{ticket.title}</span>
+              </span>
+            ) : (
+              <span className={headerLayoutStyles.pageTitle}>Tickets</span>
+            )}
           </div>
         }
         right={
@@ -198,14 +234,6 @@ function TicketOverviewMobileRender() {
           </div>
 
           <div className={styles.stickyBar}>
-            {condensed && (
-              <div className={styles.condensedReveal} aria-hidden="true">
-                <div className={styles.condensedTitle}>
-                  <span className={styles.condensedId}>{ticket.id}</span>
-                  <span className={styles.condensedName}>{ticket.title}</span>
-                </div>
-              </div>
-            )}
             <Tabs
               items={tabs}
               value={activeTab}
@@ -224,53 +252,39 @@ function TicketOverviewMobileRender() {
             hidden={activeTab !== 'overview'}
           >
             <section className={styles.section}>
-              <SectionHeader headingLevel={2}>Description</SectionHeader>
-              <p className={styles.prose}>{ticket.description}</p>
+              <EditableMarkdown
+                editing={bodyEditing}
+                value={body}
+                onChange={setBody}
+                onRequestEdit={() => {
+                  bodySnapshot.current = body;
+                  setBodyEditing(true);
+                }}
+                onCancel={() => {
+                  setBody(bodySnapshot.current);
+                  setBodyEditing(false);
+                }}
+                onSave={() => setBodyEditing(false)}
+                textareaRef={textareaRef}
+                editButtonRef={editButtonRef}
+                onAction={applyAction}
+                wordCount={wordCount}
+                isUploading={isUploading}
+                onInsertImageFiles={insertImageFiles}
+                editLabel="Edit ticket template"
+                editButton="always"
+                stickyHeader={false}
+              />
             </section>
 
             <section className={styles.section}>
-              <SectionHeader headingLevel={2}>Why</SectionHeader>
-              <ul className={styles.bulletList}>
-                {ticket.why.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </section>
-
-            <section className={styles.section}>
-              <SectionHeader headingLevel={2}>Scope</SectionHeader>
-              <div className={styles.scopeStack}>
-                <Card
-                  header={
-                    <span className={styles.scopeCardLabel}>
-                      {ticket.scope.included.title}
-                    </span>
-                  }
-                >
-                  <ul className={styles.scopeList}>
-                    {ticket.scope.included.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </Card>
-                <Card
-                  header={
-                    <span className={styles.scopeCardLabel}>
-                      {ticket.scope.excluded.title}
-                    </span>
-                  }
-                >
-                  <ul className={styles.scopeList}>
-                    {ticket.scope.excluded.items.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </Card>
+              <div className={styles.qaHeader}>
+                <SectionHeader headingLevel={2}>QA Summary</SectionHeader>
+                <span className={styles.autoGenerated}>
+                  <Icon name="lock" size="sm" />
+                  auto-generated
+                </span>
               </div>
-            </section>
-
-            <section className={styles.section}>
-              <SectionHeader headingLevel={2}>QA Summary</SectionHeader>
               <CollapsibleCard
                 defaultOpen
                 header={

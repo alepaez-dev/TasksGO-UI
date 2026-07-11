@@ -10,9 +10,10 @@
     var(--ds-transition-timing-function);
 }
 
-/* While the editor is focused, keep the header + toolbar pinned as you scroll,
-   lifting it with a soft shadow that eases in and out. */
-.editor:focus-within .head {
+/* With stickyHeader (default), pin the header + toolbar while the editor is
+   focused. Consumers with their own sticky context (e.g. the mobile page's
+   sticky tab bar) opt out via stickyHeader={false}. */
+.sticky:focus-within .head {
   position: sticky;
   top: 0;
   z-index: 1;
@@ -29,10 +30,16 @@
   border-bottom: 1px solid var(--ds-color-border-default);
 }
 
+.editorToolbar {
+  flex: 1;
+  min-width: 0;
+}
+
 .toolbarRight {
   display: flex;
   align-items: center;
   gap: var(--ds-space-scale-sm);
+  flex-shrink: 0;
 }
 
 .status {
@@ -68,6 +75,12 @@
 
 .textarea:focus-visible {
   outline: none;
+}
+
+@media (pointer: coarse) {
+  .textarea {
+    font-size: 16px;
+  }
 }
 
 .fileInput {
