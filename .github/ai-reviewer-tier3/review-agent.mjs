@@ -39,7 +39,12 @@ const REPO_ROOT = resolve(SCRIPT_DIR, '..', '..');
 
 function loadConfig() {
   const raw = JSON.parse(readFileSync(resolve(SCRIPT_DIR, 'config.json'), 'utf8'));
-  return { ...DEFAULT_CONFIG, ...raw };
+  const config = { ...DEFAULT_CONFIG, ...raw };
+  const envEffort = process.env.REVIEWER_EFFORT;
+  if (envEffort === 'high' || envEffort === 'max') config.effort = envEffort;
+  const envCeiling = Number(process.env.REVIEWER_COST_CEILING);
+  if (Number.isFinite(envCeiling) && envCeiling > 0) config.costCeilingUsd = envCeiling;
+  return config;
 }
 
 function loadTextFile(path) {
