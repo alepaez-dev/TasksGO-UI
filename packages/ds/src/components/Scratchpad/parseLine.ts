@@ -8,7 +8,7 @@ export interface ScratchpadBlock {
 }
 
 const TODO_MARKER = /^(\[)( |x|X)(\])\s+/;
-const HEADING_MARKER = /^#\s+/;
+const HEADING_MARKER = /^#{1,6}\s+/;
 
 // The single place line syntax is interpreted. Swap this (and the matching
 // renderer) for a real Markdown parser to migrate to full Markdown later.

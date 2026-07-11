@@ -36,6 +36,15 @@ describe('parseLine', () => {
   it('does not treat a bare # without a space as a heading', () => {
     expect(parseLine('#tag').kind).toBe('text');
   });
+
+  it('parses `##`–`######` as headings (aligned with the renderer)', () => {
+    expect(parseLine('## Subheading').kind).toBe('heading');
+    expect(parseLine('###### Deep').kind).toBe('heading');
+  });
+
+  it('does not treat 7+ hashes as a heading (matches the renderer cap)', () => {
+    expect(parseLine('####### x').kind).toBe('text');
+  });
 });
 
 describe('toggleChecked', () => {

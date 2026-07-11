@@ -8,23 +8,14 @@ import {
   type ReactNode,
 } from 'react';
 import { Icon } from '../Icon';
-import { Badge } from '../Badge';
-import { TicketId } from '../TicketId';
-import { Popover } from '../Popover';
 import { cn } from '../../utils/cn';
-import { sanitizeHref } from '../../utils/sanitizeHref';
 import { useDragReorder } from '../../hooks/useDragReorder';
 import { parseLine, type ScratchpadBlockKind } from './parseLine';
+import { type ScratchpadTaskRef } from './TokenBadge';
+import { ScratchpadLineMarkdown } from './ScratchpadLineMarkdown';
 import styles from './Scratchpad.module.css';
 
-export interface ScratchpadTaskRef {
-  id: string;
-  title: string;
-  status: string;
-  createdAgo: string;
-  description?: string;
-  href?: string;
-}
+export type { ScratchpadTaskRef };
 
 export interface ScratchpadLine {
   id: string;
@@ -66,178 +57,6 @@ const editLabel: Record<ScratchpadBlockKind, string> = {
   text: 'Edit note',
 };
 
-// Inline tokens recognised in line text when `highlightBadges` is on. Add an
-// entry (plus its CSS class) to support a new token — matching is generated
-// from these keys and is case-insensitive.
-const BADGE_TOKENS: Record<string, { label: string; className: string }> = {
-  task: { label: 'TASK', className: styles.tokenTask },
-  qa: { label: 'QA', className: styles.tokenQa },
-};
-
-const TOKEN_PATTERN = new RegExp(
-  `\\[(${Object.keys(BADGE_TOKENS).join('|')})\\]`,
-  'gi',
-);
-
-interface TokenBadgeProps {
-  id: string;
-  tokenKey: string;
-  taskInfo?: ScratchpadTaskRef;
-  open: boolean;
-  manageFocus: boolean;
-  onOpenChange?: (id: string | null, manageFocus?: boolean) => void;
-}
-
-function TokenBadge({
-  id,
-  tokenKey,
-  taskInfo,
-  open,
-  manageFocus,
-  onOpenChange,
-}: TokenBadgeProps) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const token = BADGE_TOKENS[tokenKey];
-  // Only `task` tokens reveal a popover, and only when info is supplied.
-  const interactive =
-    tokenKey === 'task' && taskInfo !== undefined && onOpenChange !== undefined;
-
-  if (!interactive) {
-    return (
-      <span className={cn(styles.tokenBadge, token.className)}>
-        {token.label}
-      </span>
-    );
-  }
-
-  return (
-    <>
-      <button
-        ref={ref}
-        type="button"
-        className={cn(
-          styles.tokenBadge,
-          styles.tokenBadgeButton,
-          token.className,
-        )}
-        aria-label={`Linked task ${taskInfo.id}`}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpenChange(id, true);
-        }}
-        onMouseEnter={() => {
-          if (!manageFocus) onOpenChange(id);
-        }}
-        onMouseLeave={() => {
-          if (!manageFocus) onOpenChange(null);
-        }}
-      >
-        {token.label}
-      </button>
-      <Popover
-        open={open}
-        onOpenChange={(next) => onOpenChange(next ? id : null)}
-        anchorRef={ref}
-        manageFocus={manageFocus}
-        placement="bottom-start"
-        aria-label={`Linked task ${taskInfo.id}`}
-      >
-        {/* Keep the card open while the pointer bridges the chip→card gap. */}
-        <div
-          onMouseEnter={() => {
-            if (!manageFocus) onOpenChange(id);
-          }}
-          onMouseLeave={() => {
-            if (!manageFocus) onOpenChange(null);
-          }}
-        >
-          <LinkedTaskCard taskRef={taskInfo} />
-        </div>
-      </Popover>
-    </>
-  );
-}
-
-interface HighlightedTextProps {
-  lineId: string;
-  text: string;
-  highlight: boolean;
-  taskBadgeInfo?: ScratchpadTaskRef;
-  openBadgeId?: string | null;
-  openBadgeManagesFocus?: boolean;
-  onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) => void;
-}
-
-// Renders the line text with inline [task]/[qa] token chips. Plain text flows
-// naturally; click-to-edit is handled by the enclosing line, not per run.
-function HighlightedText({
-  lineId,
-  text,
-  highlight,
-  taskBadgeInfo,
-  openBadgeId,
-  openBadgeManagesFocus,
-  onBadgeOpenChange,
-}: HighlightedTextProps) {
-  if (!highlight) return <>{text}</>;
-
-  const nodes: ReactNode[] = [];
-  let last = 0;
-  let tokenIndex = 0;
-  for (const match of text.matchAll(TOKEN_PATTERN)) {
-    const start = match.index ?? 0;
-    if (start > last) nodes.push(text.slice(last, start));
-    const tokenKey = match[1].toLowerCase();
-    // Key by occurrence index, not character offset, so the open id stays
-    // valid when text before the token changes length.
-    const id = `${lineId}#${tokenIndex++}`;
-    nodes.push(
-      <TokenBadge
-        key={id}
-        id={id}
-        tokenKey={tokenKey}
-        taskInfo={taskBadgeInfo}
-        open={openBadgeId === id}
-        manageFocus={openBadgeId === id && openBadgeManagesFocus === true}
-        onOpenChange={onBadgeOpenChange}
-      />,
-    );
-    last = start + match[0].length;
-  }
-  if (last < text.length) nodes.push(text.slice(last));
-  return <>{nodes}</>;
-}
-
-function LinkedTaskCard({ taskRef }: { taskRef: ScratchpadTaskRef }) {
-  return (
-    <div className={styles.taskCard}>
-      <div className={styles.taskCardHeader}>
-        <span className={styles.taskCardTitle}>
-          <TicketId>{taskRef.id}</TicketId>
-          {taskRef.title}
-        </span>
-        <Badge>{taskRef.status}</Badge>
-      </div>
-      {taskRef.description && (
-        <p className={styles.taskCardDescription}>{taskRef.description}</p>
-      )}
-      <div className={styles.taskCardFooter}>
-        <span className={styles.taskCardMeta}>
-          <Icon name="schedule" size="sm" />
-          {taskRef.createdAgo}
-        </span>
-        {taskRef.href && (
-          <a className={styles.viewTask} href={sanitizeHref(taskRef.href)}>
-            View Task
-          </a>
-        )}
-      </div>
-    </div>
-  );
-}
-
 interface ScratchpadRowProps {
   line: ScratchpadLine;
   index: number;
@@ -257,6 +76,8 @@ interface ScratchpadRowProps {
   editing: boolean;
   onStartEdit?: (id: string) => void;
   onStopEdit?: (id: string) => void;
+  // Returns true if edit focus moved to an adjacent row (false at the ends).
+  onEditNavigate?: (index: number, direction: 'up' | 'down') => boolean;
   taskBadgeInfo?: ScratchpadTaskRef;
   openBadgeId?: string | null;
   openBadgeManagesFocus?: boolean;
@@ -279,6 +100,7 @@ function ScratchpadRow({
   editing,
   onStartEdit,
   onStopEdit,
+  onEditNavigate,
   taskBadgeInfo,
   openBadgeId,
   openBadgeManagesFocus,
@@ -309,11 +131,28 @@ function ScratchpadRow({
     } else if (e.key === 'Backspace' && line.text === '' && onLineDelete) {
       e.preventDefault();
       onLineDelete(line.id);
+    } else if (e.key === 'ArrowUp' && onEditNavigate) {
+      // On the first line of the row (no newline before the caret), move edit
+      // focus to the previous row; otherwise let the caret move up within this
+      // row's own soft-break lines.
+      const el = e.currentTarget;
+      const beforeCaret = el.value.slice(0, el.selectionStart);
+      if (!beforeCaret.includes('\n') && onEditNavigate(index, 'up')) {
+        e.preventDefault();
+      }
+    } else if (e.key === 'ArrowDown' && onEditNavigate) {
+      const el = e.currentTarget;
+      const afterCaret = el.value.slice(el.selectionStart);
+      if (!afterCaret.includes('\n') && onEditNavigate(index, 'down')) {
+        e.preventDefault();
+      }
     }
   };
 
   const editable = onLineTextChange !== undefined;
-  const showEditor = editable && (!highlightBadges || editing);
+  // A row shows rendered markdown until it is the line being edited; then it
+  // swaps to a raw textarea. No always-open textareas.
+  const showEditor = editable && editing;
   // A todo's `[ ]`/`[x]` becomes a toggle; the rest of the line is its content.
   const toggleable = block.kind === 'todo' && onLineToggle !== undefined;
   const content = toggleable ? line.text.slice(block.contentStart) : line.text;
@@ -332,7 +171,7 @@ function ScratchpadRow({
           aria-label={editLabel[block.kind]}
           onChange={(e) => onLineTextChange(line.id, e.target.value)}
           onKeyDown={handleTextKeyDown}
-          onBlur={highlightBadges ? () => onStopEdit?.(line.id) : undefined}
+          onBlur={() => onStopEdit?.(line.id)}
         />
       </span>
     );
@@ -365,10 +204,10 @@ function ScratchpadRow({
             {block.checked ? '[x]' : '[ ]'}{' '}
           </button>
         )}
-        <HighlightedText
+        <ScratchpadLineMarkdown
           lineId={line.id}
           text={content}
-          highlight={highlightBadges}
+          highlightBadges={highlightBadges}
           taskBadgeInfo={taskBadgeInfo}
           openBadgeId={openBadgeId}
           openBadgeManagesFocus={openBadgeManagesFocus}
@@ -479,6 +318,18 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
       },
     });
 
+    // Moving off the first/last line of the edited row jumps edit focus to the
+    // adjacent row. Returns false at the ends so the caret keeps
+    // its native behaviour there.
+    const onEditNavigate = onLineStartEdit
+      ? (index: number, direction: 'up' | 'down'): boolean => {
+          const next = lines[direction === 'up' ? index - 1 : index + 1];
+          if (!next) return false;
+          onLineStartEdit(next.id);
+          return true;
+        }
+      : undefined;
+
     return (
       <div
         ref={ref}
@@ -512,6 +363,7 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
               editing={editingLineId === line.id}
               onStartEdit={onLineStartEdit}
               onStopEdit={onLineStopEdit}
+              onEditNavigate={onEditNavigate}
               taskBadgeInfo={taskBadgeInfo}
               openBadgeId={openBadgeId}
               openBadgeManagesFocus={openBadgeManagesFocus}

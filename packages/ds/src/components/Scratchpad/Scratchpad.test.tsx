@@ -11,18 +11,22 @@ const lines: readonly ScratchpadLine[] = [
 ];
 
 describe('Scratchpad', () => {
-  it('renders line content', () => {
+  it('renders line content as markdown (raw markers stripped)', () => {
     render(<Scratchpad aria-label="Notes" lines={lines} />);
-    expect(screen.getByText('# Implementation Strategy')).toBeInTheDocument();
-    expect(screen.getByText('[ ] Check race condition')).toBeInTheDocument();
     expect(screen.getByText('Refactor header logic')).toBeInTheDocument();
+    expect(
+      screen.queryByText('# Implementation Strategy'),
+    ).not.toBeInTheDocument();
   });
 
-  it('renders a `#` line as a bold heading', () => {
+  it('renders a `#` line as a real heading', () => {
     render(<Scratchpad aria-label="Notes" lines={lines} />);
-    expect(screen.getByText('# Implementation Strategy').className).toMatch(
-      /headingText/,
-    );
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Implementation Strategy',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('renders the region with the provided aria-label', () => {
@@ -122,15 +126,18 @@ describe('Scratchpad', () => {
   });
 
   describe('edit', () => {
-    it('renders textareas with line text when onLineTextChange is provided', () => {
+    it('shows a raw textarea only for the line being edited', () => {
       render(
         <Scratchpad
           aria-label="Notes"
           lines={lines}
           onLineTextChange={() => {}}
+          editingLineId="h1"
         />,
       );
-      expect(screen.getAllByRole('textbox')).toHaveLength(lines.length);
+      const textboxes = screen.getAllByRole('textbox');
+      expect(textboxes).toHaveLength(1);
+      expect(textboxes[0]).toHaveValue('# Implementation Strategy');
     });
 
     it('fires onLineTextChange with the line id and new text', () => {
@@ -140,6 +147,7 @@ describe('Scratchpad', () => {
           aria-label="Notes"
           lines={lines}
           onLineTextChange={onLineTextChange}
+          editingLineId="h1"
         />,
       );
       fireEvent.change(screen.getByRole('textbox', { name: 'Edit heading' }), {
@@ -148,23 +156,39 @@ describe('Scratchpad', () => {
       expect(onLineTextChange).toHaveBeenCalledWith('h1', 'New heading');
     });
 
-    it('renders static text (no textareas) when onLineTextChange is omitted', () => {
+    it('renders read-only markdown (no textareas) when onLineTextChange is omitted', () => {
       render(<Scratchpad aria-label="Notes" lines={lines} />);
       expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     });
 
-    it('shows the placeholder on a line textarea', () => {
+    it('shows the placeholder on the edited empty line', () => {
       render(
         <Scratchpad
           aria-label="Notes"
           lines={[{ id: 'l0', text: '' }]}
           onLineTextChange={() => {}}
+          editingLineId="l0"
           placeholder="Click to add more context…"
         />,
       );
       expect(
         screen.getByPlaceholderText('Click to add more context…'),
       ).toBeInTheDocument();
+    });
+
+    it('shows an empty line as a click-to-edit placeholder', () => {
+      const onLineStartEdit = vi.fn();
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={[{ id: 'l0', text: '' }]}
+          onLineTextChange={() => {}}
+          onLineStartEdit={onLineStartEdit}
+          placeholder="Click to add more context…"
+        />,
+      );
+      fireEvent.click(screen.getByText('Click to add more context…'));
+      expect(onLineStartEdit).toHaveBeenCalledWith('l0');
     });
 
     it('focuses the line matching autoFocusLineId', () => {
@@ -174,6 +198,7 @@ describe('Scratchpad', () => {
           lines={lines}
           onLineTextChange={() => {}}
           autoFocusLineId="t1"
+          editingLineId="t1"
         />,
       );
       expect(document.activeElement).toBe(
@@ -191,6 +216,7 @@ describe('Scratchpad', () => {
           lines={lines}
           onLineTextChange={() => {}}
           onAddLine={onAddLine}
+          editingLineId="h1"
         />,
       );
       fireEvent.keyDown(screen.getByRole('textbox', { name: 'Edit heading' }), {
@@ -207,6 +233,7 @@ describe('Scratchpad', () => {
           lines={lines}
           onLineTextChange={() => {}}
           onAddLine={onAddLine}
+          editingLineId="h1"
         />,
       );
       fireEvent.keyDown(screen.getByRole('textbox', { name: 'Edit heading' }), {
@@ -224,6 +251,7 @@ describe('Scratchpad', () => {
           lines={[{ id: 'l0', text: '' }]}
           onLineTextChange={() => {}}
           onLineDelete={onLineDelete}
+          editingLineId="l0"
         />,
       );
       fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Backspace' });
@@ -238,12 +266,100 @@ describe('Scratchpad', () => {
           lines={lines}
           onLineTextChange={() => {}}
           onLineDelete={onLineDelete}
+          editingLineId="h1"
         />,
       );
       fireEvent.keyDown(screen.getByRole('textbox', { name: 'Edit heading' }), {
         key: 'Backspace',
       });
       expect(onLineDelete).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('arrow navigation', () => {
+    it('moves edit focus to the previous row on ArrowUp from a single-line row', () => {
+      const onLineStartEdit = vi.fn();
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={lines}
+          onLineTextChange={() => {}}
+          onLineStartEdit={onLineStartEdit}
+          editingLineId="t1"
+        />,
+      );
+      fireEvent.keyDown(screen.getByRole('textbox'), { key: 'ArrowUp' });
+      expect(onLineStartEdit).toHaveBeenCalledWith('h1');
+    });
+
+    it('moves edit focus to the next row on ArrowDown from a single-line row', () => {
+      const onLineStartEdit = vi.fn();
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={lines}
+          onLineTextChange={() => {}}
+          onLineStartEdit={onLineStartEdit}
+          editingLineId="t1"
+        />,
+      );
+      fireEvent.keyDown(screen.getByRole('textbox'), { key: 'ArrowDown' });
+      expect(onLineStartEdit).toHaveBeenCalledWith('t2');
+    });
+
+    it('does not navigate above the first row', () => {
+      const onLineStartEdit = vi.fn();
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={lines}
+          onLineTextChange={() => {}}
+          onLineStartEdit={onLineStartEdit}
+          editingLineId="h1"
+        />,
+      );
+      fireEvent.keyDown(screen.getByRole('textbox'), { key: 'ArrowUp' });
+      expect(onLineStartEdit).not.toHaveBeenCalled();
+    });
+
+    it('navigates up from an empty first line of a multi-line row', () => {
+      const onLineStartEdit = vi.fn();
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={[
+            { id: 'above', text: 'above' },
+            { id: 'multi', text: '\nsecond\nthird' },
+          ]}
+          onLineTextChange={() => {}}
+          onLineStartEdit={onLineStartEdit}
+          editingLineId="multi"
+        />,
+      );
+      const textbox = screen.getByRole('textbox') as HTMLTextAreaElement;
+      textbox.setSelectionRange(0, 0); // caret on the empty first line
+      fireEvent.keyDown(textbox, { key: 'ArrowUp' });
+      expect(onLineStartEdit).toHaveBeenCalledWith('above');
+    });
+
+    it('stays within a multi-line row when the caret is not at the boundary', () => {
+      const onLineStartEdit = vi.fn();
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={[
+            { id: 'm', text: 'line one\nline two' },
+            { id: 'n', text: 'next' },
+          ]}
+          onLineTextChange={() => {}}
+          onLineStartEdit={onLineStartEdit}
+          editingLineId="m"
+        />,
+      );
+      const textbox = screen.getByRole('textbox') as HTMLTextAreaElement;
+      textbox.setSelectionRange(0, 0); // caret on the first line, another below
+      fireEvent.keyDown(textbox, { key: 'ArrowDown' });
+      expect(onLineStartEdit).not.toHaveBeenCalled();
     });
   });
 
@@ -442,6 +558,69 @@ describe('Scratchpad', () => {
       );
       fireEvent.mouseEnter(screen.getByText('QA'));
       expect(onBadgeOpenChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('markdown rendering (default)', () => {
+    const mdLines: readonly ScratchpadLine[] = [
+      { id: 'h1', text: '# Implementation Strategy' },
+      { id: 'b1', text: 'ship **bold** notes' },
+      { id: 't1', text: '[ ] Check **race** condition' },
+      { id: 'k1', text: 'hand to [task] please' },
+    ];
+
+    it('renders a `#` row as a real heading with the marker stripped', () => {
+      render(<Scratchpad aria-label="Notes" lines={mdLines} />);
+      expect(
+        screen.getByRole('heading', {
+          level: 1,
+          name: 'Implementation Strategy',
+        }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText('# Implementation Strategy'),
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders inline marks without raw syntax', () => {
+      render(<Scratchpad aria-label="Notes" lines={mdLines} />);
+      expect(screen.getByText('bold').tagName).toBe('STRONG');
+    });
+
+    it('keeps todos interactive and markdown-renders the content', () => {
+      const onLineToggle = vi.fn();
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={mdLines}
+          highlightBadges
+          onLineToggle={onLineToggle}
+        />,
+      );
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toHaveAttribute('aria-checked', 'false');
+      expect(screen.getByText('race').tagName).toBe('STRONG');
+      fireEvent.click(checkbox);
+      expect(onLineToggle).toHaveBeenCalledWith('t1');
+    });
+
+    it('renders [task] chips alongside markdown when highlightBadges is on', () => {
+      render(<Scratchpad aria-label="Notes" lines={mdLines} highlightBadges />);
+      expect(screen.getByText('TASK')).toBeInTheDocument();
+    });
+
+    it('swaps to a raw textarea while editing a row', () => {
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={mdLines}
+          onLineTextChange={() => {}}
+          editingLineId="b1"
+        />,
+      );
+      expect(screen.getByRole('textbox', { name: 'Edit note' })).toHaveValue(
+        'ship **bold** notes',
+      );
     });
   });
 });

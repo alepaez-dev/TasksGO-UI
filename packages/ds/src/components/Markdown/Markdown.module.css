@@ -24,27 +24,27 @@
 }
 
 .prose h1 {
-  font-size: var(--ds-text-header-title-font-size);
+  font-size: var(--ds-text-heading1-font-size);
 }
 
 .prose h2 {
-  font-size: var(--ds-text-card-header-font-size);
+  font-size: var(--ds-text-heading2-font-size);
 }
 
 .prose h3 {
-  font-size: var(--ds-text-metadata-font-size);
+  font-size: var(--ds-text-heading3-font-size);
 }
 
 .prose h4 {
-  font-size: var(--ds-text-section-header-font-size);
+  font-size: var(--ds-text-heading4-font-size);
 }
 
 .prose h5 {
-  font-size: var(--ds-text-section-header-font-size);
+  font-size: var(--ds-text-heading5-font-size);
 }
 
 .prose h6 {
-  font-size: var(--ds-text-micro-label-font-size);
+  font-size: var(--ds-text-heading6-font-size);
 }
 
 .prose p {

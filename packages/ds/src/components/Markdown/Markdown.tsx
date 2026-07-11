@@ -5,6 +5,7 @@ import MarkdownRenderer, {
 } from 'markdown-to-jsx';
 import { cn } from '../../utils/cn';
 import { sanitizeHref } from '../../utils/sanitizeHref';
+import { linkRenderRule } from '../../utils/markdown/linkRenderRule';
 import { parseScopeBlock } from '../../utils/markdown/parseScopeBlock';
 import { ScopeBlock } from './blocks/ScopeBlock';
 import styles from './Markdown.module.css';
@@ -22,18 +23,8 @@ const markdownOptions: MarkdownToJSX.Options = {
   wrapper: Fragment,
   sanitizer: (value) => (sanitizeHref(value) === '#' ? null : value),
   renderRule(next, node, renderChildren, state) {
-    if (node.type === RuleType.link) {
-      return (
-        <a
-          key={state.key}
-          href={node.target == null ? '#' : sanitizeHref(node.target)}
-          title={node.title || undefined}
-          rel="noopener noreferrer"
-        >
-          {renderChildren(node.children, state)}
-        </a>
-      );
-    }
+    const link = linkRenderRule(node, renderChildren, state);
+    if (link) return link;
     if (node.type === RuleType.codeBlock && node.lang === 'scope') {
       const scope = parseScopeBlock(node.text);
       if (scope.included.length > 0 || scope.excluded.length > 0) {

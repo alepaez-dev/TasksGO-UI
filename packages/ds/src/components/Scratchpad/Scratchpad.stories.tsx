@@ -10,7 +10,7 @@ const meta: Meta<typeof Scratchpad> = {
     docs: {
       description: {
         component:
-          'A reorderable list of free-form notes lines. Each line is one of three kinds — `heading` (`#`), `todo` (`[ ]`/`[x]`), or `text` — rendered in a monospace, plain-text aesthetic. Lines can be dragged to reorder (mouse drag handle or `Alt+ArrowUp`/`Alt+ArrowDown` on the focused handle), edited in place (auto-growing textarea), toggled, deleted, and linked to a task via an inline `TASK` chip that reveals a hover/focus popover. With `highlightBadges`, inline `[task]`/`[qa]` tokens in a line render as colored chips when the line is not being edited (click a line to edit its raw text); `[task]` chips reveal the same task popover on hover when `taskBadgeInfo` is supplied. Every interaction is an optional callback — omit one and that affordance disappears, so a fully read-only scratchpad needs only `aria-label` and `lines`. The component is layout-agnostic and stateless; the consumer owns the line data and the open state.',
+          "A reorderable list of free-form Markdown notes in a monospace aesthetic. Each line's raw text renders as inline Markdown — `#` headings, `**bold**`/`*italic*`/`` `code` ``, and sanitized links — while leading `[ ]`/`[x]` become interactive todo checkboxes. Lines can be dragged to reorder (mouse drag handle or `Alt+ArrowUp`/`Alt+ArrowDown` on the focused handle); clicking a line swaps it to a raw-text editor (auto-growing textarea), and blurring returns it to the rendered view. With `highlightBadges`, inline `[task]`/`[qa]` tokens render as colored chips; `[task]` reveals a task popover on hover/focus when `taskBadgeInfo` is supplied. Every interaction is an optional callback — omit one and that affordance disappears, so a fully read-only scratchpad needs only `aria-label` and `lines`. The component is layout-agnostic and stateless; the consumer owns the line data and the open state.",
       },
     },
   },
@@ -41,20 +41,20 @@ const lines: readonly ScratchpadLine[] = [
   },
   {
     id: 't2',
-    text: '[ ] Verify TTL headers are properly inherited from origin if specified. This is a longer line to test multi-line vertical alignment of the drag handle at the top of the row.',
+    text: '[ ] Verify **TTL** headers are inherited from origin — see [caching RFC](https://example.com/rfc)',
   },
   {
     id: 't3',
     text: 'Refactor the [task] edge-caching header mutation logic to handle multi-value headers and ensure compatibility with legacy upstream services.',
   },
-  { id: 't4', text: '[x] Initial research on CloudFront function limits' },
+  { id: 't4', text: '[x] Initial research on *CloudFront* function limits' },
   {
     id: 'x1',
-    text: 'Debug: [qa] latency spikes observed in us-west-2 staging environment',
+    text: 'Debug: [qa] latency spikes observed in `us-west-2` staging environment',
   },
   {
     id: 'x2',
-    text: 'Note: hand the [task] to @am after the header mutation review',
+    text: 'Note: hand the [task] to **@am** after the header mutation review',
   },
 ];
 
@@ -110,4 +110,40 @@ export const ReadOnly: Story = {
 
 export const Empty: Story = {
   render: () => <ControlledScratchpad initial={[{ id: 'first', text: '' }]} />,
+};
+
+export const Headings: Story = {
+  render: () => (
+    <ControlledScratchpad
+      initial={[
+        { id: 'g1', text: '# Heading 1' },
+        { id: 'g2', text: '## Heading 2' },
+        { id: 'g3', text: '### Heading 3' },
+        { id: 'g4', text: '#### Heading 4' },
+        { id: 'gb', text: 'Body text for comparison' },
+      ]}
+    />
+  ),
+};
+
+export const MultiLineRow: Story = {
+  render: () => (
+    <ControlledScratchpad
+      highlightBadges
+      initial={[
+        {
+          id: 'r1',
+          text: 'A soft-break row keeps one heading level:',
+        },
+        {
+          id: 'r2',
+          text: '# header 1\n## header 2\n### header 3\n#### header 4',
+        },
+        {
+          id: 'r3',
+          text: 'Only the first marker is stripped; later lines stay literal.',
+        },
+      ]}
+    />
+  ),
 };
