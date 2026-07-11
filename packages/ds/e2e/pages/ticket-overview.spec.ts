@@ -205,12 +205,12 @@ test.describe('Ticket Overview page — header actions', () => {
   });
 });
 
-test.describe('Ticket Overview page — freeform markdown body', () => {
+test.describe('Ticket Overview page — inline body editor', () => {
   test.beforeEach(async ({ page }) => {
     await loadStory(page);
   });
 
-  test('starts in template mode with no editor toolbar', async ({ page }) => {
+  test('starts in read mode with no editor toolbar', async ({ page }) => {
     await expect(
       page.getByRole('heading', { name: 'Description' }),
     ).toBeVisible();
@@ -219,10 +219,10 @@ test.describe('Ticket Overview page — freeform markdown body', () => {
     ).not.toBeVisible();
   });
 
-  test('switching to freeform reveals the editor seeded with the markdown and moves focus there', async ({
+  test('opens the editor from the Edit button, seeded with the markdown, moving focus in', async ({
     page,
   }) => {
-    await page.getByRole('button', { name: 'Freeform' }).click();
+    await page.getByRole('button', { name: 'Edit ticket template' }).click();
     await expect(
       page.getByRole('toolbar', { name: 'Formatting' }),
     ).toBeVisible();
@@ -230,21 +230,79 @@ test.describe('Ticket Overview page — freeform markdown body', () => {
     await expect(textarea).toBeVisible();
     await expect(textarea).toBeFocused();
     await expect(textarea).toHaveValue(/## Description/);
-    // QA Summary stays inside the same card in freeform mode
+    // QA Summary stays visible while editing the body
     await expect(
       page.getByRole('heading', { name: 'QA Summary' }),
     ).toBeVisible();
   });
 
-  test('switching back to template preserves content and restores focus', async ({
+  test('closes on Escape and returns focus to the Edit button', async ({
     page,
   }) => {
-    await page.getByRole('button', { name: 'Freeform' }).click();
-    await page.getByRole('button', { name: 'Template' }).click();
+    const editButton = page.getByRole('button', {
+      name: 'Edit ticket template',
+    });
+    await editButton.focus();
+    await page.keyboard.press('Enter');
+    const textarea = page.getByRole('textbox', { name: 'Markdown' });
+    await expect(textarea).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(textarea).toBeHidden();
     await expect(
       page.getByRole('heading', { name: 'Description' }),
     ).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Freeform' })).toBeFocused();
+    await expect(editButton).toBeFocused();
+  });
+
+  test('Escape reverts unsaved edits', async ({ page }) => {
+    await page.getByRole('button', { name: 'Edit ticket template' }).click();
+    const textarea = page.getByRole('textbox', { name: 'Markdown' });
+    await textarea.fill('## Reverted away');
+    await page.keyboard.press('Escape');
+    await expect(textarea).toBeHidden();
+    await expect(
+      page.getByRole('heading', { name: 'Description' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Reverted away' }),
+    ).toHaveCount(0);
+  });
+
+  test('Cancel button reverts unsaved edits', async ({ page }) => {
+    await page.getByRole('button', { name: 'Edit ticket template' }).click();
+    const textarea = page.getByRole('textbox', { name: 'Markdown' });
+    await textarea.fill('## Reverted away');
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(textarea).toBeHidden();
+    await expect(
+      page.getByRole('heading', { name: 'Description' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Reverted away' }),
+    ).toHaveCount(0);
+  });
+
+  test('Save button commits edits and closes', async ({ page }) => {
+    await page.getByRole('button', { name: 'Edit ticket template' }).click();
+    const textarea = page.getByRole('textbox', { name: 'Markdown' });
+    await textarea.fill('## Committed heading');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(textarea).toBeHidden();
+    await expect(
+      page.getByRole('heading', { name: 'Committed heading' }),
+    ).toBeVisible();
+  });
+
+  test('Ctrl/Cmd+Enter commits edits and closes', async ({ page }) => {
+    await page.getByRole('button', { name: 'Edit ticket template' }).click();
+    const textarea = page.getByRole('textbox', { name: 'Markdown' });
+    await textarea.fill('## Keyboard committed');
+    await textarea.focus();
+    await page.keyboard.press('ControlOrMeta+Enter');
+    await expect(textarea).toBeHidden();
+    await expect(
+      page.getByRole('heading', { name: 'Keyboard committed' }),
+    ).toBeVisible();
   });
 
   test('Create scenario navigates to the QA tab', async ({ page }) => {

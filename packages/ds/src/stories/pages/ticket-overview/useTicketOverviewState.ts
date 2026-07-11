@@ -19,8 +19,6 @@ import { toStageValue } from '../../../utils/toStageValue';
 import { ticket } from './shared';
 import { serializeTicketBody } from './serializeTicketBody';
 
-export type BodyMode = 'template' | 'freeform';
-
 const BRANCH_COPIED_FLASH_MS = 2000;
 
 function getAddStageMessage(
@@ -71,8 +69,8 @@ export interface UseTicketOverviewState {
   setActiveTab: (value: string) => void;
   body: string;
   setBody: Dispatch<SetStateAction<string>>;
-  bodyMode: BodyMode;
-  setBodyMode: Dispatch<SetStateAction<BodyMode>>;
+  bodyEditing: boolean;
+  setBodyEditing: Dispatch<SetStateAction<boolean>>;
   assignee: string;
   setAssignee: (value: string) => void;
   assigneeSelector: SelectorGroupEntry;
@@ -114,7 +112,7 @@ export function useTicketOverviewState(): UseTicketOverviewState {
   const projectSelector = useSelectorState();
   const [activeNav, setActiveNav] = useState('tickets');
   const [activeTab, setActiveTab] = useState('overview');
-  const [bodyMode, setBodyMode] = useState<BodyMode>('template');
+  const [bodyEditing, setBodyEditing] = useState(false);
   const [body, setBody] = useState(() => serializeTicketBody(ticket));
   const [assignee, setAssignee] = useState(ticket.metadata.assigneeValue);
   const [reporter, setReporter] = useState(ticket.metadata.reporterValue);
@@ -219,8 +217,8 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     setActiveTab,
     body,
     setBody,
-    bodyMode,
-    setBodyMode,
+    bodyEditing,
+    setBodyEditing,
     assignee,
     setAssignee,
     assigneeSelector: metadataSelectors.assignee,

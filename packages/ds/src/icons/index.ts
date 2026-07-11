@@ -17,6 +17,7 @@ export { ContentCopyIcon } from './contentCopy';
 export { DescriptionIcon } from './description';
 export { DescriptionFilledIcon } from './descriptionFilled';
 export { DragIndicatorIcon } from './dragIndicator';
+export { EditIcon } from './edit';
 export { ExpandMoreIcon } from './expandMore';
 export { FlagIcon } from './flag';
 export { ForkRightIcon } from './forkRight';
