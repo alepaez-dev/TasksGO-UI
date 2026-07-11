@@ -287,6 +287,15 @@ export const typographyScale = {
     textTransform: 'uppercase',
     lineHeight: DEFAULT_LINE_HEIGHT,
   },
+  externalLink: bodyRegularSans14,
+  externalLinkSm: {
+    fontSize: '12px',
+    fontFamily: fontFamilies.sans,
+    fontWeight: fontWeights.regular,
+    letterSpacing: 'normal',
+    textTransform: 'none',
+    lineHeight: DEFAULT_LINE_HEIGHT,
+  },
   heading1: {
     fontSize: '22px',
     fontFamily: fontFamilies.sans,
