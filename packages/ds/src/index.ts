@@ -64,6 +64,10 @@ export { TicketId, type TicketIdProps } from './components/TicketId';
 export { DateCell, type DateCellProps } from './components/DateCell';
 export { RefLabel, type RefLabelProps } from './components/RefLabel';
 export {
+  ExternalLink,
+  type ExternalLinkProps,
+} from './components/ExternalLink';
+export {
   SectionHeader,
   type SectionHeaderProps,
 } from './components/SectionHeader';
