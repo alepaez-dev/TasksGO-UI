@@ -29,9 +29,10 @@ export interface EditableMarkdownProps extends Omit<
   isUploading?: boolean;
   onInsertImageFiles?: (files: readonly File[]) => void;
   editLabel?: string;
-  showEditButton?: boolean;
+  editButton?: 'none' | 'hover' | 'always';
   cancelLabel?: string;
   saveLabel?: string;
+  stickyHeader?: boolean;
 }
 
 const INTERACTIVE_SELECTOR = 'a, button, input, textarea, select, label';
@@ -55,9 +56,10 @@ export const EditableMarkdown = forwardRef<
       isUploading,
       onInsertImageFiles,
       editLabel = 'Edit',
-      showEditButton = true,
+      editButton = 'hover',
       cancelLabel = 'Cancel',
       saveLabel = 'Save',
+      stickyHeader = true,
       className,
       ...rest
     },
@@ -80,6 +82,7 @@ export const EditableMarkdown = forwardRef<
           onKeyDown={handleEditorKeyDown}
           value={value}
           onChange={onChange}
+          stickyHeader={stickyHeader}
           textareaRef={textareaRef}
           onAction={onAction}
           wordCount={wordCount}
@@ -123,13 +126,16 @@ export const EditableMarkdown = forwardRef<
           className={styles.content}
           onClick={handleContentClick}
         />
-        {showEditButton ? (
+        {editButton !== 'none' ? (
           <IconButton
             ref={editButtonRef}
             icon="edit"
             aria-label={editLabel}
             size="sm"
-            className={styles.editButton}
+            className={cn(
+              styles.editButton,
+              editButton === 'always' && styles.editButtonVisible,
+            )}
             onClick={onRequestEdit}
           />
         ) : null}

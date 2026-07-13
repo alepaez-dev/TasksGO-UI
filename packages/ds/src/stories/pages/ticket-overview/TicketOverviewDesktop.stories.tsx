@@ -133,10 +133,11 @@ function TicketOverviewRender() {
 
   const editButtonRef = useRef<HTMLButtonElement>(null);
   const bodySnapshot = useRef(body);
-  const bodyEditingMounted = useRef(false);
+  const hasMounted = useRef(false);
   useEffect(() => {
-    if (!bodyEditingMounted.current) {
-      bodyEditingMounted.current = true;
+    // Only move focus on edit-mode transitions, not the initial mount.
+    if (!hasMounted.current) {
+      hasMounted.current = true;
       return;
     }
     if (bodyEditing) {

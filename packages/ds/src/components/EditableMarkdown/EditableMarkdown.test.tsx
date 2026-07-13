@@ -67,19 +67,34 @@ describe('EditableMarkdown', () => {
       expect(onRequestEdit).not.toHaveBeenCalled();
     });
 
-    it('hides the Edit button when showEditButton is false', () => {
+    it('hides the Edit button when editButton is none', () => {
       render(
         <EditableMarkdown
           {...base}
           editing={false}
           value="Hello body"
-          showEditButton={false}
+          editButton="none"
           editLabel="Edit description"
         />,
       );
       expect(
         screen.queryByRole('button', { name: 'Edit description' }),
       ).toBeNull();
+    });
+
+    it("keeps the Edit button mounted with editButton='always'", () => {
+      render(
+        <EditableMarkdown
+          {...base}
+          editing={false}
+          value="Hello body"
+          editButton="always"
+          editLabel="Edit description"
+        />,
+      );
+      expect(
+        screen.getByRole('button', { name: 'Edit description' }),
+      ).toBeInTheDocument();
     });
 
     it('does not render the editor textarea in view mode', () => {
