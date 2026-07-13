@@ -34,4 +34,25 @@ describe('Badge', () => {
     render(<Badge className="custom">Label</Badge>);
     expect(screen.getByText('Label')).toHaveClass('custom');
   });
+
+  it('applies the count variant class and renders a plain count', () => {
+    render(<Badge variant="count">37</Badge>);
+    expect(screen.getByText('37')).toHaveClass('count');
+  });
+
+  it('renders a fraction count verbatim', () => {
+    render(<Badge variant="count">2/13</Badge>);
+    expect(screen.getByText('2/13')).toBeInTheDocument();
+  });
+
+  it('labels an ambiguous fraction via role="img" + aria-label', () => {
+    render(
+      <Badge variant="count" role="img" aria-label="2 of 13 checks passing">
+        2/13
+      </Badge>,
+    );
+    expect(
+      screen.getByRole('img', { name: '2 of 13 checks passing' }),
+    ).toBeInTheDocument();
+  });
 });
