@@ -105,12 +105,74 @@ function logRound({ log, logLevel, config, rounds, msg, uses, outs, spentUsd, fr
   log(`  budget -> model: ${budgetPhase(frac, softFraction)} (${Math.round(frac * 100)}% spent)`);
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const errMsg = (e) => (e && e.message ? e.message : String(e));
+
+export function isTransientError(e) {
+  const status = e?.status ?? e?.statusCode;
+  if (status === 429 || (typeof status === 'number' && status >= 500 && status <= 599)) return true;
+  const type = e?.error?.error?.type ?? e?.error?.type ?? e?.type;
+  if (type === 'overloaded_error' || type === 'rate_limit_error' || type === 'api_error') return true;
+  if (status == null && /ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|socket hang up|network|timeout/i.test(errMsg(e))) return true;
+  return false;
+}
+
+function buildRequestParams(model, { config, system, tools, messages }) {
+  return {
+    model,
+    max_tokens: config.maxOutputTokens,
+    betas: [TASK_BUDGET_BETA],
+    thinking: { type: 'adaptive', display: 'summarized' },
+    output_config: {
+      effort: config.effort,
+      task_budget: { type: 'tokens', total: Math.max(20000, config.taskBudgetTokens) },
+    },
+    system,
+    tools,
+    messages,
+  };
+}
+
+async function streamRoundWithRetry({ client, models, startIdx, maxRetries, baseDelay, params, log }) {
+  let lastErr;
+  for (let idx = startIdx; idx < models.length; idx++) {
+    const model = models[idx];
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const stream = client.beta.messages.stream(buildRequestParams(model, params));
+        const msg = await stream.finalMessage();
+        if (idx !== startIdx) log(`recovered on fallback model ${model}.`);
+        return { msg, idx };
+      } catch (e) {
+        if (!isTransientError(e)) throw e;
+        lastErr = e;
+        const moreAttempts = attempt < maxRetries;
+        const moreModels = idx < models.length - 1;
+        if (!moreAttempts && !moreModels) throw e;
+        if (moreAttempts) {
+          const delay = baseDelay * 2 ** attempt;
+          log(`transient API error on ${model} (attempt ${attempt + 1}/${maxRetries + 1}): ${errMsg(e)}${delay ? ` — retrying in ${delay}ms` : ''}`);
+          if (delay) await sleep(delay);
+        } else {
+          log(`transient API error on ${model} (retries exhausted): ${errMsg(e)} — falling back to ${models[idx + 1]}`);
+          break;
+        }
+      }
+    }
+  }
+  throw lastErr;
+}
+
 export async function runReviewAgent({ client, config, system, userMessage, root, log }) {
   const runTool = makeToolRunner({ root, config });
   const governor = createGovernor({ config });
   const tools = TOOL_DEFS;
   const logLevel = config.logLevel ?? 'info';
   const softFraction = config.softWindDownFraction ?? 0.75;
+  const models = [config.model, config.fallbackModel].filter(Boolean);
+  const maxRetries = config.maxTransientRetries ?? 3;
+  const baseDelay = config.retryBaseDelayMs ?? 1000;
+  let modelIdx = 0;
 
   const messages = [
     { role: 'user', content: [{ type: 'text', text: userMessage, cache_control: { type: 'ephemeral' } }] },
@@ -138,7 +200,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     // When budget/rounds are about to be exceeded, give the model ONE final turn to submit the
     // findings it already has.
     if (!windingDown) {
-      const overBudget = lastUsage && governor.wouldExceed(governor.projectNextRoundUsd(lastUsage));
+      const overBudget = lastUsage && governor.wouldExceed(governor.projectNextRoundUsd(lastUsage, models[modelIdx]));
       const overRounds = rounds >= config.maxRounds;
       if (overBudget || overRounds) {
         governor.interrupt(overRounds ? 'max_rounds' : 'budget');
@@ -167,29 +229,26 @@ export async function runReviewAgent({ client, config, system, userMessage, root
 
     let msg;
     try {
-      const stream = client.beta.messages.stream({
-        betas: [TASK_BUDGET_BETA],
-        model: config.model,
-        max_tokens: config.maxOutputTokens,
-        thinking: { type: 'adaptive' },
-        output_config: {
-          effort: config.effort,
-          task_budget: { type: 'tokens', total: Math.max(20000, config.taskBudgetTokens) },
-        },
-        system,
-        tools,
-        messages,
+      const res = await streamRoundWithRetry({
+        client,
+        models,
+        startIdx: modelIdx,
+        maxRetries,
+        baseDelay,
+        params: { config, system, tools, messages },
+        log,
       });
-      msg = await stream.finalMessage();
+      msg = res.msg;
+      modelIdx = res.idx;
     } catch (e) {
       if (rounds === 0) throw e;
       governor.interrupt('error');
-      log(`model request failed after ${rounds} round(s); returning findings so far: ${e && e.message ? e.message : e}`);
+      log(`model request failed after ${rounds} round(s) (retries + fallback exhausted); returning findings so far: ${errMsg(e)}`);
       break;
     }
     rounds += 1;
     lastUsage = msg.usage || null;
-    governor.record(msg.usage);
+    governor.record(msg.usage, models[modelIdx]);
 
     const uses = findToolUses(msg.content);
     messages.push({ role: 'assistant', content: msg.content });
@@ -283,6 +342,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   return {
     findings: findings ?? [],
     usage: governor.totalUsage(),
+    costUsd: governor.spentUsd(),
+    usedFallback: modelIdx > 0,
     interruptedReason: governor.interruptedReason,
     rounds,
     toolBudgetExhausted,

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { runReviewAgent, describeToolUse, summarizeToolResult, budgetGuidance, budgetPhase } from './agent-loop.mjs';
+import { runReviewAgent, describeToolUse, summarizeToolResult, budgetGuidance, budgetPhase, isTransientError } from './agent-loop.mjs';
 
 const config = {
   model: 'claude-opus-4-8',
@@ -15,7 +15,7 @@ const config = {
   maxToolCalls: 120,
   maxFileReadBytes: 200000,
   maxGrepMatches: 200,
-  pricing: { 'claude-opus-4-8': { input: 5, output: 25 } },
+  pricing: { 'claude-opus-4-8': { input: 5, output: 25 }, 'claude-sonnet-4-6': { input: 3, output: 15 } },
 };
 const root = mkdtempSync(join(tmpdir(), 't3loop-'));
 
@@ -281,4 +281,127 @@ test('sets toolBudgetExhausted once maxToolCalls is exceeded', async () => {
   ]);
   const out = await runReviewAgent({ client, config: { ...config, maxToolCalls: 1 }, system: 'sys', userMessage: 'r', root, log: () => {} });
   assert.equal(out.toolBudgetExhausted, true);
+});
+
+function scriptedClient(steps) {
+  let i = 0;
+  const calls = [];
+  const client = {
+    beta: {
+      messages: {
+        stream(params) {
+          calls.push(params);
+          const step = steps[Math.min(i++, steps.length - 1)];
+          return { finalMessage: async () => { if (step instanceof Error) throw step; return step; } };
+        },
+      },
+    },
+  };
+  return { client, calls };
+}
+const overloaded = () => Object.assign(new Error('Overloaded'), { status: 529, error: { type: 'overloaded_error' } });
+const creditBalance = () => Object.assign(new Error('Your credit balance is too low'), { status: 400, error: { type: 'invalid_request_error' } });
+const submitMsg = (findings = []) => ({ content: [{ type: 'tool_use', id: 'ts', name: 'submit_findings', input: { findings } }], usage: { input_tokens: 100, output_tokens: 10 } });
+const grepMsg = () => ({ content: [{ type: 'tool_use', id: 'tg', name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 100, output_tokens: 10 } });
+const fast = (extra) => ({ ...config, retryBaseDelayMs: 0, ...extra });
+
+test('isTransientError: retry 429/5xx/overloaded/network, never 4xx like the credit-balance 400', () => {
+  const withStatus = (s, type) => Object.assign(new Error('x'), { status: s, error: type ? { type } : undefined });
+  assert.equal(isTransientError(withStatus(529, 'overloaded_error')), true);
+  assert.equal(isTransientError(withStatus(429, 'rate_limit_error')), true);
+  assert.equal(isTransientError(withStatus(503, 'api_error')), true);
+  assert.equal(isTransientError({ error: { type: 'overloaded_error' } }), true);
+  assert.equal(isTransientError(new Error('socket hang up')), true);
+  assert.equal(isTransientError(withStatus(400, 'invalid_request_error')), false); // credit balance / malformed
+  assert.equal(isTransientError(withStatus(401)), false);
+  assert.equal(isTransientError(withStatus(403)), false);
+  assert.equal(isTransientError(new Error('some unrelated failure')), false);
+});
+
+test('every request asks for summarized thinking + task budget on the primary model', async () => {
+  const { client, calls } = scriptedClient([submitMsg()]);
+  await runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(calls[0].model, 'claude-opus-4-8');
+  assert.deepEqual(calls[0].thinking, { type: 'adaptive', display: 'summarized' }); // otherwise thinking streams back empty
+  assert.deepEqual(calls[0].betas, ['task-budgets-2026-03-13']);
+});
+
+test('retries a transient error and recovers on the same model', async () => {
+  const { client, calls } = scriptedClient([overloaded(), submitMsg()]);
+  const out = await runReviewAgent({ client, config: fast({ maxTransientRetries: 2 }), system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.interruptedReason, null);
+  assert.equal(out.submitted, true);
+  assert.equal(calls.length, 2); // one failed attempt, one successful retry
+});
+
+test('falls back to the fallback model after the primary exhausts its retries', async () => {
+  const { client, calls } = scriptedClient([overloaded(), overloaded(), submitMsg()]);
+  const cfg = fast({ maxTransientRetries: 1, fallbackModel: 'claude-opus-4-7' });
+  const out = await runReviewAgent({ client, config: cfg, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.interruptedReason, null);
+  assert.equal(out.submitted, true);
+  assert.equal(calls.length, 3); // 2 primary attempts + 1 fallback
+  assert.equal(calls[0].model, 'claude-opus-4-8');
+  assert.equal(calls[2].model, 'claude-opus-4-7'); // fell back
+  assert.deepEqual(calls[2].betas, ['task-budgets-2026-03-13']); // fallback gets the same options — no per-model branch
+  assert.equal(calls[2].thinking.display, 'summarized');
+});
+
+test('a permanent 400 is not retried and fails loud on the first request', async () => {
+  const { client, calls } = scriptedClient([creditBalance()]);
+  await assert.rejects(
+    runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: () => {} }),
+    /credit balance/,
+  );
+  assert.equal(calls.length, 1); // no retry, no fallback
+});
+
+test('a permanent 400 mid-loop degrades to findings-so-far without retrying', async () => {
+  const { client, calls } = scriptedClient([grepMsg(), creditBalance()]);
+  const out = await runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.interruptedReason, 'error');
+  assert.deepEqual(out.findings, []);
+  assert.equal(calls.length, 2); // round 1 grep + the un-retried 400
+});
+
+test('degrades to findings-so-far once every model and retry is exhausted', async () => {
+  const { client, calls } = scriptedClient([grepMsg(), overloaded(), overloaded(), overloaded(), overloaded()]);
+  const cfg = fast({ maxTransientRetries: 1, fallbackModel: 'claude-sonnet-4-6' });
+  const out = await runReviewAgent({ client, config: cfg, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.interruptedReason, 'error');
+  assert.deepEqual(out.findings, []);
+  assert.equal(calls.length, 5); // round 1 grep + round 2: 2 primary + 2 fallback attempts
+});
+
+test('a fallback round is priced at the fallback model\'s real rate, not the primary\'s', async () => {
+  const usage = { input_tokens: 100000, output_tokens: 20000 };
+  const msg = { content: [{ type: 'tool_use', id: 's', name: 'submit_findings', input: { findings: [] } }], usage };
+  // (a) opus-only run
+  const a = scriptedClient([msg]);
+  const outA = await runReviewAgent({ client: a.client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  // (b) identical usage, but produced on the sonnet fallback after opus is exhausted
+  const b = scriptedClient([overloaded(), overloaded(), msg]);
+  const outB = await runReviewAgent({ client: b.client, config: fast({ maxTransientRetries: 1, fallbackModel: 'claude-sonnet-4-6' }), system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.ok(outA.costUsd > 0 && outB.costUsd > 0);
+  assert.equal(outA.usedFallback, false);
+  assert.equal(outB.usedFallback, true);
+  assert.ok(outB.costUsd < outA.costUsd, `fallback (sonnet) cost ${outB.costUsd} should be < primary (opus) cost ${outA.costUsd}`);
+});
+
+test('logs the model thinking (Thinking ->) when the response carries a thinking block', async () => {
+  const logs = [];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'The renderer re-parses the line, so the badge onClick may be dropped.' },
+        { type: 'text', text: 'Tracing the handler.' },
+        { type: 'tool_use', id: 't1', name: 'grep', input: { pattern: 'onClick' } },
+      ],
+      usage: { input_tokens: 1000, output_tokens: 200 },
+    },
+    { content: [{ type: 'tool_use', id: 't2', name: 'submit_findings', input: { findings: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (m) => logs.push(m) });
+  assert.ok(logs.some((l) => l.startsWith('Thinking -> ')), 'a "Thinking ->" line must be logged when the model thinks');
+  assert.ok(logs.some((l) => l.startsWith('Reasoning -> ')), 'a "Reasoning ->" line for the text narration too');
 });
