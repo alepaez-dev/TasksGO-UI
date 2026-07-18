@@ -59,7 +59,7 @@ function loadTextFile(path) {
 // the PR comments prepend it as a `> ⚠️ …` banner). Null when the run finished normally.
 function interruptNote(result, config) {
   if (!result.interruptedReason) return null;
-  const spent = estimateCostUsd(result.usage, config.model, config.pricing);
+  const spent = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
   const spend = `≈ ${formatUsage(result.usage)}${spent != null ? ` (≈ $${spent.toFixed(2)})` : ''}`;
   if (result.interruptedReason === 'budget') {
     return (
@@ -272,8 +272,12 @@ async function main() {
 
   // Run the autonomous agentic review. Tool reads happen against the read-only head checkout.
   const result = await runReviewAgent({ client, config, system, userMessage, root: headDir, log: (m) => core.info(m) });
-  const reviewCostUsd = estimateCostUsd(result.usage, config.model, config.pricing);
-  core.info(`Agentic review: ${result.rounds} round(s) · ${formatUsage(result.usage)}${reviewCostUsd != null ? ` → ≈ $${reviewCostUsd.toFixed(3)}` : ''}.`);
+  const reviewCostUsd = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
+  core.info(
+    `Agentic review: ${result.rounds} round(s) · ${formatUsage(result.usage)}` +
+      `${result.usedFallback ? ` (fell back to ${config.fallbackModel})` : ''}` +
+      `${reviewCostUsd != null ? ` → ≈ $${reviewCostUsd.toFixed(3)}` : ''}.`,
+  );
 
   const note = interruptNote(result, config);
   const banner = note ? `> ⚠️ ${note}` : null;
@@ -321,7 +325,8 @@ async function main() {
   const resolvedCount = verifyStats?.resolved ?? 0;
   const verifiedSha = verificationComplete(verifyStats) ? pr.headSha : lastVerifiedSha;
   const usage = addUsage(result.usage, verifyStats?.usage);
-  const costUsd = estimateCostUsd(usage, config.model, config.pricing);
+  const verifyCostUsd = verifyStats?.usage ? (estimateCostUsd(verifyStats.usage, config.model, config.pricing) ?? 0) : 0;
+  const costUsd = (reviewCostUsd ?? 0) + verifyCostUsd;
 
   // A budget/round/error interrupt — OR the model ending without ever calling submit_findings — means
   // the review did NOT finish; do not mark this commit reviewed, so re-applying the label retries.

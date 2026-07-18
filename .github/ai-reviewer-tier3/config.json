@@ -1,5 +1,8 @@
 {
   "model": "claude-opus-4-8",
+  "fallbackModel": "claude-opus-4-7",
+  "maxTransientRetries": 0,
+  "retryBaseDelayMs": 1000,
   "effort": "high",
   "maxOutputTokens": 64000,
   "taskBudgetTokens": 1200000,
@@ -22,8 +25,7 @@
   "toolExtensions": [".ts", ".tsx", ".js", ".jsx", ".css", ".json", ".md", ".mjs", ".cjs", ".yml", ".yaml"],
   "pricing": {
     "claude-opus-4-8": { "input": 5, "output": 25 },
-    "claude-sonnet-4-6": { "input": 3, "output": 15 },
-    "claude-haiku-4-5": { "input": 1, "output": 5 }
+    "claude-opus-4-7": { "input": 5, "output": 25 }
   },
   "includeProjectGuide": true,
   "postSummaryComment": true,
