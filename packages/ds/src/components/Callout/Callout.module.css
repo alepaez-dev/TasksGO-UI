@@ -1,0 +1,34 @@
+.callout {
+  border-left: var(--ds-space-scale-xs) solid transparent;
+  border-radius: var(--ds-radius-lg);
+  padding: var(--ds-space-callout-padding-y) var(--ds-space-callout-padding-x);
+  font-size: var(--ds-text-card-body-font-size);
+  font-family: var(--ds-text-card-body-font-family);
+  font-weight: var(--ds-text-card-body-font-weight);
+  line-height: var(--ds-text-card-body-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.positive {
+  background-color: var(--ds-color-badge-success-background);
+  border-left-color: var(--ds-color-status-success);
+}
+
+.critical {
+  background-color: var(--ds-color-badge-critical-background);
+  border-left-color: var(--ds-color-status-critical);
+}
+
+.warning {
+  background-color: var(--ds-color-badge-high-background);
+  border-left-color: var(--ds-color-status-high);
+}
+
+.neutral {
+  background-color: var(--ds-color-surface-secondary);
+  border-left-color: var(--ds-color-surface-muted);
+}
+
+.callout > :where(p, ul, ol) {
+  margin: 0;
+}

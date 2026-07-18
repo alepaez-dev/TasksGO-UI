@@ -153,6 +153,7 @@ export {
   EditableMarkdown,
   type EditableMarkdownProps,
 } from './components/EditableMarkdown';
+export { Callout, type CalloutProps } from './components/Callout';
 export { Card, type CardProps } from './components/Card';
 export {
   CollapsibleCard,
