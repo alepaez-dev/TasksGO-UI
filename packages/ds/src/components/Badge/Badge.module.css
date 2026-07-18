@@ -65,3 +65,15 @@
   font-weight: var(--ds-font-weight-regular);
   text-transform: none;
 }
+
+.count {
+  background-color: var(--ds-color-badge-default-background);
+  color: var(--ds-color-badge-default-text);
+  border-color: var(--ds-color-badge-default-border);
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-section-header-font-size);
+  font-weight: var(--ds-font-weight-regular);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: normal;
+  text-transform: none;
+}
