@@ -26,6 +26,10 @@ export const spacing = {
     paddingX: '8px',
     paddingY: '2px',
   },
+  callout: {
+    paddingX: '16px',
+    paddingY: '12px',
+  },
   ticketId: {
     paddingX: '6px',
     paddingY: '2px',
