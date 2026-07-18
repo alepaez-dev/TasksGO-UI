@@ -67,6 +67,7 @@ export {
   ExternalLink,
   type ExternalLinkProps,
 } from './components/ExternalLink';
+export { ActivityRow, type ActivityRowProps } from './components/ActivityRow';
 export {
   SectionHeader,
   type SectionHeaderProps,
