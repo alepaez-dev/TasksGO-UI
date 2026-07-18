@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/52 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">52/52 infos</a><span class="filter-pill ok" aria-disabled="true">231 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/52 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">52/52 infos</a><span class="filter-pill ok" aria-disabled="true">232 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -881,7 +881,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
       <div class="badges">
         <label for="c-2-components-badge-props" class="badge ok as-toggle">1 prop type</label>
         <label for="c-2-components-badge-info" class="badge info as-toggle">1 info</label>
-        <label for="c-2-components-badge-stories" class="badge ok as-toggle">9 stories</label>
+        <label for="c-2-components-badge-stories" class="badge ok as-toggle">10 stories</label>
         
       </div>
     </div>
@@ -924,7 +924,8 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
 | &#39;high&#39;
 | &#39;critical&#39;
 | &#39;success&#39;
-| &#39;reference&#39; = &#39;default&#39;</code></pre>
+| &#39;reference&#39;
+| &#39;count&#39; = &#39;default&#39;</code></pre>
           </div>
         </div>
     
@@ -1014,6 +1015,29 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
+                <span class="ex-name">Count</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Count = () =&gt; (
+  &lt;div
+    style={{
+      display: &#39;flex&#39;,
+      gap: &#39;var(--ds-space-scale-sm)&#39;,
+      alignItems: &#39;center&#39;,
+    }}
+  &gt;
+    &lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;
+    &lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;
+    &lt;Badge variant=&quot;count&quot; role=&quot;img&quot; aria-label=&quot;2 of 13 checks passing&quot;&gt;
+      2/13
+    &lt;/Badge&gt;
+  &lt;/div&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
                 <span class="ex-name">All Variants</span>
                 <span class="badge ok">story ok</span>
               </div>
@@ -1035,6 +1059,8 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     &lt;Badge variant=&quot;critical&quot;&gt;1 Failed&lt;/Badge&gt;
     &lt;Badge variant=&quot;success&quot;&gt;4/4 Passed&lt;/Badge&gt;
     &lt;Badge variant=&quot;reference&quot;&gt;v4.1.0-alpha&lt;/Badge&gt;
+    &lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;
+    &lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;
   &lt;/div&gt;
 );</code></pre>
             </div>
