@@ -42,6 +42,13 @@ const tickets = [
   { value: 'T-105', label: 'Update staging config', prefix: 'T-105' },
 ];
 
+const environments = [
+  { value: 'qa-01', label: 'QA-01', meta: 'Unstable' },
+  { value: 'qa-02', label: 'QA-02', meta: 'Stable' },
+  { value: 'staging', label: 'Staging', meta: 'Stable' },
+  { value: 'production', label: 'Production', meta: 'Healthy' },
+];
+
 const meta: Meta<typeof OptionList> = {
   title: 'Components/OptionList',
   component: OptionList,
@@ -129,12 +136,30 @@ function WithActionRender() {
   );
 }
 
+function WithMetaRender() {
+  const [value, setValue] = useState('qa-02');
+  return (
+    <OptionList
+      options={environments}
+      value={value}
+      onSelect={setValue}
+      action={{
+        label: 'Manage environments',
+        icon: 'settings',
+        onClick: () => {},
+      }}
+      aria-label="Switch environment"
+    />
+  );
+}
+
 export const Default: Story = { render: () => <DefaultRender /> };
 export const IconOptions: Story = { render: () => <IconOptionsRender /> };
 export const WithSearchHeader: Story = {
   render: () => <WithSearchHeaderRender />,
 };
 export const WithAction: Story = { render: () => <WithActionRender /> };
+export const WithMeta: Story = { render: () => <WithMetaRender /> };
 
 export const EmptyState: Story = {
   render: () => (
