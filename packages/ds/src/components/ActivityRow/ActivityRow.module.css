@@ -1,0 +1,81 @@
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  column-gap: var(--ds-space-scale-sm);
+  row-gap: var(--ds-space-scale-xs);
+  align-items: start;
+  padding: var(--ds-space-scale-sm);
+  list-style: none;
+  font-family: var(--ds-font-family-sans);
+}
+
+.icon {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+}
+
+.toneNeutral {
+  color: var(--ds-color-text-secondary);
+}
+
+.toneInfo {
+  color: var(--ds-color-status-info);
+}
+
+.toneSuccess {
+  color: var(--ds-color-status-success);
+}
+
+.toneWarning {
+  color: var(--ds-color-status-high);
+}
+
+.toneDanger {
+  color: var(--ds-color-status-critical);
+}
+
+.primary {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  font-size: var(--ds-text-card-body-font-size);
+  line-height: var(--ds-text-card-body-line-height);
+}
+
+/* Only plain-string titles need the row to clip+ellipsize; an ExternalLink
+   truncates itself, and clipping it would cut off its focus ring (WCAG 2.4.7). */
+.primaryTruncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  min-width: 0;
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-section-header-font-size);
+  color: var(--ds-color-text-secondary);
+}
+
+.separator {
+  color: var(--ds-color-text-secondary);
+}
+
+.trailing {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: var(--ds-space-scale-xs);
+}
