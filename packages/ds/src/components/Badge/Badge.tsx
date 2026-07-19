@@ -10,7 +10,8 @@ type BadgeVariant =
   | 'high'
   | 'critical'
   | 'success'
-  | 'reference';
+  | 'reference'
+  | 'count';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;

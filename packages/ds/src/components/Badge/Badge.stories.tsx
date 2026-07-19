@@ -17,9 +17,10 @@ const meta = {
         'critical',
         'success',
         'reference',
+        'count',
       ],
       description:
-        'Visual style. Status variants (progress/todo/done/high/critical/success) tint the badge by state; "reference" is a mono-styled chip for technical reference values like version IDs, build numbers, or short hashes.',
+        'Visual style. Status variants (progress/todo/done/high/critical/success) tint the badge by state; "reference" is a mono-styled chip for technical reference values like version IDs, build numbers, or short hashes; "count" is a neutral mono tally for numbers and fractions (e.g. 37, 2/13).',
     },
     children: { control: 'text' },
   },
@@ -61,6 +62,33 @@ export const Reference: Story = {
   args: { variant: 'reference', children: 'v4.1.0-alpha' },
 };
 
+export const Count: Story = {
+  parameters: {
+    controls: { disable: true },
+    docs: {
+      description: {
+        story:
+          'A neutral mono tally for numbers (`37`) and fractions (`2/13`). Dumb container — pass the content as children; the badge only supplies the look. A bare fraction is ambiguous to a screen reader; to give it a spoken label, pass `role="img"` alongside `aria-label` (`aria-label` alone is prohibited on a plain span). See the third example below.',
+      },
+    },
+  },
+  render: () => (
+    <div
+      style={{
+        display: 'flex',
+        gap: 'var(--ds-space-scale-sm)',
+        alignItems: 'center',
+      }}
+    >
+      <Badge variant="count">37</Badge>
+      <Badge variant="count">2/13</Badge>
+      <Badge variant="count" role="img" aria-label="2 of 13 checks passing">
+        2/13
+      </Badge>
+    </div>
+  ),
+};
+
 export const AllVariants: Story = {
   render: () => (
     <div
@@ -78,6 +106,8 @@ export const AllVariants: Story = {
       <Badge variant="critical">1 Failed</Badge>
       <Badge variant="success">4/4 Passed</Badge>
       <Badge variant="reference">v4.1.0-alpha</Badge>
+      <Badge variant="count">37</Badge>
+      <Badge variant="count">2/13</Badge>
     </div>
   ),
 };
