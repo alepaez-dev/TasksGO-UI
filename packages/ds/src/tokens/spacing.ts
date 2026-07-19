@@ -50,6 +50,9 @@ export const spacing = {
   statusDot: {
     size: '6px',
   },
+  stepList: {
+    markerSize: '20px',
+  },
   checkbox: {
     size: '16px',
   },
