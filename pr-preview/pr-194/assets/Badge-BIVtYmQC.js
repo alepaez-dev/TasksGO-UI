@@ -1,0 +1,10 @@
+import{j as l}from"./jsx-runtime-u17CrQMm.js";import{r as i}from"./iframe-DbUjV2wB.js";import{c as d}from"./cn-2dOUpm6k.js";const u="_badge_gj2ab_1",_="_progress_gj2ab_22",g="_todo_gj2ab_28",m="_done_gj2ab_34",p="_high_gj2ab_40",f="_critical_gj2ab_46",v="_success_gj2ab_52",b="_waived_gj2ab_58",j="_reference_gj2ab_64",h="_count_gj2ab_75",e={badge:u,default:"_default_gj2ab_16",progress:_,todo:g,done:m,high:p,critical:f,success:v,waived:b,reference:j,count:h},a=i.forwardRef(({variant:s="default",className:t,children:n,...o},r)=>{const c=d(e.badge,e[s],t);return l.jsx("span",{ref:r,className:c,...o,children:n})});a.displayName="Badge";a.__docgenInfo={description:"",methods:[],displayName:"Badge",props:{variant:{required:!1,tsType:{name:"union",raw:`| 'default'
+| 'progress'
+| 'todo'
+| 'done'
+| 'high'
+| 'critical'
+| 'success'
+| 'waived'
+| 'reference'
+| 'count'`,elements:[{name:"literal",value:"'default'"},{name:"literal",value:"'progress'"},{name:"literal",value:"'todo'"},{name:"literal",value:"'done'"},{name:"literal",value:"'high'"},{name:"literal",value:"'critical'"},{name:"literal",value:"'success'"},{name:"literal",value:"'waived'"},{name:"literal",value:"'reference'"},{name:"literal",value:"'count'"}]},description:"",defaultValue:{value:"'default'",computed:!1}}},composes:["HTMLAttributes"]};export{a as B};
