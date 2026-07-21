@@ -33,6 +33,7 @@ export interface SelectorProps extends HTMLAttributes<HTMLDivElement> {
   action?: SelectorAction;
   dropdownAlign?: DropdownAlign;
   variant?: 'default' | 'inline';
+  showChevron?: boolean;
   renderTriggerLabel?: (option: SelectorOption) => ReactNode;
   renderOptionIndicator?: (option: SelectorOption) => ReactNode;
 }
@@ -52,6 +53,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
       action,
       dropdownAlign = 'stretch',
       variant = 'default',
+      showChevron = true,
       renderTriggerLabel: renderTriggerLabelProp,
       renderOptionIndicator: renderOptionIndicatorProp,
       className,
@@ -132,11 +134,13 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
             />
           )}
           <span className={styles.label}>{renderTriggerLabel()}</span>
-          <Icon
-            name={isInline ? 'expand_more' : 'unfold_more'}
-            size={isInline ? 'sm' : 'md'}
-            className={styles.chevron}
-          />
+          {showChevron && (
+            <Icon
+              name={isInline ? 'expand_more' : 'unfold_more'}
+              size={isInline ? 'sm' : 'md'}
+              className={styles.chevron}
+            />
+          )}
         </button>
 
         {open && (
