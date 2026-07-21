@@ -29,22 +29,13 @@
 .headerToggle {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   width: 100%;
   padding: 0;
   border: none;
   background: none;
   border-radius: inherit;
   cursor: pointer;
-}
-
-.indicator,
-.titleBlock,
-.assignee,
-.headerChevron {
-  position: relative;
-  z-index: 1;
-  pointer-events: none;
 }
 
 .headerToggle:focus-visible {
@@ -119,11 +110,7 @@
 }
 
 .bylineSep {
-  width: 3px;
-  height: 3px;
-  border-radius: var(--ds-radius-full);
-  background-color: var(--ds-color-text-disabled);
-  flex-shrink: 0;
+  color: var(--ds-color-text-disabled);
 }
 
 .statusSelect {

@@ -1,4 +1,4 @@
-import { forwardRef, useId, useRef, type HTMLAttributes } from 'react';
+import { forwardRef, useRef, type HTMLAttributes } from 'react';
 import { Button } from '../Button';
 import { OverlayShell } from '../_internal/OverlayShell';
 import { cn } from '../../utils/cn';
@@ -43,14 +43,12 @@ export const WaiveScenarioDialog = forwardRef<
       forceMount,
       onOpened,
       onClosed,
-      id: idProp,
+      id = 'waive-scenario-dialog',
       className,
       ...rest
     },
     ref,
   ) => {
-    const generatedId = useId();
-    const id = idProp ?? generatedId;
     const panelRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
