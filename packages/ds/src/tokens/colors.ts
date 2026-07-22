@@ -89,6 +89,11 @@ export const colors = {
       text: status.success,
       border: '#bbf7d0',
     },
+    waived: {
+      background: '#fffbeb',
+      text: status.high,
+      border: '#fde68a',
+    },
     default: {
       background: 'transparent',
       text: text.secondary,

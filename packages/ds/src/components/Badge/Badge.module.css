@@ -55,6 +55,12 @@
   border-color: var(--ds-color-badge-success-border);
 }
 
+.waived {
+  background-color: var(--ds-color-badge-waived-background);
+  color: var(--ds-color-badge-waived-text);
+  border-color: var(--ds-color-badge-waived-border);
+}
+
 .reference {
   background-color: var(--ds-color-badge-reference-background);
   color: var(--ds-color-badge-reference-text);
