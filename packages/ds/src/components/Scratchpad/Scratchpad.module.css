@@ -42,7 +42,8 @@
   display: flex;
   align-items: flex-start;
   gap: var(--ds-space-scale-sm);
-  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm)
+    var(--ds-space-scale-xs) 0;
   border-radius: var(--ds-radius-md);
   transition-property: background-color;
   transition-duration: var(--ds-transition-duration);
@@ -58,6 +59,11 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  /* Span one line box so the centered icon lands on the row's first line,
+     even when the note wraps to several lines. */
+  height: calc(
+    var(--ds-text-card-body-font-size) * var(--ds-text-card-body-line-height)
+  );
   padding: 0;
   border: none;
   background: transparent;
@@ -68,6 +74,13 @@
   transition-property: var(--ds-transition-property);
   transition-duration: var(--ds-transition-duration);
   transition-timing-function: var(--ds-transition-timing-function);
+}
+
+/* Headings are taller than a body line; centre the handle on the heading
+   instead of pinning it to a body-height line box. */
+.dragHandleHeading {
+  height: auto;
+  align-self: center;
 }
 
 .dragHandle:hover {
@@ -212,6 +225,13 @@ button.checkbox:focus-visible {
   letter-spacing: inherit;
 }
 
+@media (pointer: coarse) {
+  .textGrid > .textArea,
+  .textGrid::after {
+    font-size: 16px;
+  }
+}
+
 .textArea {
   width: 100%;
   margin: 0;
@@ -291,6 +311,39 @@ button.checkbox:focus-visible {
   color: var(--ds-color-text-secondary);
 }
 
+.addLine {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  width: 100%;
+  margin-top: var(--ds-space-scale-xs);
+  padding: var(--ds-space-scale-xs) 0;
+  border: none;
+  background: transparent;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-sans);
+  font-size: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--ds-radius-md);
+}
+
+.addLine:hover {
+  color: var(--ds-color-text-primary);
+  background-color: var(--ds-color-surface-hover);
+}
+
+.addLine:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+@media (pointer: coarse) {
+  .addLine {
+    min-height: 44px;
+  }
+}
+
 .tokenBadge {
   display: inline-block;
   padding: 0 var(--ds-space-badge-padding-x);
@@ -331,6 +384,11 @@ button.checkbox:focus-visible {
   font-size: var(--ds-text-card-body-font-size);
   line-height: var(--ds-text-card-body-line-height);
   color: var(--ds-color-text-primary);
+}
+
+.taskCardBare {
+  width: auto;
+  padding: 0;
 }
 
 .taskCardHeader {
@@ -403,6 +461,12 @@ button.checkbox:focus-visible {
   opacity: 1;
 }
 
+@media (hover: none) {
+  .editingRow .deleteButton {
+    opacity: 1;
+  }
+}
+
 .deleteButton:hover {
   color: var(--ds-color-status-critical);
 }
@@ -457,7 +521,11 @@ button.checkbox:focus-visible {
 }
 
 :is(.text, .lineContent) code {
+  padding: 0.1em 0.35em;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-color-surface-muted);
   font-family: var(--ds-font-family-mono);
+  font-size: 0.9em;
 }
 
 /* Links stay clickable through the editable row's edit overlay (the overlay is

@@ -1,7 +1,8 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { Scratchpad, type ScratchpadLine } from './Scratchpad';
+import { useScratchpad } from '../../hooks/useScratchpad';
 
 const lines: readonly ScratchpadLine[] = [
   { id: 'h1', text: '# Implementation Strategy' },
@@ -9,6 +10,28 @@ const lines: readonly ScratchpadLine[] = [
   { id: 't2', text: '[x] Initial research' },
   { id: 'x1', text: 'Refactor header logic' },
 ];
+
+function openKeyboard() {
+  Object.defineProperty(window, 'visualViewport', {
+    value: {
+      height: 400,
+      offsetTop: 0,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    },
+    configurable: true,
+    writable: true,
+  });
+  window.innerHeight = 800;
+}
+
+afterEach(() => {
+  Object.defineProperty(window, 'visualViewport', {
+    value: undefined,
+    configurable: true,
+    writable: true,
+  });
+});
 
 describe('Scratchpad', () => {
   it('renders line content as markdown (raw markers stripped)', () => {
@@ -622,5 +645,113 @@ describe('Scratchpad', () => {
         'ship **bold** notes',
       );
     });
+  });
+});
+
+describe('Scratchpad — formatting toolbar', () => {
+  function Harness() {
+    const controls = useScratchpad([{ id: 'a', text: 'note one' }]);
+    return <Scratchpad aria-label="Notes" formattingToolbar {...controls} />;
+  }
+
+  it('shows the accessory toolbar only while a line is editing', () => {
+    openKeyboard();
+    render(<Harness />);
+    expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit note' }));
+    expect(
+      screen.getByRole('toolbar', { name: 'Formatting' }),
+    ).toBeInTheDocument();
+  });
+
+  it('applies a toolbar action to the active line', () => {
+    openKeyboard();
+    render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: 'Edit note' }));
+    const textarea = screen.getByRole('textbox', {
+      name: 'Edit note',
+    }) as HTMLTextAreaElement;
+    textarea.setSelectionRange(0, 0);
+    fireEvent.click(screen.getByRole('button', { name: 'Bold' }));
+    expect(textarea.value).toBe('**bold**note one');
+  });
+
+  it('stops editing when Done is pressed', () => {
+    openKeyboard();
+    render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: 'Edit note' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    expect(
+      screen.queryByRole('textbox', { name: 'Edit note' }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe('Scratchpad — editing row', () => {
+  function Harness() {
+    const controls = useScratchpad([{ id: 'a', text: 'note one' }]);
+    return <Scratchpad aria-label="Notes" {...controls} />;
+  }
+
+  it('marks the editing row so touch users can reach delete', () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: 'Edit note' }));
+    const row = screen.getByRole('listitem');
+    expect(row.className).toContain('editingRow');
+  });
+});
+
+describe('Scratchpad — add context', () => {
+  function Harness() {
+    const controls = useScratchpad([{ id: 'a', text: 'first' }]);
+    return <Scratchpad aria-label="Notes" {...controls} />;
+  }
+
+  it('appends and focuses a new line when clicked', () => {
+    render(<Harness />);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Click to add more context…' }),
+    );
+    const editors = screen.getAllByRole('textbox');
+    expect(editors.length).toBe(1);
+    expect(editors[0]).toHaveFocus();
+  });
+
+  it('does not render when the scratchpad is read-only', () => {
+    render(<Scratchpad aria-label="Notes" lines={[{ id: 'a', text: 'x' }]} />);
+    expect(
+      screen.queryByRole('button', { name: 'Click to add more context…' }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe('Scratchpad — task card presentation', () => {
+  const taskBadgeInfo = {
+    id: 'TSK-1',
+    title: 'Cache work',
+    status: 'Open',
+    createdAgo: 'Created 1h ago',
+  };
+
+  function Harness() {
+    const controls = useScratchpad([{ id: 'a', text: 'ping [task] now' }]);
+    return (
+      <Scratchpad
+        aria-label="Notes"
+        highlightBadges
+        taskCardPresentation="sheet"
+        taskBadgeInfo={taskBadgeInfo}
+        {...controls}
+      />
+    );
+  }
+
+  it('opens the task card in a bottom sheet when taskCardPresentation="sheet"', () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: 'Linked task TSK-1' }));
+    const dialog = screen.getByRole('dialog');
+    // BottomSheet is modal; the Popover fallback is not.
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveTextContent('Cache work');
   });
 });

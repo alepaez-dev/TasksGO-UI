@@ -76,4 +76,16 @@ describe('applyMarkdownAction', () => {
       'url',
     );
   });
+
+  it('prefixes the current line with a todo marker for a checkbox', () => {
+    const edit = applyMarkdownAction('checkbox', at('buy milk', 0));
+    expect(edit.value).toBe('[ ] buy milk');
+    expect(edit.selectionStart).toBe('[ ] '.length);
+    expect(edit.selectionEnd).toBe('[ ] '.length);
+  });
+
+  it('prefixes every selected line for a checkbox', () => {
+    const edit = applyMarkdownAction('checkbox', at('one\ntwo', 0, 7));
+    expect(edit.value).toBe('[ ] one\n[ ] two');
+  });
 });
