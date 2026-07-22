@@ -3,6 +3,7 @@ import { Icon } from '../Icon';
 import { Badge } from '../Badge';
 import { TicketId } from '../TicketId';
 import { Popover } from '../Popover';
+import { BottomSheet } from '../BottomSheet';
 import { cn } from '../../utils/cn';
 import { sanitizeHref } from '../../utils/sanitizeHref';
 import { BADGE_TOKENS, type TokenKey } from './tokens';
@@ -22,6 +23,7 @@ export interface TokenBadgeHandlers {
   openBadgeId?: string | null;
   openBadgeManagesFocus?: boolean;
   onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) => void;
+  taskCardPresentation?: 'popover' | 'sheet';
 }
 
 interface TokenBadgeProps extends TokenBadgeHandlers {
@@ -36,6 +38,7 @@ export function TokenBadge({
   openBadgeId,
   openBadgeManagesFocus,
   onBadgeOpenChange,
+  taskCardPresentation = 'popover',
 }: TokenBadgeProps) {
   const ref = useRef<HTMLButtonElement>(null);
   const token = BADGE_TOKENS[tokenKey];
@@ -52,6 +55,38 @@ export function TokenBadge({
       <span className={cn(styles.tokenBadge, token.className)}>
         {token.label}
       </span>
+    );
+  }
+
+  if (taskCardPresentation === 'sheet') {
+    return (
+      <>
+        <button
+          ref={ref}
+          type="button"
+          className={cn(
+            styles.tokenBadge,
+            styles.tokenBadgeButton,
+            token.className,
+          )}
+          aria-label={`Linked task ${taskBadgeInfo.id}`}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={(e) => {
+            e.stopPropagation();
+            onBadgeOpenChange(open ? null : id, true);
+          }}
+        >
+          {token.label}
+        </button>
+        <BottomSheet
+          open={open}
+          onClose={() => onBadgeOpenChange(null)}
+          aria-label={`Linked task ${taskBadgeInfo.id}`}
+        >
+          <LinkedTaskCard taskRef={taskBadgeInfo} bare />
+        </BottomSheet>
+      </>
     );
   }
 
@@ -104,9 +139,15 @@ export function TokenBadge({
   );
 }
 
-export function LinkedTaskCard({ taskRef }: { taskRef: ScratchpadTaskRef }) {
+export function LinkedTaskCard({
+  taskRef,
+  bare = false,
+}: {
+  taskRef: ScratchpadTaskRef;
+  bare?: boolean;
+}) {
   return (
-    <div className={styles.taskCard}>
+    <div className={cn(styles.taskCard, bare && styles.taskCardBare)}>
       <div className={styles.taskCardHeader}>
         <span className={styles.taskCardTitle}>
           <TicketId>{taskRef.id}</TicketId>
