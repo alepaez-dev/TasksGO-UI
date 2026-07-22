@@ -186,6 +186,16 @@ export {
   type TicketTitleBlockBadge,
 } from './components/TicketTitleBlock';
 export {
+  TestScenarioCard,
+  type TestScenarioCardProps,
+  type TestScenarioStatus,
+  type TestScenarioEvidence,
+} from './components/TestScenarioCard';
+export {
+  WaiveScenarioDialog,
+  type WaiveScenarioDialogProps,
+} from './components/WaiveScenarioDialog';
+export {
   RecentTaskList,
   type RecentTaskListProps,
   type RecentTaskItem,

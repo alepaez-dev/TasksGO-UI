@@ -38,6 +38,15 @@ describe('Selector', () => {
     expect(screen.getByText('P')).toBeInTheDocument();
   });
 
+  it('hides the trigger chevron when showChevron is false', () => {
+    const { container, rerender } = render(
+      <Selector options={options} value="a" />,
+    );
+    expect(container.querySelector('[class*="chevron"]')).not.toBeNull();
+    rerender(<Selector options={options} value="a" showChevron={false} />);
+    expect(container.querySelector('[class*="chevron"]')).toBeNull();
+  });
+
   it('does not render dropdown when closed', () => {
     render(<Selector options={options} value="a" />);
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
