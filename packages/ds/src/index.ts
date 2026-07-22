@@ -217,6 +217,7 @@ export {
   type UseMarkdownEditorResult,
 } from './hooks/useMarkdownEditor';
 export { useAutoGrowTextarea } from './hooks/useAutoGrowTextarea';
+export { useKeyboardInset, type KeyboardInset } from './hooks/useKeyboardInset';
 export { useFocusTrap } from './hooks/useFocusTrap';
 export {
   useDragToDismiss,

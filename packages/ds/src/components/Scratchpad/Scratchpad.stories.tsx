@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Scratchpad, type ScratchpadLine } from './Scratchpad';
 import { useScratchpad } from '../../hooks/useScratchpad';
+import { withDefaultViewport } from '../../../.storybook/decorators';
+import { mobileViewportOptions } from '../../../.storybook/preview';
 
 const meta: Meta<typeof Scratchpad> = {
   title: 'Components/Scratchpad',
@@ -22,11 +24,29 @@ const meta: Meta<typeof Scratchpad> = {
     },
   },
   decorators: [
-    (Story) => (
-      <div style={{ maxWidth: '640px', padding: '24px' }}>
-        <Story />
-      </div>
-    ),
+    (Story, context) =>
+      context.parameters.layout === 'fullscreen' ? (
+        // App-shell layout: the shell fills the viewport and does NOT scroll;
+        // the notes scroll in an inner region. This keeps the page static so
+        // the keyboard-docked toolbar (position: fixed) stays put on iOS
+        // instead of drifting with a scrolling document.
+        <div
+          style={{
+            height: '100dvh',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+            <Story />
+          </div>
+        </div>
+      ) : (
+        <div style={{ maxWidth: '640px', padding: '24px' }}>
+          <Story />
+        </div>
+      ),
   ],
 };
 export default meta;
@@ -88,6 +108,22 @@ function ControlledScratchpad({
   );
 }
 
+function MobileScratchpad({ initial }: { initial: readonly ScratchpadLine[] }) {
+  const scratchpad = useScratchpad(initial);
+  return (
+    <Scratchpad
+      aria-label="Scratchpad notes"
+      title="Scratchpad / Private Notes"
+      status="Auto-saving…"
+      highlightBadges
+      formattingToolbar
+      taskCardPresentation="sheet"
+      taskBadgeInfo={taskBadgeInfo}
+      {...scratchpad}
+    />
+  );
+}
+
 export const Default: Story = {
   args: { highlightBadges: true },
   render: (args) => (
@@ -96,6 +132,21 @@ export const Default: Story = {
       highlightBadges={args.highlightBadges}
     />
   ),
+};
+
+export const Mobile: Story = {
+  decorators: [withDefaultViewport('mobile')],
+  parameters: {
+    layout: 'fullscreen',
+    viewport: { options: mobileViewportOptions },
+    docs: {
+      description: {
+        story:
+          'Touch layout: the "add context" affordance is always visible, the task chip opens a bottom sheet, and the formatting toolbar docks above the keyboard while editing a line.',
+      },
+    },
+  },
+  render: () => <MobileScratchpad initial={lines} />,
 };
 
 export const ReadOnly: Story = {
