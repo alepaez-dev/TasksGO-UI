@@ -229,6 +229,37 @@ describe('OptionList', () => {
     expect(container.querySelectorAll('[class*="dot"]')).toHaveLength(0);
   });
 
+  it('renders per-option meta on a non-selected option', () => {
+    render(
+      <OptionList
+        options={[
+          { value: 'qa-01', label: 'QA-01' },
+          { value: 'qa-02', label: 'QA-02', meta: 'Stable' },
+        ]}
+        value="qa-01"
+        onSelect={vi.fn()}
+        aria-label="Environments"
+      />,
+    );
+    expect(screen.getByText('Stable')).toBeInTheDocument();
+  });
+
+  it('suppresses meta on the selected option (check takes its place)', () => {
+    render(
+      <OptionList
+        options={[
+          { value: 'qa-01', label: 'QA-01', meta: 'Healthy' },
+          { value: 'qa-02', label: 'QA-02', meta: 'Stable' },
+        ]}
+        value="qa-01"
+        onSelect={vi.fn()}
+        aria-label="Environments"
+      />,
+    );
+    expect(screen.queryByText('Healthy')).not.toBeInTheDocument();
+    expect(screen.getByText('Stable')).toBeInTheDocument();
+  });
+
   it('forwards ref to the root element', () => {
     const ref = createRef<HTMLDivElement>();
     render(
