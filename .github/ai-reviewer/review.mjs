@@ -1051,6 +1051,7 @@ export function renderStatusBody({
   verifiedSha = null,
   resolved = 0,
   markerPrefix = 'ai-reviewer',
+  cleared = null,
 }) {
   const lines = ['### 🤖 AI bug review — latest run', ''];
   if (skipped) {
@@ -1081,6 +1082,8 @@ export function renderStatusBody({
   if (rows.length) lines.push('| | |', '|---|---|', ...rows, '');
 
   if (runUrl) lines.push(`<sub>[run log & full report](${runUrl})</sub>`, '');
+  const clearedBlock = renderClearedConcerns(cleared);
+  if (clearedBlock) lines.push(clearedBlock, '');
   lines.push(buildStatusMarker(reviewedSha, verifiedSha, markerPrefix));
   return lines.join('\n');
 }
@@ -1090,6 +1093,22 @@ export function renderStatusBody({
 export function renderConfidence(finding) {
   const raised = finding.modelConfidence && finding.modelConfidence !== finding.confidence;
   return raised ? `${finding.confidence} (raised from ${finding.modelConfidence} — basis cites a line it read)` : finding.confidence;
+}
+
+export function renderClearedConcerns(cleared, max = 3) {
+  if (!Array.isArray(cleared) || cleared.length === 0) return '';
+  const items = cleared
+    .slice(0, max)
+    .map((c) => {
+      const title = sanitizeText(c?.title, 200);
+      const why = sanitizeText(c?.why, 400);
+      if (!title || !why) return null;
+      const anchor = sanitizeText(c?.anchor, 120);
+      return `- **${title}** — ${why}${anchor ? ` \`${anchor}\`` : ''}`;
+    })
+    .filter(Boolean);
+  if (items.length === 0) return '';
+  return ['<details>', `<summary>🔍 Considered and cleared (${items.length})</summary>`, '', ...items, '', '</details>'].join('\n');
 }
 
 export function renderInlineBody(finding, markerPrefix = 'ai-reviewer') {

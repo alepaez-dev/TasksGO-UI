@@ -191,6 +191,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   ];
 
   let findings = null;
+  let dismissed = null;
   let rounds = 0;
   let toolCalls = 0;
   let lastUsage = null;
@@ -382,6 +383,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       if (bankedFindings && !findings.length) findings = bankedFindings;
       if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
       if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
+      const submittedDismissed = submit.input?.dismissed;
+      if (Array.isArray(submittedDismissed)) dismissed = submittedDismissed;
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
         surfaceReasoning(log, msg.content);
@@ -456,6 +459,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     findings: findings?.length ? findings : (bankedFindings ?? findings ?? []),
     callSiteAudit,
     confirmSuppressed,
+    dismissed: dismissed ?? [],
     usage: governor.totalUsage(),
     costUsd: governor.spentUsd(),
     usedFallback: modelIdx > 0,
