@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/54 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">54/54 infos</a><span class="filter-pill ok" aria-disabled="true">244 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/54 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">54/54 infos</a><span class="filter-pill ok" aria-disabled="true">245 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -1046,7 +1046,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
       <div class="badges">
         <label for="c-3-components-badge-props" class="badge ok as-toggle">1 prop type</label>
         <label for="c-3-components-badge-info" class="badge info as-toggle">1 info</label>
-        <label for="c-3-components-badge-stories" class="badge ok as-toggle">10 stories</label>
+        <label for="c-3-components-badge-stories" class="badge ok as-toggle">11 stories</label>
         
       </div>
     </div>
@@ -1089,6 +1089,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
 | &#39;high&#39;
 | &#39;critical&#39;
 | &#39;success&#39;
+| &#39;waived&#39;
 | &#39;reference&#39;
 | &#39;count&#39; = &#39;default&#39;</code></pre>
           </div>
@@ -1171,6 +1172,15 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
+                <span class="ex-name">Waived</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Waived = () =&gt; &lt;Badge variant=&quot;waived&quot;&gt;Waived&lt;/Badge&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
                 <span class="ex-name">Reference</span>
                 <span class="badge ok">story ok</span>
               </div>
@@ -1223,6 +1233,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     &lt;Badge variant=&quot;high&quot;&gt;High Prio&lt;/Badge&gt;
     &lt;Badge variant=&quot;critical&quot;&gt;1 Failed&lt;/Badge&gt;
     &lt;Badge variant=&quot;success&quot;&gt;4/4 Passed&lt;/Badge&gt;
+    &lt;Badge variant=&quot;waived&quot;&gt;Waived&lt;/Badge&gt;
     &lt;Badge variant=&quot;reference&quot;&gt;v4.1.0-alpha&lt;/Badge&gt;
     &lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;
     &lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;
