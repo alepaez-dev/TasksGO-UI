@@ -103,6 +103,14 @@
   color: var(--ds-color-text-primary);
 }
 
+.optionMeta {
+  flex-shrink: 0;
+  font-size: var(--ds-text-nav-label-sm-font-size);
+  font-family: var(--ds-text-nav-label-sm-font-family);
+  color: var(--ds-color-text-secondary);
+  white-space: nowrap;
+}
+
 .checkIcon {
   flex-shrink: 0;
   color: var(--ds-color-accent-primary);

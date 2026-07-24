@@ -10,7 +10,7 @@ import type { IconName } from '../../icons';
 import { cn } from '../../utils/cn';
 import styles from './OptionList.module.css';
 
-type OptionBase = Readonly<{ value: string; label: string }>;
+type OptionBase = Readonly<{ value: string; label: string; meta?: ReactNode }>;
 type DotOption = OptionBase & {
   icon?: never;
   iconColor?: never;
@@ -166,6 +166,9 @@ export const OptionList = forwardRef<HTMLDivElement, OptionListProps>(
               >
                 {renderIndicator(option)}
                 <span className={styles.optionLabel}>{option.label}</span>
+                {option.meta != null && !isSelected && (
+                  <span className={styles.optionMeta}>{option.meta}</span>
+                )}
                 {isSelected && (
                   <Icon
                     name="check_circle"
