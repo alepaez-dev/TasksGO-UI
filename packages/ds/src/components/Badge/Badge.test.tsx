@@ -24,6 +24,11 @@ describe('Badge', () => {
     expect(screen.getByText('v4.1.0-alpha')).toHaveClass('reference');
   });
 
+  it('applies the waived variant class', () => {
+    render(<Badge variant="waived">Waived</Badge>);
+    expect(screen.getByText('Waived')).toHaveClass('waived');
+  });
+
   it('forwards ref to the span element', () => {
     const ref = createRef<HTMLSpanElement>();
     render(<Badge ref={ref}>Label</Badge>);

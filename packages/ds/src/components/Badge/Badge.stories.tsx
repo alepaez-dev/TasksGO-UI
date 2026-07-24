@@ -16,11 +16,12 @@ const meta = {
         'high',
         'critical',
         'success',
+        'waived',
         'reference',
         'count',
       ],
       description:
-        'Visual style. Status variants (progress/todo/done/high/critical/success) tint the badge by state; "reference" is a mono-styled chip for technical reference values like version IDs, build numbers, or short hashes; "count" is a neutral mono tally for numbers and fractions (e.g. 37, 2/13).',
+        'Visual style. Status variants (progress/todo/done/high/critical/success/waived) tint the badge by state; "reference" is a mono-styled chip for technical reference values like version IDs, build numbers, or short hashes; "count" is a neutral mono tally for numbers and fractions (e.g. 37, 2/13).',
     },
     children: { control: 'text' },
   },
@@ -56,6 +57,10 @@ export const Critical: Story = {
 
 export const Success: Story = {
   args: { variant: 'success', children: '4/4 Passed' },
+};
+
+export const Waived: Story = {
+  args: { variant: 'waived', children: 'Waived' },
 };
 
 export const Reference: Story = {
@@ -105,6 +110,7 @@ export const AllVariants: Story = {
       <Badge variant="high">High Prio</Badge>
       <Badge variant="critical">1 Failed</Badge>
       <Badge variant="success">4/4 Passed</Badge>
+      <Badge variant="waived">Waived</Badge>
       <Badge variant="reference">v4.1.0-alpha</Badge>
       <Badge variant="count">37</Badge>
       <Badge variant="count">2/13</Badge>

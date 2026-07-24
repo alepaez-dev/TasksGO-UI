@@ -10,6 +10,7 @@ type BadgeVariant =
   | 'high'
   | 'critical'
   | 'success'
+  | 'waived'
   | 'reference'
   | 'count';
 
