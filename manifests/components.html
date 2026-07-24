@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/54 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">54/54 infos</a><span class="filter-pill ok" aria-disabled="true">246 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/55 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">55/55 infos</a><span class="filter-pill ok" aria-disabled="true">249 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -7150,14 +7150,130 @@ variant?: | &#39;active&#39;
   no-story-error
   no-doc-error"
   role="listitem"
+  aria-label="StepList">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-ok"></span> StepList</h2>
+      <div class="badges">
+        <label for="c-46-components-steplist-props" class="badge ok as-toggle">2 prop types</label>
+        <label for="c-46-components-steplist-info" class="badge info as-toggle">1 info</label>
+        <label for="c-46-components-steplist-stories" class="badge ok as-toggle">3 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/StepList/StepList.stories.tsx">components-steplist · ./src/components/StepList/StepList.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  
+  <input id="c-46-components-steplist-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-46-components-steplist-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  <input id="c-46-components-steplist-props" class="tg tg-props" type="checkbox" hidden />
+
+  <div class="panels">
+    
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+        <div class="panel panel-props">
+          <div class="note ok">
+            <div class="row">
+              <span class="ex-name">Prop types <small>(react-docgen)</small></span>
+              <span class="badge ok">2 prop types</span>
+            </div>
+            <pre><code>Component: src/components/StepList/StepList.tsx::StepList</code></pre>
+            <pre><code>Props:</code></pre>
+            <pre><code>dividers?: boolean = false
+
+steps: unknown</code></pre>
+          </div>
+        </div>
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { StepList } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Default</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Default = () =&gt; &lt;StepList
+    steps={[
+      &#39;Deploy recent build to `QA-01` environment&#39;,
+      &#39;Fire 500 rps against `/v1/assets/hot` for 30s&#39;,
+      &#39;Inspect response headers once burst limit is crossed&#39;,
+    ]} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">With Formatting</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithFormatting = () =&gt; &lt;StepList
+    steps={[
+      &#39;Trigger concurrent updates via `/api/v1/sync` endpoint&#39;,
+      &#39;Monitor **cache TTL** expiration logs in Datadog&#39;,
+      &#39;Observe WebSocket reconnection attempts after simulated network drop&#39;,
+    ]} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">With Dividers</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithDividers = () =&gt; &lt;StepList
+    dividers
+    steps={[
+      &#39;Deploy recent build to `QA-01` environment&#39;,
+      &#39;Trigger concurrent updates via `/api/v1/sync` endpoint&#39;,
+      &#39;Monitor cache TTL expiration logs in Datadog&#39;,
+      &#39;Observe WebSocket reconnection attempts after simulated network drop&#39;,
+    ]} /&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  no-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
   aria-label="Tabs">
   <div class="head">
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Tabs</h2>
       <div class="badges">
-        <label for="c-46-components-tabs-props" class="badge ok as-toggle">6 prop types</label>
-        <label for="c-46-components-tabs-info" class="badge info as-toggle">1 info</label>
-        <label for="c-46-components-tabs-stories" class="badge ok as-toggle">5 stories</label>
+        <label for="c-47-components-tabs-props" class="badge ok as-toggle">6 prop types</label>
+        <label for="c-47-components-tabs-info" class="badge info as-toggle">1 info</label>
+        <label for="c-47-components-tabs-stories" class="badge ok as-toggle">5 stories</label>
         
       </div>
     </div>
@@ -7169,10 +7285,10 @@ variant?: | &#39;active&#39;
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-46-components-tabs-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-46-components-tabs-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-47-components-tabs-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-47-components-tabs-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  <input id="c-46-components-tabs-props" class="tg tg-props" type="checkbox" hidden />
+  <input id="c-47-components-tabs-props" class="tg tg-props" type="checkbox" hidden />
 
   <div class="panels">
     
@@ -7328,9 +7444,9 @@ value: string</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> TaskDrawer</h2>
       <div class="badges">
-        <label for="c-47-features-tasks-taskdrawer-props" class="badge ok as-toggle">6 prop types</label>
-        <label for="c-47-features-tasks-taskdrawer-info" class="badge info as-toggle">1 info</label>
-        <label for="c-47-features-tasks-taskdrawer-stories" class="badge ok as-toggle">4 stories</label>
+        <label for="c-48-features-tasks-taskdrawer-props" class="badge ok as-toggle">6 prop types</label>
+        <label for="c-48-features-tasks-taskdrawer-info" class="badge info as-toggle">1 info</label>
+        <label for="c-48-features-tasks-taskdrawer-stories" class="badge ok as-toggle">4 stories</label>
         
       </div>
     </div>
@@ -7342,10 +7458,10 @@ value: string</code></pre>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-47-features-tasks-taskdrawer-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-47-features-tasks-taskdrawer-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-48-features-tasks-taskdrawer-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-48-features-tasks-taskdrawer-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  <input id="c-47-features-tasks-taskdrawer-props" class="tg tg-props" type="checkbox" hidden />
+  <input id="c-48-features-tasks-taskdrawer-props" class="tg tg-props" type="checkbox" hidden />
 
   <div class="panels">
     
@@ -7456,9 +7572,9 @@ title: string</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> TaskRow</h2>
       <div class="badges">
-        <label for="c-48-components-taskrow-props" class="badge ok as-toggle">10 prop types</label>
-        <label for="c-48-components-taskrow-info" class="badge info as-toggle">1 info</label>
-        <label for="c-48-components-taskrow-stories" class="badge ok as-toggle">11 stories</label>
+        <label for="c-49-components-taskrow-props" class="badge ok as-toggle">10 prop types</label>
+        <label for="c-49-components-taskrow-info" class="badge info as-toggle">1 info</label>
+        <label for="c-49-components-taskrow-stories" class="badge ok as-toggle">11 stories</label>
         
       </div>
     </div>
@@ -7470,10 +7586,10 @@ title: string</code></pre>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-48-components-taskrow-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-48-components-taskrow-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-49-components-taskrow-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-49-components-taskrow-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  <input id="c-48-components-taskrow-props" class="tg tg-props" type="checkbox" hidden />
+  <input id="c-49-components-taskrow-props" class="tg tg-props" type="checkbox" hidden />
 
   <div class="panels">
     
@@ -7811,9 +7927,9 @@ title: string</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-err"></span> Tasks</h2>
       <div class="badges">
-        <label for="c-49-pages-tasks-err" class="badge err as-toggle">prop type error</label>
-        <label for="c-49-pages-tasks-info" class="badge info as-toggle">1 info</label>
-        <label for="c-49-pages-tasks-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-50-pages-tasks-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-50-pages-tasks-info" class="badge info as-toggle">1 info</label>
+        <label for="c-50-pages-tasks-stories" class="badge ok as-toggle">3 stories</label>
         
       </div>
     </div>
@@ -7824,9 +7940,9 @@ title: string</code></pre>
   </div>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
-  <input id="c-49-pages-tasks-err" class="tg tg-err" type="checkbox" hidden />
-  <input id="c-49-pages-tasks-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-49-pages-tasks-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-50-pages-tasks-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-50-pages-tasks-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-50-pages-tasks-stories" class="tg tg-stories" type="checkbox" hidden />
   
   
 
@@ -8544,9 +8660,9 @@ export const EmptyState: Story = {
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> TaskSection</h2>
       <div class="badges">
-        <label for="c-50-components-tasksection-props" class="badge ok as-toggle">5 prop types</label>
-        <label for="c-50-components-tasksection-info" class="badge info as-toggle">1 info</label>
-        <label for="c-50-components-tasksection-stories" class="badge ok as-toggle">4 stories</label>
+        <label for="c-51-components-tasksection-props" class="badge ok as-toggle">5 prop types</label>
+        <label for="c-51-components-tasksection-info" class="badge info as-toggle">1 info</label>
+        <label for="c-51-components-tasksection-stories" class="badge ok as-toggle">4 stories</label>
         
       </div>
     </div>
@@ -8558,10 +8674,10 @@ export const EmptyState: Story = {
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-50-components-tasksection-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-50-components-tasksection-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-51-components-tasksection-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-51-components-tasksection-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  <input id="c-50-components-tasksection-props" class="tg tg-props" type="checkbox" hidden />
+  <input id="c-51-components-tasksection-props" class="tg tg-props" type="checkbox" hidden />
 
   <div class="panels">
     
@@ -8659,8 +8775,8 @@ trailing?: ReactNode</code></pre>
       <h2><span class="status-dot dot-ok"></span> TicketId</h2>
       <div class="badges">
         
-        <label for="c-51-components-ticketid-info" class="badge info as-toggle">1 info</label>
-        <label for="c-51-components-ticketid-stories" class="badge ok as-toggle">2 stories</label>
+        <label for="c-52-components-ticketid-info" class="badge info as-toggle">1 info</label>
+        <label for="c-52-components-ticketid-stories" class="badge ok as-toggle">2 stories</label>
         
       </div>
     </div>
@@ -8672,8 +8788,8 @@ trailing?: ReactNode</code></pre>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-51-components-ticketid-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-51-components-ticketid-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-52-components-ticketid-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-52-components-ticketid-stories" class="tg tg-stories" type="checkbox" hidden />
   
   
 
@@ -8748,9 +8864,9 @@ trailing?: ReactNode</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-err"></span> TicketOverview</h2>
       <div class="badges">
-        <label for="c-52-pages-ticket-overview-err" class="badge err as-toggle">prop type error</label>
-        <label for="c-52-pages-ticket-overview-info" class="badge info as-toggle">1 info</label>
-        <label for="c-52-pages-ticket-overview-stories" class="badge ok as-toggle">1 story</label>
+        <label for="c-53-pages-ticket-overview-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-53-pages-ticket-overview-info" class="badge info as-toggle">1 info</label>
+        <label for="c-53-pages-ticket-overview-stories" class="badge ok as-toggle">1 story</label>
         
       </div>
     </div>
@@ -8761,9 +8877,9 @@ trailing?: ReactNode</code></pre>
   </div>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
-  <input id="c-52-pages-ticket-overview-err" class="tg tg-err" type="checkbox" hidden />
-  <input id="c-52-pages-ticket-overview-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-52-pages-ticket-overview-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-53-pages-ticket-overview-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-53-pages-ticket-overview-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-53-pages-ticket-overview-stories" class="tg tg-stories" type="checkbox" hidden />
   
   
 
@@ -9487,9 +9603,9 @@ export const Default: Story = {
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> TicketTitleBlock</h2>
       <div class="badges">
-        <label for="c-53-components-tickettitleblock-props" class="badge ok as-toggle">3 prop types</label>
-        <label for="c-53-components-tickettitleblock-info" class="badge info as-toggle">1 info</label>
-        <label for="c-53-components-tickettitleblock-stories" class="badge ok as-toggle">5 stories</label>
+        <label for="c-54-components-tickettitleblock-props" class="badge ok as-toggle">3 prop types</label>
+        <label for="c-54-components-tickettitleblock-info" class="badge info as-toggle">1 info</label>
+        <label for="c-54-components-tickettitleblock-stories" class="badge ok as-toggle">5 stories</label>
         
       </div>
     </div>
@@ -9501,10 +9617,10 @@ export const Default: Story = {
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-53-components-tickettitleblock-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-53-components-tickettitleblock-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-54-components-tickettitleblock-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-54-components-tickettitleblock-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  <input id="c-53-components-tickettitleblock-props" class="tg tg-props" type="checkbox" hidden />
+  <input id="c-54-components-tickettitleblock-props" class="tg tg-props" type="checkbox" hidden />
 
   <div class="panels">
     
