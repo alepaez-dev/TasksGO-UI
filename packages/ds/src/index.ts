@@ -57,6 +57,7 @@ export {
   type ChecklistRowProps,
 } from './components/ChecklistRow';
 export { StatusDot, type StatusDotProps } from './components/StatusDot';
+export { StepList, type StepListProps } from './components/StepList';
 export { Badge, type BadgeProps } from './components/Badge';
 export { NavItem, type NavItemProps } from './components/NavItem';
 export { Checkbox, type CheckboxProps } from './components/Checkbox';
