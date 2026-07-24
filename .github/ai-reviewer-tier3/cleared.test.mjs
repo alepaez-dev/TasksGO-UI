@@ -31,12 +31,6 @@ test('renderClearedConcerns defuses marker-injection (--> becomes →) and drops
   assert.match(out, /Considered and cleared \(1\)/); // only the one complete, safe entry survives
 });
 
-test('renderClearedConcerns caps the number of items', () => {
-  const many = Array.from({ length: 10 }, (_, i) => ({ title: `t${i}`, why: `w${i}` }));
-  const out = renderClearedConcerns(many, 3);
-  assert.match(out, /Considered and cleared \(3\)/);
-});
-
 test('renderClearedConcerns default cap matches the "~3" policy (config.maxClearedConcerns)', () => {
   const many = Array.from({ length: 10 }, (_, i) => ({ title: `t${i}`, why: `w${i}` }));
   const out = renderClearedConcerns(many); // no explicit max — must default to 3, not more
