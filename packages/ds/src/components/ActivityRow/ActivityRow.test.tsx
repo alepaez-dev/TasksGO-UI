@@ -120,4 +120,16 @@ describe('ActivityRow', () => {
     );
     expect(ref.current).toBeInstanceOf(HTMLLIElement);
   });
+
+  it('renders a custom leading node instead of an icon', () => {
+    const { container } = render(
+      <ul>
+        <ActivityRow leading={<span data-testid="lead">37</span>}>
+          Title
+        </ActivityRow>
+      </ul>,
+    );
+    expect(screen.getByTestId('lead')).toBeInTheDocument();
+    expect(container.querySelector('[data-icon-name]')).not.toBeInTheDocument();
+  });
 });

@@ -19,28 +19,34 @@ const toneClass: Record<ActivityTone, string> = {
   danger: styles.toneDanger,
 };
 
-export interface ActivityRowProps extends Omit<
-  HTMLAttributes<HTMLLIElement>,
-  'children'
-> {
-  icon: IconName;
-  tone?: ActivityTone;
-  meta?: readonly ReactNode[];
-  trailing?: ReactNode;
-  children: ReactNode;
-}
+type ActivityRowLeading =
+  | { icon: IconName; tone?: ActivityTone; leading?: never }
+  | { leading: ReactNode; icon?: never; tone?: never };
+
+export type ActivityRowProps = ActivityRowLeading &
+  Omit<HTMLAttributes<HTMLLIElement>, 'children'> & {
+    meta?: readonly ReactNode[];
+    trailing?: ReactNode;
+    children: ReactNode;
+  };
 
 export const ActivityRow = forwardRef<HTMLLIElement, ActivityRowProps>(
   (
-    { icon, tone = 'neutral', meta, trailing, className, children, ...rest },
+    { icon, tone, leading, meta, trailing, className, children, ...rest },
     ref,
   ) => {
     const hasMeta = meta !== undefined && meta.length > 0;
+    const leadingNode =
+      leading !== undefined ? (
+        leading
+      ) : icon !== undefined ? (
+        <Icon name={icon} size="sm" />
+      ) : null;
 
     return (
       <li ref={ref} className={cn(styles.row, className)} {...rest}>
-        <span className={cn(styles.icon, toneClass[tone])}>
-          <Icon name={icon} size="sm" />
+        <span className={cn(styles.icon, toneClass[tone ?? 'neutral'])}>
+          {leadingNode}
         </span>
         <span
           className={cn(
@@ -64,7 +70,13 @@ export const ActivityRow = forwardRef<HTMLLIElement, ActivityRowProps>(
             ))}
           </span>
         )}
-        {trailing && <span className={styles.trailing}>{trailing}</span>}
+        {trailing && (
+          <span
+            className={cn(styles.trailing, !hasMeta && styles.trailingSingle)}
+          >
+            {trailing}
+          </span>
+        )}
       </li>
     );
   },
