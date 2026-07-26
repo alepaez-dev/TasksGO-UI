@@ -1820,6 +1820,7 @@ export async function writeJobSummary({
   costUsd = null,
   note = null,
   resolved = 0,
+  callSiteAudit = null,
 }) {
   try {
     core.summary.addHeading('🤖 AI bug review', 2);
@@ -1855,6 +1856,27 @@ export async function writeJobSummary({
         `unchanged file: ${dropped.byFile}, duplicate: ${dropped.duplicate}, invalid: ${dropped.invalid}, off-diff (low-confidence): ${dropped.offDiff}` +
         `${capped ? `, capped at ${config.maxFindings}` : ''}.`,
     );
+    if (Array.isArray(callSiteAudit) && callSiteAudit.length) {
+      core.summary.addRaw('\n\n<details>\n<summary>🧾 Call-site audit</summary>\n\n');
+      core.summary.addTable([
+        [
+          { data: 'Verdict', header: true },
+          { data: 'Symbol', header: true },
+          { data: 'Location', header: true },
+          { data: 'Line', header: true },
+          { data: 'Why', header: true },
+        ],
+        ...callSiteAudit.map((a) => [
+          String(a?.verdict ?? '?'),
+          String(a?.symbol ?? ''),
+          `${a?.file ?? '?'}${a?.line ? `:${a.line}` : ''}`,
+          `\`${String(a?.quotedLine ?? '').trim().slice(0, 160)}\``,
+          String(a?.why ?? ''),
+        ]),
+      ]);
+      core.summary.addRaw('\n</details>\n\n');
+    }
+
     const spend = [];
     // Use the actual billed usage (same source as the PR status comment) so the two always agree;
     // fall back to the pre-flight count only when no request was made (e.g. the input-gate skip).

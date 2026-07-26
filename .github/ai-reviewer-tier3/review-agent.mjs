@@ -339,7 +339,7 @@ async function main() {
 
   if (findings.length === 0) {
     core.info('No new tier-3 issues to post. Done.');
-    await writeJobSummary({ findings, dropped, capped, config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount });
+    await writeJobSummary({ findings, dropped, capped, config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit });
     await upsertStatus(
       { posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha: reviewComplete ? pr.headSha : lastReviewedSha, verifiedSha, resolved: resolvedCount },
       banner,
@@ -395,7 +395,7 @@ async function main() {
   const reviewedSha = reviewComplete && fullySurfaced ? pr.headSha : lastReviewedSha;
   if (!reviewComplete) core.warning(`Tier 3 was interrupted (${result.interruptedReason}); not marking ${pr.headSha.slice(0, 7)} reviewed so a re-run resumes.`);
 
-  await writeJobSummary({ findings, dropped, capped, config, postedInline, postedGeneral, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount });
+  await writeJobSummary({ findings, dropped, capped, config, postedInline, postedGeneral, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit });
   await upsertStatus(
     { posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount },
     banner,

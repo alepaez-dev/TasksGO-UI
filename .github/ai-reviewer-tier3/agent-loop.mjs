@@ -186,6 +186,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let toolBudgetExhausted = false;
   let nudgedToSubmit = false;
   let submitted = false;
+  let auditRejected = false;
+  let callSiteAudit = [];
+  let bankedFindings = null;
 
   const clearUserBreakpoints = () => {
     for (const m of messages) {
@@ -279,16 +282,57 @@ export async function runReviewAgent({ client, config, system, userMessage, root
 
     const submit = uses.find((u) => u.name === 'submit_findings');
     if (submit) {
+      const submittedAudit = submit.input?.callSiteAudit;
       const submittedFindings = submit.input?.findings;
+      // The one sanctioned budget overrun: bounded to one round, asks only for work already done, and
+      // stashes findings first. Nothing else here may skip the ceiling — see the audit-gate tests.
+      if (!Array.isArray(submittedAudit) && !auditRejected) {
+        auditRejected = true;
+        if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
+        if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing callSiteAudit — asking once for the completeness record.`);
+        clearUserBreakpoints();
+        messages.push({
+          role: 'user',
+          content: [
+            ...uses.map((u) =>
+              u.id === submit.id
+                ? {
+                    type: 'tool_result',
+                    tool_use_id: u.id,
+                    is_error: true,
+                    content:
+                      'submit_findings rejected: `callSiteAudit` is required — follow its field description for how to judge each site. ' +
+                      'Answer from what you have ALREADY read; do not call any other tool. Then call submit_findings again.',
+                  }
+                : {
+                    type: 'tool_result',
+                    tool_use_id: u.id,
+                    is_error: true,
+                    content: 'Not run — submit_findings was rejected. Answer the completeness question from what you have already read.',
+                  },
+            ),
+            { type: 'text', text: '[completeness] Record the call-site audit, then submit.', cache_control: { type: 'ephemeral' } },
+          ],
+        });
+        continue;
+      }
+      if (Array.isArray(submittedAudit)) callSiteAudit = submittedAudit;
       if (Array.isArray(submittedFindings)) {
         submitted = true;
         findings = submittedFindings;
       } else {
         findings = [];
       }
+      if (bankedFindings && !findings.length) findings = bankedFindings;
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
+        surfaceReasoning(log, msg.content);
         for (const f of findings) log(`  · ${f?.severity ?? '?'}/${f?.confidence ?? '?'} ${f?.title ?? '(untitled)'}`);
+        if (callSiteAudit.length === 0) log('  audit · none — no shared call shape reported as changed');
+        for (const a of callSiteAudit) {
+          const where = `${a?.file ?? '?'}:${a?.line ?? '?'}`;
+          log(`  audit · ${String(a?.verdict ?? '?').toUpperCase()} ${a?.symbol ? `${a.symbol} ` : ''}${where}${a?.why ? ` — ${a.why}` : ''}`);
+        }
       }
       break;
     }
@@ -340,7 +384,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   }
 
   return {
-    findings: findings ?? [],
+    findings: findings?.length ? findings : (bankedFindings ?? findings ?? []),
+    callSiteAudit,
     usage: governor.totalUsage(),
     costUsd: governor.spentUsd(),
     usedFallback: modelIdx > 0,

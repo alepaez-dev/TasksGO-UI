@@ -8,6 +8,44 @@ const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'storybook-s
 const PER_FILE_MATCH_CAP = 50;
 const MAX_FILES_WALKED = 20000;
 
+const SUBMIT_FINDINGS_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    ...FINDINGS_SCHEMA.properties,
+    callSiteAudit: {
+      type: 'array',
+      description:
+        'REQUIRED. Record of work you have ALREADY done — never a reason to make new tool calls; quote only lines you already saw. ' +
+        'When this PR changed the call shape of a shared symbol (added/changed a field, parameter, or return shape), list EVERY call site of that symbol, one entry each. ' +
+        'A verdict about the SYMBOL ("the field is optional, callers may omit it") never disposes of a SITE — judge sites one at a time, by destination. ' +
+        '"It is optional" and "it falls back to the default" are NOT clearances: they name the mechanism, not the effect. To clear a site, say what the default DOES there — ' +
+        'benign when the destination is computed fresh and no sibling writer supplies the field; a BUG when the write REPLACES persistent or shared state ' +
+        '(a sticky comment, cached record, merged config, rewritten file) that a SIBLING path DOES supply it to, because there the default does not mean "absent", it means "erased". ' +
+        'Note an omission is invisible to a grep for the new field, and a matched line that is only `fn(` tells you nothing about its arguments. ' +
+        'Send an empty array when the PR changed no shared call shape.',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          symbol: { type: 'string', description: 'The shared symbol whose call shape changed.' },
+          file: { type: 'string', description: 'Repo-relative path of the call site.' },
+          line: { type: 'integer', description: '1-based line of the call site.' },
+          quotedLine: { type: 'string', description: 'The call-site line verbatim, exactly as you saw it.' },
+          verdict: {
+            type: 'string',
+            enum: ['passes', 'safely_unaffected', 'bug', 'not_examined'],
+            description: 'passes = supplies the field; safely_unaffected = omits it with no effect at this destination; bug = omission changes what this destination produces; not_examined = you did not check.',
+          },
+          why: { type: 'string', description: 'One line: what the omission or default actually DOES at this destination.' },
+        },
+        required: ['file', 'quotedLine', 'verdict'],
+      },
+    },
+  },
+  required: [...FINDINGS_SCHEMA.required, 'callSiteAudit'],
+};
+
 export const TOOL_DEFS = [
   {
     name: 'read_file',
@@ -49,7 +87,7 @@ export const TOOL_DEFS = [
     name: 'submit_findings',
     description:
       'Submit your complete list of findings (or an empty list) and END the review. Call this exactly once when you are done exploring.',
-    input_schema: FINDINGS_SCHEMA,
+    input_schema: SUBMIT_FINDINGS_SCHEMA,
   },
 ];
 
