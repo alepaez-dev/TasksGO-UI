@@ -186,6 +186,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let toolBudgetExhausted = false;
   let nudgedToSubmit = false;
   let submitted = false;
+  let auditRejected = false;
+  let callSiteAudit = [];
 
   const clearUserBreakpoints = () => {
     for (const m of messages) {
@@ -279,7 +281,39 @@ export async function runReviewAgent({ client, config, system, userMessage, root
 
     const submit = uses.find((u) => u.name === 'submit_findings');
     if (submit) {
+      const submittedAudit = submit.input?.callSiteAudit;
       const submittedFindings = submit.input?.findings;
+      // THE ONE SANCTIONED BUDGET OVERRUN. Every other path in this loop yields to the cost ceiling and
+      // the round cap; this bounce does not, and nothing else should copy it. Justified because a review
+      // that skips the completeness pass is the failure we are paying to prevent, an expensive review is
+      // exactly where it gets skipped, and the overrun is bounded to ONE round of a few cents. Safe because
+      // it fires at most once, asks only for work already done (no new tool calls, so it does not fight the
+      // wind-down turn), and stashes findings first — if the run dies before the re-submit, nothing is lost.
+      if (!Array.isArray(submittedAudit) && !auditRejected) {
+        auditRejected = true;
+        if (Array.isArray(submittedFindings)) findings = submittedFindings;
+        if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing callSiteAudit — asking once for the completeness record.`);
+        clearUserBreakpoints();
+        messages.push({
+          role: 'user',
+          content: [
+            {
+              type: 'tool_result',
+              tool_use_id: submit.id,
+              is_error: true,
+              content:
+                'submit_findings rejected: `callSiteAudit` is required. Answer it from what you have ALREADY read — ' +
+                'do not call any other tool. If this PR changed the call shape of a shared symbol, list EVERY call site of that ' +
+                'symbol with its line quoted verbatim and a verdict; judge each SITE separately (a verdict about the symbol does ' +
+                'not dispose of a site), and say what the default DOES at that destination rather than that the field is optional. ' +
+                'If the PR changed no shared call shape, send one entry with verdict "safely_unaffected" saying so. Then call submit_findings again.',
+            },
+            { type: 'text', text: '[completeness] Record the call-site audit, then submit.', cache_control: { type: 'ephemeral' } },
+          ],
+        });
+        continue;
+      }
+      if (Array.isArray(submittedAudit)) callSiteAudit = submittedAudit;
       if (Array.isArray(submittedFindings)) {
         submitted = true;
         findings = submittedFindings;
@@ -288,7 +322,12 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       }
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
+        surfaceReasoning(log, msg.content);
         for (const f of findings) log(`  · ${f?.severity ?? '?'}/${f?.confidence ?? '?'} ${f?.title ?? '(untitled)'}`);
+        for (const a of callSiteAudit) {
+          const where = `${a?.file ?? '?'}:${a?.line ?? '?'}`;
+          log(`  audit · ${String(a?.verdict ?? '?').toUpperCase()} ${a?.symbol ? `${a.symbol} ` : ''}${where}${a?.why ? ` — ${a.why}` : ''}`);
+        }
       }
       break;
     }
@@ -341,6 +380,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
 
   return {
     findings: findings ?? [],
+    callSiteAudit,
     usage: governor.totalUsage(),
     costUsd: governor.spentUsd(),
     usedFallback: modelIdx > 0,
