@@ -23,7 +23,7 @@ const SUBMIT_FINDINGS_SCHEMA = {
         'benign when the destination is computed fresh and no sibling writer supplies the field; a BUG when the write REPLACES persistent or shared state ' +
         '(a sticky comment, cached record, merged config, rewritten file) that a SIBLING path DOES supply it to, because there the default does not mean "absent", it means "erased". ' +
         'Note an omission is invisible to a grep for the new field, and a matched line that is only `fn(` tells you nothing about its arguments. ' +
-        'Pass an empty array with a one-line `why` on a single entry (verdict "safely_unaffected") when the PR changed no shared call shape.',
+        'Send an empty array when the PR changed no shared call shape.',
       items: {
         type: 'object',
         additionalProperties: false,

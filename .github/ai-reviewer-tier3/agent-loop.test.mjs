@@ -51,6 +51,72 @@ test('the submit round logs its reasoning (the round where a dropped hypothesis 
   assert.match(joined, /dropping it as too minor/, 'the discarded-hypothesis reasoning must be visible in the log');
 });
 
+test('a re-submit with malformed findings does not wipe the findings banked by the bounce', async () => {
+  const found = [
+    { file: 'src/a.ts', line: 1, title: 'Real bug', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '' },
+  ];
+  const client = stubClient([
+    // Round 1: real findings, no audit -> bounced, findings banked.
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: found } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    // Round 2: audit supplied, but findings comes back malformed (not an array).
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: 'oops', callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.deepEqual(out.findings, found, 'the banked findings must survive a malformed re-submit');
+  assert.equal(out.submitted, false, 'a malformed findings payload is still not a valid submission');
+});
+
+test('an empty callSiteAudit is logged as an explicit assertion, not silence', async () => {
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  assert.match(lines.join('\n'), /audit · none/, 'an empty audit must be distinguishable from no audit at all');
+});
+
+test('a bounced turn answers EVERY tool_use block (a missing tool_result is a 400 on the next request)', async () => {
+  const scripted = [
+    // Parallel tool use: grep + submit_findings in ONE turn, submit missing the audit -> bounce.
+    {
+      content: [
+        { type: 'tool_use', id: 'tu_grep', name: 'grep', input: { pattern: 'x' } },
+        { type: 'tool_use', id: 'tu_submit', name: 'submit_findings', input: { findings: [] } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ];
+  const captured = [];
+  let i = 0;
+  const client = {
+    beta: {
+      messages: {
+        stream(params) {
+          captured.push(JSON.parse(JSON.stringify(params.messages)));
+          const msg = scripted[i++];
+          return { finalMessage: async () => msg };
+        },
+      },
+    },
+  };
+  await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.equal(captured.length, 2, 'the bounce must produce a second request');
+  const msgs = captured[1]; // the request that carries the bounce
+  const useIds = msgs
+    .filter((m) => m.role === 'assistant')
+    .flatMap((m) => (Array.isArray(m.content) ? m.content : []))
+    .filter((b) => b.type === 'tool_use')
+    .map((b) => b.id);
+  const resultIds = msgs
+    .flatMap((m) => (Array.isArray(m.content) ? m.content : []))
+    .filter((b) => b.type === 'tool_result')
+    .map((b) => b.tool_use_id);
+  for (const id of useIds) {
+    assert.ok(resultIds.includes(id), `tool_use ${id} has no tool_result — the API rejects this turn with a 400`);
+  }
+});
+
 test('the audit gate fires, then a budget death STOPS the run — the bounce must not continue the loop', async () => {
   const found = [
     { file: 'src/a.ts', line: 1, title: 'Real bug', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '' },
@@ -99,7 +165,7 @@ test('the audit gate still fires on an expensive run — that is where it matter
   const partial = [
     { file: 'src/a.ts', line: 2, title: 'Partial', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '' },
   ];
-  const audit = [{ file: 'a.mjs', line: 1, quotedLine: 'fn(x)', verdict: 'safely_unaffected', why: 'no shared call shape changed' }];
+  const audit = [{ symbol: 'fn', file: 'a.mjs', line: 1, quotedLine: 'fn(x)', verdict: 'safely_unaffected', why: 'destination is computed fresh; no sibling writer supplies the field' }];
   const client = stubClient([
     // A costly round pushes spend past the soft wind-down fraction, but not over the ceiling.
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 400000, output_tokens: 0 } },
