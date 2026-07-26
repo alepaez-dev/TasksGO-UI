@@ -51,6 +51,31 @@ test('the submit round logs its reasoning (the round where a dropped hypothesis 
   assert.match(joined, /dropping it as too minor/, 'the discarded-hypothesis reasoning must be visible in the log');
 });
 
+test('an EMPTY re-submit does not wipe the findings banked by the bounce', async () => {
+  const found = [
+    { file: 'src/a.ts', line: 1, title: 'Real bug', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '' },
+  ];
+  const client = stubClient([
+    // Round 1: real findings, no audit -> bounced, findings banked.
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: found } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    // Round 2: audit supplied, but findings comes back EMPTY — the retry was for bookkeeping, not a retraction.
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.deepEqual(out.findings, found, 'an empty re-submit must not silently drop confirmed bugs');
+  assert.equal(out.submitted, true, 'the protocol did complete — the run should not be re-run');
+});
+
+test('a genuinely clean review still reports nothing (the floor must not invent findings)', async () => {
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.deepEqual(out.findings, [], 'nothing was ever banked, so nothing to restore');
+  assert.equal(out.submitted, true);
+});
+
 test('a re-submit with malformed findings does not wipe the findings banked by the bounce', async () => {
   const found = [
     { file: 'src/a.ts', line: 1, title: 'Real bug', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '' },

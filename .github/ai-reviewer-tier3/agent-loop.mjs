@@ -188,6 +188,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let submitted = false;
   let auditRejected = false;
   let callSiteAudit = [];
+  let bankedFindings = null;
 
   const clearUserBreakpoints = () => {
     for (const m of messages) {
@@ -287,7 +288,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       // stashes findings first. Nothing else here may skip the ceiling — see the audit-gate tests.
       if (!Array.isArray(submittedAudit) && !auditRejected) {
         auditRejected = true;
-        if (Array.isArray(submittedFindings)) findings = submittedFindings;
+        if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing callSiteAudit — asking once for the completeness record.`);
         clearUserBreakpoints();
         messages.push({
@@ -319,9 +320,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       if (Array.isArray(submittedFindings)) {
         submitted = true;
         findings = submittedFindings;
-      } else if (!Array.isArray(findings)) {
+      } else {
         findings = [];
       }
+      if (bankedFindings && !findings.length) findings = bankedFindings;
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
         surfaceReasoning(log, msg.content);
@@ -382,7 +384,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   }
 
   return {
-    findings: findings ?? [],
+    findings: findings?.length ? findings : (bankedFindings ?? findings ?? []),
     callSiteAudit,
     usage: governor.totalUsage(),
     costUsd: governor.spentUsd(),
