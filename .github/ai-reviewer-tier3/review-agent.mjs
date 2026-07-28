@@ -223,15 +223,18 @@ async function main() {
     return;
   }
 
-  // Build the agent's system blocks (prompt + optional rules + CLAUDE.md) and opening user message.
+  // Build the agent's system blocks (prompt + optional rules + project guide) and opening user message.
   const rules = loadTextFile(resolve(SCRIPT_DIR, '..', 'ai-reviewer', 'rules.md'));
   if (!rules.trim()) core.warning('Team rules (.github/ai-reviewer/rules.md) came back empty — reviewing without them.');
-  const projectGuide = config.includeProjectGuide ? loadTextFile(resolve(REPO_ROOT, 'CLAUDE.md')) : '';
+  const projectGuide = config.includeProjectGuide ? loadTextFile(resolve(SCRIPT_DIR, '..', 'ai-reviewer', 'project-guide.md')) : '';
+  if (config.includeProjectGuide && !projectGuide.trim()) {
+    core.warning('Project guide (.github/ai-reviewer/project-guide.md) came back empty — reviewing without it.');
+  }
   const system = [{ type: 'text', text: REVIEW_AGENT_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }];
   const contextParts = [];
   if (rules.trim()) contextParts.push(`# Project review rules (maintained by the team — follow these)\n\n${rules}`);
   if (projectGuide.trim()) {
-    contextParts.push(`# Project engineering guide (CLAUDE.md — conventions; do NOT flag intentional patterns described here as bugs)\n\n${projectGuide}`);
+    contextParts.push(`# Design system requirements (what this codebase must do — a diff that violates one is a finding)\n\n${projectGuide}`);
   }
   if (contextParts.length) system.push({ type: 'text', text: contextParts.join('\n\n---\n\n'), cache_control: { type: 'ephemeral' } });
 

@@ -366,7 +366,7 @@ test('cache_control breakpoints never exceed the 4-per-request limit across roun
       },
     },
   };
-  // Two cache_control system blocks, like review-agent.mjs builds (prompt + rules/CLAUDE.md).
+  // Two cache_control system blocks, like review-agent.mjs builds (prompt + rules/project guide).
   const system = [
     { type: 'text', text: 'prompt', cache_control: { type: 'ephemeral' } },
     { type: 'text', text: 'rules', cache_control: { type: 'ephemeral' } },

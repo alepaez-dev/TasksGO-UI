@@ -82,7 +82,7 @@
 
 ## Project conventions — do NOT flag these as bugs
 
-These are intentional in this codebase (see `CLAUDE.md`):
+These are intentional in this codebase:
 
 - **Components are intentionally stateless.** Components under `src/components/` must not use
   `useState`/`useReducer`/mutable `useRef`. Do **not** suggest "add local state" — state lives
