@@ -1607,7 +1607,7 @@ async function main() {
   // 3. Build the prompt (rules + project guide are the stable, cacheable prefix).
   const rules = loadTextFile(resolve(SCRIPT_DIR, 'rules.md'), 'rules.md');
   const projectGuide = config.includeProjectGuide
-    ? loadTextFile(resolve(REPO_ROOT, 'CLAUDE.md'), 'CLAUDE.md')
+    ? loadTextFile(resolve(SCRIPT_DIR, 'project-guide.md'), 'project-guide.md')
     : '';
 
   const system = [{ type: 'text', text: REVIEW_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }];
@@ -1617,7 +1617,7 @@ async function main() {
   }
   if (projectGuide.trim()) {
     contextParts.push(
-      `# Project engineering guide (CLAUDE.md — conventions; do NOT flag intentional patterns described here as bugs)\n\n${projectGuide}`,
+      `# Design system requirements (what this codebase must do — a diff that violates one is a finding)\n\n${projectGuide}`,
     );
   }
   if (contextParts.length) {
