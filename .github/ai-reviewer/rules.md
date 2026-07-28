@@ -35,6 +35,9 @@
 - User actions that can be triggered multiple times while a request is already pending.
 - Forms that can submit duplicate requests due to missing disabled/loading states.
 - State that is lost unexpectedly when navigating, rerendering, or reopening a modal.
+- The reverse: UI or state that PERSISTS when it should have been cleared — an overlay, menu, or
+  dropdown left open after the row, card, section, tab, or route it belongs to collapses, hides,
+  or unmounts; a flag left true so the surface returns already-open on the next mount.
 - UI showing stale API data after a mutation succeeds.
 - Components that render successfully but display incorrect information due to stale props,
   stale closures, or race conditions.
@@ -53,7 +56,6 @@
 - Usage of design-system abstractions, wrappers, or composition patterns.
 - Lack of memoization unless it causes a correctness issue.
 - CSS variable usage through design-system tokens.
-- Conditional rendering that intentionally mounts/unmounts components.
 - Component decomposition choices, file structure, or architectural preferences.
 
 ---
@@ -88,8 +90,6 @@ These are intentional in this codebase (see `CLAUDE.md`):
 - **No file-level comments / docstrings.** The absence of a header comment is intentional.
 - **No inline styles; styling is via CSS Modules + design tokens** (`--ds-*` CSS variables).
   Components consuming tokens via CSS variables instead of raw values is correct.
-- **Overlays/conditional UI unmount when closed** (not hidden via CSS). That is the intended
-  pattern, not a bug.
 - **Named exports only** (no default exports from component files) — intentional.
 - `tokens.css` / `typography.css` are **generated** — never reviewed (already ignored).
 - Prettier/ESLint own formatting, import order, and style — never report those.
