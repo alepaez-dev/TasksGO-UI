@@ -90,6 +90,13 @@ test('TOOL_DEFS includes four tools and submit_findings carries the findings sch
   assert.ok(submit.input_schema && submit.input_schema.properties.findings);
 });
 
+test('the reasoning fields are emitted BEFORE findings (order is what makes them reasoning, not narration)', () => {
+  const keys = Object.keys(TOOL_DEFS.find((t) => t.name === 'submit_findings').input_schema.properties);
+  assert.ok(keys.indexOf('callSiteAudit') < keys.indexOf('findings'), 'callSiteAudit must precede findings');
+  assert.ok(keys.indexOf('confirmSuppressed') < keys.indexOf('findings'), 'confirmSuppressed must precede findings');
+  assert.equal(keys[keys.length - 1], 'findings', 'findings is written last so it can absorb both checks');
+});
+
 test('read_file rejects an in-repo symlink whose target escapes the repo', async () => {
   const root = fixtureRoot();
   const outside = join(mkdtempSync(join(tmpdir(), 't3-outside-')), 'secret.txt');

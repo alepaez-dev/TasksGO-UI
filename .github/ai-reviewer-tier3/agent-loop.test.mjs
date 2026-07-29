@@ -39,7 +39,7 @@ test('the submit round logs its reasoning (the round where a dropped hypothesis 
     {
       content: [
         { type: 'thinking', thinking: 'Checked whether dismissed can be set while findings is null — dropping it as too minor.' },
-        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } },
       ],
       usage: { input_tokens: 100, output_tokens: 10 },
     },
@@ -51,6 +51,40 @@ test('the submit round logs its reasoning (the round where a dropped hypothesis 
   assert.match(joined, /dropping it as too minor/, 'the discarded-hypothesis reasoning must be visible in the log');
 });
 
+test('a submit with callSiteAudit but NO confirmSuppressed is still bounced', async () => {
+  const client = stubClient([
+    // Audit present, confirmation record absent — the suppression check is not optional.
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  assert.equal(out.rounds, 2, 'the first submit must be rejected for the missing confirmation record');
+  assert.match(lines.join('\n'), /missing confirmSuppressed/, 'the log must name which field was missing');
+  assert.equal(out.submitted, true);
+});
+
+test('a resolved suppression is logged with the reason and what settled it', async () => {
+  const confirm = [
+    {
+      claim: 'dismissed lost on the bounced-submit path',
+      reasonGiven: 'a minor loss and speculative',
+      wouldSettle: 'does a bankedDismissed exist next to bankedFindings?',
+      checked: 'no — findings are banked, dismissed is not',
+      verdict: 'is-a-bug-moved-to-findings',
+    },
+  ];
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: confirm } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.match(joined, /confirm · IS-A-BUG-MOVED-TO-FINDINGS/, 'the verdict must be visible');
+  assert.match(joined, /was: a minor loss and speculative → checked: no — findings are banked/, 'the reason and what settled it must both be readable');
+  assert.deepEqual(out.confirmSuppressed, confirm);
+});
+
 test('an EMPTY re-submit does not wipe the findings banked by the bounce', async () => {
   const found = [
     { file: 'src/a.ts', line: 1, title: 'Real bug', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '' },
@@ -59,7 +93,7 @@ test('an EMPTY re-submit does not wipe the findings banked by the bounce', async
     // Round 1: real findings, no audit -> bounced, findings banked.
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: found } }], usage: { input_tokens: 100, output_tokens: 10 } },
     // Round 2: audit supplied, but findings comes back EMPTY — the retry was for bookkeeping, not a retraction.
-    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.deepEqual(out.findings, found, 'an empty re-submit must not silently drop confirmed bugs');
@@ -69,7 +103,7 @@ test('an EMPTY re-submit does not wipe the findings banked by the bounce', async
 test('a genuinely clean review still reports nothing (the floor must not invent findings)', async () => {
   const client = stubClient([
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
-    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.deepEqual(out.findings, [], 'nothing was ever banked, so nothing to restore');
@@ -84,7 +118,7 @@ test('a re-submit with malformed findings does not wipe the findings banked by t
     // Round 1: real findings, no audit -> bounced, findings banked.
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: found } }], usage: { input_tokens: 100, output_tokens: 10 } },
     // Round 2: audit supplied, but findings comes back malformed (not an array).
-    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: 'oops', callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: 'oops', callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.deepEqual(out.findings, found, 'the banked findings must survive a malformed re-submit');
@@ -93,7 +127,7 @@ test('a re-submit with malformed findings does not wipe the findings banked by t
 
 test('an empty callSiteAudit is logged as an explicit assertion, not silence', async () => {
   const client = stubClient([
-    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
   ]);
   const lines = [];
   await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
@@ -110,7 +144,7 @@ test('a bounced turn answers EVERY tool_use block (a missing tool_result is a 40
       ],
       usage: { input_tokens: 100, output_tokens: 10 },
     },
-    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
   ];
   const captured = [];
   let i = 0;
@@ -197,7 +231,7 @@ test('the audit gate still fires on an expensive run — that is where it matter
     // Submits with no audit — bounced even though budget is tight.
     { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: partial } }], usage: { input_tokens: 1000, output_tokens: 10 } },
     // Re-submits with the audit.
-    { content: [{ type: 'tool_use', id: 'tu_3', name: 'submit_findings', input: { findings: partial, callSiteAudit: audit } }], usage: { input_tokens: 1000, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_3', name: 'submit_findings', input: { findings: partial, callSiteAudit: audit, confirmSuppressed: [] } }], usage: { input_tokens: 1000, output_tokens: 10 } },
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.deepEqual(out.findings, partial);
@@ -210,7 +244,7 @@ test('a submit without callSiteAudit is bounced once, then accepted with the aud
   ];
   const client = stubClient([
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
-    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: audit } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: audit, confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.equal(out.rounds, 2, 'the first submit is rejected, so a second round runs');
@@ -235,7 +269,7 @@ test('captures findings from submit_findings and stops', async () => {
   ];
   const client = stubClient([
     {
-      content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings, callSiteAudit: [] } }],
+      content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings, callSiteAudit: [], confirmSuppressed: [] } }],
       usage: { input_tokens: 1000, output_tokens: 50 },
     },
   ]);
@@ -252,7 +286,7 @@ test('runs tools then submits (multi-round)', async () => {
   ];
   const client = stubClient([
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 1000, output_tokens: 20 } },
-    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings, callSiteAudit: [] } }], usage: { input_tokens: 500, output_tokens: 30 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings, callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 500, output_tokens: 30 } },
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.deepEqual(out.findings, findings);
@@ -263,7 +297,7 @@ test('runs tools then submits (multi-round)', async () => {
 test('a prose-only turn is nudged once, then recovers when the model submits', async () => {
   const client = stubClient([
     { content: [{ type: 'text', text: 'The change looks clean.' }], usage: { input_tokens: 1000, output_tokens: 10 } },
-    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 500, output_tokens: 5 } },
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 500, output_tokens: 5 } },
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.deepEqual(out.findings, []);
@@ -290,7 +324,7 @@ test('budget interrupt runs one wind-down turn that captures partial findings', 
     // Round 1: an expensive read trips the budget gate ($2.50, ceiling $3).
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 500000, output_tokens: 0 } },
     // Wind-down turn (cheap, mostly cache-reads in reality): the model submits what it has.
-    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: partial, callSiteAudit: [] } }], usage: { input_tokens: 2000, output_tokens: 100 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: partial, callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 2000, output_tokens: 100 } },
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.equal(out.interruptedReason, 'budget');
@@ -329,7 +363,7 @@ test('budget wind-down still stops (returns []) if the model ignores the submit 
 test('budget skips the wind-down turn when the ceiling is already exceeded', async () => {
   const client = stubClient([
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 700000, output_tokens: 0 } },
-    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.equal(out.interruptedReason, 'budget');
@@ -360,7 +394,7 @@ test('cache_control breakpoints never exceed the 4-per-request limit across roun
           const msg =
             i < 3
               ? { content: [{ type: 'tool_use', id: `tu_${i}`, name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 100, output_tokens: 10 } }
-              : { content: [{ type: 'tool_use', id: 'tu_s', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 50, output_tokens: 5 } };
+              : { content: [{ type: 'tool_use', id: 'tu_s', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 50, output_tokens: 5 } };
           return { finalMessage: async () => msg };
         },
       },
@@ -465,7 +499,7 @@ test('feeds the model a running [budget] status that escalates with spend', asyn
   // Cheap round → low fraction → "Explore freely".
   const lo = capturing([
     { content: [{ type: 'tool_use', id: 't1', name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 1000, output_tokens: 10 } },
-    { content: [{ type: 'tool_use', id: 't2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 5 } },
+    { content: [{ type: 'tool_use', id: 't2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 5 } },
   ]);
   await runReviewAgent({ client: lo.client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
   assert.ok(budgetBlocks(lo.captured).some((t) => /Explore freely/.test(t)), 'low spend should say explore freely');
@@ -473,7 +507,7 @@ test('feeds the model a running [budget] status that escalates with spend', asyn
   // Expensive round ($2.50 of $3 ≈ 83%) → "CONVERGE NOW".
   const hi = capturing([
     { content: [{ type: 'tool_use', id: 't1', name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 500000, output_tokens: 0 } },
-    { content: [{ type: 'tool_use', id: 't2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 5 } },
+    { content: [{ type: 'tool_use', id: 't2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 5 } },
   ]);
   await runReviewAgent({ client: hi.client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
   assert.ok(budgetBlocks(hi.captured).some((t) => /CONVERGE NOW/.test(t)), 'high spend should say converge');
@@ -489,7 +523,7 @@ test('sets toolBudgetExhausted once maxToolCalls is exceeded', async () => {
       ],
       usage: { input_tokens: 100, output_tokens: 10 },
     },
-    { content: [{ type: 'tool_use', id: 'tu_3', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 50, output_tokens: 5 } },
+    { content: [{ type: 'tool_use', id: 'tu_3', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 50, output_tokens: 5 } },
   ]);
   const out = await runReviewAgent({ client, config: { ...config, maxToolCalls: 1 }, system: 'sys', userMessage: 'r', root, log: () => {} });
   assert.equal(out.toolBudgetExhausted, true);
@@ -513,7 +547,7 @@ function scriptedClient(steps) {
 }
 const overloaded = () => Object.assign(new Error('Overloaded'), { status: 529, error: { type: 'overloaded_error' } });
 const creditBalance = () => Object.assign(new Error('Your credit balance is too low'), { status: 400, error: { type: 'invalid_request_error' } });
-const submitMsg = (findings = []) => ({ content: [{ type: 'tool_use', id: 'ts', name: 'submit_findings', input: { findings, callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } });
+const submitMsg = (findings = []) => ({ content: [{ type: 'tool_use', id: 'ts', name: 'submit_findings', input: { findings, callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } });
 const grepMsg = () => ({ content: [{ type: 'tool_use', id: 'tg', name: 'grep', input: { pattern: 'x' } }], usage: { input_tokens: 100, output_tokens: 10 } });
 const fast = (extra) => ({ ...config, retryBaseDelayMs: 0, ...extra });
 
@@ -587,7 +621,7 @@ test('degrades to findings-so-far once every model and retry is exhausted', asyn
 
 test('a fallback round is priced at the fallback model\'s real rate, not the primary\'s', async () => {
   const usage = { input_tokens: 100000, output_tokens: 20000 };
-  const msg = { content: [{ type: 'tool_use', id: 's', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage };
+  const msg = { content: [{ type: 'tool_use', id: 's', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage };
   // (a) opus-only run
   const a = scriptedClient([msg]);
   const outA = await runReviewAgent({ client: a.client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
@@ -611,7 +645,7 @@ test('logs the model thinking (Thinking ->) when the response carries a thinking
       ],
       usage: { input_tokens: 1000, output_tokens: 200 },
     },
-    { content: [{ type: 'tool_use', id: 't2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 't2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
   ]);
   await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (m) => logs.push(m) });
   assert.ok(logs.some((l) => l.startsWith('Thinking -> ')), 'a "Thinking ->" line must be logged when the model thinks');
