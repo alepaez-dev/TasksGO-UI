@@ -8,11 +8,11 @@ const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'storybook-s
 const PER_FILE_MATCH_CAP = 50;
 const MAX_FILES_WALKED = 20000;
 
+
 const SUBMIT_FINDINGS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    ...FINDINGS_SCHEMA.properties,
     callSiteAudit: {
       type: 'array',
       description:
@@ -42,8 +42,36 @@ const SUBMIT_FINDINGS_SCHEMA = {
         required: ['file', 'quotedLine', 'verdict'],
       },
     },
+    // Let's force the model to "think" about the suppressed concerns before it decides what goes in "findings" (structured CoT)
+    confirmSuppressed: {
+      type: 'array',
+      description:
+        'REQUIRED, and resolve it BEFORE you decide what goes in `findings` — not afterwards. ' +
+        'Take up to 3 concerns you traced to a concrete mechanism but were about to leave out. For each, RESOLVE the reason rather than assert it: ' +
+        '"speculative", "uncertain", "minor", "an edge case", "probably intentional" are claims about YOUR evidence, not about the code. ' +
+        'Name the check that would settle it and run it — if it is settleable from code you have ALREADY read, settle it now, whatever the severity. ' +
+        'Anything that turns out to be real moves into `findings`. Reserve "genuinely-unverifiable" for a claim no code inspection could decide, and say why. ' +
+        'Empty array only when you left nothing out.',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          claim: { type: 'string', description: 'The defect you were about to leave out.' },
+          reasonGiven: { type: 'string', description: 'Why you were leaving it out — your own words.' },
+          wouldSettle: { type: 'string', description: 'The concrete check that decides it (a symbol to grep, a line to re-read).' },
+          checked: { type: 'string', description: 'What that check actually showed. Not what you assume it would show.' },
+          verdict: {
+            type: 'string',
+            enum: ['confirmed-not-a-bug', 'is-a-bug-moved-to-findings', 'genuinely-unverifiable'],
+          },
+        },
+        required: ['claim', 'reasonGiven', 'wouldSettle', 'checked', 'verdict'],
+      },
+    },
+    // Last on purpose. The model has already thought about the suppressed concerns and callSiteAudit, so the response should be richer (structured CoT)
+    ...FINDINGS_SCHEMA.properties,
   },
-  required: [...FINDINGS_SCHEMA.required, 'callSiteAudit'],
+  required: [...FINDINGS_SCHEMA.required, 'callSiteAudit', 'confirmSuppressed'],
 };
 
 export const TOOL_DEFS = [

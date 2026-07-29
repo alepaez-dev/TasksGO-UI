@@ -188,6 +188,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let submitted = false;
   let auditRejected = false;
   let callSiteAudit = [];
+  let confirmSuppressed = [];
   let bankedFindings = null;
 
   const clearUserBreakpoints = () => {
@@ -283,13 +284,15 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     const submit = uses.find((u) => u.name === 'submit_findings');
     if (submit) {
       const submittedAudit = submit.input?.callSiteAudit;
+      const submittedConfirm = submit.input?.confirmSuppressed;
       const submittedFindings = submit.input?.findings;
       // The one sanctioned budget overrun: bounded to one round, asks only for work already done, and
       // stashes findings first. Nothing else here may skip the ceiling — see the audit-gate tests.
-      if (!Array.isArray(submittedAudit) && !auditRejected) {
+      if ((!Array.isArray(submittedAudit) || !Array.isArray(submittedConfirm)) && !auditRejected) {
         auditRejected = true;
         if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
-        if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing callSiteAudit — asking once for the completeness record.`);
+        const missing = [!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed'].filter(Boolean);
+        if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing ${missing.join(' + ')} — asking once for the completeness record.`);
         clearUserBreakpoints();
         messages.push({
           role: 'user',
@@ -301,7 +304,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
                     tool_use_id: u.id,
                     is_error: true,
                     content:
-                      'submit_findings rejected: `callSiteAudit` is required — follow its field description for how to judge each site. ' +
+                      `submit_findings rejected: ${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} required — follow each field's description. ` +
+                      'For `confirmSuppressed`, resolve the concerns you were about to leave out BEFORE deciding what goes in `findings`; ' +
+                      'anything that turns out to be real belongs in `findings`, not only in the record. ' +
                       'Answer from what you have ALREADY read; do not call any other tool. Then call submit_findings again.',
                   }
                 : {
@@ -317,6 +322,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         continue;
       }
       if (Array.isArray(submittedAudit)) callSiteAudit = submittedAudit;
+      if (Array.isArray(submittedConfirm)) confirmSuppressed = submittedConfirm;
       if (Array.isArray(submittedFindings)) {
         submitted = true;
         findings = submittedFindings;
@@ -332,6 +338,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         for (const a of callSiteAudit) {
           const where = `${a?.file ?? '?'}:${a?.line ?? '?'}`;
           log(`  audit · ${String(a?.verdict ?? '?').toUpperCase()} ${a?.symbol ? `${a.symbol} ` : ''}${where}${a?.why ? ` — ${a.why}` : ''}`);
+        }
+        for (const c of confirmSuppressed) {
+          log(`  confirm · ${String(c?.verdict ?? '?').toUpperCase()} ${c?.claim ?? '?'}`);
+          log(`      was: ${c?.reasonGiven ?? '?'} → checked: ${c?.checked ?? '?'}`);
         }
       }
       break;
@@ -386,6 +396,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   return {
     findings: findings?.length ? findings : (bankedFindings ?? findings ?? []),
     callSiteAudit,
+    confirmSuppressed,
     usage: governor.totalUsage(),
     costUsd: governor.spentUsd(),
     usedFallback: modelIdx > 0,
