@@ -46,12 +46,12 @@ const SUBMIT_FINDINGS_SCHEMA = {
     confirmSuppressed: {
       type: 'array',
       description:
-        'REQUIRED, and resolve it BEFORE you decide what goes in `findings` — not afterwards. ' +
-        'Take up to 3 concerns you traced to a concrete mechanism but were about to leave out. For each, RESOLVE the reason rather than assert it: ' +
-        '"speculative", "uncertain", "minor", "an edge case", "probably intentional" are claims about YOUR evidence, not about the code. ' +
-        'Name the check that would settle it and run it — if it is settleable from code you have ALREADY read, settle it now, whatever the severity. ' +
-        'Anything that turns out to be real moves into `findings`. Reserve "genuinely-unverifiable" for a claim no code inspection could decide, and say why. ' +
-        'Empty array only when you left nothing out.',
+        'REQUIRED, and resolve it BEFORE you decide what goes in `findings`. List EVERY concern you formed and are NOT reporting — not a chosen few, and not only the ones that still worry you. ' +
+        'A concern is cleared ONLY by pointing to the exact code, invariant, or execution path that prevents the failure. ' +
+        '"seems fine", "probably safe", "minimal risk", "intentional", "defaults cleanly", "common practice", "speculative", "uncertain" are never clearances — they name a guess, not a mechanism. ' +
+        'For each entry: `wouldSettle` = the check that decides it; `checked` = the concrete mechanism you found (quote the line / invariant / path that prevents the failure), or that you looked and could not find one. ' +
+        'If you cannot point to the mechanism, the verdict is NOT "confirmed-not-a-bug" — it is "is-a-bug-moved-to-findings" (put it in `findings`) or "genuinely-unverifiable" (no code inspection could decide it; say why). ' +
+        'Empty array ONLY on a change so trivial you formed no concern at all.',
       items: {
         type: 'object',
         additionalProperties: false,

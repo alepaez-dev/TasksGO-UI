@@ -44,5 +44,6 @@ test-results/
 CLAUDE.md
 .claude/
 
-# Local Explanation docs
+# Local
 docs/
+local-review.sh
