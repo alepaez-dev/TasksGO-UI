@@ -48,21 +48,25 @@ export const Tinted: Story = {
         initial="AH"
         variant="profile"
         aria-label="Alex H."
-        tint="#7D9B84"
+        tint="var(--ds-color-avatar-tone-profile-sage)"
       />
       <Avatar
         initial="CH"
         variant="profile"
         aria-label="Cleo H."
-        tint="#C38E70"
+        tint="var(--ds-color-avatar-tone-profile-tan)"
       />
       <Avatar
         initial="VP"
         variant="profile"
         aria-label="Vader P."
-        tint="#6C89A8"
+        tint="var(--ds-color-avatar-tone-profile-steel)"
       />
-      <Avatar initial="P" tint="#4f6f8f" aria-label="Project P" />
+      <Avatar
+        initial="P"
+        tint="var(--ds-color-avatar-tone-project-ocean)"
+        aria-label="Project P"
+      />
     </div>
   ),
 };

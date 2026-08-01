@@ -52,19 +52,19 @@ export const MediumSize: Story = {
         initial="AH"
         aria-label="Alex H."
         variant="profile"
-        tint="#7D9B84"
+        tint="var(--ds-color-avatar-tone-profile-sage)"
       />
       <Avatar
         initial="CH"
         aria-label="Cleo H."
         variant="profile"
-        tint="#C38E70"
+        tint="var(--ds-color-avatar-tone-profile-tan)"
       />
       <Avatar
         initial="VP"
         aria-label="Vader P."
         variant="profile"
-        tint="#6C89A8"
+        tint="var(--ds-color-avatar-tone-profile-steel)"
       />
     </AvatarGroup>
   ),
