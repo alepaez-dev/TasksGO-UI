@@ -7,10 +7,20 @@ const projects: ProjectPickerProject[] = [
     value: 'eng-core',
     label: 'Engineering Core',
     initial: 'E',
-    avatarColor: '#4f6f8f',
+    avatarColor: 'var(--ds-color-avatar-tone-project-ocean)',
   },
-  { value: 'mudatec', label: 'Mudatec', initial: 'M', avatarColor: '#856D4A' },
-  { value: 'tasksgo', label: 'TasksGo', initial: 'T', avatarColor: '#5e778f' },
+  {
+    value: 'mudatec',
+    label: 'Mudatec',
+    initial: 'M',
+    avatarColor: 'var(--ds-color-avatar-tone-project-warm)',
+  },
+  {
+    value: 'tasksgo',
+    label: 'TasksGo',
+    initial: 'T',
+    avatarColor: 'var(--ds-color-avatar-tone-project-slate)',
+  },
 ];
 
 const meta: Meta<typeof ProjectPicker> = {

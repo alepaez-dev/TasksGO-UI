@@ -1,4 +1,10 @@
-import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useRef,
+  type HTMLAttributes,
+  type ReactNode,
+} from 'react';
 import { Avatar } from '../Avatar';
 import { Badge, type BadgeProps } from '../Badge';
 import { Callout } from '../Callout';
@@ -9,6 +15,7 @@ import { SectionHeader } from '../SectionHeader';
 import { Selector } from '../Selector';
 import { StepList } from '../StepList';
 import { TicketId } from '../TicketId';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import { cn } from '../../utils/cn';
 import styles from './TestScenarioCard.module.css';
 
@@ -125,6 +132,13 @@ export const TestScenarioCard = forwardRef<
       : evidenceItems.slice(0, EVIDENCE_PREVIEW_COUNT);
     const hiddenEvidenceCount = evidenceItems.length - EVIDENCE_PREVIEW_COUNT;
 
+    const statusSelectRef = useRef<HTMLDivElement>(null);
+    const closeStatusSelect = useCallback(
+      () => onStatusSelectOpenChange?.(false),
+      [onStatusSelectOpenChange],
+    );
+    useClickOutside(statusSelectRef, closeStatusSelect, statusSelectOpen);
+
     return (
       <div
         ref={ref}
@@ -155,9 +169,7 @@ export const TestScenarioCard = forwardRef<
             <span className={styles.title}>{title}</span>
             <span className={styles.byline}>
               <TicketId>{caseId}</TicketId>
-              <span className={styles.bylineSep} aria-hidden="true">
-                &middot;
-              </span>
+              <span className={styles.bylineSep} aria-hidden="true" />
               <span>{byline}</span>
             </span>
           </span>
@@ -165,12 +177,14 @@ export const TestScenarioCard = forwardRef<
           <Avatar
             variant="profile"
             size="sm"
+            className={styles.assignee}
             initial={assigneeInitial}
             aria-label={assigneeLabel}
             tint={assigneeColor}
           />
 
           <Selector
+            ref={statusSelectRef}
             className={styles.statusSelect}
             showChevron={false}
             options={STATUS_OPTIONS}
@@ -210,7 +224,11 @@ export const TestScenarioCard = forwardRef<
           <Icon
             name="expand_more"
             size="md"
-            className={cn(styles.chevron, open && styles.chevronOpen)}
+            className={cn(
+              styles.chevron,
+              styles.headerChevron,
+              open && styles.chevronOpen,
+            )}
           />
         </div>
 

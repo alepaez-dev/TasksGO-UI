@@ -73,6 +73,38 @@ describe('TestScenarioCard', () => {
     expect(onStatusChange).toHaveBeenCalledWith('failed');
   });
 
+  it('closes the status dropdown when the card header is clicked', async () => {
+    const onStatusSelectOpenChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        statusSelectOpen
+        onStatusSelectOpenChange={onStatusSelectOpenChange}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: /collapse scenario/i }),
+    );
+    expect(onStatusSelectOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('closes the status dropdown when an in-body action is clicked', async () => {
+    const onStatusSelectOpenChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        statusSelectOpen
+        onStatusSelectOpenChange={onStatusSelectOpenChange}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Mark as Passed' }),
+    );
+    expect(onStatusSelectOpenChange).toHaveBeenCalledWith(false);
+  });
+
   it('emits onStatusChange from the Mark as Failed action', async () => {
     const onStatusChange = vi.fn();
     render(<TestScenarioCard {...base} open onStatusChange={onStatusChange} />);

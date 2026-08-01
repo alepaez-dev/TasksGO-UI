@@ -120,6 +120,31 @@ export const colors = {
     profileText: text.primary,
     profileBorder: border.default,
   },
+  avatarTone: {
+    profile: {
+      sage: '#7D9B84',
+      tan: '#C38E70',
+      steel: '#6C89A8',
+      plum: '#887DA9',
+    },
+    project: {
+      ocean: accent.primary,
+      slate: accent.secondary,
+      warm: accent.warmText,
+      bronze: '#8B6F4E',
+      violet: '#7B6B8E',
+      indigo: '#6A5E8B',
+      mauve: '#8B5E6A',
+      denim: '#5A6B8E',
+      orchid: '#8E5A7B',
+      steelDark: '#5A7B8C',
+      moss: '#5E7D4F',
+      clay: '#BC5643',
+      fern: '#567E60',
+      sand: '#847354',
+      teal: '#507E6D',
+    },
+  },
 
   checkbox: {
     border: '#d1d5db',

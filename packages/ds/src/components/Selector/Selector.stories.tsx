@@ -294,10 +294,30 @@ export const ManyOptions: Story = {
 };
 
 const members = [
-  { value: 'ale', label: 'Ale H.', initial: 'AH', color: '#7D9B84' },
-  { value: 'cleo', label: 'Cleo H.', initial: 'CH', color: '#C38E70' },
-  { value: 'vader', label: 'Vader P.', initial: 'VP', color: '#6C89A8' },
-  { value: 'loki', label: 'Loki P.', initial: 'LP', color: '#7B6FA0' },
+  {
+    value: 'ale',
+    label: 'Ale H.',
+    initial: 'AH',
+    color: 'var(--ds-color-avatar-tone-profile-sage)',
+  },
+  {
+    value: 'cleo',
+    label: 'Cleo H.',
+    initial: 'CH',
+    color: 'var(--ds-color-avatar-tone-profile-tan)',
+  },
+  {
+    value: 'vader',
+    label: 'Vader P.',
+    initial: 'VP',
+    color: 'var(--ds-color-avatar-tone-profile-steel)',
+  },
+  {
+    value: 'loki',
+    label: 'Loki P.',
+    initial: 'LP',
+    color: 'var(--ds-color-avatar-tone-profile-plum)',
+  },
 ];
 
 function AvatarOptionsRender() {
