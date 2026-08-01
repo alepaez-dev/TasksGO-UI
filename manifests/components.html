@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/55 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">55/55 infos</a><span class="filter-pill ok" aria-disabled="true">249 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/57 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">57/57 infos</a><span class="filter-pill ok" aria-disabled="true">256 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -881,21 +881,25 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
       initial=&quot;AH&quot;
       variant=&quot;profile&quot;
       aria-label=&quot;Alex H.&quot;
-      tint=&quot;#7D9B84&quot;
+      tint=&quot;var(--ds-color-avatar-tone-profile-sage)&quot;
     /&gt;
     &lt;Avatar
       initial=&quot;CH&quot;
       variant=&quot;profile&quot;
       aria-label=&quot;Cleo H.&quot;
-      tint=&quot;#C38E70&quot;
+      tint=&quot;var(--ds-color-avatar-tone-profile-tan)&quot;
     /&gt;
     &lt;Avatar
       initial=&quot;VP&quot;
       variant=&quot;profile&quot;
       aria-label=&quot;Vader P.&quot;
-      tint=&quot;#6C89A8&quot;
+      tint=&quot;var(--ds-color-avatar-tone-profile-steel)&quot;
     /&gt;
-    &lt;Avatar initial=&quot;P&quot; tint=&quot;#4f6f8f&quot; aria-label=&quot;Project P&quot; /&gt;
+    &lt;Avatar
+      initial=&quot;P&quot;
+      tint=&quot;var(--ds-color-avatar-tone-project-ocean)&quot;
+      aria-label=&quot;Project P&quot;
+    /&gt;
   &lt;/div&gt;
 );</code></pre>
             </div>
@@ -1011,19 +1015,19 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
       initial=&quot;AH&quot;
       aria-label=&quot;Alex H.&quot;
       variant=&quot;profile&quot;
-      tint=&quot;#7D9B84&quot;
+      tint=&quot;var(--ds-color-avatar-tone-profile-sage)&quot;
     /&gt;
     &lt;Avatar
       initial=&quot;CH&quot;
       aria-label=&quot;Cleo H.&quot;
       variant=&quot;profile&quot;
-      tint=&quot;#C38E70&quot;
+      tint=&quot;var(--ds-color-avatar-tone-profile-tan)&quot;
     /&gt;
     &lt;Avatar
       initial=&quot;VP&quot;
       aria-label=&quot;Vader P.&quot;
       variant=&quot;profile&quot;
-      tint=&quot;#6C89A8&quot;
+      tint=&quot;var(--ds-color-avatar-tone-profile-steel)&quot;
     /&gt;
   &lt;/AvatarGroup&gt;
 );</code></pre>
@@ -6767,7 +6771,7 @@ value: string</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Selector</h2>
       <div class="badges">
-        <label for="c-43-components-selector-props" class="badge ok as-toggle">14 prop types</label>
+        <label for="c-43-components-selector-props" class="badge ok as-toggle">15 prop types</label>
         <label for="c-43-components-selector-info" class="badge info as-toggle">1 info</label>
         <label for="c-43-components-selector-stories" class="badge ok as-toggle">9 stories</label>
         
@@ -6801,7 +6805,7 @@ value: string</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">14 prop types</span>
+              <span class="badge ok">15 prop types</span>
             </div>
             <pre><code>Component: src/components/Selector/Selector.tsx::Selector</code></pre>
             <pre><code>Props:</code></pre>
@@ -6832,6 +6836,8 @@ placeholder?: string = &#39;Select\u2026&#39;
 renderOptionIndicator?: (option: SelectorOption) =&gt; ReactNode
 
 renderTriggerLabel?: (option: SelectorOption) =&gt; ReactNode
+
+showChevron?: boolean = true
 
 triggerPrefix?: ReactNode
 
@@ -8769,14 +8775,259 @@ trailing?: ReactNode</code></pre>
   no-story-error
   no-doc-error"
   role="listitem"
+  aria-label="TestScenarioCard">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-ok"></span> TestScenarioCard</h2>
+      <div class="badges">
+        <label for="c-52-components-testscenariocard-props" class="badge ok as-toggle">20 prop types</label>
+        <label for="c-52-components-testscenariocard-info" class="badge info as-toggle">1 info</label>
+        <label for="c-52-components-testscenariocard-stories" class="badge ok as-toggle">5 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/TestScenarioCard/TestScenarioCard.stories.tsx">components-testscenariocard · ./src/components/TestScenarioCard/TestScenarioCard.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  
+  <input id="c-52-components-testscenariocard-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-52-components-testscenariocard-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  <input id="c-52-components-testscenariocard-props" class="tg tg-props" type="checkbox" hidden />
+
+  <div class="panels">
+    
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+        <div class="panel panel-props">
+          <div class="note ok">
+            <div class="row">
+              <span class="ex-name">Prop types <small>(react-docgen)</small></span>
+              <span class="badge ok">20 prop types</span>
+            </div>
+            <pre><code>Component: src/components/TestScenarioCard/TestScenarioCard.tsx::TestScenarioCard</code></pre>
+            <pre><code>Props:</code></pre>
+            <pre><code>actual?: string
+
+assigneeColor?: string
+
+assigneeInitial: string
+
+assigneeLabel: string
+
+byline: string
+
+caseId: string
+
+description: string
+
+evidence?: unknown
+
+evidenceExpanded?: boolean = false
+
+expected: string
+
+onEvidenceExpandedChange?: (expanded: boolean) =&gt; void
+
+onOpenChange?: (open: boolean) =&gt; void
+
+onStatusChange?: (status: TestScenarioStatus) =&gt; void
+
+onStatusSelectOpenChange?: (open: boolean) =&gt; void
+
+open?: boolean = false
+
+status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39; | &#39;waived&#39;
+
+statusSelectOpen?: boolean = false
+
+steps?: unknown
+
+title: string
+
+waiveReason?: string</code></pre>
+          </div>
+        </div>
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { TestScenarioCard, WaiveScenarioDialog } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Passed</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Passed = () =&gt; (
+  &lt;Controlled
+    caseId=&quot;TC-402&quot;
+    title=&quot;Verify Cache Hit on /v1/assets&quot;
+    status=&quot;passed&quot;
+    byline=&quot;Verified by Sarah K. · 2h ago&quot;
+    assigneeInitial=&quot;SK&quot;
+    assigneeLabel=&quot;Sarah K.&quot;
+    assigneeColor=&quot;var(--ds-color-avatar-tone-profile-steel)&quot;
+    description=&quot;A second request for the same asset within the TTL window is served from the edge cache.&quot;
+    expected=&quot;Response carries `X-Cache: HIT` and TTFB drops below 40ms.&quot;
+    open
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Failed</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Failed = () =&gt; (
+  &lt;Controlled
+    caseId=&quot;TC-418&quot;
+    title=&quot;Rate Limit Edge Case&quot;
+    status=&quot;failed&quot;
+    byline=&quot;Failed by Mike R. · 3d ago&quot;
+    assigneeInitial=&quot;MR&quot;
+    assigneeLabel=&quot;Mike R.&quot;
+    assigneeColor=&quot;var(--ds-color-avatar-tone-profile-tan)&quot;
+    description=&quot;Requests exceeding the burst threshold on `/v1/assets` should return 429.&quot;
+    steps={[
+      &#39;Deploy recent build to `QA-01` environment&#39;,
+      &#39;Fire 500 rps against `/v1/assets/hot` for 30s&#39;,
+      &#39;Inspect response headers once burst limit is crossed&#39;,
+    ]}
+    evidence={[
+      { label: &#39;rate_429.png&#39;, kind: &#39;image&#39; },
+      { label: &#39;gateway.log&#39;, kind: &#39;file&#39; },
+    ]}
+    expected=&quot;Gateway returns `429 Too Many Requests` with `Retry-After` and never serves a stale body.&quot;
+    actual=&quot;Stale cached body returned with `200 OK` for ~1.4s after TTL expiry; no `Retry-After` header present.&quot;
+    open
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Pending</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Pending = () =&gt; (
+  &lt;Controlled
+    caseId=&quot;TC-431&quot;
+    title=&quot;Browser-side TTL override persistence&quot;
+    status=&quot;pending&quot;
+    byline=&quot;Not run yet&quot;
+    assigneeInitial=&quot;JD&quot;
+    assigneeLabel=&quot;Jordan D.&quot;
+    assigneeColor=&quot;var(--ds-color-avatar-tone-profile-sage)&quot;
+    description=&quot;Client TTL override should persist across reloads within the max-age window.&quot;
+    expected=&quot;Override survives a hard reload and is reflected in `Cache-Control`.&quot;
+    actual=&quot;Not run yet.&quot;
+    open
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Waived</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Waived = () =&gt; (
+  &lt;Controlled
+    caseId=&quot;TC-409&quot;
+    title=&quot;WebSocket Connection Persistence&quot;
+    status=&quot;waived&quot;
+    byline=&quot;Waived by Alex T. · 1d ago&quot;
+    assigneeInitial=&quot;AT&quot;
+    assigneeLabel=&quot;Alex T.&quot;
+    assigneeColor=&quot;var(--ds-color-avatar-tone-profile-plum)&quot;
+    description=&quot;Ensure WebSocket connections reconnect after a network interruption of &lt; 500ms without dropping session context.&quot;
+    waiveReason=&quot;Dev confirmed out of scope for this ticket; tracked separately under `ENG-2871`.&quot;
+    steps={[
+      &#39;Deploy recent build to `QA-01` environment&#39;,
+      &#39;Trigger concurrent updates via `/api/v1/sync` endpoint&#39;,
+      &#39;Monitor cache TTL expiration logs in Datadog&#39;,
+      &#39;Observe WebSocket reconnection attempts after simulated network drop&#39;,
+    ]}
+    evidence={[
+      { label: &#39;socket_log.png&#39;, kind: &#39;image&#39; },
+      { label: &#39;thread_dump.txt&#39;, kind: &#39;file&#39; },
+      { label: &#39;screen_01.jpg&#39;, kind: &#39;image&#39; },
+      { label: &#39;console.log&#39;, kind: &#39;file&#39; },
+      { label: &#39;network.har&#39;, kind: &#39;file&#39; },
+      { label: &#39;trace.json&#39;, kind: &#39;file&#39; },
+      { label: &#39;heap.prof&#39;, kind: &#39;file&#39; },
+    ]}
+    expected=&quot;Connection should recover within 2 seconds without session state loss.&quot;
+    actual=&quot;Not run — scenario waived before execution.&quot;
+    open
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Collapsed</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Collapsed = () =&gt; (
+  &lt;Controlled
+    caseId=&quot;TC-405&quot;
+    title=&quot;Cache Invalidation via SNS Topic&quot;
+    status=&quot;passed&quot;
+    byline=&quot;Verified by Mike R. · 4h ago&quot;
+    assigneeInitial=&quot;MR&quot;
+    assigneeLabel=&quot;Mike R.&quot;
+    assigneeColor=&quot;var(--ds-color-avatar-tone-profile-tan)&quot;
+    description=&quot;An SNS publish purges the matching edge cache keys within 5 seconds.&quot;
+    expected=&quot;Subsequent request is a `MISS` then repopulates.&quot;
+  /&gt;
+);</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  no-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
   aria-label="TicketId">
   <div class="head">
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> TicketId</h2>
       <div class="badges">
         
-        <label for="c-52-components-ticketid-info" class="badge info as-toggle">1 info</label>
-        <label for="c-52-components-ticketid-stories" class="badge ok as-toggle">2 stories</label>
+        <label for="c-53-components-ticketid-info" class="badge info as-toggle">1 info</label>
+        <label for="c-53-components-ticketid-stories" class="badge ok as-toggle">2 stories</label>
         
       </div>
     </div>
@@ -8788,8 +9039,8 @@ trailing?: ReactNode</code></pre>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-52-components-ticketid-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-52-components-ticketid-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-53-components-ticketid-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-53-components-ticketid-stories" class="tg tg-stories" type="checkbox" hidden />
   
   
 
@@ -8864,9 +9115,9 @@ trailing?: ReactNode</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-err"></span> TicketOverview</h2>
       <div class="badges">
-        <label for="c-53-pages-ticket-overview-err" class="badge err as-toggle">prop type error</label>
-        <label for="c-53-pages-ticket-overview-info" class="badge info as-toggle">1 info</label>
-        <label for="c-53-pages-ticket-overview-stories" class="badge ok as-toggle">1 story</label>
+        <label for="c-54-pages-ticket-overview-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-54-pages-ticket-overview-info" class="badge info as-toggle">1 info</label>
+        <label for="c-54-pages-ticket-overview-stories" class="badge ok as-toggle">1 story</label>
         
       </div>
     </div>
@@ -8877,9 +9128,9 @@ trailing?: ReactNode</code></pre>
   </div>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
-  <input id="c-53-pages-ticket-overview-err" class="tg tg-err" type="checkbox" hidden />
-  <input id="c-53-pages-ticket-overview-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-53-pages-ticket-overview-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-54-pages-ticket-overview-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-54-pages-ticket-overview-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-54-pages-ticket-overview-stories" class="tg tg-stories" type="checkbox" hidden />
   
   
 
@@ -9603,9 +9854,9 @@ export const Default: Story = {
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> TicketTitleBlock</h2>
       <div class="badges">
-        <label for="c-54-components-tickettitleblock-props" class="badge ok as-toggle">3 prop types</label>
-        <label for="c-54-components-tickettitleblock-info" class="badge info as-toggle">1 info</label>
-        <label for="c-54-components-tickettitleblock-stories" class="badge ok as-toggle">5 stories</label>
+        <label for="c-55-components-tickettitleblock-props" class="badge ok as-toggle">3 prop types</label>
+        <label for="c-55-components-tickettitleblock-info" class="badge info as-toggle">1 info</label>
+        <label for="c-55-components-tickettitleblock-stories" class="badge ok as-toggle">5 stories</label>
         
       </div>
     </div>
@@ -9617,10 +9868,10 @@ export const Default: Story = {
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-54-components-tickettitleblock-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-54-components-tickettitleblock-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-55-components-tickettitleblock-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-55-components-tickettitleblock-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  <input id="c-54-components-tickettitleblock-props" class="tg tg-props" type="checkbox" hidden />
+  <input id="c-55-components-tickettitleblock-props" class="tg tg-props" type="checkbox" hidden />
 
   <div class="panels">
     
@@ -9729,16 +9980,126 @@ title: string</code></pre>
         aria-label=&quot;Jordan D.&quot;
         variant=&quot;profile&quot;
         size=&quot;sm&quot;
-        tint=&quot;#6C89A8&quot;
+        tint=&quot;var(--ds-color-avatar-tone-profile-steel)&quot;
       /&gt;
       &lt;Avatar
         initial=&quot;AM&quot;
         aria-label=&quot;Alex M.&quot;
         variant=&quot;profile&quot;
         size=&quot;sm&quot;
-        tint=&quot;#C38E70&quot;
+        tint=&quot;var(--ds-color-avatar-tone-profile-tan)&quot;
       /&gt;
     &lt;/AvatarGroup&gt;)} /&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  no-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="WaiveScenarioDialog">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-ok"></span> WaiveScenarioDialog</h2>
+      <div class="badges">
+        <label for="c-56-components-waivescenariodialog-props" class="badge ok as-toggle">11 prop types</label>
+        <label for="c-56-components-waivescenariodialog-info" class="badge info as-toggle">1 info</label>
+        <label for="c-56-components-waivescenariodialog-stories" class="badge ok as-toggle">2 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/WaiveScenarioDialog/WaiveScenarioDialog.stories.tsx">components-waivescenariodialog · ./src/components/WaiveScenarioDialog/WaiveScenarioDialog.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  
+  <input id="c-56-components-waivescenariodialog-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-56-components-waivescenariodialog-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  <input id="c-56-components-waivescenariodialog-props" class="tg tg-props" type="checkbox" hidden />
+
+  <div class="panels">
+    
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+        <div class="panel panel-props">
+          <div class="note ok">
+            <div class="row">
+              <span class="ex-name">Prop types <small>(react-docgen)</small></span>
+              <span class="badge ok">11 prop types</span>
+            </div>
+            <pre><code>Component: src/components/WaiveScenarioDialog/WaiveScenarioDialog.tsx::WaiveScenarioDialog</code></pre>
+            <pre><code>Props:</code></pre>
+            <pre><code>duration?: keyof typeof transitionDurations = &#39;normal&#39;
+
+forceMount?: boolean
+
+onCancel: () =&gt; void
+
+onClosed?: () =&gt; void
+
+onConfirm: () =&gt; void
+
+onOpened?: () =&gt; void
+
+onReasonChange: (reason: string) =&gt; void
+
+open: boolean
+
+reason: string
+
+reasonPlaceholder?: string = &#39;e.g. Out of scope for this ticket; tracked separately under ENG-2871.&#39;
+
+scenarioTitle: string</code></pre>
+          </div>
+        </div>
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { WaiveScenarioDialog } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Default</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Default = () =&gt; &lt;Controlled /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Prefilled</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Prefilled = () =&gt; (
+  &lt;Controlled initialReason=&quot;Dev confirmed out of scope for this ticket; tracked separately under ENG-2871.&quot; /&gt;
+);</code></pre>
             </div>
         </div>
     
