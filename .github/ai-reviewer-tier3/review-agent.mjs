@@ -55,6 +55,25 @@ function loadTextFile(path) {
   }
 }
 
+// Local dry-run (DRY_RUN=1, see local-review.sh): replace every GitHub write with a logging no-op so a
+// run against a real PR never posts comments, updates the status, or resolves threads. Reads pass through.
+function neutralizeWritesForDryRun(octokit) {
+  const noop = (label) => async (params = {}) => {
+    const where = params.path ? ` on ${params.path}:${params.line ?? '?'}` : '';
+    const body = params.body ? `\n--- comment body ---\n${params.body}\n--------------------` : '';
+    core.info(`[dry-run] would ${label}${where}${body}`);
+    return { data: { id: 0, html_url: 'dry-run://skipped' } };
+  };
+  octokit.rest.pulls.createReviewComment = noop('post inline review comment');
+  octokit.rest.issues.createComment = noop('post issue comment');
+  octokit.rest.issues.updateComment = noop('update comment');
+  const realGraphql = octokit.graphql;
+  octokit.graphql = async (query, vars) =>
+    /^\s*mutation/i.test(query)
+      ? (core.info('[dry-run] would run GraphQL mutation (resolve/reply thread)'), {})
+      : realGraphql(query, vars);
+}
+
 // Plain-text note for an over-budget / over-rounds interrupt (writeJobSummary wraps it as `> ⚠️ …`;
 // the PR comments prepend it as a `> ⚠️ …` banner). Null when the run finished normally.
 function interruptNote(result, config) {
@@ -97,8 +116,17 @@ async function main() {
   }
 
   const config = loadConfig();
+  const dryRun = process.env.DRY_RUN === '1';
+  if (dryRun) {
+    // Local testing: always do a fresh full review and skip the verify/resolve pass (its writes and
+    // extra spend aren't needed to see what Tier 3 finds). Writes are neutralized once the client exists.
+    config.skipIfHeadUnchanged = false;
+    config.verifyResolutions = false;
+    config.postRunStatusComment = false;
+  }
   const markerPrefix = config.markerPrefix ?? 'ai-reviewer-tier3';
   const octokit = github.getOctokit(token);
+  if (dryRun) neutralizeWritesForDryRun(octokit);
   const { owner, repo } = github.context.repo;
   const pull_number = prPayload.number;
 
