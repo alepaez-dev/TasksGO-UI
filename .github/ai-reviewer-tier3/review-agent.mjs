@@ -44,13 +44,16 @@ export function touchesFrontend(files) {
 }
 
 const CITED_LINE_RE = /[\w./-]+\.[a-z]{1,5}:\d+/i;
+const UNVERIFIED_RE =
+  /\b(?:could ?n[o']?t|cannot|can ?'t|unable to|did ?n[o']?t|failed to|not (?:able to )?(?:verify|verified|check|checked|read|confirm|confirmed))\b/i;
 
 export function promoteVerifiedConfidence(findings) {
   let promoted = 0;
   for (const f of findings ?? []) {
     if (!f || typeof f !== 'object') continue;
     if (f.confidence === 'high') continue;
-    if (!CITED_LINE_RE.test(f.confidenceBasis ?? '')) continue;
+    const basis = f.confidenceBasis ?? '';
+    if (!CITED_LINE_RE.test(basis) || UNVERIFIED_RE.test(basis)) continue;
     f.confidence = 'high';
     promoted += 1;
   }

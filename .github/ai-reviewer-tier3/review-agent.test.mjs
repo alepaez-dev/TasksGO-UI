@@ -45,6 +45,36 @@ test('promoteVerifiedConfidence rescues a traced finding the model self-rated lo
   assert.equal(promoted, 1);
 });
 
+// The same field carries "what I could NOT check", and that text naturally contains a path:line —
+// so a bare substring match promoted an explicit non-verification to high.
+test('promoteVerifiedConfidence does not promote a basis that says verification failed', () => {
+  const negated = [
+    'could not check agent-loop.mjs:294 — too large to read in budget',
+    "couldn't verify review.mjs:283 before the round cap",
+    'unable to verify review.mjs:283 within budget',
+    'did not read tools.mjs:70',
+    "didn't confirm agent-loop.mjs:294",
+    'cannot check review.mjs:1551 from here',
+    'not verified: tools.mjs:70',
+  ];
+  for (const basis of negated) {
+    const f = [{ confidence: 'low', severity: 'low', confidenceBasis: basis }];
+    assert.equal(promoteVerifiedConfidence(f), 0, `must not promote: "${basis}"`);
+    assert.equal(f[0].confidence, 'low');
+  }
+});
+
+test('promoteVerifiedConfidence still promotes a genuine citation that merely mentions a negative', () => {
+  // the defect being described is a negative; the verification itself succeeded
+  const f = [{
+    confidence: 'low',
+    severity: 'low',
+    confidenceBasis: 'agent-loop.mjs:294 banks findings; dismissed is never banked on that path',
+  }];
+  assert.equal(promoteVerifiedConfidence(f), 1);
+  assert.equal(f[0].confidence, 'high');
+});
+
 test('promoteVerifiedConfidence leaves an uncited finding alone', () => {
   const findings = [
     { title: 'a hunch', severity: 'high', confidence: 'low', confidenceBasis: 'could not check the caller' },

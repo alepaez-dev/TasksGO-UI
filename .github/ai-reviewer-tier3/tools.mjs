@@ -37,8 +37,9 @@ const TIER3_FINDINGS = {
       confidenceBasis: {
         type: 'string',
         description:
-          'The `path:LINE` you READ that verifies the mechanism, or a statement of what you could not check. ' +
-          'If you can name a line here, `confidence` must be `high`. Only "could not check X" justifies `low`.',
+          'START with the `path:LINE` you READ that verifies the mechanism — a line you actually saw, not one you inferred. ' +
+          'If you could NOT verify it, write `NOT VERIFIED: <what you could not check>` instead, and set `confidence` to `low`. ' +
+          'Do not mix the two: a basis that cites a line means you checked it, so `confidence` must be `high`.',
       },
     },
     required: [...SHARED_ITEM.required, 'confidenceBasis'],

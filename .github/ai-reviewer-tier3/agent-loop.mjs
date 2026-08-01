@@ -204,6 +204,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let callSiteAudit = [];
   let confirmSuppressed = [];
   let bankedFindings = null;
+  let bankedAudit = null;
+  let bankedConfirm = null;
 
   const clearUserBreakpoints = () => {
     for (const m of messages) {
@@ -307,7 +309,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       if ((!Array.isArray(submittedAudit) || !Array.isArray(submittedConfirm)) && !auditRejected) {
         auditRejected = true;
         if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
-        const missing = [!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed'].filter(Boolean);
+        if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
+        if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
+        const missing =[!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed'].filter(Boolean);
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing ${missing.join(' + ')} — asking once for the completeness record.`);
         clearUserBreakpoints();
         messages.push({
@@ -341,8 +345,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       if (hedges.length && !hedgeRejected) {
         hedgeRejected = true;
         if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
-        if (Array.isArray(submittedAudit)) callSiteAudit = submittedAudit;
-        if (Array.isArray(submittedConfirm)) confirmSuppressed = submittedConfirm;
+        if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
+        if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: reasoning hand-waved ${hedges.length} concern(s) — asking once for each to enter confirmSuppressed.`);
         clearUserBreakpoints();
         messages.push({
@@ -376,6 +380,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         findings = [];
       }
       if (bankedFindings && !findings.length) findings = bankedFindings;
+      if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
+      if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
         surfaceReasoning(log, msg.content);
