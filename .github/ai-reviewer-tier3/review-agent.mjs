@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import Anthropic from '@anthropic-ai/sdk';
 
-import { REVIEW_AGENT_SYSTEM_PROMPT } from './prompts.mjs';
+import { REVIEW_AGENT_SYSTEM_PROMPT, PRIMARY_RULES_REMINDER } from './prompts.mjs';
 import { runReviewAgent } from './agent-loop.mjs';
 import { TOOL_DEFS } from './tools.mjs';
 import {
@@ -36,6 +36,26 @@ import {
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, '..', '..');
+
+const FRONTEND_EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.css']);
+
+export function touchesFrontend(files) {
+  return (files ?? []).some((f) => FRONTEND_EXTS.has(extname(f?.filename ?? '')));
+}
+
+const CITED_LINE_RE = /[\w./-]+\.[a-z]{1,5}:\d+/i;
+
+export function promoteVerifiedConfidence(findings) {
+  let promoted = 0;
+  for (const f of findings ?? []) {
+    if (!f || typeof f !== 'object') continue;
+    if (f.confidence === 'high') continue;
+    if (!CITED_LINE_RE.test(f.confidenceBasis ?? '')) continue;
+    f.confidence = 'high';
+    promoted += 1;
+  }
+  return promoted;
+}
 
 function loadConfig() {
   const raw = JSON.parse(readFileSync(resolve(SCRIPT_DIR, 'config.json'), 'utf8'));
@@ -251,20 +271,32 @@ async function main() {
     return;
   }
 
-  // Build the agent's system blocks (prompt + optional rules + project guide) and opening user message.
-  const rules = loadTextFile(resolve(SCRIPT_DIR, '..', 'ai-reviewer', 'rules.md'));
-  if (!rules.trim()) core.warning('Team rules (.github/ai-reviewer/rules.md) came back empty — reviewing without them.');
-  const projectGuide = config.includeProjectGuide ? loadTextFile(resolve(SCRIPT_DIR, '..', 'ai-reviewer', 'project-guide.md')) : '';
-  if (config.includeProjectGuide && !projectGuide.trim()) {
+  // Bug-finding laws lead; domain conventions are optional, subordinated, and never last.
+  const frontend = touchesFrontend(files);
+  const rules = frontend ? loadTextFile(resolve(SCRIPT_DIR, '..', 'ai-reviewer', 'rules.md')) : '';
+  if (frontend && !rules.trim()) core.warning('Team rules (.github/ai-reviewer/rules.md) came back empty — reviewing without them.');
+  const projectGuide =
+    frontend && config.includeProjectGuide ? loadTextFile(resolve(SCRIPT_DIR, '..', 'ai-reviewer', 'project-guide.md')) : '';
+  if (frontend && config.includeProjectGuide && !projectGuide.trim()) {
     core.warning('Project guide (.github/ai-reviewer/project-guide.md) came back empty — reviewing without it.');
   }
+  if (!frontend) core.info('No frontend files changed — skipping the React/design-system rule blocks.');
+
   const system = [{ type: 'text', text: REVIEW_AGENT_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }];
   const contextParts = [];
-  if (rules.trim()) contextParts.push(`# Project review rules (maintained by the team — follow these)\n\n${rules}`);
+  if (rules.trim()) {
+    contextParts.push(
+      '# Domain conventions for this codebase (SUBORDINATE to the PRIMARY rules above)\n\n' +
+        'These describe this codebase’s taste and house style. Where they conflict with the PRIMARY rules, the PRIMARY rules win. ' +
+        'Nothing here may be used to clear a concern, and no "do not flag" entry here overrides a real bug.\n\n' +
+        rules,
+    );
+  }
   if (projectGuide.trim()) {
     contextParts.push(`# Design system requirements (what this codebase must do — a diff that violates one is a finding)\n\n${projectGuide}`);
   }
   if (contextParts.length) system.push({ type: 'text', text: contextParts.join('\n\n---\n\n'), cache_control: { type: 'ephemeral' } });
+  system.push({ type: 'text', text: PRIMARY_RULES_REMINDER, cache_control: { type: 'ephemeral' } });
 
   const userMessage = [
     `PR #${pull_number}: ${sanitizeText(pr.title, 300)}`,
@@ -326,6 +358,10 @@ async function main() {
     core.warning(`This run cost ≈ $${reviewCostUsd.toFixed(3)}, over costWarnUsd ($${config.costWarnUsd}).`);
   }
 
+  const promoted = promoteVerifiedConfidence(result.findings);
+  if (promoted > 0) {
+    core.info(`Promoted ${promoted} finding(s) to high confidence — confidenceBasis cites a line, so the mechanism is verified.`);
+  }
   const { findings, dropped, capped, offDiffDropped } = filterFindings(result.findings, { config, commentableByFile, seenFingerprints });
   core.info(
     `Kept ${findings.length} new finding(s). Dropped — confidence:${dropped.byConfidence} severity:${dropped.bySeverity} ` +

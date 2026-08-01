@@ -22,11 +22,13 @@ test('read_file returns numbered content inside root', async () => {
   assert.match(r.content, /1: export const a = 1;/);
 });
 
-test('read_file supports a line slice', async () => {
-  const run = makeToolRunner({ root: fixtureRoot(), config: cfg });
-  const r = await run('read_file', { path: 'src/a.ts', startLine: 2, endLine: 2 });
-  assert.match(r.content, /2: const secret = 2;/);
-  assert.doesNotMatch(r.content, /export const a/);
+test('read_file supports a line slice on a file too large to return whole', async () => {
+  const root = fixtureRoot();
+  writeFileSync(join(root, 'src', 'big.ts'), Array.from({ length: 500 }, (_, i) => `line ${i + 1}`).join('\n'));
+  const run = makeToolRunner({ root, config: { ...cfg, maxFileReadBytes: 60 } });
+  const r = await run('read_file', { path: 'src/big.ts', startLine: 2, endLine: 2 });
+  assert.match(r.content, /2: line 2/);
+  assert.doesNotMatch(r.content, /1: line 1/);
 });
 
 test('read_file rejects path escape', async () => {
@@ -97,6 +99,31 @@ test('the reasoning fields are emitted BEFORE findings (order is what makes them
   assert.equal(keys[keys.length - 1], 'findings', 'findings is written last so it can absorb both checks');
 });
 
+test('confirmSuppressed requires all five clearance steps', () => {
+  const submit = TOOL_DEFS.find((t) => t.name === 'submit_findings');
+  const item = submit.input_schema.properties.confirmSuppressed.items;
+  for (const f of ['claim', 'predictedFailure', 'invariant', 'enforcingCode', 'coversThisPath', 'counterexample', 'verdict']) {
+    assert.ok(item.required.includes(f), `${f} must be required`);
+  }
+});
+
+test('confirmSuppressed offers no unverifiable escape hatch', () => {
+  const submit = TOOL_DEFS.find((t) => t.name === 'submit_findings');
+  const item = submit.input_schema.properties.confirmSuppressed.items;
+  assert.deepEqual(item.properties.verdict.enum, ['cleared-all-five-passed', 'is-a-bug-moved-to-findings']);
+  assert.ok(
+    !JSON.stringify(item).includes('genuinely-unverifiable'),
+    'the genuinely-unverifiable exit was abused as a silent drop and must be gone',
+  );
+});
+
+test('enforcingCode demands a real citation, not a mechanism name', () => {
+  const submit = TOOL_DEFS.find((t) => t.name === 'submit_findings');
+  const d = submit.input_schema.properties.confirmSuppressed.items.properties.enforcingCode.description;
+  assert.match(d, /verbatim/i);
+  assert.match(d, /is-a-bug-moved-to-findings/, 'failing step 3 must name the consequence');
+});
+
 test('read_file rejects an in-repo symlink whose target escapes the repo', async () => {
   const root = fixtureRoot();
   const outside = join(mkdtempSync(join(tmpdir(), 't3-outside-')), 'secret.txt');
@@ -150,6 +177,70 @@ test('read_file slices an over-cap file (the size gate no longer blocks slices)'
   assert.doesNotMatch(sliced.content, /line 6/);
 });
 
+test('read_file returns the WHOLE file when a slice was requested but the file is small', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: cfg });
+  const r = await run('read_file', { path: 'src/a.ts', startLine: 2, endLine: 2 });
+  assert.equal(r.isError, false);
+  // line 1 is OUTSIDE the requested slice — the whole file came back anyway
+  assert.match(r.content, /1: export const a = 1;/);
+  assert.match(r.content, /2: const secret = 2;/);
+  assert.match(r.content, /returned the WHOLE file/);
+});
+
+test('read_file keeps slicing a file over the expand threshold, even though it is under the read cap', async () => {
+  const root = fixtureRoot();
+  writeFileSync(join(root, 'src', 'wide2.ts'), Array.from({ length: 2000 }, (_, i) => `line ${i + 1}`).join('\n'));
+  const run = makeToolRunner({ root, config: { ...cfg, maxWholeFileExpandBytes: 1000 } });
+  const r = await run('read_file', { path: 'src/wide2.ts', startLine: 3, endLine: 5 });
+  assert.equal(r.isError, false);
+  assert.match(r.content, /3: line 3/);
+  assert.doesNotMatch(r.content, /1: line 1/, 'a large file must stay sliced');
+  assert.doesNotMatch(r.content, /returned the WHOLE file/);
+  assert.match(r.content, /2000 lines/, 'but it must still be told how much it did not see');
+});
+
+test('read_file expand threshold defaults well below the read cap', async () => {
+  const root = fixtureRoot();
+  // 60 KB: under the 200 KB read cap, over any sane expand threshold
+  writeFileSync(join(root, 'src', 'big60.ts'), Array.from({ length: 6000 }, (_, i) => `line ${i + 1}`).join('\n'));
+  const r = await makeToolRunner({ root, config: cfg })('read_file', { path: 'src/big60.ts', startLine: 3, endLine: 5 });
+  assert.doesNotMatch(r.content, /returned the WHOLE file/, 'a 60 KB file must not silently expand');
+});
+
+test('read_file does NOT warn when the slice was genuinely necessary', async () => {
+  const root = fixtureRoot();
+  writeFileSync(join(root, 'src', 'big.ts'), Array.from({ length: 500 }, (_, i) => `line ${i + 1}`).join('\n'));
+  const r = await makeToolRunner({ root, config: { ...cfg, maxFileReadBytes: 50 } })('read_file', {
+    path: 'src/big.ts',
+    startLine: 3,
+    endLine: 5,
+  });
+  assert.equal(r.isError, false);
+  assert.match(r.content, /3: line 3/);
+  assert.doesNotMatch(r.content, /line 6/, 'an over-cap file must still be sliced');
+  assert.doesNotMatch(r.content, /returned the WHOLE file/);
+});
+
+test('read_file does not annotate a plain whole-file read', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: cfg });
+  const r = await run('read_file', { path: 'src/a.ts' });
+  assert.equal(r.isError, false);
+  assert.doesNotMatch(r.content, /returned the WHOLE file/);
+});
+
+test('confidence measures whether the explanation is right; severity measures whether users see it', () => {
+  const item = TOOL_DEFS.find((t) => t.name === 'submit_findings').input_schema.properties.findings.items;
+  assert.ok(item.required.includes('confidenceBasis'), 'confidenceBasis must be required');
+  const c = item.properties.confidence.description;
+  const s = item.properties.severity.description;
+  assert.match(c, /explanation of the implementation/i);
+  assert.match(c, /Never reduce confidence/i);
+  assert.match(c, /model-dependent/i, 'must name the exact rationalization runs 1 and 3 used');
+  assert.match(c, /[Rr]are bugs still deserve high confidence/);
+  assert.match(s, /users are likely to observe/i);
+  assert.match(item.properties.confidenceBasis.description, /must be `high`/);
+});
+
 test('read_file slice reports the byte cap (not "no lines in range") when the first line is too big', async () => {
   const root = fixtureRoot();
   writeFileSync(join(root, 'src', 'wide.ts'), 'x'.repeat(500) + '\nsecond\n');
@@ -162,7 +253,11 @@ test('read_file slice reports the byte cap (not "no lines in range") when the fi
   assert.equal(capped.isError, false);
   assert.match(capped.content, /exceed the byte cap/i);
   assert.doesNotMatch(capped.content, /no lines in range/);
-  // a genuinely empty range (past EOF) still reports "(no lines in range)"
-  const empty = await makeToolRunner({ root, config: cfg })('read_file', { path: 'src/wide.ts', startLine: 100, endLine: 101 });
+  // a genuinely empty range (past EOF) on an over-cap file still reports "(no lines in range)"
+  const empty = await makeToolRunner({ root, config: { ...cfg, maxFileReadBytes: 50 } })('read_file', {
+    path: 'src/wide.ts',
+    startLine: 100,
+    endLine: 101,
+  });
   assert.match(empty.content, /no lines in range/);
 });

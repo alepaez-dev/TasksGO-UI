@@ -97,8 +97,10 @@ These are intentional in this codebase:
 ## Style / taste — never report
 
 - Naming, formatting, import ordering, comment wording, "could be cleaner" refactors.
-- Pre-existing issues in code the PR did not touch.
 - Anything that is a preference rather than a defect.
+
+Note: an unchanged line is reportable when this PR's change is what makes it wrong or newly
+reachable. That is a correctness finding, not a "pre-existing issue" — see the PRIMARY rules.
 
 ## Severity guidance
 
