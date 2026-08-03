@@ -53,13 +53,25 @@ export function budgetPhase(frac, softFraction = 0.75) {
   return 'explore';
 }
 
+const SUFFICIENCY = 'A question you have already answered with a cited line is CLOSED — do not re-open it; spend the round on a question you have not answered.';
+
 const BUDGET_GUIDANCE = {
-  explore: 'Explore freely — read whole functions and trace callers/state.',
+  explore: `Explore freely — read whole functions and trace callers/state. ${SUFFICIENCY}`,
   prioritize:
-    'Past the mid-point of your budget — prioritize the highest-risk changes (security, correctness, data-loss) and avoid low-value exploration.',
+    'Past the mid-point of your budget — prioritize the highest-risk changes (security, correctness, data-loss) and avoid low-value exploration. ' +
+    SUFFICIENCY,
   converge:
-    'Budget is running low — CONVERGE NOW: confirm only the most important (high/critical) issues, stop opening new low-severity threads, and call submit_findings soon.',
+    'Budget is running low — CONVERGE NOW: confirm only the most important (high/critical) issues, stop opening new low-severity threads, and call submit_findings soon. ' +
+    SUFFICIENCY,
 };
+
+const HEDGE_RE =
+  /[^.!?]*\b(?:acceptable|best[-\s]effort|harmless|(?:purely|only|just) cosmetic|not (?:really )?(?:a |an )?(?:real )?(?:problem|bug|issue|concern|defect)|not worth (?:reporting|flagging|raising)|no real (?:impact|risk)|fine (?:since|because)|does(?:n't| not) (?:really )?matter)\b[^.!?]*[.!?]/gi;
+
+export function findHedges(text, cap = 5) {
+  if (!text || typeof text !== 'string') return [];
+  return [...text.matchAll(HEDGE_RE)].map((m) => m[0].trim()).slice(0, cap);
+}
 
 // The exact guidance sentence handed to the model each round (thresholds live in budgetPhase).
 export function budgetGuidance(frac, softFraction = 0.75) {
@@ -187,9 +199,13 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let nudgedToSubmit = false;
   let submitted = false;
   let auditRejected = false;
+  let hedgeRejected = false;
+  let reasoningSoFar = '';
   let callSiteAudit = [];
   let confirmSuppressed = [];
   let bankedFindings = null;
+  let bankedAudit = null;
+  let bankedConfirm = null;
 
   const clearUserBreakpoints = () => {
     for (const m of messages) {
@@ -255,6 +271,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     governor.record(msg.usage, models[modelIdx]);
 
     const uses = findToolUses(msg.content);
+    const { text: roundText, thinking: roundThinking } = collectReasoning(msg.content);
+    reasoningSoFar += ` ${roundThinking} ${roundText}`;
     messages.push({ role: 'assistant', content: msg.content });
     if (uses.length === 0) {
       if (!nudgedToSubmit && !windingDown) {
@@ -291,7 +309,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       if ((!Array.isArray(submittedAudit) || !Array.isArray(submittedConfirm)) && !auditRejected) {
         auditRejected = true;
         if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
-        const missing = [!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed'].filter(Boolean);
+        if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
+        if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
+        const missing =[!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed'].filter(Boolean);
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing ${missing.join(' + ')} — asking once for the completeness record.`);
         clearUserBreakpoints();
         messages.push({
@@ -321,6 +341,36 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         });
         continue;
       }
+      const hedges = findHedges(reasoningSoFar);
+      if (hedges.length && !hedgeRejected) {
+        hedgeRejected = true;
+        if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
+        if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
+        if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
+        if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: reasoning hand-waved ${hedges.length} concern(s) — asking once for each to enter confirmSuppressed.`);
+        clearUserBreakpoints();
+        messages.push({
+          role: 'user',
+          content: [
+            ...uses.map((u) => ({
+              type: 'tool_result',
+              tool_use_id: u.id,
+              is_error: true,
+              content:
+                u.id === submit.id
+                  ? 'submit_findings rejected: your reasoning dismissed concerns with impact hand-waves instead of the five-step gate:\n' +
+                    hedges.map((h) => `  · "${h}"`).join('\n') +
+                    '\nEach names a concern you formed. "Acceptable", "best-effort", "cosmetic", "harmless" and "not a real bug" are SEVERITY ' +
+                    'judgements, never clearances. For EACH one: put it in `confirmSuppressed` with all five steps (a cited enforcing line is ' +
+                    'required), or move it to `findings` with severity `low`. If it is already recorded, say so and resubmit unchanged. ' +
+                    'Answer from what you have ALREADY read; do not call any other tool.'
+                  : 'Not run — submit_findings was rejected.',
+            })),
+            { type: 'text', text: '[hand-wave] Route each dismissed concern through the gate, then submit.', cache_control: { type: 'ephemeral' } },
+          ],
+        });
+        continue;
+      }
       if (Array.isArray(submittedAudit)) callSiteAudit = submittedAudit;
       if (Array.isArray(submittedConfirm)) confirmSuppressed = submittedConfirm;
       if (Array.isArray(submittedFindings)) {
@@ -330,10 +380,15 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         findings = [];
       }
       if (bankedFindings && !findings.length) findings = bankedFindings;
+      if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
+      if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
         surfaceReasoning(log, msg.content);
-        for (const f of findings) log(`  · ${f?.severity ?? '?'}/${f?.confidence ?? '?'} ${f?.title ?? '(untitled)'}`);
+        for (const f of findings) {
+          log(`  · ${f?.severity ?? '?'}/${f?.confidence ?? '?'} ${f?.title ?? '(untitled)'}`);
+          log(`      basis: ${f?.confidenceBasis?.trim() ? f.confidenceBasis : '(NONE — confidence is unbacked)'}`);
+        }
         if (callSiteAudit.length === 0) log('  audit · none — no shared call shape reported as changed');
         for (const a of callSiteAudit) {
           const where = `${a?.file ?? '?'}:${a?.line ?? '?'}`;
@@ -341,7 +396,11 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         }
         for (const c of confirmSuppressed) {
           log(`  confirm · ${String(c?.verdict ?? '?').toUpperCase()} ${c?.claim ?? '?'}`);
-          log(`      was: ${c?.reasonGiven ?? '?'} → checked: ${c?.checked ?? '?'}`);
+          log(`      predicts: ${c?.predictedFailure ?? '?'}`);
+          log(`      invariant: ${c?.invariant ?? '?'}`);
+          log(`      enforced by: ${c?.enforcingCode?.trim() ? c.enforcingCode : '(NO CODE CITED — step 3 failed)'}`);
+          log(`      covers this path: ${c?.coversThisPath ?? '?'}`);
+          log(`      counterexample: ${c?.counterexample?.trim() ? c.counterexample : '(NOT ATTEMPTED — step 5 failed)'}`);
         }
       }
       break;

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { runReviewAgent, describeToolUse, summarizeToolResult, budgetGuidance, budgetPhase, isTransientError } from './agent-loop.mjs';
+import { runReviewAgent, describeToolUse, summarizeToolResult, budgetGuidance, budgetPhase, isTransientError, findHedges } from './agent-loop.mjs';
 
 const config = {
   model: 'claude-opus-4-8',
@@ -64,13 +64,15 @@ test('a submit with callSiteAudit but NO confirmSuppressed is still bounced', as
   assert.equal(out.submitted, true);
 });
 
-test('a resolved suppression is logged with the reason and what settled it', async () => {
+test('a resolved suppression is logged with every step of the clearance gate', async () => {
   const confirm = [
     {
       claim: 'dismissed lost on the bounced-submit path',
-      reasonGiven: 'a minor loss and speculative',
-      wouldSettle: 'does a bankedDismissed exist next to bankedFindings?',
-      checked: 'no — findings are banked, dismissed is not',
+      predictedFailure: 'attempt 1 supplies dismissed, omits callSiteAudit, and the bounce drops it',
+      invariant: 'a bankedDismissed exists next to bankedFindings',
+      enforcingCode: 'none — searched agent-loop.mjs:285-335 and no bankedDismissed exists',
+      coversThisPath: 'nothing covers the rejection branch',
+      counterexample: 'bounce with dismissed set — dismissed is null on the accepted resubmit',
       verdict: 'is-a-bug-moved-to-findings',
     },
   ];
@@ -81,7 +83,11 @@ test('a resolved suppression is logged with the reason and what settled it', asy
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
   const joined = lines.join('\n');
   assert.match(joined, /confirm · IS-A-BUG-MOVED-TO-FINDINGS/, 'the verdict must be visible');
-  assert.match(joined, /was: a minor loss and speculative → checked: no — findings are banked/, 'the reason and what settled it must both be readable');
+  assert.match(joined, /predicts: attempt 1 supplies dismissed/, 'step 1 must be readable');
+  assert.match(joined, /invariant: a bankedDismissed exists/, 'step 2 must be readable');
+  assert.match(joined, /enforced by: none — searched agent-loop\.mjs/, 'step 3 must be readable');
+  assert.match(joined, /covers this path: nothing covers the rejection branch/, 'step 4 must be readable');
+  assert.match(joined, /counterexample: bounce with dismissed set/, 'step 5 must be readable');
   assert.deepEqual(out.confirmSuppressed, confirm);
 });
 
@@ -650,4 +656,147 @@ test('logs the model thinking (Thinking ->) when the response carries a thinking
   await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (m) => logs.push(m) });
   assert.ok(logs.some((l) => l.startsWith('Thinking -> ')), 'a "Thinking ->" line must be logged when the model thinks');
   assert.ok(logs.some((l) => l.startsWith('Reasoning -> ')), 'a "Reasoning ->" line for the text narration too');
+});
+
+test('findHedges catches the impact hand-waves that killed the concern in prose', () => {
+  const thinking =
+    'findings get banked but dismissed stays null, which is acceptable since dismissed is best-effort anyway. ' +
+    'The renderer looks correct. That injection is purely cosmetic so I will leave it.';
+  const hits = findHedges(thinking);
+  assert.ok(hits.length >= 2, `expected at least 2 hedges, got ${hits.length}`);
+  assert.ok(hits.some((h) => /best-effort anyway/.test(h)), 'must catch the run-7 sentence');
+  assert.ok(hits.some((h) => /purely cosmetic/.test(h)), 'must catch a cosmetic hand-wave');
+});
+
+test('findHedges stays quiet on ordinary reasoning', () => {
+  assert.deepEqual(findHedges('I traced the caller and the guard at line 42 prevents the null deref.'), []);
+  assert.deepEqual(findHedges(''), []);
+  assert.deepEqual(findHedges(undefined), []);
+});
+
+test('a submit whose reasoning hand-waved a concern is bounced once, and findings survive the bounce', async () => {
+  const found = [{ file: 'a.ts', line: 1, severity: 'low', confidence: 'high', category: 'logic', title: 'real one', body: 'b', suggestion: 's' }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'dismissed stays null, which is acceptable since it is best-effort anyway.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: found, callSiteAudit: [], confirmSuppressed: [] } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    // the forced re-submit drops findings entirely — they must be recovered from the bank
+    {
+      content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  assert.match(lines.join('\n'), /hand-waved/i, 'the bounce must say why it fired');
+  assert.deepEqual(out.findings, found, 'the hedge bounce must bank findings, or it repeats the bug it exists to catch');
+});
+
+test('an empty resubmit does not wipe the callSiteAudit banked by the hedge bounce', async () => {
+  const audit = [{ file: 'a.ts', quotedLine: 'fn(x)', verdict: 'passes', why: 'supplies the field' }];
+  const confirm = [{ claim: 'c', predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: audit, confirmSuppressed: confirm } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    // retry answers only the hand-wave question and re-sends the records EMPTY
+    {
+      content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.callSiteAudit, audit, 'completed call-site audit work must survive the bounce');
+  assert.deepEqual(out.confirmSuppressed, confirm, 'the suppression record must survive the bounce');
+});
+
+test('a populated callSiteAudit survives the audit-gate bounce when confirmSuppressed was missing', async () => {
+  const audit = [{ file: 'b.ts', quotedLine: 'g(y)', verdict: 'bug', why: 'omission erases shared state' }];
+  const client = stubClient([
+    // callSiteAudit done, confirmSuppressed absent -> bounced; the audit must not be thrown away
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: audit } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.callSiteAudit, audit, 'the audit gate must bank the half it already received');
+});
+
+test('a real resubmit still replaces the banked records (restore is a fallback, not a freeze)', async () => {
+  const first = [{ file: 'a.ts', quotedLine: 'old', verdict: 'passes', why: 'old' }];
+  const second = [{ file: 'a.ts', quotedLine: 'new', verdict: 'bug', why: 'revised after the bounce' }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'this is harmless, skipping.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: first, confirmSuppressed: [] } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: second, confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.callSiteAudit, second, 'a non-empty resubmit must win over the bank');
+});
+
+test('the hedge bounce fires at most once', async () => {
+  const hedge = { type: 'thinking', thinking: 'that is harmless so I will skip it.' };
+  const submit = (id) => ({
+    content: [hedge, { type: 'tool_use', id, name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }],
+    usage: { input_tokens: 100, output_tokens: 10 },
+  });
+  const client = stubClient([submit('t1'), submit('t2'), submit('t3')]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  assert.equal(lines.filter((l) => /hand-waved/i.test(l)).length, 1, 'a second hedged submit must be accepted, not looped');
+  assert.deepEqual(out.findings, []);
+});
+
+test('budget guidance carries the sufficiency rule into every round', () => {
+  for (const frac of [0.1, 0.5, 0.9]) {
+    assert.match(budgetGuidance(frac), /already answered with a cited line/i, `missing at frac=${frac}`);
+  }
+});
+
+test('a cleared concern logs its cited enforcing code, and a missing citation is loud', async () => {
+  const confirm = [
+    {
+      claim: 'dismissed lost on the bounced-submit path',
+      predictedFailure: 'attempt 1 supplies dismissed and omits callSiteAudit; the bounce discards it',
+      invariant: 'dismissed is banked before the continue, like findings',
+      enforcingCode: 'agent-loop.mjs:294: if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;',
+      coversThisPath: 'it does NOT cover the rejection branch',
+      counterexample: 'bounce with dismissed set -> dismissed is null on resubmit',
+      verdict: 'is-a-bug-moved-to-findings',
+    },
+    {
+      claim: 'anchor backtick breaks the code span',
+      predictedFailure: 'an anchor containing a backtick breaks the markdown span',
+      invariant: 'sanitizeText escapes backticks',
+      enforcingCode: '',
+      coversThisPath: 'n/a',
+      counterexample: '',
+      verdict: 'cleared-all-five-passed',
+    },
+  ];
+  const client = stubClient([
+    {
+      content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: confirm } }],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.deepEqual(out.confirmSuppressed, confirm);
+  assert.match(joined, /agent-loop\.mjs:294/, 'the cited enforcing line must be visible in the run log');
+  assert.match(joined, /NO CODE CITED/, 'an empty enforcingCode must be called out, not printed as blank');
+  assert.match(joined, /NOT ATTEMPTED/, 'a missing counterexample must be called out');
 });
