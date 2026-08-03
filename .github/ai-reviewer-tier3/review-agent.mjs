@@ -43,17 +43,19 @@ export function touchesFrontend(files) {
   return (files ?? []).some((f) => FRONTEND_EXTS.has(extname(f?.filename ?? '')));
 }
 
-const CITED_LINE_RE = /[\w./-]+\.[a-z]{1,5}:\d+/i;
-const UNVERIFIED_RE =
-  /\b(?:could ?n[o']?t|cannot|can ?'t|unable to|did ?n[o']?t|failed to|not (?:able to )?(?:verify|verified|check|checked|read|confirm|confirmed))\b/i;
+
+const VERIFIED_BASIS_RE = /^[\s\-*`"'[\]]*(?:(?:[\w.-]+\/)+[\w.-]+|[\w.-]+\.[a-z]{1,10}):\d+/i;
+const NON_VERIFICATION_RE =
+  /\bnot[\s_-]*verified\b|\bnot read\b|\bwithout reading\b|\b(?:could ?n[o']?t|did ?n[o']?t|cannot|can ?'t|unable to|failed to)\s+(?:\w+\s+){0,2}?(?:open|read|verify|check|confirm|access|inspect)\b/i;
 
 export function promoteVerifiedConfidence(findings) {
   let promoted = 0;
   for (const f of findings ?? []) {
     if (!f || typeof f !== 'object') continue;
-    if (f.confidence === 'high') continue;
-    const basis = f.confidenceBasis ?? '';
-    if (!CITED_LINE_RE.test(basis) || UNVERIFIED_RE.test(basis)) continue;
+    if (String(f.confidence).toLowerCase() === 'high') continue;
+    const basis = f.confidenceBasis;
+    if (typeof basis !== 'string' || !VERIFIED_BASIS_RE.test(basis) || NON_VERIFICATION_RE.test(basis)) continue;
+    f.modelConfidence = f.confidence ?? 'unrated'; // the comment must not claim a rating the model never gave
     f.confidence = 'high';
     promoted += 1;
   }

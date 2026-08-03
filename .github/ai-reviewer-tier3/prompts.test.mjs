@@ -82,6 +82,14 @@ test('the anti-early-stop rules survive alongside the sufficiency rule', () => {
   assert.match(p, /Budget you did not spend is not a virtue/);
 });
 
+// The code promotes only when confidenceBasis LEADS with the citation. If the prompt merely says
+// "name a line", a model that obeys the prompt loses the promotion the prompt promised it.
+test('the prompt states the same position rule the code enforces', () => {
+  const p = REVIEW_AGENT_SYSTEM_PROMPT;
+  assert.match(p, /START \\?`confidenceBasis\\?` with the/i, 'the prompt must ask for the citation FIRST');
+  assert.doesNotMatch(p, /if you can name one, confidence is/i, 'the old "name it anywhere" wording must be gone');
+});
+
 test('the prompt names the five confirmSuppressed fields it now depends on', () => {
   for (const f of ['predictedFailure', 'invariant', 'enforcingCode', 'coversThisPath', 'counterexample']) {
     assert.match(REVIEW_AGENT_SYSTEM_PROMPT, new RegExp(f), `${f} must be named in the prompt`);

@@ -64,15 +64,105 @@ test('promoteVerifiedConfidence does not promote a basis that says verification 
   }
 });
 
-test('promoteVerifiedConfidence still promotes a genuine citation that merely mentions a negative', () => {
-  // the defect being described is a negative; the verification itself succeeded
-  const f = [{
-    confidence: 'low',
-    severity: 'low',
-    confidenceBasis: 'agent-loop.mjs:294 banks findings; dismissed is never banked on that path',
-  }];
-  assert.equal(promoteVerifiedConfidence(f), 1);
-  assert.equal(f[0].confidence, 'high');
+// Describing a defect almost always needs a negative verb. An earlier vocabulary blocklist matched
+// "cannot" anywhere and silently blocked real verifications — the omission direction.
+test('promoteVerifiedConfidence promotes a cited basis whose PROSE describes the defect negatively', () => {
+  const genuine = [
+    'agent-loop.mjs:294 banks findings; dismissed cannot be recovered on retry',
+    'review.mjs:891 drops it, so the caller cannot surface the finding',
+    "tools.mjs:70 shows the enum, so a stale value can't be represented",
+    'agent-loop.mjs:294 banks findings; dismissed is never banked on that path',
+    '`agent-loop.mjs:294` — backticked citations are the shape the schema shows',
+  ];
+  for (const basis of genuine) {
+    const f = [{ confidence: 'low', severity: 'low', confidenceBasis: basis }];
+    assert.equal(promoteVerifiedConfidence(f), 1, `must promote: "${basis}"`);
+    assert.equal(f[0].confidence, 'high');
+    assert.equal(f[0].severity, 'low', 'severity still untouched');
+  }
+});
+
+// A promoted finding used to tell the human "Claude · confidence: high" for something Claude rated
+// low, with the override visible only in the Actions log. Record what the model actually said.
+test('promoteVerifiedConfidence records the model\'s original confidence', () => {
+  const f = [{ confidence: 'low', severity: 'low', confidenceBasis: 'agent-loop.mjs:294 banks findings' }];
+  promoteVerifiedConfidence(f);
+  assert.equal(f[0].confidence, 'high', 'effective confidence is raised');
+  assert.equal(f[0].modelConfidence, 'low', "the model's own rating must be preserved");
+});
+
+test('promoteVerifiedConfidence leaves modelConfidence unset when it did not override', () => {
+  const f = [
+    { confidence: 'high', severity: 'low', confidenceBasis: 'agent-loop.mjs:294 banks findings' },
+    { confidence: 'low', severity: 'low', confidenceBasis: 'no citation' },
+  ];
+  promoteVerifiedConfidence(f);
+  assert.equal(f[0].modelConfidence, undefined, 'an untouched finding must not claim an override');
+  assert.equal(f[1].modelConfidence, undefined);
+});
+
+test('promoteVerifiedConfidence tolerates the markdown decoration a model actually emits', () => {
+  const decorated = [
+    '- agent-loop.mjs:294 banks findings',
+    '**agent-loop.mjs:294** banks findings',
+    '"agent-loop.mjs:294" banks findings',
+    '`agent-loop.mjs:294` banks findings',
+    'schema.graphql:12 defines the type',
+  ];
+  for (const basis of decorated) {
+    const f = [{ confidence: 'low', severity: 'low', confidenceBasis: basis }];
+    assert.equal(promoteVerifiedConfidence(f), 1, `must promote: "${basis}"`);
+  }
+});
+
+test('decoration tolerance does not let a non-verification through', () => {
+  for (const basis of ['- could not check agent-loop.mjs:294', '**NOT VERIFIED**: agent-loop.mjs:294 unread']) {
+    const f = [{ confidence: 'low', severity: 'low', confidenceBasis: basis }];
+    assert.equal(promoteVerifiedConfidence(f), 0, `must not promote: "${basis}"`);
+  }
+});
+
+// The position rule was asymmetric: "NOT VERIFIED: … foo.mjs:1" blocked, but "foo.mjs:1 … NOT
+// VERIFIED" promoted — re-opening the original defect with the words reordered.
+test('promoteVerifiedConfidence rejects a non-verification stated AFTER the citation', () => {
+  const disclaimed = [
+    'a.mjs:10 — NOT VERIFIED, could not open zz.mjs; inferred from the diff',
+    'tools.mjs:70 — NOT VERIFIED, could not open the rest of the file',
+    'review.mjs:891 — inferred from the diff, not read',
+    'agent-loop.mjs:294 is where I expect the guard; I did not read it',
+  ];
+  for (const basis of disclaimed) {
+    const f = [{ confidence: 'low', severity: 'low', confidenceBasis: basis }];
+    assert.equal(promoteVerifiedConfidence(f), 0, `must not promote: "${basis}"`);
+  }
+});
+
+test('promoteVerifiedConfidence promotes an extensionless path the model can genuinely read', () => {
+  for (const basis of ['.husky/pre-commit:3 runs lint-staged', '.husky/commit-msg:2 calls commitlint']) {
+    const f = [{ confidence: 'low', severity: 'low', confidenceBasis: basis }];
+    assert.equal(promoteVerifiedConfidence(f), 1, `must promote: "${basis}"`);
+  }
+});
+
+test('promoteVerifiedConfidence handles a missing or oddly-cased confidence', () => {
+  const missing = [{ severity: 'low', confidenceBasis: 'agent-loop.mjs:294 banks findings' }];
+  assert.equal(promoteVerifiedConfidence(missing), 1);
+  assert.equal(missing[0].modelConfidence, 'unrated', 'an absent rating must still disclose the raise');
+
+  const cased = [{ confidence: 'High', severity: 'low', confidenceBasis: 'agent-loop.mjs:294 banks findings' }];
+  assert.equal(promoteVerifiedConfidence(cased), 0, 'a model that shouts HIGH is already high — do not re-promote');
+});
+
+test('promoteVerifiedConfidence requires the citation to LEAD, not merely appear', () => {
+  const trailing = [
+    'verified the mechanism at agent-loop.mjs:294',
+    'see agent-loop.mjs:294 for the banking line',
+    'NOT VERIFIED: could not read agent-loop.mjs:294',
+  ];
+  for (const basis of trailing) {
+    const f = [{ confidence: 'low', severity: 'low', confidenceBasis: basis }];
+    assert.equal(promoteVerifiedConfidence(f), 0, `must not promote: "${basis}"`);
+  }
 });
 
 test('promoteVerifiedConfidence leaves an uncited finding alone', () => {

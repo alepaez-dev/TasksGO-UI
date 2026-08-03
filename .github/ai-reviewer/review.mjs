@@ -914,6 +914,7 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
       title: f.title.trim(),
       body: (f.body || '').trim(),
       suggestion: (f.suggestion || '').trim(),
+      modelConfidence: f.modelConfidence,
       fp,
       inline,
     });
@@ -1084,13 +1085,20 @@ export function renderStatusBody({
   return lines.join('\n');
 }
 
+// Tier 3 may raise a finding's confidence when its basis cites a line the model actually read. Report
+// both
+export function renderConfidence(finding) {
+  const raised = finding.modelConfidence && finding.modelConfidence !== finding.confidence;
+  return raised ? `${finding.confidence} (raised from ${finding.modelConfidence} — basis cites a line it read)` : finding.confidence;
+}
+
 export function renderInlineBody(finding, markerPrefix = 'ai-reviewer') {
   const meta = CATEGORY_META[finding.category];
   const lines = [`**${meta.emoji} ${meta.label} · ${SEVERITY_LABEL[finding.severity]}** — ${finding.title}`, ''];
   if (finding.body) lines.push(finding.body, '');
   if (finding.suggestion) lines.push(`**Suggested fix:** ${finding.suggestion}`, '');
   lines.push(
-    `<sub>🤖 AI bug review (Claude) · confidence: ${finding.confidence}. If this is a false positive, react 👎 or reply — and consider updating <code>.github/ai-reviewer/rules.md</code>.</sub>`,
+    `<sub>🤖 AI bug review (Claude) · confidence: ${renderConfidence(finding)}. If this is a false positive, react 👎 or reply — and consider updating <code>.github/ai-reviewer/rules.md</code>.</sub>`,
   );
   lines.push(buildMarker(finding, markerPrefix));
   return lines.join('\n');
@@ -1112,7 +1120,7 @@ export function renderSummaryBlock(f, markerPrefix = 'ai-reviewer') {
   const meta = CATEGORY_META[f.category];
   const lines = [
     `### ${meta.emoji} ${f.title}`,
-    `*${meta.label} · ${SEVERITY_LABEL[f.severity]} · confidence ${f.confidence} · \`${f.file}${f.line ? `:${f.line}` : ''}\`*`,
+    `*${meta.label} · ${SEVERITY_LABEL[f.severity]} · confidence ${renderConfidence(f)} · \`${f.file}${f.line ? `:${f.line}` : ''}\`*`,
     '',
   ];
   if (f.body) lines.push(clampText(f.body, 2000), '');
