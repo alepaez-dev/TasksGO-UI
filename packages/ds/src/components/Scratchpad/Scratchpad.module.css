@@ -13,11 +13,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-scale-md);
-  padding: var(--ds-space-scale-sm);
-}
-
-.headerReorderable {
-  padding-left: calc(var(--ds-space-scale-sm) + var(--ds-space-scale-xs));
+  padding: var(--ds-space-scale-sm) var(--ds-space-scale-sm)
+    var(--ds-space-scale-sm) 0;
 }
 
 .title {
@@ -74,6 +71,7 @@
   color: var(--ds-color-text-disabled);
   opacity: 0.5;
   cursor: grab;
+  touch-action: none;
   border-radius: var(--ds-radius-sm);
   transition-property: var(--ds-transition-property);
   transition-duration: var(--ds-transition-duration);

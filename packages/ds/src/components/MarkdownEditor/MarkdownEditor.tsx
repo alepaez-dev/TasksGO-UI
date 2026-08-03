@@ -148,6 +148,11 @@ export const MarkdownEditor = forwardRef<HTMLDivElement, MarkdownEditorProps>(
           onPaste={handlePaste}
           placeholder={placeholder}
           aria-label="Markdown"
+          // iOS would otherwise capitalise every line and autocorrect
+          // markdown syntax and technical values.
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
         />
 
         {onInsertImageFiles ? (

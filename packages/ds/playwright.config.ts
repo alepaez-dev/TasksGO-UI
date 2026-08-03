@@ -16,7 +16,20 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: /.*-mobile\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'mobile-chromium',
+      testMatch: /.*-mobile\.spec\.ts/,
+      // hasTouch is what makes (pointer: coarse) and (hover: none) match;
+      // isMobile alone does not.
+      use: {
+        browserName: 'chromium',
+        viewport: { width: 390, height: 844 },
+        hasTouch: true,
+        isMobile: true,
+      },
     },
   ],
   ...(process.env.CI || process.env.E2E_BASE_URL

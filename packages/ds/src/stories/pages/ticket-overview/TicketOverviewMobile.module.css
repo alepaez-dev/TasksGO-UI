@@ -41,8 +41,10 @@
 .content {
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
   gap: var(--ds-space-scale-lg);
   padding: var(--ds-space-scale-md);
+  min-height: 100%;
 }
 
 .titleBlock {
@@ -108,8 +110,19 @@
 }
 
 .overviewPanel[hidden],
+.devPanel[hidden],
 .tabPanelEmpty[hidden] {
   display: none;
+}
+
+.devPanel {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.devScratchpad {
+  flex: 1;
 }
 
 .section {
@@ -168,9 +181,144 @@
   color: var(--ds-color-text-secondary);
 }
 
+.sheetViewport {
+  overflow-x: clip;
+}
+
 .slider {
   display: flex;
   transition: transform 250ms ease;
+}
+
+.ciValue {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-property-row-value-font-size);
+}
+
+.ciPassing {
+  color: var(--ds-color-status-success);
+}
+
+.ciFailing {
+  color: var(--ds-color-status-critical);
+}
+
+.ciRunning {
+  color: var(--ds-color-status-info);
+}
+
+.ciBuild {
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-section-header-font-size);
+  color: var(--ds-color-text-secondary);
+}
+
+.subViewSearch {
+  margin-bottom: var(--ds-space-scale-md);
+}
+
+.subViewSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-scale-sm);
+  margin-bottom: var(--ds-space-scale-md);
+}
+
+.subViewCount {
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-section-header-font-size);
+  color: var(--ds-color-text-secondary);
+}
+
+.subViewEmpty {
+  margin: 0;
+  padding: var(--ds-space-scale-lg) 0;
+  text-align: center;
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-card-body-font-size);
+  color: var(--ds-color-text-secondary);
+}
+
+.devList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.devRowLink {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  column-gap: var(--ds-space-scale-sm);
+  min-height: 44px;
+  padding: var(--ds-space-scale-sm) 0;
+  border-bottom: 1px solid var(--ds-color-border-default);
+  color: inherit;
+  text-decoration: none;
+}
+
+.devRowLink:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-sm);
+}
+
+.devRowLeading {
+  color: var(--ds-color-text-secondary);
+  flex-shrink: 0;
+}
+
+.devRowTrailing {
+  color: var(--ds-color-text-secondary);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.devRowBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-xs);
+  min-width: 0;
+}
+
+.devRowTitle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-card-body-font-size);
+  line-height: var(--ds-text-card-body-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.devRowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-section-header-font-size);
+  color: var(--ds-color-text-secondary);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .panel {
@@ -186,7 +334,13 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-scale-sm);
-  margin-bottom: var(--ds-space-scale-lg);
+  padding-bottom: var(--ds-space-scale-md);
+  border-bottom: 1px solid var(--ds-color-border-default);
+  margin-bottom: var(--ds-space-scale-md);
+}
+
+.devSectionHeader {
+  margin-top: var(--ds-space-scale-xl);
 }
 
 .sheetHeaderLeft {
@@ -219,10 +373,6 @@
 .metadataList {
   display: flex;
   flex-direction: column;
-}
-
-.metadataBranchField {
-  max-width: 60vw;
 }
 
 .priorityValue {
