@@ -2,7 +2,6 @@ import {
   forwardRef,
   type ForwardedRef,
   type HTMLAttributes,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -74,6 +73,7 @@ function AccessoryShell({
       aria-orientation="horizontal"
       className={cn(styles.accessory, className)}
       style={{ transform: `translateY(calc(${viewportBottom}px - 100%))` }}
+      onPointerDown={(e) => e.preventDefault()}
       {...rest}
     >
       {children}
@@ -105,11 +105,6 @@ export const MarkdownToolbar = forwardRef<HTMLDivElement, MarkdownToolbarProps>(
 
     const { getItemProps } = useRovingToolbar(items.map(() => ({ disabled })));
 
-    const suppressBlur =
-      variant === 'accessory'
-        ? (e: ReactPointerEvent) => e.preventDefault()
-        : undefined;
-
     const buttons = items.map((item, index) => (
       <IconButton
         key={item.action}
@@ -117,7 +112,6 @@ export const MarkdownToolbar = forwardRef<HTMLDivElement, MarkdownToolbarProps>(
         size={size}
         aria-label={item.label}
         disabled={disabled}
-        onPointerDown={suppressBlur}
         onClick={() => onAction(item.action)}
         {...getItemProps(index)}
       />
@@ -137,7 +131,6 @@ export const MarkdownToolbar = forwardRef<HTMLDivElement, MarkdownToolbarProps>(
               variant="ghost"
               size="sm"
               className={styles.done}
-              onPointerDown={suppressBlur}
               onClick={onDone}
             >
               Done

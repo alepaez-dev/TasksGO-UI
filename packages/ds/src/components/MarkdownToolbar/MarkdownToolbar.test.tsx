@@ -173,15 +173,16 @@ describe('MarkdownToolbar — accessory variant', () => {
     });
   });
 
-  it('suppresses blur by preventing default on pointerdown', () => {
+  it('suppresses blur on a pointerdown anywhere on the bar, not just a button', () => {
     openKeyboard();
     render(<MarkdownToolbar variant="accessory" onAction={() => {}} />);
-    const bold = screen.getByRole('button', { name: 'Bold' });
+    // tap the bar container itself (the empty flex area), not a button
+    const toolbar = screen.getByRole('toolbar', { name: 'Formatting' });
     const event = new MouseEvent('pointerdown', {
       bubbles: true,
       cancelable: true,
     });
-    bold.dispatchEvent(event);
+    toolbar.dispatchEvent(event);
     expect(event.defaultPrevented).toBe(true);
   });
 
