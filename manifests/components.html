@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/57 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">57/57 infos</a><span class="filter-pill ok" aria-disabled="true">256 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/57 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">57/57 infos</a><span class="filter-pill ok" aria-disabled="true">258 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -4604,9 +4604,9 @@ wordCount: number</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> MarkdownToolbar</h2>
       <div class="badges">
-        <label for="c-27-components-markdowntoolbar-props" class="badge ok as-toggle">4 prop types</label>
+        <label for="c-27-components-markdowntoolbar-props" class="badge ok as-toggle">7 prop types</label>
         <label for="c-27-components-markdowntoolbar-info" class="badge info as-toggle">1 info</label>
-        <label for="c-27-components-markdowntoolbar-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-27-components-markdowntoolbar-stories" class="badge ok as-toggle">4 stories</label>
         
       </div>
     </div>
@@ -4638,17 +4638,23 @@ wordCount: number</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">4 prop types</span>
+              <span class="badge ok">7 prop types</span>
             </div>
             <pre><code>Component: src/components/MarkdownToolbar/MarkdownToolbar.tsx::MarkdownToolbar</code></pre>
             <pre><code>Props:</code></pre>
-            <pre><code>aria-label?: string = &#39;Formatting&#39;
+            <pre><code>actions?: unknown
+
+aria-label?: string = &#39;Formatting&#39;
 
 disabled?: boolean = false
 
 onAction: (action: MarkdownToolbarAction) =&gt; void
 
-size?: &#39;sm&#39; | &#39;md&#39; = &#39;sm&#39;</code></pre>
+onDone?: () =&gt; void
+
+size?: &#39;sm&#39; | &#39;md&#39; = &#39;sm&#39;
+
+variant?: &#39;inline&#39; | &#39;accessory&#39; = &#39;inline&#39;</code></pre>
           </div>
         </div>
     
@@ -4690,6 +4696,20 @@ size?: &#39;sm&#39; | &#39;md&#39; = &#39;sm&#39;</code></pre>
               
               
               <pre><code>const Disabled = () =&gt; &lt;MarkdownToolbar onAction={() =&gt; {}} size=&quot;sm&quot; disabled /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Accessory</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Accessory = () =&gt; &lt;MarkdownToolbar
+    onAction={() =&gt; {}}
+    size=&quot;sm&quot;
+    disabled={false}
+    variant=&quot;accessory&quot;
+    onDone={() =&gt; {}} /&gt;;</code></pre>
             </div>
         </div>
     
@@ -6117,9 +6137,9 @@ variant?: &#39;attachment&#39; | &#39;doc&#39; | &#39;general&#39; = &#39;genera
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Scratchpad</h2>
       <div class="badges">
-        <label for="c-38-components-scratchpad-props" class="badge ok as-toggle">19 prop types</label>
+        <label for="c-38-components-scratchpad-props" class="badge ok as-toggle">22 prop types</label>
         <label for="c-38-components-scratchpad-info" class="badge info as-toggle">1 info</label>
-        <label for="c-38-components-scratchpad-stories" class="badge ok as-toggle">5 stories</label>
+        <label for="c-38-components-scratchpad-stories" class="badge ok as-toggle">6 stories</label>
         
       </div>
     </div>
@@ -6151,15 +6171,19 @@ variant?: &#39;attachment&#39; | &#39;doc&#39; | &#39;general&#39; = &#39;genera
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">19 prop types</span>
+              <span class="badge ok">22 prop types</span>
             </div>
             <pre><code>Component: src/components/Scratchpad/Scratchpad.tsx::Scratchpad</code></pre>
             <pre><code>Props:</code></pre>
-            <pre><code>aria-label: string
+            <pre><code>addLineLabel?: string = &#39;Click to add more context…&#39;
+
+aria-label: string
 
 autoFocusLineId?: string | null
 
 editingLineId?: string | null
+
+formattingToolbar?: boolean = false
 
 highlightBadges?: boolean = false
 
@@ -6191,6 +6215,8 @@ status?: ReactNode
 
 taskBadgeInfo?: ScratchpadTaskRef
 
+taskCardPresentation?: &#39;popover&#39; | &#39;sheet&#39; = &#39;popover&#39;
+
 title?: ReactNode</code></pre>
           </div>
         </div>
@@ -6215,6 +6241,15 @@ title?: ReactNode</code></pre>
               
               
               <pre><code>const Default = () =&gt; &lt;ControlledScratchpad initial={lines} highlightBadges /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Mobile</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Mobile = () =&gt; &lt;MobileScratchpad initial={lines} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
