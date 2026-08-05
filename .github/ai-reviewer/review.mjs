@@ -58,7 +58,7 @@ export function verificationComplete(verifyStats) {
 }
 
 export const DEFAULT_CONFIG = {
-  model: 'claude-opus-4-8',
+  model: 'claude-opus-5',
   effort: 'high',
   maxOutputTokens: 64000,
   minConfidence: 'medium', // low | medium | high
@@ -85,6 +85,7 @@ export const DEFAULT_CONFIG = {
   // Per-model rates ($/1M tokens), used for cost reporting + the worst-case ceiling. Edit if
   // pricing changes or you switch models. A model missing here just disables the $ estimate.
   pricing: {
+    'claude-opus-5': { input: 5, output: 25 },
     'claude-opus-4-8': { input: 5, output: 25 },
     'claude-sonnet-4-6': { input: 3, output: 15 },
     'claude-haiku-4-5': { input: 1, output: 5 },
@@ -1258,11 +1259,6 @@ export async function verifyAndResolveThreads(octokit, client, { owner, repo, pu
   const stats = { verified: 0, resolved: 0, repliesPosted: 0, skippedCap: 0, usage: null, costUsd: null, complete: true };
   const diffComplete = diffIsComplete(skippedForSize, truncated);
   const markerPrefix = config.markerPrefix ?? 'ai-reviewer';
-  // TODO: remove the [resolve-debug] logs once auto-resolve is confirmed working
-  core.info(
-    `[resolve-debug] verify entry: allowResolve=${allowResolve} resolveVerifiedFixes=${config.resolveVerifiedFixes} ` +
-      `diffComplete=${diffComplete} postResolutionReplies=${config.postResolutionReplies}`,
-  );
 
   let threads;
   try {
@@ -1274,7 +1270,6 @@ export async function verifyAndResolveThreads(octokit, client, { owner, repo, pu
   }
 
   const candidates = orderThreadsForVerification(selectThreadsToVerify(threads, { botActor: config.botActor, markerPrefix }));
-  core.info(`[resolve-debug] fetched ${threads.length} review thread(s); ${candidates.length} are open + ours (marker match).`);
   if (candidates.length === 0) {
     core.info('No open AI-reviewer threads to verify.');
     return stats;
@@ -1391,32 +1386,21 @@ export async function verifyAndResolveThreads(octokit, client, { owner, repo, pu
     else if (!allowResolve) outcome = 'external';
     else outcome = 'left-open';
 
-    core.info(
-      `[resolve-debug] ${where} (${item.fp}) verdict=${status} viewerCanResolve=${item.viewerCanResolve} ` +
-        `shouldTryResolve=${shouldTryResolve} (allowResolve=${allowResolve} resolveVerifiedFixes=${config.resolveVerifiedFixes} diffComplete=${diffComplete})`,
-    );
-
     if (shouldTryResolve) {
-      core.info(`[resolve-debug] attempting resolveReviewThread for ${where} (thread ${item.threadId})`);
       try {
         await octokit.graphql(RESOLVE_THREAD_MUTATION, { id: item.threadId });
         stats.resolved += 1;
         outcome = 'resolved';
-        core.info(`[resolve-debug] RESOLVED ${where}`);
       } catch (err) {
         // A failed resolve does NOT set stats.complete = false — retrying re-bills a full Claude
         // verification just for a pure GraphQL mutation. Log the real error (message + type, no
         // secrets) so a permission gap like a missing contents:write is visible.
         outcome = isPermissionError(err) ? 'no-permission' : 'resolve-failed';
-        core.warning(`[resolve-debug] resolve FAILED for ${where} (thread ${item.threadId}) [outcome=${outcome}]: ${graphqlErrorMessage(err)}`);
+        core.warning(`Could not resolve thread for ${where} (thread ${item.threadId}) [outcome=${outcome}]: ${graphqlErrorMessage(err)}`);
       }
     }
 
     const willReply = config.postResolutionReplies && shouldPostVerifyReply(status, item.lastVerifyStatus);
-    core.info(
-      `[resolve-debug] ${where} outcome=${outcome} — reply=${willReply} ` +
-        `(postResolutionReplies=${config.postResolutionReplies} lastVerifyStatus=${item.lastVerifyStatus ?? 'none'})`,
-    );
 
     if (willReply) {
       try {
@@ -1557,10 +1541,6 @@ async function main() {
 
   const idempotent = config.skipIfHeadUnchanged !== false;
   const needVerify = config.verifyResolutions && (!idempotent || lastVerifiedSha !== pr.headSha);
-  core.info(
-    `[resolve-debug] idempotency: idempotent=${idempotent} verifyResolutions=${config.verifyResolutions} ` +
-      `lastVerifiedSha=${lastVerifiedSha ? lastVerifiedSha.slice(0, 7) : 'none'} head=${pr.headSha.slice(0, 7)} needVerify=${needVerify}`,
-  );
   const verifyOnlyAndFinish = async ({ reviewedSha, note, skipped = false, inputTokens = null }) => {
     let verifyOnly = null;
     if (needVerify) {
