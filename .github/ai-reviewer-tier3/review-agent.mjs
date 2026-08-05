@@ -422,7 +422,7 @@ async function main() {
     core.info('No new tier-3 issues to post. Done.');
     await writeJobSummary({ findings, dropped, capped, config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit });
     await upsertStatus(
-      { posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha: reviewComplete ? pr.headSha : lastReviewedSha, verifiedSha, resolved: resolvedCount, cleared },
+      { posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha: reviewComplete ? pr.headSha : lastReviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns },
       banner,
     );
     return;
@@ -478,7 +478,7 @@ async function main() {
 
   await writeJobSummary({ findings, dropped, capped, config, postedInline, postedGeneral, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit });
   await upsertStatus(
-    { posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared },
+    { posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns },
     banner,
   );
 }

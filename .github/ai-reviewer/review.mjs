@@ -1052,6 +1052,7 @@ export function renderStatusBody({
   resolved = 0,
   markerPrefix = 'ai-reviewer',
   cleared = null,
+  maxClearedConcerns,
 }) {
   const lines = ['### 🤖 AI bug review — latest run', ''];
   if (skipped) {
@@ -1082,7 +1083,7 @@ export function renderStatusBody({
   if (rows.length) lines.push('| | |', '|---|---|', ...rows, '');
 
   if (runUrl) lines.push(`<sub>[run log & full report](${runUrl})</sub>`, '');
-  const clearedBlock = renderClearedConcerns(cleared);
+  const clearedBlock = renderClearedConcerns(cleared, maxClearedConcerns);
   if (clearedBlock) lines.push(clearedBlock, '');
   lines.push(buildStatusMarker(reviewedSha, verifiedSha, markerPrefix));
   return lines.join('\n');
@@ -1097,13 +1098,15 @@ export function renderConfidence(finding) {
 
 export function renderClearedConcerns(cleared, max = 3) {
   if (!Array.isArray(cleared) || cleared.length === 0) return '';
+  // Bullets sit inside a raw <details>, so quoted markup is live: a `</details>` would close it early.
+  const escapeAngle = (value) => value.replace(/</g, '&lt;');
   const items = cleared
     .slice(0, max)
     .map((c) => {
-      const title = sanitizeText(c?.title, 200);
-      const why = sanitizeText(c?.why, 400);
+      const title = escapeAngle(sanitizeText(c?.title, 200));
+      const why = escapeAngle(sanitizeText(c?.why, 400));
       if (!title || !why) return null;
-      const anchor = sanitizeText(c?.anchor, 120);
+      const anchor = sanitizeText(c?.anchor, 120).replace(/`/g, '');
       return `- **${title}** — ${why}${anchor ? ` \`${anchor}\`` : ''}`;
     })
     .filter(Boolean);
