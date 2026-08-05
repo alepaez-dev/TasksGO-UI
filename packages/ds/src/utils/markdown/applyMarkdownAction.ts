@@ -6,7 +6,8 @@ export type MarkdownAction =
   | 'quote'
   | 'code'
   | 'link'
-  | 'image';
+  | 'image'
+  | 'checkbox';
 
 export interface TextSelection {
   value: string;
@@ -29,10 +30,11 @@ const WRAP: Record<
   code: { marker: '`', placeholder: 'code' },
 };
 
-const LINE_PREFIX: Record<'heading' | 'list' | 'quote', string> = {
+const LINE_PREFIX: Record<'heading' | 'list' | 'quote' | 'checkbox', string> = {
   heading: '## ',
   list: '- ',
   quote: '> ',
+  checkbox: '[ ] ',
 };
 
 function wrap(
@@ -56,7 +58,7 @@ function wrap(
 }
 
 function linePrefix(
-  action: 'heading' | 'list' | 'quote',
+  action: 'heading' | 'list' | 'quote' | 'checkbox',
   sel: TextSelection,
 ): TextEdit {
   const prefix = LINE_PREFIX[action];
@@ -105,6 +107,7 @@ export function applyMarkdownAction(
     case 'heading':
     case 'list':
     case 'quote':
+    case 'checkbox':
       return linePrefix(action, sel);
     case 'link':
     case 'image':

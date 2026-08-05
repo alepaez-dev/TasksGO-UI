@@ -38,21 +38,26 @@ export function useScratchpad(
   const nextId = useRef(0);
   const badgeCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Delay the close so the pointer can cross the gap from a [task] chip to
-  // its popover card without the card unmounting first.
   const onBadgeOpenChange = useCallback(
     (id: string | null, manageFocus = false) => {
       if (badgeCloseTimer.current) clearTimeout(badgeCloseTimer.current);
       if (id === null) {
-        badgeCloseTimer.current = setTimeout(
-          () => setOpenBadge(null),
-          BADGE_CLOSE_DELAY,
-        );
+        // Only a hover-opened badge needs the close delay (the pointer crossing
+        // the gap to its popover card). Click-opened ones — a chip tap or the
+        // bottom sheet — close immediately so dismiss/scroll-lock isn't lagged.
+        if (openBadge?.manageFocus === false) {
+          badgeCloseTimer.current = setTimeout(
+            () => setOpenBadge(null),
+            BADGE_CLOSE_DELAY,
+          );
+        } else {
+          setOpenBadge(null);
+        }
       } else {
         setOpenBadge({ id, manageFocus });
       }
     },
-    [],
+    [openBadge],
   );
 
   useEffect(

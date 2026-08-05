@@ -8,8 +8,11 @@ import {
   type ReactNode,
 } from 'react';
 import { Icon } from '../Icon';
+import { MarkdownToolbar } from '../MarkdownToolbar';
 import { cn } from '../../utils/cn';
 import { useDragReorder } from '../../hooks/useDragReorder';
+import { useScratchpadEditing } from '../../hooks/useScratchpadEditing';
+import { type MarkdownAction } from '../../utils/markdown/applyMarkdownAction';
 import { parseLine, type ScratchpadBlockKind } from './parseLine';
 import { type ScratchpadTaskRef } from './TokenBadge';
 import { ScratchpadLineMarkdown } from './ScratchpadLineMarkdown';
@@ -38,8 +41,10 @@ export interface ScratchpadProps extends Omit<
   onLineDelete?: (id: string) => void;
   onAddLine?: (afterId: string) => void;
   placeholder?: string;
+  addLineLabel?: string;
   autoFocusLineId?: string | null;
   highlightBadges?: boolean;
+  formattingToolbar?: boolean;
   editingLineId?: string | null;
   onLineStartEdit?: (id: string) => void;
   onLineStopEdit?: (id: string) => void;
@@ -49,7 +54,17 @@ export interface ScratchpadProps extends Omit<
   openBadgeId?: string | null;
   openBadgeManagesFocus?: boolean;
   onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) => void;
+  taskCardPresentation?: 'popover' | 'sheet';
 }
+
+const MOBILE_TOOLBAR_ACTIONS: readonly MarkdownAction[] = [
+  'heading',
+  'bold',
+  'italic',
+  'code',
+  'link',
+  'checkbox',
+];
 
 const editLabel: Record<ScratchpadBlockKind, string> = {
   heading: 'Edit heading',
@@ -78,10 +93,12 @@ interface ScratchpadRowProps {
   onStopEdit?: (id: string) => void;
   // Returns true if edit focus moved to an adjacent row (false at the ends).
   onEditNavigate?: (index: number, direction: 'up' | 'down') => boolean;
+  registerActiveTextarea?: (el: HTMLTextAreaElement | null) => void;
   taskBadgeInfo?: ScratchpadTaskRef;
   openBadgeId?: string | null;
   openBadgeManagesFocus?: boolean;
   onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) => void;
+  taskCardPresentation?: 'popover' | 'sheet';
 }
 
 function ScratchpadRow({
@@ -101,10 +118,12 @@ function ScratchpadRow({
   onStartEdit,
   onStopEdit,
   onEditNavigate,
+  registerActiveTextarea,
   taskBadgeInfo,
   openBadgeId,
   openBadgeManagesFocus,
   onBadgeOpenChange,
+  taskCardPresentation,
 }: ScratchpadRowProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const block = parseLine(line.text);
@@ -163,7 +182,10 @@ function ScratchpadRow({
     body = (
       <span className={cn(styles.textGrid, textClasses)} data-value={line.text}>
         <textarea
-          ref={textareaRef}
+          ref={(el) => {
+            textareaRef.current = el;
+            registerActiveTextarea?.(el);
+          }}
           className={styles.textArea}
           value={line.text}
           rows={1}
@@ -212,6 +234,7 @@ function ScratchpadRow({
           openBadgeId={openBadgeId}
           openBadgeManagesFocus={openBadgeManagesFocus}
           onBadgeOpenChange={onBadgeOpenChange}
+          taskCardPresentation={taskCardPresentation}
         />
       </>
     );
@@ -248,11 +271,14 @@ function ScratchpadRow({
   }
 
   return (
-    <li className={styles.row}>
+    <li className={cn(styles.row, editing && styles.editingRow)}>
       {reorderable && (
         <button
           type="button"
-          className={styles.dragHandle}
+          className={cn(
+            styles.dragHandle,
+            block.kind === 'heading' && styles.dragHandleHeading,
+          )}
           aria-label={`Reorder: ${line.text}`}
           onPointerDown={(e) => onPointerDown(e, index)}
           onKeyDown={(e) => onKeyDown(e, index)}
@@ -288,8 +314,10 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
       onLineDelete,
       onAddLine,
       placeholder = 'Type something…',
+      addLineLabel = 'Click to add more context…',
       autoFocusLineId,
       highlightBadges = false,
+      formattingToolbar = false,
       editingLineId,
       onLineStartEdit,
       onLineStopEdit,
@@ -297,6 +325,7 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
       openBadgeId,
       openBadgeManagesFocus,
       onBadgeOpenChange,
+      taskCardPresentation = 'popover',
       className,
       ...rest
     },
@@ -304,6 +333,11 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
   ) => {
     const listRef = useRef<HTMLUListElement>(null);
     const reorderable = onReorder !== undefined;
+
+    const { activeTextareaRef, applyLineAction } = useScratchpadEditing(
+      editingLineId,
+      onLineTextChange,
+    );
 
     const { onPointerDown, onKeyDown } = useDragReorder({
       items: lines,
@@ -364,13 +398,42 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
               onStartEdit={onLineStartEdit}
               onStopEdit={onLineStopEdit}
               onEditNavigate={onEditNavigate}
+              registerActiveTextarea={(el) => {
+                activeTextareaRef.current = el;
+              }}
               taskBadgeInfo={taskBadgeInfo}
               openBadgeId={openBadgeId}
               openBadgeManagesFocus={openBadgeManagesFocus}
               onBadgeOpenChange={onBadgeOpenChange}
+              taskCardPresentation={taskCardPresentation}
             />
           ))}
         </ul>
+        {onAddLine && (
+          <button
+            type="button"
+            className={styles.addLine}
+            onClick={() =>
+              onAddLine(lines.length ? lines[lines.length - 1].id : '')
+            }
+          >
+            <Icon name="add" size="sm" />
+            {addLineLabel}
+          </button>
+        )}
+        {formattingToolbar &&
+          editingLineId != null &&
+          onLineTextChange !== undefined && (
+            <MarkdownToolbar
+              variant="accessory"
+              aria-label="Formatting"
+              actions={MOBILE_TOOLBAR_ACTIONS}
+              onAction={applyLineAction}
+              onDone={() => {
+                if (editingLineId != null) onLineStopEdit?.(editingLineId);
+              }}
+            />
+          )}
       </div>
     );
   },

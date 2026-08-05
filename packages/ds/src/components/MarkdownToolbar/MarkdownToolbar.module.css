@@ -23,3 +23,52 @@
     min-height: 44px;
   }
 }
+
+.accessory {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--ds-z-floating-action-bar);
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  padding-bottom: calc(var(--ds-space-scale-xs) + env(safe-area-inset-bottom));
+  background-color: var(--ds-color-surface-primary);
+  border-top: 1px solid var(--ds-color-border-default);
+  /* Positioned via translate (see MarkdownToolbar.tsx); hint the compositor so
+     re-anchoring during scroll stays smooth. */
+  will-change: transform;
+}
+
+.accessoryScroll {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  min-width: 0;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: var(--ds-focus-ring-width) 0;
+}
+
+.accessoryScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.accessoryScroll > * {
+  flex-shrink: 0;
+}
+
+.done {
+  flex-shrink: 0;
+}
+
+@media (pointer: coarse) {
+  .accessoryScroll > *,
+  .done {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
