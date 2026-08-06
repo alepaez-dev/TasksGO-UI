@@ -865,3 +865,42 @@ test('a cleared concern logs its cited enforcing code, and a missing citation is
   assert.match(joined, /NO CODE CITED/, 'an empty enforcingCode must be called out, not printed as blank');
   assert.match(joined, /NOT ATTEMPTED/, 'a missing counterexample must be called out');
 });
+
+// Six break statements reach the return without passing the in-submit restore, so a bounced submit's
+// audit/confirm were banked and then dropped on any non-submit exit.
+test("a bounced submit's audit and confirm survive a no-tool-call exit", async () => {
+  const audit = [{ file: 'a.ts', quotedLine: 'fn(x)', verdict: 'passes', why: 'supplies the field' }];
+  const confirm = [{ claim: 'c', predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: audit, confirmSuppressed: confirm } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    { content: [{ type: 'text', text: 'I am done.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'Still done.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.submitted, false, 'no successful submit happened');
+  assert.deepEqual(out.callSiteAudit, audit, 'banked audit must survive an exit that never reaches the submit branch');
+  assert.deepEqual(out.confirmSuppressed, confirm, 'banked confirm must survive the same exit');
+});
+
+test('the accepted-submit path still wins over the bank', async () => {
+  const banked = [{ file: 'a.ts', quotedLine: 'old', verdict: 'passes', why: 'old' }];
+  const fresh = [{ file: 'a.ts', quotedLine: 'new', verdict: 'bug', why: 'revised' }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'this is harmless, skipping.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: banked, confirmSuppressed: [] } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: fresh, confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.callSiteAudit, fresh, 'a non-empty resubmit must still beat the bank');
+});

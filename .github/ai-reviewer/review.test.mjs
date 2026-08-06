@@ -550,13 +550,16 @@ check('extractWindow clamps long lines and keeps the flagged line under a char b
   assert.ok(!/z{200}/.test(win), 'long lines should be clamped');
 });
 
-check('shouldPostVerifyReply is idempotent: announce fixed/unsure once, quiet on still-present (M1)', () => {
+check('shouldPostVerifyReply is idempotent: each status announced once, including still-present (M1)', () => {
   assert.equal(shouldPostVerifyReply('fixed', null), true);
   assert.equal(shouldPostVerifyReply('fixed', 'fixed'), false); // already announced -> idempotent
   assert.equal(shouldPostVerifyReply('unsure', null), true);
   assert.equal(shouldPostVerifyReply('unsure', 'unsure'), false);
-  assert.equal(shouldPostVerifyReply('still_present', null), false);
-  assert.equal(shouldPostVerifyReply('still_present', 'fixed'), false);
+  // still-present is news the first time and after any other verdict: silence and success look the
+  // same to someone who just pushed a fix. Repeats stay quiet.
+  assert.equal(shouldPostVerifyReply('still_present', null), true);
+  assert.equal(shouldPostVerifyReply('still_present', 'fixed'), true);
+  assert.equal(shouldPostVerifyReply('still_present', 'still_present'), false);
 });
 
 check('orderThreadsForVerification puts never-checked + outdated first so the cap does not starve them (M3)', () => {

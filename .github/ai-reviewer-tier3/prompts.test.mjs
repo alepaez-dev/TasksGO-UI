@@ -95,3 +95,12 @@ test('the prompt names the five confirmSuppressed fields it now depends on', () 
     assert.match(REVIEW_AGENT_SYSTEM_PROMPT, new RegExp(f), `${f} must be named in the prompt`);
   }
 });
+
+// "Same fix" asks the model to predict an edit that does not exist yet. Given an unanswerable
+// question it answers a neighbouring one — "same topic?" — and suppresses a real bug.
+test('the dedup rule never asks the model to predict a fix', () => {
+  const p = REVIEW_AGENT_SYSTEM_PROMPT;
+  assert.doesNotMatch(p, /same root cause AND the same fix/i, 'the fix-equivalence question must be gone');
+  assert.match(p, /SAME failing path with the SAME trigger/i, 'dedup must key on something readable from code');
+  assert.match(p, /NEVER skip because you expect the fix/i, 'the exact bad move must be named');
+});

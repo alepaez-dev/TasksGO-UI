@@ -209,6 +209,13 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let bankedConfirm = null;
   let bankedDismissed = null;
 
+  const restoreBanked = () => {
+    if (bankedFindings && !findings?.length) findings = bankedFindings;
+    if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
+    if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
+    if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
+  };
+
   const clearUserBreakpoints = () => {
     for (const m of messages) {
       if (m.role === 'user' && Array.isArray(m.content)) {
@@ -384,11 +391,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       } else {
         findings = [];
       }
-      if (bankedFindings && !findings.length) findings = bankedFindings;
-      if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
-      if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
       if (Array.isArray(submittedDismissed)) dismissed = submittedDismissed;
-      if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
+      restoreBanked();
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
         surfaceReasoning(log, msg.content);
@@ -458,6 +462,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       elapsedMs: Date.now() - roundStart,
     });
   }
+
+  restoreBanked();
 
   return {
     findings: findings?.length ? findings : (bankedFindings ?? findings ?? []),

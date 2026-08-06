@@ -994,6 +994,7 @@ export function isTrustedAuthor(authorAssociation) {
 export function shouldPostVerifyReply(status, lastVerifyStatus) {
   if (status === 'fixed') return lastVerifyStatus !== 'fixed';
   if (status === 'unsure') return lastVerifyStatus !== 'unsure';
+  if (status === 'still_present') return lastVerifyStatus !== 'still_present';
   return false;
 }
 

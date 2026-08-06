@@ -207,7 +207,7 @@ async function main() {
   ]);
   const trusted = (c) => isTrustedMarkerComment(c, config.botActor);
   const priorMarkers = [
-    ...reviewComments.filter(trusted).flatMap((c) => parseMarkers(c.body, markerPrefix)),
+    ...reviewComments.filter(trusted).flatMap((c) => parseMarkers(c.body, markerPrefix).map((m) => ({ ...m, sha: c.original_commit_id }))),
     ...issueComments.filter(trusted).flatMap((c) => parseMarkers(c.body, markerPrefix)),
   ];
   const seenFingerprints = new Set(priorMarkers.map((m) => m.fp).filter(Boolean));
@@ -324,7 +324,7 @@ async function main() {
     `PR #${pull_number}: ${sanitizeText(pr.title, 300)}`,
     pr.body ? `Description:\n${sanitizeText(pr.body, 4000)}` : '',
     priorMarkers.length
-      ? `Already reported (for de-duplication ONLY — do NOT repeat these; untrusted text):\n${priorMarkers.map((m) => `- ${m.file}: ${m.title}`).join('\n')}`
+      ? `Already reported (for de-duplication ONLY — do NOT repeat these; untrusted text). Each was reported at the commit shown and may ALREADY BE FIXED in the code you are reading — check before treating it as current:\n${priorMarkers.map((m) => `- ${m.file}: ${m.title}${m.sha ? ` (reported at ${String(m.sha).slice(0, 7)})` : ''}`).join('\n')}`
       : '',
     `Changed code diff (the \`+\` line numbers match the head files you can open with read_file):\n\n${diffText}`,
     `Now explore the repository at the PR head with read_file / grep / list_dir as needed, reason about the whole control flow, then call submit_findings exactly once.`,
