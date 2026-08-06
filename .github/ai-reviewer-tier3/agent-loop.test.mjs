@@ -746,6 +746,66 @@ test('a real resubmit still replaces the banked records (restore is a fallback, 
   assert.deepEqual(out.callSiteAudit, second, 'a non-empty resubmit must win over the bank');
 });
 
+// A bounce banks the records, then the run dies before any accepted submit: prose -> nudge -> prose -> break.
+// Everything banked must still reach the caller, or the bounce silently costs the work it was protecting.
+const diesAfterBounce = (firstInput) =>
+  stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: firstInput }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'I think that is all.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'still all.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+
+test('banked dismissed survives a run that never lands an accepted submit', async () => {
+  const dismissed = [{ title: 'ref could be stale', why: 'the effect re-runs on every open', anchor: 'a.ts:1' }];
+  const client = diesAfterBounce({ findings: [], callSiteAudit: [], dismissed });
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.dismissed, dismissed, 'cleared concerns must still reach the status comment');
+});
+
+test('banked callSiteAudit survives a run that never lands an accepted submit', async () => {
+  const audit = [{ file: 'a.ts', quotedLine: 'fn(x)', verdict: 'passes', why: 'all callers updated' }];
+  const client = diesAfterBounce({ findings: [], callSiteAudit: audit });
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.callSiteAudit, audit, 'the audit must still reach the job summary');
+});
+
+test('banked confirmSuppressed survives a run that never lands an accepted submit', async () => {
+  const confirm = [
+    { claim: 'c', predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' },
+  ];
+  // callSiteAudit omitted, not empty — supplying both fields would satisfy the gate and never bounce.
+  const client = diesAfterBounce({ findings: [], confirmSuppressed: confirm });
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.confirmSuppressed, confirm, 'the suppression record must survive the bounce');
+});
+
+// `dismissed` is the one banked record that can contradict another output channel: the hedge bounce tells
+// the model to move a hand-waved concern INTO findings, which empties dismissed on purpose.
+test('a concern promoted to findings is not also resurrected as a cleared concern', async () => {
+  const dismissed = [{ title: 'ref could be stale', why: 'the effect re-runs on every open', anchor: 'a.ts:1' }];
+  const promoted = [
+    { file: 'src/a.ts', line: 1, title: 'ref could be stale', body: 'b', confidence: 'medium', severity: 'low', category: 'logic', suggestion: '' },
+  ];
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], dismissed } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: promoted, callSiteAudit: [], confirmSuppressed: [], dismissed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.findings, promoted);
+  assert.deepEqual(out.dismissed, [], 'a concern reported as a bug must not also read as "considered and cleared"');
+});
+
+test('a resubmit that omits dismissed still restores the banked copy', async () => {
+  const dismissed = [{ title: 'ref could be stale', why: 'the effect re-runs on every open', anchor: 'a.ts:1' }];
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], dismissed } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    // answers only the bounce's question; omission means "did not re-answer", not "withdrawn"
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.dismissed, dismissed);
+});
+
 test('the hedge bounce fires at most once', async () => {
   const hedge = { type: 'thinking', thinking: 'that is harmless so I will skip it.' };
   const submit = (id) => ({
