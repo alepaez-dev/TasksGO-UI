@@ -22,6 +22,7 @@ import {
   statusMarkerRe,
   parseStatusReviewedSha,
   parseStatusVerifiedSha,
+  extractClearedBlock,
   verificationComplete,
   isTrustedAuthor,
   diffIsComplete,
@@ -81,14 +82,12 @@ function loadTextFile(path) {
 }
 const clearedKey = (title) => (typeof title === 'string' ? title.trim().toLowerCase() : '');
 
-export function buildClearedConcerns(dismissed, findings, config) {
+export function buildClearedConcerns(dismissed, findings) {
   if (!Array.isArray(dismissed)) return [];
-  const max = Number.isInteger(config.maxClearedConcerns) ? config.maxClearedConcerns : 3;
   const reported = new Set((Array.isArray(findings) ? findings : []).map((f) => clearedKey(f?.title)).filter(Boolean));
   return dismissed
     .filter((d) => d && typeof d.title === 'string' && typeof d.why === 'string')
     .filter((d) => !reported.has(clearedKey(d.title)))
-    .slice(0, max)
     .map((d) => ({ title: d.title, why: d.why, anchor: typeof d.anchor === 'string' ? d.anchor : '' }));
 }
 
@@ -258,7 +257,10 @@ async function main() {
     const usage = verifyOnly?.usage ?? null;
     const costUsd = usage ? estimateCostUsd(usage, config.model, config.pricing) : null;
     await writeJobSummary({ findings: [], config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved });
-    await upsertStatus({ skipped, note, inputTokens, posted: 0, findingsCount: 0, usage, costUsd, reviewedSha, verifiedSha, resolved });
+    await upsertStatus({
+      skipped, note, inputTokens, posted: 0, findingsCount: 0, usage, costUsd, reviewedSha, verifiedSha, resolved,
+      clearedBlock: extractClearedBlock(statusComment?.body),
+    });
   };
 
   const findingsDone = idempotent && Boolean(lastReviewedSha) && lastReviewedSha === pr.headSha;
@@ -411,7 +413,7 @@ async function main() {
   const usage = addUsage(result.usage, verifyStats?.usage);
   const verifyCostUsd = verifyStats?.usage ? (estimateCostUsd(verifyStats.usage, config.model, config.pricing) ?? 0) : 0;
   const costUsd = (reviewCostUsd ?? 0) + verifyCostUsd;
-  const cleared = buildClearedConcerns(result.dismissed, findings, config);
+  const cleared = buildClearedConcerns(result.dismissed, result.findings);
 
   // A budget/round/error interrupt — OR the model ending without ever calling submit_findings — means
   // the review did NOT finish; do not mark this commit reviewed, so re-applying the label retries.

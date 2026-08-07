@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { renderClearedConcerns, renderStatusBody } from '../ai-reviewer/review.mjs';
+import { renderClearedConcerns, renderStatusBody, extractClearedBlock } from '../ai-reviewer/review.mjs';
 import { TOOL_DEFS } from './tools.mjs';
 import { buildClearedConcerns } from './review-agent.mjs';
 
@@ -76,15 +76,29 @@ test('a concern reported as a finding is not also listed as considered-and-clear
     { title: 'Unrelated concern', why: 'guarded by the early return' },
   ];
   const findings = [{ title: 'ref could be stale', file: 'a.ts', line: 1 }];
-  const out = buildClearedConcerns(dismissed, findings, {});
+  const out = buildClearedConcerns(dismissed, findings);
   assert.deepEqual(out.map((c) => c.title), ['Unrelated concern'], 'a reported bug must not also read as cleared');
 });
 
 test('the findings cross-check tolerates a missing/!array findings list', () => {
   const dismissed = [{ title: 'x', why: 'y' }];
-  assert.equal(buildClearedConcerns(dismissed, null, {}).length, 1);
-  assert.equal(buildClearedConcerns(dismissed, undefined, {}).length, 1);
-  assert.equal(buildClearedConcerns(dismissed, [{ title: null }], {}).length, 1, 'a titleless finding must not blank-match');
+  assert.equal(buildClearedConcerns(dismissed, null).length, 1);
+  assert.equal(buildClearedConcerns(dismissed, undefined).length, 1);
+  assert.equal(buildClearedConcerns(dismissed, [{ title: null }]).length, 1, 'a titleless finding must not blank-match');
+});
+
+// The cap has one owner — the renderer. If buildClearedConcerns also capped, the entry that neutralizes
+// to nothing would eat a slot no later entry could refill.
+test('an entry neutralized to nothing is backfilled, not silently dropped from the cap', () => {
+  const dismissed = [
+    { title: 'A valid', why: 'evidence a' },
+    { title: '***', why: 'evidence b' },
+    { title: 'C valid', why: 'evidence c' },
+    { title: 'D valid', why: 'evidence d' },
+  ];
+  const out = renderClearedConcerns(buildClearedConcerns(dismissed, []), 3);
+  assert.match(out, /Considered and cleared \(3\)/, 'the cap must count only entries that render');
+  assert.deepEqual(out.match(/^- \*\*(.+?)\*\*/gm), ['- **A valid**', '- **C valid**', '- **D valid**']);
 });
 
 test('renderClearedConcerns: a stray backtick cannot push the anchor out into live HTML', () => {
@@ -100,4 +114,28 @@ test('renderClearedConcerns: a stray backtick cannot push the anchor out into li
 test('renderClearedConcerns: emphasis characters cannot reshape the bullet', () => {
   const bullet = renderClearedConcerns([{ title: 'a**b', why: 'x**y' }]).split('\n').find((l) => l.startsWith('- '));
   assert.equal(bullet, '- **ab** — xy', 'the bold run must be exactly the title');
+});
+
+// upsertStatus full-replaces the comment body, so a verify-only run with no model output must carry the
+// previous block forward or it deletes the feature.
+test('a verify-only status update preserves the cleared block from the previous body', () => {
+  const cleared = [{ title: 'Shared ref nulled', why: 'React detaches before attaches', anchor: 'S.tsx:401' }];
+  const reviewed = renderStatusBody({ model: 'm', posted: 1, findingsCount: 1, seenCount: 1, reviewedSha: 'a'.repeat(40), cleared, maxClearedConcerns: 3 });
+  assert.match(reviewed, /Considered and cleared \(1\)/);
+
+  // exactly what verifyOnlyAndFinish passes: no cleared array, only the carried-forward block
+  const verifyOnly = renderStatusBody({
+    model: 'm', posted: 0, findingsCount: 0, seenCount: 1, reviewedSha: 'a'.repeat(40), resolved: 0,
+    clearedBlock: extractClearedBlock(reviewed),
+  });
+  assert.match(verifyOnly, /Considered and cleared \(1\)/, 'the block must survive a verify-only run');
+  assert.match(verifyOnly, /Shared ref nulled/);
+  assert.equal(extractClearedBlock(verifyOnly), extractClearedBlock(reviewed), 'round-trips unchanged across runs');
+});
+
+test('extractClearedBlock returns empty when there is no block (first run, Tier 2)', () => {
+  const plain = renderStatusBody({ model: 'm', posted: 0, findingsCount: 0, seenCount: 0 });
+  assert.equal(extractClearedBlock(plain), '');
+  assert.equal(extractClearedBlock(null), '');
+  assert.equal(extractClearedBlock(undefined), '');
 });
