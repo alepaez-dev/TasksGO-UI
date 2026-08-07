@@ -1099,14 +1099,14 @@ export function renderConfidence(finding) {
 export function renderClearedConcerns(cleared, max = 3) {
   if (!Array.isArray(cleared) || cleared.length === 0) return '';
   // Bullets sit inside a raw <details>, so quoted markup is live: a `</details>` would close it early.
-  const escapeAngle = (value) => value.replace(/</g, '&lt;');
+  const neutralize = (value, cap) => sanitizeText(value, cap).replace(/[`*]/g, '').replace(/</g, '&lt;');
   const items = cleared
     .slice(0, max)
     .map((c) => {
-      const title = escapeAngle(sanitizeText(c?.title, 200));
-      const why = escapeAngle(sanitizeText(c?.why, 400));
+      const title = neutralize(c?.title, 200);
+      const why = neutralize(c?.why, 400);
       if (!title || !why) return null;
-      const anchor = sanitizeText(c?.anchor, 120).replace(/`/g, '');
+      const anchor = neutralize(c?.anchor, 120);
       return `- **${title}** — ${why}${anchor ? ` \`${anchor}\`` : ''}`;
     })
     .filter(Boolean);

@@ -79,11 +79,15 @@ function loadTextFile(path) {
     return '';
   }
 }
-function buildClearedConcerns(dismissed, config) {
+const clearedKey = (title) => (typeof title === 'string' ? title.trim().toLowerCase() : '');
+
+export function buildClearedConcerns(dismissed, findings, config) {
   if (!Array.isArray(dismissed)) return [];
   const max = Number.isInteger(config.maxClearedConcerns) ? config.maxClearedConcerns : 3;
+  const reported = new Set((Array.isArray(findings) ? findings : []).map((f) => clearedKey(f?.title)).filter(Boolean));
   return dismissed
     .filter((d) => d && typeof d.title === 'string' && typeof d.why === 'string')
+    .filter((d) => !reported.has(clearedKey(d.title)))
     .slice(0, max)
     .map((d) => ({ title: d.title, why: d.why, anchor: typeof d.anchor === 'string' ? d.anchor : '' }));
 }
@@ -407,7 +411,7 @@ async function main() {
   const usage = addUsage(result.usage, verifyStats?.usage);
   const verifyCostUsd = verifyStats?.usage ? (estimateCostUsd(verifyStats.usage, config.model, config.pricing) ?? 0) : 0;
   const costUsd = (reviewCostUsd ?? 0) + verifyCostUsd;
-  const cleared = buildClearedConcerns(result.dismissed, config);
+  const cleared = buildClearedConcerns(result.dismissed, findings, config);
 
   // A budget/round/error interrupt — OR the model ending without ever calling submit_findings — means
   // the review did NOT finish; do not mark this commit reviewed, so re-applying the label retries.

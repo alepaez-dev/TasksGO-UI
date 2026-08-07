@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderClearedConcerns, renderStatusBody } from '../ai-reviewer/review.mjs';
 import { TOOL_DEFS } from './tools.mjs';
+import { buildClearedConcerns } from './review-agent.mjs';
 
 const sample = [
   { title: 'Shared ref nulled on row switch', why: 'React runs all ref detaches before attaches.', anchor: 'Scratchpad.tsx:401' },
@@ -67,4 +68,36 @@ test('submit_findings schema exposes an OPTIONAL dismissed array (not required)'
   assert.deepEqual(submit.input_schema.required, ['findings', 'callSiteAudit', 'confirmSuppressed']); // callSiteAudit + confirmSuppressed; dismissed stays optional
   const item = submit.input_schema.properties.dismissed.items;
   assert.deepEqual(item.required, ['title', 'why']);
+});
+
+test('a concern reported as a finding is not also listed as considered-and-cleared', () => {
+  const dismissed = [
+    { title: 'Ref could be stale', why: 'the effect re-runs on every open' },
+    { title: 'Unrelated concern', why: 'guarded by the early return' },
+  ];
+  const findings = [{ title: 'ref could be stale', file: 'a.ts', line: 1 }];
+  const out = buildClearedConcerns(dismissed, findings, {});
+  assert.deepEqual(out.map((c) => c.title), ['Unrelated concern'], 'a reported bug must not also read as cleared');
+});
+
+test('the findings cross-check tolerates a missing/!array findings list', () => {
+  const dismissed = [{ title: 'x', why: 'y' }];
+  assert.equal(buildClearedConcerns(dismissed, null, {}).length, 1);
+  assert.equal(buildClearedConcerns(dismissed, undefined, {}).length, 1);
+  assert.equal(buildClearedConcerns(dismissed, [{ title: null }], {}).length, 1, 'a titleless finding must not blank-match');
+});
+
+test('renderClearedConcerns: a stray backtick cannot push the anchor out into live HTML', () => {
+  const out = renderClearedConcerns([
+    { title: 'Looks fine', why: 'guarded by `ref.current', anchor: '</details><img src=x onerror=alert(1)>' },
+  ]);
+  const bullet = out.split('\n').find((l) => l.startsWith('- '));
+  assert.ok(!bullet.includes('<'), 'no field may emit a raw < into the details block');
+  assert.equal((bullet.match(/`/g) || []).length % 2, 0, 'the anchor code span must stay balanced');
+  assert.equal(out.match(/<\/details>/g).length, 1, 'the block must close exactly once — its own terminator');
+});
+
+test('renderClearedConcerns: emphasis characters cannot reshape the bullet', () => {
+  const bullet = renderClearedConcerns([{ title: 'a**b', why: 'x**y' }]).split('\n').find((l) => l.startsWith('- '));
+  assert.equal(bullet, '- **ab** — xy', 'the bold run must be exactly the title');
 });
