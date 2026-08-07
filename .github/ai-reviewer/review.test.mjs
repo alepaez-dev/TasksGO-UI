@@ -27,6 +27,7 @@ import {
   buildVerifyMarker,
   parseVerifyMarker,
   renderVerifyReply,
+  renderClearanceRecord,
   selectThreadsToVerify,
   extractWindow,
   shouldPostVerifyReply,
@@ -573,6 +574,26 @@ check('orderThreadsForVerification puts never-checked + outdated first so the ca
   assert.deepEqual(ordered, ['new-outdated', 'new-fresh', 'checked-outdated', 'checked-fresh']);
 });
 
+// A still-present thread is the one a push is most likely to fix, so it must not sort behind a
+// settled one. Before still_present could reply it never carried a marker, so this tier was
+// unreachable and the M3 case above was using it as a stand-in for "checked".
+check('orderThreadsForVerification ranks still-present ahead of settled threads (M3b)', () => {
+  const c = (id, lastVerifyStatus, isOutdated) => ({ threadId: id, lastVerifyStatus, isOutdated });
+  const ordered = orderThreadsForVerification([
+    c('fixed-fresh', 'fixed', false),
+    c('still-fresh', 'still_present', false),
+    c('unsure-outdated', 'unsure', true),
+    c('never-fresh', null, false),
+    c('still-outdated', 'still_present', true),
+    c('never-outdated', null, true),
+  ]).map((t) => t.threadId);
+  assert.deepEqual(ordered, [
+    'never-outdated', 'never-fresh',      // rank 0, 1
+    'still-outdated', 'still-fresh',      // rank 2, 3 — ahead of anything settled
+    'unsure-outdated', 'fixed-fresh',     // rank 4, 5
+  ]);
+});
+
 check('classifyVerifyFile maps fetch outcome + file status to a disposition (B1)', () => {
   assert.equal(classifyVerifyFile('content', undefined), 'verify');
   assert.equal(classifyVerifyFile('missing', 'removed'), 'removed');
@@ -901,6 +922,21 @@ check('filterFindings: unchanged-file findings drop by default (Tier 2) but rout
   assert.deepEqual(t3.offDiffDropped, [
     { file: 'other.ts', line: 13, confidence: 'medium', category: 'bug', title: 'cross-file medium in undiffed file' },
   ]);
+});
+
+check('renderClearanceRecord surfaces the gate, and flags an uncited clearance (M1)', () => {
+  assert.equal(renderClearanceRecord([]), '');
+  assert.equal(renderClearanceRecord(null), '');
+  assert.equal(renderClearanceRecord([null, 'nope']), '');
+  const out = renderClearanceRecord([
+    { claim: 'dismissed lost on exit', verdict: 'cleared-all-five-passed', invariant: 'none enforced', enforcingCode: 'agent-loop.mjs:466' },
+  ]);
+  assert.ok(out.includes('Considered and cleared (1)'));
+  assert.ok(out.includes('dismissed lost on exit'));
+  assert.ok(out.includes('agent-loop.mjs:466'));
+  // a clearance with no citation must be visibly called out, not rendered blank
+  const uncited = renderClearanceRecord([{ claim: 'x', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: '  ' }]);
+  assert.ok(uncited.includes('NO CODE CITED'));
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);

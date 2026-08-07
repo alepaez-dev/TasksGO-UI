@@ -216,6 +216,25 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
   };
 
+  let recordsLogged = false;
+  const logRecords = () => {
+    if (logLevel === 'quiet' || recordsLogged) return;
+    recordsLogged = true;
+    if (callSiteAudit.length === 0) log('  audit · none — no shared call shape reported as changed');
+    for (const a of callSiteAudit) {
+      const where = `${a?.file ?? '?'}:${a?.line ?? '?'}`;
+      log(`  audit · ${String(a?.verdict ?? '?').toUpperCase()} ${a?.symbol ? `${a.symbol} ` : ''}${where}${a?.why ? ` — ${a.why}` : ''}`);
+    }
+    for (const c of confirmSuppressed) {
+      log(`  confirm · ${String(c?.verdict ?? '?').toUpperCase()} ${c?.claim ?? '?'}`);
+      log(`      predicts: ${c?.predictedFailure ?? '?'}`);
+      log(`      invariant: ${c?.invariant ?? '?'}`);
+      log(`      enforced by: ${c?.enforcingCode?.trim() ? c.enforcingCode : '(NO CODE CITED — step 3 failed)'}`);
+      log(`      covers this path: ${c?.coversThisPath ?? '?'}`);
+      log(`      counterexample: ${c?.counterexample?.trim() ? c.counterexample : '(NOT ATTEMPTED — step 5 failed)'}`);
+    }
+  };
+
   const clearUserBreakpoints = () => {
     for (const m of messages) {
       if (m.role === 'user' && Array.isArray(m.content)) {
@@ -400,20 +419,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
           log(`  · ${f?.severity ?? '?'}/${f?.confidence ?? '?'} ${f?.title ?? '(untitled)'}`);
           log(`      basis: ${f?.confidenceBasis?.trim() ? f.confidenceBasis : '(NONE — confidence is unbacked)'}`);
         }
-        if (callSiteAudit.length === 0) log('  audit · none — no shared call shape reported as changed');
-        for (const a of callSiteAudit) {
-          const where = `${a?.file ?? '?'}:${a?.line ?? '?'}`;
-          log(`  audit · ${String(a?.verdict ?? '?').toUpperCase()} ${a?.symbol ? `${a.symbol} ` : ''}${where}${a?.why ? ` — ${a.why}` : ''}`);
-        }
-        for (const c of confirmSuppressed) {
-          log(`  confirm · ${String(c?.verdict ?? '?').toUpperCase()} ${c?.claim ?? '?'}`);
-          log(`      predicts: ${c?.predictedFailure ?? '?'}`);
-          log(`      invariant: ${c?.invariant ?? '?'}`);
-          log(`      enforced by: ${c?.enforcingCode?.trim() ? c.enforcingCode : '(NO CODE CITED — step 3 failed)'}`);
-          log(`      covers this path: ${c?.coversThisPath ?? '?'}`);
-          log(`      counterexample: ${c?.counterexample?.trim() ? c.counterexample : '(NOT ATTEMPTED — step 5 failed)'}`);
-        }
       }
+      logRecords();
       break;
     }
 
@@ -464,6 +471,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   }
 
   restoreBanked();
+  logRecords();
 
   return {
     findings: findings?.length ? findings : (bankedFindings ?? findings ?? []),

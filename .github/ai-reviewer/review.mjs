@@ -999,7 +999,8 @@ export function shouldPostVerifyReply(status, lastVerifyStatus) {
 }
 
 export function orderThreadsForVerification(candidates) {
-  const rank = (c) => (c.lastVerifyStatus ? 2 : 0) + (c.isOutdated ? 0 : 1);
+  const statusRank = (s) => (s === 'still_present' ? 1 : s ? 2 : 0);
+  const rank = (c) => statusRank(c.lastVerifyStatus) * 2 + (c.isOutdated ? 0 : 1);
   return [...(candidates || [])].sort((a, b) => rank(a) - rank(b));
 }
 
@@ -1121,6 +1122,29 @@ const CLEARED_BLOCK_RE = /<details>\n<summary>🔍 Considered and cleared \(\d+\
 
 export function extractClearedBlock(body) {
   return (body || '').match(CLEARED_BLOCK_RE)?.[0] ?? '';
+}
+
+export function renderClearanceRecord(confirmSuppressed) {
+  const entries = (confirmSuppressed || []).filter((c) => c && typeof c === 'object');
+  if (!entries.length) return '';
+  const rows = entries.map((c) => {
+    const cited = String(c.enforcingCode ?? '').trim();
+    return (
+      `<tr><td>${sanitizeText(c.claim, 300)}</td>` +
+      `<td>${sanitizeText(c.verdict, 40)}</td>` +
+      `<td>${sanitizeText(c.invariant, 200)}</td>` +
+      `<td>${cited ? `<code>${sanitizeText(cited, 200)}</code>` : '<strong>NO CODE CITED</strong>'}</td></tr>`
+    );
+  });
+  return [
+    '<details>',
+    `<summary>🔍 Considered and cleared (${entries.length})</summary>`,
+    '',
+    `<table><tr><th>Claim</th><th>Verdict</th><th>Invariant</th><th>Enforced by</th></tr>${rows.join('')}</table>`,
+    '',
+    '</details>',
+    '',
+  ].join('\n');
 }
 
 export function renderInlineBody(finding, markerPrefix = 'ai-reviewer') {
@@ -1839,6 +1863,7 @@ export async function writeJobSummary({
   note = null,
   resolved = 0,
   callSiteAudit = null,
+  confirmSuppressed = null,
 }) {
   try {
     core.summary.addHeading('🤖 AI bug review', 2);
@@ -1894,6 +1919,8 @@ export async function writeJobSummary({
       ]);
       core.summary.addRaw('\n</details>\n\n');
     }
+    const clearances = renderClearanceRecord(confirmSuppressed);
+    if (clearances) core.summary.addRaw(`\n\n${clearances}`);
 
     const spend = [];
     // Use the actual billed usage (same source as the PR status comment) so the two always agree;

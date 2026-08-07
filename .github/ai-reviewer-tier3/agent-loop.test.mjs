@@ -904,3 +904,43 @@ test('the accepted-submit path still wins over the bank', async () => {
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
   assert.deepEqual(out.callSiteAudit, fresh, 'a non-empty resubmit must still beat the bank');
 });
+
+// Restoring the records is pointless if nobody can read them: every exit path breaks before the
+// submit branch's logging, so a bounced-then-interrupted run printed nothing about the gate.
+test('the audit and the clearance gate are logged even when the run never submits', async () => {
+  const audit = [{ file: 'a.ts', line: 7, quotedLine: 'fn(x)', verdict: 'bug', why: 'omission erases shared state' }];
+  const confirm = [{
+    claim: 'dismissed lost on exit', predictedFailure: 'bank then break', invariant: 'none enforced',
+    enforcingCode: 'agent-loop.mjs:466 `dismissed ?? []`', coversThisPath: 'breaks never set it',
+    counterexample: 'constructed it', verdict: 'cleared-all-five-passed',
+  }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: audit, confirmSuppressed: confirm } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    { content: [{ type: 'text', text: 'I am done.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'Still done.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.equal(out.submitted, false, 'this run never successfully submitted');
+  assert.match(joined, /audit · BUG .*a\.ts:7/, 'the banked audit must be readable in the run log');
+  assert.match(joined, /confirm · CLEARED-ALL-FIVE-PASSED dismissed lost on exit/, 'the gate record must be readable');
+  assert.match(joined, /invariant: none enforced/, 'the failed gate step must be readable');
+  assert.doesNotMatch(joined, /submit_findings →/, 'a run that never submitted must not claim it did');
+});
+
+test('a normal submit logs the records exactly once', async () => {
+  const audit = [{ file: 'a.ts', line: 1, quotedLine: 'fn(x)', verdict: 'passes', why: 'supplies it' }];
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: audit, confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  assert.equal(lines.filter((l) => /audit · PASSES/.test(l)).length, 1, 'the restore-path call must not double-log');
+});
