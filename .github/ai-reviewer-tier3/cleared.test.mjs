@@ -139,3 +139,33 @@ test('extractClearedBlock returns empty when there is no block (first run, Tier 
   assert.equal(extractClearedBlock(null), '');
   assert.equal(extractClearedBlock(undefined), '');
 });
+
+// Mirrors review-agent.mjs: the block is carried forward only when this run produced none AND the
+// reviewed commit did not advance. A completed review that cleared nothing must still blank it.
+const carriedCleared = (cleared, reviewedSha, lastReviewedSha, body) =>
+  !cleared.length && reviewedSha === lastReviewedSha ? extractClearedBlock(body) : null;
+
+test('an interrupted full review keeps the block of the commit it still reports as reviewed', () => {
+  const A = 'a'.repeat(40);
+  const prior = renderStatusBody({ model: 'm', posted: 1, findingsCount: 1, seenCount: 1, reviewedSha: A, cleared: [{ title: 'Shared ref nulled', why: 'detach before attach' }], maxClearedConcerns: 3 });
+
+  // new commit B, interrupted before any submit: dismissed is [], reviewedSha stays A
+  const out = renderStatusBody({
+    model: 'm', posted: 0, findingsCount: 0, seenCount: 1, reviewedSha: A, cleared: [], maxClearedConcerns: 3,
+    clearedBlock: carriedCleared([], A, A, prior),
+  });
+  assert.match(out, /Considered and cleared \(1\)/, 'the block must survive an interrupted run');
+  assert.match(out, /Shared ref nulled/);
+});
+
+test('a COMPLETED review that cleared nothing drops the block (the sha advanced)', () => {
+  const A = 'a'.repeat(40);
+  const B = 'b'.repeat(40);
+  const prior = renderStatusBody({ model: 'm', posted: 1, findingsCount: 1, seenCount: 1, reviewedSha: A, cleared: [{ title: 'Shared ref nulled', why: 'detach before attach' }], maxClearedConcerns: 3 });
+
+  const out = renderStatusBody({
+    model: 'm', posted: 0, findingsCount: 0, seenCount: 1, reviewedSha: B, cleared: [], maxClearedConcerns: 3,
+    clearedBlock: carriedCleared([], B, A, prior),
+  });
+  assert.ok(!out.includes('Considered and cleared'), 'B cleared nothing — A\'s stale block must not be shown under B');
+});

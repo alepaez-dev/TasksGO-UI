@@ -418,6 +418,8 @@ async function main() {
   // A budget/round/error interrupt — OR the model ending without ever calling submit_findings — means
   // the review did NOT finish; do not mark this commit reviewed, so re-applying the label retries.
   const reviewComplete = result.submitted && !result.interruptedReason;
+  const carriedCleared = (reviewedSha) =>
+    !cleared.length && reviewedSha === lastReviewedSha ? extractClearedBlock(statusComment?.body) : null;
   if (!result.submitted && !result.interruptedReason) {
     core.warning(
       'Tier 3 ended without calling submit_findings (model returned prose only); not marking the commit reviewed so a re-run retries.',
@@ -426,9 +428,10 @@ async function main() {
 
   if (findings.length === 0) {
     core.info('No new tier-3 issues to post. Done.');
+    const reviewedSha = reviewComplete ? pr.headSha : lastReviewedSha;
     await writeJobSummary({ findings, dropped, capped, config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit });
     await upsertStatus(
-      { posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha: reviewComplete ? pr.headSha : lastReviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns },
+      { posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns, clearedBlock: carriedCleared(reviewedSha) },
       banner,
     );
     return;
@@ -484,7 +487,7 @@ async function main() {
 
   await writeJobSummary({ findings, dropped, capped, config, postedInline, postedGeneral, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit });
   await upsertStatus(
-    { posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns },
+    { posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns, clearedBlock: carriedCleared(reviewedSha) },
     banner,
   );
 }
