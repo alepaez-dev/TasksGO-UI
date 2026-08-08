@@ -37,7 +37,12 @@ export function DevDetailsCard({
         <span className={styles.summary}>{summary}</span>
         <Icon name="expand_more" size="sm" className={styles.chevron} />
       </button>
-      <div id={bodyId} ref={backdropRef} className={styles.collapse}>
+      <div
+        id={bodyId}
+        ref={backdropRef}
+        className={styles.collapse}
+        inert={!open || undefined}
+      >
         <div className={styles.collapseInner}>{shouldRender && children}</div>
       </div>
     </div>

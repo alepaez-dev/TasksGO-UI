@@ -41,3 +41,41 @@ test.describe('Ticket — Dev Details card', () => {
     await expect(repository).not.toBeVisible();
   });
 });
+
+test.describe('Ticket — Dev Details card closing window', () => {
+  test.beforeEach(async ({ page }) => {
+    // No transition means transitionend never fires, so the body stays mounted
+    // for the hook's full fallback window — the widest version of the gap.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).waitFor({ state: 'visible' });
+  });
+
+  test('panel content leaves the tab order as soon as the card reports collapsed', async ({
+    page,
+  }) => {
+    const header = page.getByRole('button', { name: /dev details/i });
+    const repoLink = page.getByRole('link', { name: /edge-gateway-service/i });
+
+    await page.getByRole('tab', { name: 'Dev' }).click();
+    await expect(header).toHaveAttribute('aria-expanded', 'true');
+    await expect(repoLink).toBeVisible();
+
+    await header.click();
+    await expect(header).toHaveAttribute('aria-expanded', 'false');
+
+    // Focus reachability has to be probed synchronously while the body is still
+    // mounted mid-close; stillMounted proves we were inside that window.
+    const probe = await page.evaluate(() => {
+      const link = document.querySelector<HTMLElement>(
+        'a[href$="/edge-gateway-service"]',
+      );
+      if (!link) return { stillMounted: false, focused: false };
+      link.focus();
+      return { stillMounted: true, focused: document.activeElement === link };
+    });
+
+    expect(probe.stillMounted).toBe(true);
+    expect(probe.focused).toBe(false);
+  });
+});
