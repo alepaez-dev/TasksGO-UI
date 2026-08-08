@@ -103,6 +103,12 @@ const SUBMIT_FINDINGS_SCHEMA = {
             description:
               'STEP 3. Where that invariant is ENFORCED: `path/to/file.ext:LINE` followed by the line verbatim, from code you actually read. ' +
               'Naming a mechanism ("it is optional", "it defaults", "it is sanitized") is NOT a citation. ' +
+              'A TEST is never enforcing code — not a `*.test.*`, `*.spec.*`, `e2e/` or `__tests__/` line, and never "the test passes". ' +
+              'Tests assert behaviour, they do not create it; you cannot run them; and a test added by THIS diff only encodes the behaviour ' +
+              'this diff already has, so it can never prove that behaviour correct. Cite the production line that makes the invariant true. ' +
+              'If your invariant asserts WHEN something happens — an ordering, a coincidence, "exactly when", "only while", "before", "until" — cite the line that ' +
+              'SCHEDULES or FIRES it (the listener registration, the timer, the dispatch), and name EVERY other path that can end it. A line that merely READS the ' +
+              'result — a `return`, a derived flag, a render guard — does not establish timing, and step 3 has FAILED. ' +
               'If you cannot cite a line you have read, step 3 has FAILED and the verdict is `is-a-bug-moved-to-findings`.',
           },
           coversThisPath: {
