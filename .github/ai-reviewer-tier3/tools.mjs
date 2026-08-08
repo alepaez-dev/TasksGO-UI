@@ -127,6 +127,21 @@ const SUBMIT_FINDINGS_SCHEMA = {
         required: ['claim', 'predictedFailure', 'invariant', 'enforcingCode', 'coversThisPath', 'counterexample', 'verdict'],
       },
     },
+    dismissed: {
+      type: 'array',
+      description:
+        'Optional. Plausible-looking concerns you INVESTIGATED and CLEARED (not bugs) — the kind another reviewer might wrongly flag. Include at most ~3; only concerns you already looked into. Omit or leave empty when nothing noteworthy was ruled out.',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          title: { type: 'string', description: 'Short name of the concern you ruled out.' },
+          why: { type: 'string', description: 'One sentence: the concrete evidence that clears it.' },
+          anchor: { type: 'string', description: 'Optional file:line the concern related to.' },
+        },
+        required: ['title', 'why'],
+      },
+    },
     // Last on purpose. The model has already thought about the suppressed concerns and callSiteAudit, so the response should be richer (structured CoT)
     findings: TIER3_FINDINGS,
   },

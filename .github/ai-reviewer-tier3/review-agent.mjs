@@ -22,6 +22,7 @@ import {
   statusMarkerRe,
   parseStatusReviewedSha,
   parseStatusVerifiedSha,
+  extractClearedBlock,
   verificationComplete,
   isTrustedAuthor,
   diffIsComplete,
@@ -78,6 +79,16 @@ function loadTextFile(path) {
   } catch {
     return '';
   }
+}
+const clearedKey = (title) => (typeof title === 'string' ? title.trim().toLowerCase() : '');
+
+export function buildClearedConcerns(dismissed, findings) {
+  if (!Array.isArray(dismissed)) return [];
+  const reported = new Set((Array.isArray(findings) ? findings : []).map((f) => clearedKey(f?.title)).filter(Boolean));
+  return dismissed
+    .filter((d) => d && typeof d.title === 'string' && typeof d.why === 'string')
+    .filter((d) => !reported.has(clearedKey(d.title)))
+    .map((d) => ({ title: d.title, why: d.why, anchor: typeof d.anchor === 'string' ? d.anchor : '' }));
 }
 
 // Local dry-run (DRY_RUN=1, see local-review.sh): replace every GitHub write with a logging no-op so a
@@ -229,6 +240,9 @@ async function main() {
   const idempotent = config.skipIfHeadUnchanged !== false;
   const needVerify = config.verifyResolutions && (!idempotent || lastVerifiedSha !== pr.headSha);
 
+  const carriedCleared = (reviewedSha, cleared = []) =>
+    !cleared.length && reviewedSha === lastReviewedSha ? extractClearedBlock(statusComment?.body) : null;
+
   const verifyOnlyAndFinish = async ({ reviewedSha, note, skipped = false, inputTokens = null }) => {
     let verifyOnly = null;
     if (needVerify) {
@@ -246,7 +260,10 @@ async function main() {
     const usage = verifyOnly?.usage ?? null;
     const costUsd = usage ? estimateCostUsd(usage, config.model, config.pricing) : null;
     await writeJobSummary({ findings: [], config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved });
-    await upsertStatus({ skipped, note, inputTokens, posted: 0, findingsCount: 0, usage, costUsd, reviewedSha, verifiedSha, resolved });
+    await upsertStatus({
+      skipped, note, inputTokens, posted: 0, findingsCount: 0, usage, costUsd, reviewedSha, verifiedSha, resolved,
+      clearedBlock: carriedCleared(reviewedSha),
+    });
   };
 
   const findingsDone = idempotent && Boolean(lastReviewedSha) && lastReviewedSha === pr.headSha;
@@ -399,6 +416,7 @@ async function main() {
   const usage = addUsage(result.usage, verifyStats?.usage);
   const verifyCostUsd = verifyStats?.usage ? (estimateCostUsd(verifyStats.usage, config.model, config.pricing) ?? 0) : 0;
   const costUsd = (reviewCostUsd ?? 0) + verifyCostUsd;
+  const cleared = buildClearedConcerns(result.dismissed, result.findings);
 
   // A budget/round/error interrupt — OR the model ending without ever calling submit_findings — means
   // the review did NOT finish; do not mark this commit reviewed, so re-applying the label retries.
@@ -411,9 +429,10 @@ async function main() {
 
   if (findings.length === 0) {
     core.info('No new tier-3 issues to post. Done.');
+    const reviewedSha = reviewComplete ? pr.headSha : lastReviewedSha;
     await writeJobSummary({ findings, dropped, capped, config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit });
     await upsertStatus(
-      { posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha: reviewComplete ? pr.headSha : lastReviewedSha, verifiedSha, resolved: resolvedCount },
+      { posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns, clearedBlock: carriedCleared(reviewedSha, cleared) },
       banner,
     );
     return;
@@ -469,7 +488,7 @@ async function main() {
 
   await writeJobSummary({ findings, dropped, capped, config, postedInline, postedGeneral, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit });
   await upsertStatus(
-    { posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount },
+    { posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns, clearedBlock: carriedCleared(reviewedSha, cleared) },
     banner,
   );
 }
