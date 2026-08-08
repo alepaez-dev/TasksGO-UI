@@ -189,10 +189,20 @@ export {
   type TestScenarioStatus,
   type TestScenarioEvidence,
 } from './components/TestScenarioCard';
+export { EditToggle, type EditToggleProps } from './components/EditToggle';
+export {
+  ConfirmDialog,
+  type ConfirmDialogProps,
+  type ConfirmDialogField,
+} from './components/ConfirmDialog';
 export {
   WaiveScenarioDialog,
   type WaiveScenarioDialogProps,
 } from './components/WaiveScenarioDialog';
+export {
+  ReopenPendingDialog,
+  type ReopenPendingDialogProps,
+} from './components/ReopenPendingDialog';
 export {
   RecentTaskList,
   type RecentTaskListProps,

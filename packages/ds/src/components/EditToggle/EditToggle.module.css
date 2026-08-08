@@ -1,0 +1,45 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  flex-shrink: 0;
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  border: 1px solid transparent;
+  border-radius: var(--ds-radius-md);
+  cursor: pointer;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.edit {
+  background: none;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-text-section-header-font-family);
+  font-size: var(--ds-text-section-header-font-size);
+  font-weight: var(--ds-text-section-header-font-weight);
+  letter-spacing: var(--ds-text-section-header-letter-spacing);
+  text-transform: var(--ds-text-section-header-text-transform);
+}
+
+.edit:hover {
+  background-color: var(--ds-color-surface-hover);
+  color: var(--ds-color-text-primary);
+}
+
+.done {
+  background-color: var(--ds-color-text-primary);
+  color: var(--ds-color-surface-primary);
+  font-family: var(--ds-text-button-label-sm-font-family);
+  font-size: var(--ds-text-button-label-sm-font-size);
+  font-weight: var(--ds-text-button-label-sm-font-weight);
+}
+
+.done:hover {
+  filter: brightness(0.9);
+}
+
+.toggle:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}

@@ -1,7 +1,18 @@
-import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useRef,
+  type ChangeEvent,
+  type HTMLAttributes,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
+import { useAutoGrowTextarea } from '../../hooks/useAutoGrowTextarea';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import { Avatar } from '../Avatar';
 import { Badge, type BadgeProps } from '../Badge';
 import { Callout } from '../Callout';
+import { EditToggle } from '../EditToggle';
 import { Icon } from '../Icon';
 import { Markdown } from '../Markdown';
 import { RefLabel } from '../RefLabel';
@@ -13,6 +24,13 @@ import { cn } from '../../utils/cn';
 import styles from './TestScenarioCard.module.css';
 
 export type TestScenarioStatus = 'passed' | 'failed' | 'pending' | 'waived';
+
+export type TestScenarioSection =
+  | 'waiveReason'
+  | 'description'
+  | 'steps'
+  | 'expected'
+  | 'actual';
 
 export interface TestScenarioEvidence {
   label: string;
@@ -43,6 +61,19 @@ export interface TestScenarioCardProps extends Omit<
   onStatusChange?: (status: TestScenarioStatus) => void;
   evidenceExpanded?: boolean;
   onEvidenceExpandedChange?: (expanded: boolean) => void;
+  onAddEvidence?: (files: readonly File[]) => void;
+  onRemoveEvidence?: (index: number) => void;
+  maxEvidence?: number;
+  evidenceAccept?: string;
+  editingSections?: readonly TestScenarioSection[];
+  onEditingSectionsChange?: (sections: readonly TestScenarioSection[]) => void;
+  onWaiveReasonChange?: (value: string) => void;
+  onDescriptionChange?: (value: string) => void;
+  onExpectedChange?: (value: string) => void;
+  onActualChange?: (value: string) => void;
+  onStepsChange?: (steps: readonly string[]) => void;
+  stepsExpanded?: boolean;
+  onStepsExpandedChange?: (expanded: boolean) => void;
 }
 
 const STATUS_ORDER: readonly TestScenarioStatus[] = [
@@ -72,6 +103,7 @@ const STATUS_OPTIONS = STATUS_ORDER.map((value) => ({
 }));
 
 const EVIDENCE_PREVIEW_COUNT = 3;
+const STEPS_PREVIEW_COUNT = 3;
 
 function toStatus(value: string): TestScenarioStatus | undefined {
   return STATUS_ORDER.find((status) => status === value);
@@ -82,6 +114,67 @@ function IndicatorGlyph({ status }: { status: TestScenarioStatus }): ReactNode {
   if (status === 'failed') return <Icon name="close" size="xs" />;
   if (status === 'pending') return <Icon name="more_horiz" size="xs" />;
   return null;
+}
+
+interface StepEditorRowProps {
+  index: number;
+  value: string;
+  onChange: (value: string) => void;
+  onEnter: () => void;
+  onRemove: () => void;
+}
+
+function StepEditorRow({
+  index,
+  value,
+  onChange,
+  onEnter,
+  onRemove,
+}: StepEditorRowProps): ReactNode {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useAutoGrowTextarea(textareaRef, value);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    const textarea = textareaRef.current;
+    if (event.metaKey || event.ctrlKey || event.shiftKey) {
+      const start = textarea?.selectionStart ?? value.length;
+      const end = textarea?.selectionEnd ?? value.length;
+      onChange(`${value.slice(0, start)}\n${value.slice(end)}`);
+      requestAnimationFrame(() => {
+        const el = textareaRef.current;
+        if (el) el.selectionStart = el.selectionEnd = start + 1;
+      });
+      return;
+    }
+    onEnter();
+  };
+
+  return (
+    <div className={styles.stepRow}>
+      <span className={styles.stepNumber} aria-hidden="true">
+        {index + 1}
+      </span>
+      <textarea
+        ref={textareaRef}
+        rows={1}
+        className={styles.stepInput}
+        aria-label={`Step ${index + 1}`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+      />
+      <button
+        type="button"
+        className={styles.evidenceRemove}
+        aria-label={`Remove step ${index + 1}`}
+        onClick={onRemove}
+      >
+        <Icon name="close" size="xs" />
+      </button>
+    </div>
+  );
 }
 
 export const TestScenarioCard = forwardRef<
@@ -110,6 +203,19 @@ export const TestScenarioCard = forwardRef<
       onStatusChange,
       evidenceExpanded = false,
       onEvidenceExpandedChange,
+      onAddEvidence,
+      onRemoveEvidence,
+      maxEvidence,
+      evidenceAccept,
+      editingSections = [],
+      onEditingSectionsChange,
+      onWaiveReasonChange,
+      onDescriptionChange,
+      onExpectedChange,
+      onActualChange,
+      onStepsChange,
+      stepsExpanded = false,
+      onStepsExpandedChange,
       className,
       ...rest
     },
@@ -124,6 +230,37 @@ export const TestScenarioCard = forwardRef<
       ? evidenceItems
       : evidenceItems.slice(0, EVIDENCE_PREVIEW_COUNT);
     const hiddenEvidenceCount = evidenceItems.length - EVIDENCE_PREVIEW_COUNT;
+    const evidenceLimit =
+      maxEvidence != null && maxEvidence >= 1 ? maxEvidence : undefined;
+    const limitReached =
+      evidenceLimit != null && evidenceItems.length >= evidenceLimit;
+    const stepItems = steps ?? [];
+    const canToggleSteps = stepItems.length > STEPS_PREVIEW_COUNT;
+    const visibleSteps = stepsExpanded
+      ? stepItems
+      : stepItems.slice(0, STEPS_PREVIEW_COUNT);
+    const hiddenStepsCount = stepItems.length - STEPS_PREVIEW_COUNT;
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const stepEditorRef = useRef<HTMLDivElement>(null);
+    const statusSelectRef = useRef<HTMLDivElement>(null);
+    const closeStatusSelect = useCallback(
+      () => onStatusSelectOpenChange?.(false),
+      [onStatusSelectOpenChange],
+    );
+    useClickOutside(statusSelectRef, closeStatusSelect, statusSelectOpen);
+
+    const handleEvidenceFiles = (event: ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (files && files.length > 0) onAddEvidence?.(Array.from(files));
+      event.target.value = '';
+    };
+
+    const isEditing = (key: TestScenarioSection) =>
+      editingSections.includes(key);
+    const setSectionEditing = (key: TestScenarioSection, next: boolean) => {
+      const without = editingSections.filter((k) => k !== key);
+      onEditingSectionsChange?.(next ? [...without, key] : without);
+    };
 
     return (
       <div
@@ -155,9 +292,7 @@ export const TestScenarioCard = forwardRef<
             <span className={styles.title}>{title}</span>
             <span className={styles.byline}>
               <TicketId>{caseId}</TicketId>
-              <span className={styles.bylineSep} aria-hidden="true">
-                &middot;
-              </span>
+              <span className={styles.bylineSep} aria-hidden="true" />
               <span>{byline}</span>
             </span>
           </span>
@@ -165,12 +300,14 @@ export const TestScenarioCard = forwardRef<
           <Avatar
             variant="profile"
             size="sm"
+            className={styles.assignee}
             initial={assigneeInitial}
             aria-label={assigneeLabel}
             tint={assigneeColor}
           />
 
           <Selector
+            ref={statusSelectRef}
             className={styles.statusSelect}
             showChevron={false}
             options={STATUS_OPTIONS}
@@ -210,56 +347,289 @@ export const TestScenarioCard = forwardRef<
           <Icon
             name="expand_more"
             size="md"
-            className={cn(styles.chevron, open && styles.chevronOpen)}
+            className={cn(
+              styles.chevron,
+              styles.headerChevron,
+              open && styles.chevronOpen,
+            )}
           />
         </div>
 
         {open && (
           <div id={bodyId} className={styles.body}>
-            {status === 'waived' && waiveReason && (
+            {status === 'waived' && (waiveReason || onWaiveReasonChange) && (
               <section className={styles.section}>
-                <SectionHeader headingLevel={3}>Waive Reason</SectionHeader>
-                <Callout variant="warning">
-                  <Markdown source={waiveReason} />
-                </Callout>
+                <div className={styles.sectionHead}>
+                  <SectionHeader headingLevel={3}>Waive Reason</SectionHeader>
+                  {onWaiveReasonChange &&
+                    (isEditing('waiveReason') || waiveReason) && (
+                      <EditToggle
+                        className={
+                          isEditing('waiveReason')
+                            ? undefined
+                            : styles.sectionEdit
+                        }
+                        editing={isEditing('waiveReason')}
+                        onEditingChange={(next) =>
+                          setSectionEditing('waiveReason', next)
+                        }
+                      />
+                    )}
+                </div>
+                {isEditing('waiveReason') && onWaiveReasonChange ? (
+                  <div className={cn(styles.calloutEditor, styles.toneWarning)}>
+                    <textarea
+                      className={styles.editorTextarea}
+                      aria-label="Waive Reason"
+                      value={waiveReason ?? ''}
+                      onChange={(e) => onWaiveReasonChange(e.target.value)}
+                    />
+                  </div>
+                ) : waiveReason ? (
+                  <Callout variant="warning">
+                    <Markdown source={waiveReason} />
+                  </Callout>
+                ) : onWaiveReasonChange ? (
+                  <button
+                    type="button"
+                    className={styles.addStep}
+                    onClick={() => setSectionEditing('waiveReason', true)}
+                  >
+                    <Icon name="add" size="xs" />
+                    Add reason
+                  </button>
+                ) : null}
               </section>
             )}
 
             <section className={styles.section}>
-              <SectionHeader headingLevel={3}>Description</SectionHeader>
-              <Markdown source={description} />
+              <div className={styles.sectionHead}>
+                <SectionHeader headingLevel={3}>Description</SectionHeader>
+                {onDescriptionChange && (
+                  <EditToggle
+                    className={
+                      isEditing('description') ? undefined : styles.sectionEdit
+                    }
+                    editing={isEditing('description')}
+                    onEditingChange={(next) =>
+                      setSectionEditing('description', next)
+                    }
+                  />
+                )}
+              </div>
+              {isEditing('description') && onDescriptionChange ? (
+                <textarea
+                  className={styles.editorTextarea}
+                  aria-label="Description"
+                  value={description}
+                  onChange={(e) => onDescriptionChange(e.target.value)}
+                />
+              ) : (
+                <Markdown source={description} />
+              )}
             </section>
 
-            {steps && steps.length > 0 && (
+            {((steps && steps.length > 0) || onStepsChange) && (
               <section className={styles.section}>
-                <SectionHeader headingLevel={3}>
-                  Steps to Reproduce
-                </SectionHeader>
-                <StepList steps={steps} dividers />
+                <div className={styles.sectionHead}>
+                  <SectionHeader headingLevel={3}>
+                    Steps to Reproduce
+                  </SectionHeader>
+                  {onStepsChange &&
+                    (isEditing('steps') || stepItems.length > 0) && (
+                      <EditToggle
+                        className={
+                          isEditing('steps') ? undefined : styles.sectionEdit
+                        }
+                        editing={isEditing('steps')}
+                        onEditingChange={(next) =>
+                          setSectionEditing('steps', next)
+                        }
+                      />
+                    )}
+                </div>
+                {isEditing('steps') && onStepsChange ? (
+                  <div className={styles.stepEditor} ref={stepEditorRef}>
+                    {(steps ?? []).map((step, index) => (
+                      <StepEditorRow
+                        key={index}
+                        index={index}
+                        value={step}
+                        onChange={(value) =>
+                          onStepsChange(
+                            (steps ?? []).map((s, i) =>
+                              i === index ? value : s,
+                            ),
+                          )
+                        }
+                        onEnter={() => {
+                          const src = steps ?? [];
+                          onStepsChange([
+                            ...src.slice(0, index + 1),
+                            '',
+                            ...src.slice(index + 1),
+                          ]);
+                          requestAnimationFrame(() => {
+                            const areas =
+                              stepEditorRef.current?.querySelectorAll(
+                                'textarea',
+                              );
+                            areas?.[index + 1]?.focus();
+                          });
+                        }}
+                        onRemove={() =>
+                          onStepsChange(
+                            (steps ?? []).filter((_, i) => i !== index),
+                          )
+                        }
+                      />
+                    ))}
+                    <button
+                      type="button"
+                      className={styles.addStep}
+                      onClick={() => onStepsChange([...(steps ?? []), ''])}
+                    >
+                      <Icon name="add" size="xs" />
+                      Add step
+                    </button>
+                  </div>
+                ) : stepItems.length > 0 ? (
+                  <>
+                    <StepList steps={visibleSteps} dividers />
+                    {canToggleSteps && (
+                      <button
+                        type="button"
+                        className={styles.stepsToggle}
+                        aria-expanded={stepsExpanded}
+                        onClick={() => onStepsExpandedChange?.(!stepsExpanded)}
+                      >
+                        <Icon
+                          name="expand_more"
+                          size="xs"
+                          className={cn(
+                            styles.chevron,
+                            stepsExpanded && styles.chevronOpen,
+                          )}
+                        />
+                        {stepsExpanded
+                          ? 'Show less'
+                          : `Show ${hiddenStepsCount} more`}
+                      </button>
+                    )}
+                  </>
+                ) : onStepsChange ? (
+                  <button
+                    type="button"
+                    className={styles.addStep}
+                    onClick={() => {
+                      onStepsChange(['']);
+                      setSectionEditing('steps', true);
+                    }}
+                  >
+                    <Icon name="add" size="xs" />
+                    Add step
+                  </button>
+                ) : null}
               </section>
             )}
 
             <section className={styles.section}>
-              <SectionHeader headingLevel={3}>Expected Result</SectionHeader>
-              <Callout variant="positive">
-                <Markdown source={expected} />
-              </Callout>
+              <div className={styles.sectionHead}>
+                <SectionHeader headingLevel={3}>Expected Result</SectionHeader>
+                {onExpectedChange && (
+                  <EditToggle
+                    className={
+                      isEditing('expected') ? undefined : styles.sectionEdit
+                    }
+                    editing={isEditing('expected')}
+                    onEditingChange={(next) =>
+                      setSectionEditing('expected', next)
+                    }
+                  />
+                )}
+              </div>
+              {isEditing('expected') && onExpectedChange ? (
+                <div className={cn(styles.calloutEditor, styles.tonePositive)}>
+                  <textarea
+                    className={styles.editorTextarea}
+                    aria-label="Expected Result"
+                    value={expected}
+                    onChange={(e) => onExpectedChange(e.target.value)}
+                  />
+                </div>
+              ) : (
+                <Callout variant="positive">
+                  <Markdown source={expected} />
+                </Callout>
+              )}
             </section>
 
-            {actual && (
+            {(actual || onActualChange) && (
               <section className={styles.section}>
-                <SectionHeader headingLevel={3}>Actual Result</SectionHeader>
-                <Callout variant={actualTone}>
-                  <Markdown source={actual} />
-                </Callout>
+                <div className={styles.sectionHead}>
+                  <SectionHeader headingLevel={3}>Actual Result</SectionHeader>
+                  {onActualChange && (isEditing('actual') || actual) && (
+                    <EditToggle
+                      className={
+                        isEditing('actual') ? undefined : styles.sectionEdit
+                      }
+                      editing={isEditing('actual')}
+                      onEditingChange={(next) =>
+                        setSectionEditing('actual', next)
+                      }
+                    />
+                  )}
+                </div>
+                {isEditing('actual') && onActualChange ? (
+                  <div
+                    className={cn(
+                      styles.calloutEditor,
+                      actualTone === 'critical'
+                        ? styles.toneCritical
+                        : styles.toneNeutral,
+                    )}
+                  >
+                    <textarea
+                      className={styles.editorTextarea}
+                      aria-label="Actual Result"
+                      value={actual ?? ''}
+                      onChange={(e) => onActualChange(e.target.value)}
+                    />
+                  </div>
+                ) : actual ? (
+                  <Callout variant={actualTone}>
+                    <Markdown source={actual} />
+                  </Callout>
+                ) : onActualChange ? (
+                  <button
+                    type="button"
+                    className={styles.addStep}
+                    onClick={() => setSectionEditing('actual', true)}
+                  >
+                    <Icon name="add" size="xs" />
+                    Add actual result
+                  </button>
+                ) : null}
               </section>
             )}
 
-            {hasEvidence && (
+            {(hasEvidence || onAddEvidence) && (
               <section className={styles.section}>
-                <SectionHeader headingLevel={3}>
-                  {`Evidence (${evidenceItems.length})`}
-                </SectionHeader>
+                <div className={styles.evidenceHeader}>
+                  <SectionHeader headingLevel={3}>
+                    {`Evidence (${evidenceItems.length})`}
+                  </SectionHeader>
+                  {evidenceLimit != null && (
+                    <span
+                      className={cn(
+                        styles.evidenceCount,
+                        limitReached && styles.evidenceCountFull,
+                      )}
+                    >
+                      {evidenceItems.length}/{evidenceLimit}
+                    </span>
+                  )}
+                </div>
                 <div className={styles.evidence}>
                   {visibleEvidence.map((item, index) => (
                     <span key={index} className={styles.evidenceChip}>
@@ -269,6 +639,16 @@ export const TestScenarioCard = forwardRef<
                       >
                         {item.label}
                       </RefLabel>
+                      {onRemoveEvidence && (
+                        <button
+                          type="button"
+                          className={styles.evidenceRemove}
+                          aria-label={`Remove ${item.label}`}
+                          onClick={() => onRemoveEvidence(index)}
+                        >
+                          <Icon name="close" size="xs" />
+                        </button>
+                      )}
                     </span>
                   ))}
                   {canToggleEvidence && (
@@ -292,6 +672,29 @@ export const TestScenarioCard = forwardRef<
                         ? 'Show less'
                         : `+${hiddenEvidenceCount} more`}
                     </button>
+                  )}
+                  {onAddEvidence && (
+                    <>
+                      <button
+                        type="button"
+                        className={styles.addEvidence}
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={limitReached}
+                      >
+                        <Icon name="file_upload" size="xs" />
+                        {limitReached ? 'Limit reached' : 'Add evidence'}
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept={evidenceAccept}
+                        multiple
+                        className={styles.addEvidenceInput}
+                        onChange={handleEvidenceFiles}
+                        aria-hidden="true"
+                        tabIndex={-1}
+                      />
+                    </>
                   )}
                 </div>
               </section>

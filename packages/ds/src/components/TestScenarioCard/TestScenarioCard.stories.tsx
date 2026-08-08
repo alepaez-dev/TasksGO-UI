@@ -4,8 +4,11 @@ import {
   TestScenarioCard,
   type TestScenarioCardProps,
   type TestScenarioStatus,
+  type TestScenarioEvidence,
+  type TestScenarioSection,
 } from './TestScenarioCard';
 import { WaiveScenarioDialog } from '../WaiveScenarioDialog';
+import { ReopenPendingDialog } from '../ReopenPendingDialog';
 
 const meta: Meta<typeof TestScenarioCard> = {
   title: 'Components/TestScenarioCard',
@@ -21,9 +24,22 @@ function Controlled(props: TestScenarioCardProps) {
   const [status, setStatus] = useState<TestScenarioStatus>(props.status);
   const [selectOpen, setSelectOpen] = useState(false);
   const [evidenceExpanded, setEvidenceExpanded] = useState(false);
+  const [evidence, setEvidence] = useState<readonly TestScenarioEvidence[]>(
+    props.evidence ?? [],
+  );
+  const [actual, setActual] = useState(props.actual);
   const [waiveOpen, setWaiveOpen] = useState(false);
   const [reasonDraft, setReasonDraft] = useState('');
   const [waiveReason, setWaiveReason] = useState(props.waiveReason ?? '');
+  const [reopenOpen, setReopenOpen] = useState(false);
+  const [actualDraft, setActualDraft] = useState('');
+  const [editingSections, setEditingSections] = useState<
+    readonly TestScenarioSection[]
+  >([]);
+  const [description, setDescription] = useState(props.description);
+  const [expected, setExpected] = useState(props.expected);
+  const [steps, setSteps] = useState<readonly string[]>(props.steps ?? []);
+  const [stepsExpanded, setStepsExpanded] = useState(false);
 
   const handleStatusChange = (next: TestScenarioStatus) => {
     if (next === 'waived') {
@@ -32,7 +48,34 @@ function Controlled(props: TestScenarioCardProps) {
       setWaiveOpen(true);
       return;
     }
+    if (next === 'pending' && (status === 'passed' || status === 'waived')) {
+      setSelectOpen(false);
+      setActualDraft('');
+      setReopenOpen(true);
+      return;
+    }
     setStatus(next);
+  };
+
+  const handleAddEvidence = (files: readonly File[]) => {
+    setEvidence((prev) => {
+      const next = [
+        ...prev,
+        ...files.map((file) => ({
+          label: file.name,
+          kind: file.type.startsWith('image/')
+            ? ('image' as const)
+            : ('file' as const),
+        })),
+      ];
+      return props.maxEvidence != null
+        ? next.slice(0, props.maxEvidence)
+        : next;
+    });
+  };
+
+  const handleRemoveEvidence = (index: number) => {
+    setEvidence((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -41,6 +84,11 @@ function Controlled(props: TestScenarioCardProps) {
         {...props}
         status={status}
         waiveReason={waiveReason}
+        actual={actual}
+        description={description}
+        expected={expected}
+        steps={steps}
+        evidence={evidence}
         open={open}
         onOpenChange={setOpen}
         statusSelectOpen={selectOpen}
@@ -48,6 +96,18 @@ function Controlled(props: TestScenarioCardProps) {
         onStatusChange={handleStatusChange}
         evidenceExpanded={evidenceExpanded}
         onEvidenceExpandedChange={setEvidenceExpanded}
+        onAddEvidence={handleAddEvidence}
+        onRemoveEvidence={handleRemoveEvidence}
+        maxEvidence={props.maxEvidence}
+        editingSections={editingSections}
+        onEditingSectionsChange={setEditingSections}
+        onWaiveReasonChange={setWaiveReason}
+        onDescriptionChange={setDescription}
+        onExpectedChange={setExpected}
+        onActualChange={setActual}
+        onStepsChange={setSteps}
+        stepsExpanded={stepsExpanded}
+        onStepsExpandedChange={setStepsExpanded}
       />
       <WaiveScenarioDialog
         open={waiveOpen}
@@ -59,6 +119,19 @@ function Controlled(props: TestScenarioCardProps) {
           setStatus('waived');
           setWaiveReason(reasonDraft);
           setWaiveOpen(false);
+        }}
+      />
+      <ReopenPendingDialog
+        open={reopenOpen}
+        scenarioTitle={props.title}
+        actualResult={actualDraft}
+        onActualResultChange={setActualDraft}
+        actualResultPlaceholder={actual}
+        onCancel={() => setReopenOpen(false)}
+        onConfirm={() => {
+          setStatus('pending');
+          setActual(actualDraft);
+          setReopenOpen(false);
         }}
       />
     </>
@@ -152,8 +225,8 @@ export const Waived: Story = {
         { label: 'console.log', kind: 'file' },
         { label: 'network.har', kind: 'file' },
         { label: 'trace.json', kind: 'file' },
-        { label: 'heap.prof', kind: 'file' },
       ]}
+      maxEvidence={6}
       expected="Connection should recover within 2 seconds without session state loss."
       actual="Not run — scenario waived before execution."
       open
@@ -173,6 +246,28 @@ export const Collapsed: Story = {
       assigneeColor="#C38E70"
       description="An SNS publish purges the matching edge cache keys within 5 seconds."
       expected="Subsequent request is a `MISS` then repopulates."
+    />
+  ),
+};
+
+export const Editable: Story = {
+  render: () => (
+    <Controlled
+      caseId="TC-418"
+      title="Rate Limit Edge Case"
+      status="failed"
+      byline="Failed by Mike R. · 3d ago"
+      assigneeInitial="MR"
+      assigneeLabel="Mike R."
+      assigneeColor="#C38E70"
+      description="Requests exceeding the burst threshold on `/v1/assets` should return 429."
+      steps={[
+        'Deploy recent build to `QA-01` environment',
+        'Fire 500 rps against `/v1/assets/hot` for 30s',
+      ]}
+      expected="Gateway returns `429 Too Many Requests` with `Retry-After`."
+      actual="Stale cached body returned with `200 OK`."
+      open
     />
   ),
 };

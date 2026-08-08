@@ -1,5 +1,5 @@
 import { createRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { TestScenarioCard } from './TestScenarioCard';
@@ -71,6 +71,38 @@ describe('TestScenarioCard', () => {
     );
     await userEvent.click(screen.getByRole('option', { name: 'Failed' }));
     expect(onStatusChange).toHaveBeenCalledWith('failed');
+  });
+
+  it('closes the status dropdown when the card header is clicked', async () => {
+    const onStatusSelectOpenChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        statusSelectOpen
+        onStatusSelectOpenChange={onStatusSelectOpenChange}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: /collapse scenario/i }),
+    );
+    expect(onStatusSelectOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('closes the status dropdown when an in-body action is clicked', async () => {
+    const onStatusSelectOpenChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        statusSelectOpen
+        onStatusSelectOpenChange={onStatusSelectOpenChange}
+      />,
+    );
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Mark as Passed' }),
+    );
+    expect(onStatusSelectOpenChange).toHaveBeenCalledWith(false);
   });
 
   it('emits onStatusChange from the Mark as Failed action', async () => {
@@ -192,6 +224,28 @@ describe('TestScenarioCard', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('leaves the evidence picker unrestricted by default and forwards evidenceAccept', () => {
+    const { container, rerender } = render(
+      <TestScenarioCard {...base} open onAddEvidence={() => {}} />,
+    );
+    const input = container.querySelector('input[type="file"]');
+    expect(input).not.toBeNull();
+    expect(input).not.toHaveAttribute('accept');
+
+    rerender(
+      <TestScenarioCard
+        {...base}
+        open
+        onAddEvidence={() => {}}
+        evidenceAccept="image/*"
+      />,
+    );
+    expect(container.querySelector('input[type="file"]')).toHaveAttribute(
+      'accept',
+      'image/*',
+    );
+  });
+
   it('renders a minimal body (no steps/evidence/actual) for a passed scenario', () => {
     render(<TestScenarioCard {...base} open />);
     expect(screen.getByText('Description')).toBeInTheDocument();
@@ -199,5 +253,359 @@ describe('TestScenarioCard', () => {
     expect(screen.queryByText('Steps to Reproduce')).not.toBeInTheDocument();
     expect(screen.queryByText(/^Evidence/)).not.toBeInTheDocument();
     expect(screen.queryByText('Actual Result')).not.toBeInTheDocument();
+  });
+
+  it('shows the "Add evidence" button (and an empty evidence section) only when onAddEvidence is provided', () => {
+    const { rerender } = render(<TestScenarioCard {...base} open />);
+    expect(
+      screen.queryByRole('button', { name: 'Add evidence' }),
+    ).not.toBeInTheDocument();
+
+    rerender(<TestScenarioCard {...base} open onAddEvidence={() => {}} />);
+    // renders the evidence section for adding even with no evidence yet
+    expect(screen.getByText('Evidence (0)')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Add evidence' }),
+    ).toBeInTheDocument();
+  });
+
+  it('emits the selected files from the Add evidence picker', () => {
+    const onAddEvidence = vi.fn();
+    const { container } = render(
+      <TestScenarioCard {...base} open onAddEvidence={onAddEvidence} />,
+    );
+    const input = container.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+    const file = new File(['x'], 'shot.png', { type: 'image/png' });
+    fireEvent.change(input, { target: { files: [file] } });
+    expect(onAddEvidence).toHaveBeenCalledTimes(1);
+    expect(onAddEvidence.mock.calls[0][0][0].name).toBe('shot.png');
+  });
+
+  it('shows the count and disables Add ("Limit reached") at the evidence limit', () => {
+    render(
+      <TestScenarioCard
+        {...base}
+        status="failed"
+        open
+        onAddEvidence={() => {}}
+        maxEvidence={2}
+        evidence={[
+          { label: 'a.png', kind: 'image' },
+          { label: 'b.log', kind: 'file' },
+        ]}
+      />,
+    );
+    expect(screen.getByText('2/2')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Limit reached' }),
+    ).toBeDisabled();
+    expect(
+      screen.queryByRole('button', { name: 'Add evidence' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps Add enabled and shows progress below the limit', () => {
+    render(
+      <TestScenarioCard
+        {...base}
+        status="failed"
+        open
+        onAddEvidence={() => {}}
+        maxEvidence={3}
+        evidence={[{ label: 'a.png', kind: 'image' }]}
+      />,
+    );
+    expect(screen.getByText('1/3')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add evidence' })).toBeEnabled();
+  });
+
+  it('treats a non-positive maxEvidence as no limit', () => {
+    render(
+      <TestScenarioCard
+        {...base}
+        status="failed"
+        open
+        onAddEvidence={() => {}}
+        maxEvidence={0}
+        evidence={[{ label: 'a.png', kind: 'image' }]}
+      />,
+    );
+    expect(screen.queryByText('1/0')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add evidence' })).toBeEnabled();
+  });
+
+  it('renders a remove button per chip and fires onRemoveEvidence with the index', async () => {
+    const onRemoveEvidence = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        status="failed"
+        open
+        onRemoveEvidence={onRemoveEvidence}
+        evidence={[
+          { label: 'a.png', kind: 'image' },
+          { label: 'b.log', kind: 'file' },
+        ]}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Remove b.log' }));
+    expect(onRemoveEvidence).toHaveBeenCalledWith(1);
+  });
+
+  it('shows a section Edit toggle only when its change handler is provided', () => {
+    const { rerender } = render(<TestScenarioCard {...base} open />);
+    expect(
+      screen.queryByRole('button', { name: 'Edit' }),
+    ).not.toBeInTheDocument();
+    rerender(
+      <TestScenarioCard {...base} open onDescriptionChange={() => {}} />,
+    );
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
+  });
+
+  it('renders the description textarea when in editingSections and emits changes', async () => {
+    const onDescriptionChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        onDescriptionChange={onDescriptionChange}
+        editingSections={['description']}
+      />,
+    );
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveValue(base.description);
+    await userEvent.type(textarea, '!');
+    expect(onDescriptionChange).toHaveBeenCalled();
+  });
+
+  it('toggles a section into editingSections via its Edit toggle', async () => {
+    const onEditingSectionsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        onDescriptionChange={() => {}}
+        editingSections={[]}
+        onEditingSectionsChange={onEditingSectionsChange}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    expect(onEditingSectionsChange).toHaveBeenCalledWith(['description']);
+  });
+
+  it('edits, adds, and removes steps via onStepsChange', async () => {
+    const onStepsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['first', 'second']}
+        onStepsChange={onStepsChange}
+        editingSections={['steps']}
+      />,
+    );
+    // add
+    await userEvent.click(screen.getByRole('button', { name: 'Add step' }));
+    expect(onStepsChange).toHaveBeenCalledWith(['first', 'second', '']);
+    // remove index 0
+    onStepsChange.mockClear();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Remove step 1' }),
+    );
+    expect(onStepsChange).toHaveBeenCalledWith(['second']);
+    // edit index 1
+    onStepsChange.mockClear();
+    const inputs = screen.getAllByRole('textbox');
+    await userEvent.type(inputs[1], 'X');
+    expect(onStepsChange).toHaveBeenCalledWith(['first', 'secondX']);
+  });
+
+  it('adds an empty step after the current one on Enter', () => {
+    const onStepsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['first', 'second']}
+        onStepsChange={onStepsChange}
+        editingSections={['steps']}
+      />,
+    );
+    const inputs = screen.getAllByRole('textbox');
+    fireEvent.keyDown(inputs[0], { key: 'Enter' });
+    expect(onStepsChange).toHaveBeenCalledWith(['first', '', 'second']);
+  });
+
+  it('inserts a newline at the cursor on Ctrl/Cmd+Enter instead of adding a step', () => {
+    const onStepsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['first', 'second']}
+        onStepsChange={onStepsChange}
+        editingSections={['steps']}
+      />,
+    );
+    const textarea = screen.getAllByRole('textbox')[0] as HTMLTextAreaElement;
+    textarea.focus();
+    textarea.setSelectionRange(2, 2);
+    fireEvent.keyDown(textarea, { key: 'Enter', ctrlKey: true });
+    expect(onStepsChange).toHaveBeenCalledWith(['fi\nrst', 'second']);
+  });
+
+  it('inserts a newline on Shift+Enter instead of adding a step', () => {
+    const onStepsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['first', 'second']}
+        onStepsChange={onStepsChange}
+        editingSections={['steps']}
+      />,
+    );
+    const textarea = screen.getAllByRole('textbox')[0] as HTMLTextAreaElement;
+    textarea.focus();
+    textarea.setSelectionRange(5, 5);
+    fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: true });
+    expect(onStepsChange).toHaveBeenCalledWith(['first\n', 'second']);
+  });
+
+  it('does not add a step when Enter confirms an IME composition', () => {
+    const onStepsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['first', 'second']}
+        onStepsChange={onStepsChange}
+        editingSections={['steps']}
+      />,
+    );
+    const inputs = screen.getAllByRole('textbox');
+    fireEvent.keyDown(inputs[0], { key: 'Enter', isComposing: true });
+    expect(onStepsChange).not.toHaveBeenCalled();
+  });
+
+  it('shows "Add step" for empty steps and enters edit mode on click', async () => {
+    const onStepsChange = vi.fn();
+    const onEditingSectionsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        onStepsChange={onStepsChange}
+        onEditingSectionsChange={onEditingSectionsChange}
+      />,
+    );
+    // no EDIT toggle when empty — just the Add step entry point
+    expect(
+      screen.queryByRole('button', { name: 'Edit' }),
+    ).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Add step' }));
+    expect(onStepsChange).toHaveBeenCalledWith(['']);
+    expect(onEditingSectionsChange).toHaveBeenCalledWith(['steps']);
+  });
+
+  it('shows "Add actual result" for an empty actual and enters edit mode on click', async () => {
+    const onEditingSectionsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        actual=""
+        onActualChange={() => {}}
+        onEditingSectionsChange={onEditingSectionsChange}
+      />,
+    );
+    expect(screen.getByText('Actual Result')).toBeInTheDocument();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Add actual result' }),
+    );
+    expect(onEditingSectionsChange).toHaveBeenCalledWith(['actual']);
+  });
+
+  it('shows "Add reason" for a waived scenario with no reason and enters edit mode on click', async () => {
+    const onEditingSectionsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        status="waived"
+        waiveReason=""
+        onWaiveReasonChange={() => {}}
+        onEditingSectionsChange={onEditingSectionsChange}
+      />,
+    );
+    expect(screen.getByText('Waive Reason')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Add reason' }));
+    expect(onEditingSectionsChange).toHaveBeenCalledWith(['waiveReason']);
+  });
+
+  it('gives each section editor an accessible name matching its heading', () => {
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        status="waived"
+        waiveReason="Out of scope"
+        actual="Observed X"
+        onWaiveReasonChange={() => {}}
+        onDescriptionChange={() => {}}
+        onExpectedChange={() => {}}
+        onActualChange={() => {}}
+        editingSections={['waiveReason', 'description', 'expected', 'actual']}
+      />,
+    );
+    expect(
+      screen.getByRole('textbox', { name: 'Waive Reason' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: 'Description' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: 'Expected Result' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('textbox', { name: 'Actual Result' }),
+    ).toBeInTheDocument();
+  });
+
+  it('previews the first 3 steps with a "Show N more" toggle', async () => {
+    const onStepsExpandedChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['s1', 's2', 's3', 's4', 's5']}
+        stepsExpanded={false}
+        onStepsExpandedChange={onStepsExpandedChange}
+      />,
+    );
+    expect(screen.getByText('s1')).toBeInTheDocument();
+    expect(screen.getByText('s3')).toBeInTheDocument();
+    expect(screen.queryByText('s4')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Show 2 more' }));
+    expect(onStepsExpandedChange).toHaveBeenCalledWith(true);
+  });
+
+  it('shows all steps and "Show less" when stepsExpanded', () => {
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['s1', 's2', 's3', 's4', 's5']}
+        stepsExpanded
+        onStepsExpandedChange={() => {}}
+      />,
+    );
+    expect(screen.getByText('s5')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Show less' }),
+    ).toBeInTheDocument();
   });
 });

@@ -19,6 +19,7 @@ import { DescriptionFilledIcon } from './descriptionFilled';
 import { DragIndicatorIcon } from './dragIndicator';
 import { EditIcon } from './edit';
 import { ExpandMoreIcon } from './expandMore';
+import { FileUploadIcon } from './fileUpload';
 import { FlagIcon } from './flag';
 import { ForkRightIcon } from './forkRight';
 import { FormatBoldIcon } from './formatBold';
@@ -64,6 +65,7 @@ export const iconRegistry = {
   drag_indicator: DragIndicatorIcon,
   edit: EditIcon,
   expand_more: ExpandMoreIcon,
+  file_upload: FileUploadIcon,
   flag: FlagIcon,
   fork_right: ForkRightIcon,
   format_bold: FormatBoldIcon,
