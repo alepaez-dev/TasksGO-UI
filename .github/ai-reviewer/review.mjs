@@ -1051,6 +1051,9 @@ export function renderStatusBody({
   verifiedSha = null,
   resolved = 0,
   markerPrefix = 'ai-reviewer',
+  cleared = null,
+  maxClearedConcerns,
+  clearedBlock = null,
 }) {
   const lines = ['### 🤖 AI bug review — latest run', ''];
   if (skipped) {
@@ -1081,6 +1084,8 @@ export function renderStatusBody({
   if (rows.length) lines.push('| | |', '|---|---|', ...rows, '');
 
   if (runUrl) lines.push(`<sub>[run log & full report](${runUrl})</sub>`, '');
+  const block = clearedBlock || renderClearedConcerns(cleared, maxClearedConcerns);
+  if (block) lines.push(block, '');
   lines.push(buildStatusMarker(reviewedSha, verifiedSha, markerPrefix));
   return lines.join('\n');
 }
@@ -1090,6 +1095,30 @@ export function renderStatusBody({
 export function renderConfidence(finding) {
   const raised = finding.modelConfidence && finding.modelConfidence !== finding.confidence;
   return raised ? `${finding.confidence} (raised from ${finding.modelConfidence} — basis cites a line it read)` : finding.confidence;
+}
+
+export function renderClearedConcerns(cleared, max = 3) {
+  if (!Array.isArray(cleared) || cleared.length === 0) return '';
+  // Bullets sit inside a raw <details>, so quoted markup is live: a `</details>` would close it early.
+  const neutralize = (value, cap) => sanitizeText(value, cap).replace(/[`*]/g, '').replace(/</g, '&lt;');
+  const items = cleared
+    .map((c) => {
+      const title = neutralize(c?.title, 200);
+      const why = neutralize(c?.why, 400);
+      if (!title || !why) return null;
+      const anchor = neutralize(c?.anchor, 120);
+      return `- **${title}** — ${why}${anchor ? ` \`${anchor}\`` : ''}`;
+    })
+    .filter(Boolean)
+    .slice(0, max);
+  if (items.length === 0) return '';
+  return ['<details>', `<summary>🔍 Considered and cleared (${items.length})</summary>`, '', ...items, '', '</details>'].join('\n');
+}
+
+const CLEARED_BLOCK_RE = /<details>\n<summary>🔍 Considered and cleared \(\d+\)<\/summary>\n[\s\S]*?\n<\/details>/;
+
+export function extractClearedBlock(body) {
+  return (body || '').match(CLEARED_BLOCK_RE)?.[0] ?? '';
 }
 
 export function renderInlineBody(finding, markerPrefix = 'ai-reviewer') {
