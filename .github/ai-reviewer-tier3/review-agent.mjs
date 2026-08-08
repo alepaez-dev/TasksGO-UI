@@ -240,6 +240,9 @@ async function main() {
   const idempotent = config.skipIfHeadUnchanged !== false;
   const needVerify = config.verifyResolutions && (!idempotent || lastVerifiedSha !== pr.headSha);
 
+  const carriedCleared = (reviewedSha, cleared = []) =>
+    !cleared.length && reviewedSha === lastReviewedSha ? extractClearedBlock(statusComment?.body) : null;
+
   const verifyOnlyAndFinish = async ({ reviewedSha, note, skipped = false, inputTokens = null }) => {
     let verifyOnly = null;
     if (needVerify) {
@@ -259,7 +262,7 @@ async function main() {
     await writeJobSummary({ findings: [], config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved });
     await upsertStatus({
       skipped, note, inputTokens, posted: 0, findingsCount: 0, usage, costUsd, reviewedSha, verifiedSha, resolved,
-      clearedBlock: extractClearedBlock(statusComment?.body),
+      clearedBlock: carriedCleared(reviewedSha),
     });
   };
 
@@ -418,8 +421,6 @@ async function main() {
   // A budget/round/error interrupt — OR the model ending without ever calling submit_findings — means
   // the review did NOT finish; do not mark this commit reviewed, so re-applying the label retries.
   const reviewComplete = result.submitted && !result.interruptedReason;
-  const carriedCleared = (reviewedSha) =>
-    !cleared.length && reviewedSha === lastReviewedSha ? extractClearedBlock(statusComment?.body) : null;
   if (!result.submitted && !result.interruptedReason) {
     core.warning(
       'Tier 3 ended without calling submit_findings (model returned prose only); not marking the commit reviewed so a re-run retries.',
@@ -431,7 +432,7 @@ async function main() {
     const reviewedSha = reviewComplete ? pr.headSha : lastReviewedSha;
     await writeJobSummary({ findings, dropped, capped, config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit });
     await upsertStatus(
-      { posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns, clearedBlock: carriedCleared(reviewedSha) },
+      { posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns, clearedBlock: carriedCleared(reviewedSha, cleared) },
       banner,
     );
     return;
@@ -487,7 +488,7 @@ async function main() {
 
   await writeJobSummary({ findings, dropped, capped, config, postedInline, postedGeneral, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit });
   await upsertStatus(
-    { posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns, clearedBlock: carriedCleared(reviewedSha) },
+    { posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns, clearedBlock: carriedCleared(reviewedSha, cleared) },
     banner,
   );
 }

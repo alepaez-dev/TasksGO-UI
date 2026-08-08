@@ -142,7 +142,7 @@ test('extractClearedBlock returns empty when there is no block (first run, Tier 
 
 // Mirrors review-agent.mjs: the block is carried forward only when this run produced none AND the
 // reviewed commit did not advance. A completed review that cleared nothing must still blank it.
-const carriedCleared = (cleared, reviewedSha, lastReviewedSha, body) =>
+const carriedCleared = (reviewedSha, lastReviewedSha, body, cleared = []) =>
   !cleared.length && reviewedSha === lastReviewedSha ? extractClearedBlock(body) : null;
 
 test('an interrupted full review keeps the block of the commit it still reports as reviewed', () => {
@@ -152,7 +152,7 @@ test('an interrupted full review keeps the block of the commit it still reports 
   // new commit B, interrupted before any submit: dismissed is [], reviewedSha stays A
   const out = renderStatusBody({
     model: 'm', posted: 0, findingsCount: 0, seenCount: 1, reviewedSha: A, cleared: [], maxClearedConcerns: 3,
-    clearedBlock: carriedCleared([], A, A, prior),
+    clearedBlock: carriedCleared(A, A, prior),
   });
   assert.match(out, /Considered and cleared \(1\)/, 'the block must survive an interrupted run');
   assert.match(out, /Shared ref nulled/);
@@ -165,7 +165,30 @@ test('a COMPLETED review that cleared nothing drops the block (the sha advanced)
 
   const out = renderStatusBody({
     model: 'm', posted: 0, findingsCount: 0, seenCount: 1, reviewedSha: B, cleared: [], maxClearedConcerns: 3,
-    clearedBlock: carriedCleared([], B, A, prior),
+    clearedBlock: carriedCleared(B, A, prior),
   });
   assert.ok(!out.includes('Considered and cleared'), 'B cleared nothing — A\'s stale block must not be shown under B');
+});
+
+test('a verify-only run on a NEW sha does not relabel the old commit\'s block under it', () => {
+  const A = 'a'.repeat(40);
+  const B = 'b'.repeat(40);
+  const prior = renderStatusBody({ model: 'm', posted: 1, findingsCount: 1, seenCount: 1, reviewedSha: A, cleared: [{ title: 'Shared ref nulled', why: 'detach before attach' }], maxClearedConcerns: 3 });
+
+  // commit B has no reviewable diff but IS complete (pure rename / binary), so reviewedSha advances to B
+  const out = renderStatusBody({
+    model: 'm', posted: 0, findingsCount: 0, seenCount: 1, reviewedSha: B, resolved: 0,
+    clearedBlock: carriedCleared(B, A, prior),
+  });
+  assert.ok(!out.includes('Considered and cleared'), "A's concerns must not appear under commit B");
+});
+
+test('a verify-only run on the SAME sha still keeps the block', () => {
+  const A = 'a'.repeat(40);
+  const prior = renderStatusBody({ model: 'm', posted: 1, findingsCount: 1, seenCount: 1, reviewedSha: A, cleared: [{ title: 'Shared ref nulled', why: 'detach before attach' }], maxClearedConcerns: 3 });
+  const out = renderStatusBody({
+    model: 'm', posted: 0, findingsCount: 0, seenCount: 1, reviewedSha: A, resolved: 0,
+    clearedBlock: carriedCleared(A, A, prior),
+  });
+  assert.match(out, /Considered and cleared \(1\)/, 'the re-label retry path must not lose the block');
 });
