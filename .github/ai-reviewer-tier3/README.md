@@ -7,7 +7,7 @@ for itself what to read. It exists to catch the bugs a diff-only pass misses —
 required work, guards derived from incomplete data, state advanced on an error/skip path.
 
 - **Label:** `ai-reviewer-tier3` (new, separate from Tier 2's `ai-reviewer`).
-- **Model:** `claude-opus-4-8` (1M context), `effort: high` (bump to `max` with the `ai-reviewer-tier3-max` label), adaptive thinking.
+- **Model:** `claude-opus-5` (1M context), falls back to `claude-opus-4-8` on transient API errors (429/5xx/network), `effort: high` (bump to `max` with the `ai-reviewer-tier3-max` label), adaptive thinking.
 - **Budget:** **hard ceiling $2** — enforced deterministically (see below); the `ai-reviewer-tier3-max` label raises it to **$3** for a deep pass on large/important PRs.
 
 ## How it works
@@ -52,7 +52,7 @@ budget — see the `TODO(budget)` in `review-agent.mjs`.)
 
 Caching is load-bearing: the loop keeps a cache-stable prefix (system + diff + accumulated reads) so
 re-reads bill at 0.1×, which is what keeps ~1.5M cumulative tokens near $2 instead of $7.50. The model
-id is `claude-opus-4-8` — **never** `claude-opus-4-8[1m]` (that's a session label, not an API id); its
+id is `claude-opus-5` — **never** `claude-opus-5[1m]` (that's a session label, not an API id); its
 context window is already 1M, and a single request is hard-capped at 1M input tokens.
 
 **When a run is cut short for budget** (or hits `maxRounds`), it is flagged **loudly** so it is never

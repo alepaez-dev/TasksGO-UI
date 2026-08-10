@@ -54,7 +54,7 @@ When you want it to watch for something specific, add a rule. Concrete beats ver
 
 | Key | Default | Meaning |
 |---|---|---|
-| `model` | `claude-opus-4-8` | Claude model id. |
+| `model` | `claude-opus-5` | Claude model id. |
 | `effort` | `high` | Reasoning effort: `low` \| `medium` \| `high` \| `xhigh` \| `max`. |
 | `maxOutputTokens` | `64000` | Cap on Claude's **response** (its thinking + the findings JSON). A ceiling you only pay for what's used, so generous is safe; raise it if huge PRs ever fail with "max_tokens reached". |
 | `minConfidence` | `medium` | Only post findings at/above this confidence (`low`/`medium`/`high`). Raise to `high` for less noise. |

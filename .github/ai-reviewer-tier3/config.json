@@ -1,6 +1,6 @@
 {
-  "model": "claude-opus-4-8",
-  "fallbackModel": "claude-opus-4-7",
+  "model": "claude-opus-5",
+  "fallbackModel": "claude-opus-4-8",
   "maxTransientRetries": 0,
   "retryBaseDelayMs": 1000,
   "effort": "high",
@@ -26,8 +26,8 @@
   "maxGrepFileBytes": 2000000,
   "toolExtensions": [".ts", ".tsx", ".js", ".jsx", ".css", ".json", ".md", ".mjs", ".cjs", ".yml", ".yaml"],
   "pricing": {
-    "claude-opus-4-8": { "input": 5, "output": 25 },
-    "claude-opus-4-7": { "input": 5, "output": 25 }
+    "claude-opus-5": { "input": 5, "output": 25 },
+    "claude-opus-4-8": { "input": 5, "output": 25 }
   },
   "includeProjectGuide": true,
   "postSummaryComment": true,
