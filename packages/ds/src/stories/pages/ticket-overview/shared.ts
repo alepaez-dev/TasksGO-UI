@@ -4,7 +4,17 @@ import type { TabItem } from '../../../components/Tabs';
 import type { BadgeProps } from '../../../components/Badge';
 import type { TicketTitleBlockBadge } from '../../../components/TicketTitleBlock';
 import type { ProjectPickerProject } from '../../../components/ProjectPicker';
+import type { ScratchpadTaskRef } from '../../../components/Scratchpad';
 import type { IconName } from '../../../icons';
+
+export const devScratchpadTask: ScratchpadTaskRef = {
+  id: 'TSK-217',
+  title: 'Add multi-value header support to edge cache',
+  status: 'In progress',
+  createdAgo: 'Created 2h ago',
+  description: 'Handle multi-value response headers when mutating cache keys.',
+  href: '#',
+};
 
 export interface NavLink {
   id: string;
@@ -44,6 +54,51 @@ export interface PersonOption {
   color: string;
 }
 
+export interface DevCommitAuthor {
+  name: string;
+  initial: string;
+  color: string;
+}
+
+export interface DevPullRequest {
+  id: string;
+  number: string;
+  title: string;
+  href: string;
+  state: 'open' | 'merged' | 'closed';
+  author: string;
+  when: string;
+  checks: string;
+  reviewer: { initial: string; color: string };
+}
+
+export interface DevCommit {
+  sha: string;
+  title: string;
+  author: DevCommitAuthor;
+  when: string;
+}
+
+export interface DevData {
+  repository: {
+    name: string;
+    url: string;
+    branch: string;
+    ci: {
+      status: 'passing' | 'failing' | 'running';
+      label: string;
+      build: string;
+    };
+  };
+  pullRequests: readonly DevPullRequest[];
+  commits: {
+    total: number;
+    onBranch: string;
+    viewAllHref: string;
+    items: readonly DevCommit[];
+  };
+}
+
 export interface TicketMeta {
   id: string;
   title: string;
@@ -57,8 +112,8 @@ export interface TicketMeta {
     reporterValue: string;
     statusValue: string;
     priorityValue: string;
-    branchValue: string;
   };
+  dev: DevData;
   qaSummary: {
     title: string;
     failedCount: number;
@@ -193,7 +248,52 @@ export const ticket: TicketMeta = {
     reporterValue: 'alex-m',
     statusValue: 'in-progress',
     priorityValue: 'high',
-    branchValue: 'feat/dynamic-edge-caching',
+  },
+  dev: {
+    repository: {
+      name: 'edge-gateway-service',
+      url: 'https://github.com/example/edge-gateway-service',
+      branch: 'feat/dynamic-edge-caching',
+      ci: { status: 'passing', label: 'Passing', build: '#1287' },
+    },
+    pullRequests: [
+      {
+        id: 'pr-892',
+        number: '#892',
+        title: 'feat: add edge-caching layer for gateway responses',
+        href: 'https://github.com/example/pull/892',
+        state: 'open',
+        author: 'Jordan D.',
+        when: '2h ago',
+        checks: 'Checks passed',
+        reviewer: { initial: 'AM', color: '#c98a6b' },
+      },
+    ],
+    commits: {
+      total: 37,
+      onBranch: 'on this branch',
+      viewAllHref: 'https://github.com/example/commits',
+      items: [
+        {
+          sha: 'a3f9c1d',
+          title: 'feat: add TTL inheritance from origin headers',
+          author: { name: 'Jordan D.', initial: 'JD', color: '#6a8759' },
+          when: '2h ago',
+        },
+        {
+          sha: '7e21b04',
+          title: 'fix: guard SNS invalidation race on warm start',
+          author: { name: 'Sam K.', initial: 'SK', color: '#4a90a4' },
+          when: '5h ago',
+        },
+        {
+          sha: 'cbd0a52',
+          title: 'chore: bump edge runtime to 2.4.1',
+          author: { name: 'Alex M.', initial: 'AM', color: '#c98a6b' },
+          when: '1d ago',
+        },
+      ],
+    },
   },
   qaSummary: {
     title: 'Scenarios Checklist',

@@ -15,9 +15,20 @@ import {
   type UseSelectorStateReturn,
   type SelectorGroupEntry,
 } from '../../../hooks/useSelector';
+import {
+  useScratchpad,
+  type UseScratchpadControls,
+} from '../../../hooks/useScratchpad';
+import type { ScratchpadLine } from '../../../components/Scratchpad';
 import { toStageValue } from '../../../utils/toStageValue';
-import { ticket } from './shared';
+import { ticket, type DevData } from './shared';
 import { serializeTicketBody } from './serializeTicketBody';
+
+const DEV_SCRATCHPAD_SEED: readonly ScratchpadLine[] = [
+  { id: 'sp-1', text: '## Debug notes' },
+  { id: 'sp-2', text: '[ ] Repro cold-start cache miss on `/gateway`' },
+  { id: 'sp-3', text: 'Follow-up: [task] add multi-value header support' },
+];
 
 const BRANCH_COPIED_FLASH_MS = 2000;
 
@@ -98,6 +109,10 @@ export interface UseTicketOverviewState {
   confirmBranch: () => void;
   cancelBranch: () => void;
   copyBranch: () => void;
+  dev: DevData;
+  scratchpad: UseScratchpadControls;
+  devDetailsOpen: boolean;
+  toggleDevDetails: () => void;
   addingStage: boolean;
   addStageDraft: string;
   addStageMessage: AddStageMessage | undefined;
@@ -161,11 +176,21 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     setAddStageDraft('');
   };
 
-  const [branch, setBranch] = useState(ticket.metadata.branchValue);
+  const [branch, setBranch] = useState(ticket.dev.repository.branch);
   const [branchDraft, setBranchDraft] = useState('');
   const [branchEditing, setBranchEditing] = useState(false);
   const [branchCopied, setBranchCopied] = useState(false);
   const [branchCopyTick, setBranchCopyTick] = useState(0);
+  const scratchpad = useScratchpad(DEV_SCRATCHPAD_SEED);
+
+  const [devDetailsOpen, setDevDetailsOpen] = useState(false);
+  useEffect(() => {
+    setDevDetailsOpen(activeTab === 'dev');
+  }, [activeTab]);
+  const toggleDevDetails = useCallback(
+    () => setDevDetailsOpen((prev) => !prev),
+    [],
+  );
 
   const startEditBranch = useCallback(() => {
     setBranchDraft(branch);
@@ -246,6 +271,10 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     confirmBranch,
     cancelBranch,
     copyBranch,
+    dev: ticket.dev,
+    scratchpad,
+    devDetailsOpen,
+    toggleDevDetails,
     addingStage,
     addStageDraft,
     addStageMessage,

@@ -1,0 +1,96 @@
+.card {
+  --dev-collapse-duration: var(--ds-transition-duration-slow);
+  --dev-collapse-timing: ease-in-out;
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface-primary);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-scale-sm);
+  width: 100%;
+  padding: var(--ds-space-scale-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.header:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-md);
+}
+
+.cardOpen .header {
+  border-bottom: 1px solid var(--ds-color-border-default);
+}
+
+.headerIcon {
+  flex-shrink: 0;
+  align-self: center;
+  padding: var(--ds-space-scale-xs);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-secondary);
+  color: var(--ds-color-text-secondary);
+}
+
+.title {
+  flex: none;
+  width: min-content;
+  font-family: var(--ds-text-section-header-font-family);
+  font-size: var(--ds-text-section-header-font-size);
+  font-weight: var(--ds-font-weight-bold);
+  letter-spacing: var(--ds-text-section-header-letter-spacing);
+  text-transform: uppercase;
+  color: var(--ds-color-text-primary);
+}
+
+.summary {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-section-header-font-size);
+  color: var(--ds-color-text-secondary);
+}
+
+.chevron {
+  flex-shrink: 0;
+  align-self: flex-start;
+  color: var(--ds-color-text-secondary);
+  transition: transform var(--dev-collapse-duration) var(--dev-collapse-timing);
+}
+
+.cardOpen .chevron {
+  transform: rotate(180deg);
+}
+
+.collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows var(--dev-collapse-duration) var(--dev-collapse-timing),
+    opacity var(--dev-collapse-duration) var(--dev-collapse-timing);
+}
+
+.cardOpen .collapse {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.collapseInner {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 var(--ds-space-scale-sm) var(--ds-space-scale-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collapse,
+  .chevron {
+    transition: none;
+  }
+}

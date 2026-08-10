@@ -13,7 +13,11 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-scale-md);
-  margin-bottom: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-sm);
+}
+
+.headerReorderable {
+  padding-left: calc(var(--ds-space-scale-sm) + var(--ds-space-scale-xs));
 }
 
 .title {

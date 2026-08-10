@@ -373,7 +373,12 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
         {...rest}
       >
         {(title || status) && (
-          <div className={styles.header}>
+          <div
+            className={cn(
+              styles.header,
+              reorderable && styles.headerReorderable,
+            )}
+          >
             {title && <span className={styles.title}>{title}</span>}
             {status && <span className={styles.status}>{status}</span>}
           </div>

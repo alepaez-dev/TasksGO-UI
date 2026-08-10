@@ -675,7 +675,7 @@ function TicketOverviewMobileRender() {
 }
 
 const meta: Meta = {
-  title: 'Pages/Ticket Overview',
+  title: 'Pages/Ticket',
   decorators: [withDefaultViewport('mobile')],
   parameters: {
     layout: 'fullscreen',

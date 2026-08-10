@@ -6,6 +6,27 @@
   min-width: 0;
 }
 
+.fieldBoxed {
+  padding-right: var(--ds-space-scale-xs);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-secondary);
+}
+
+.fieldBoxed .chip:hover {
+  border-color: transparent;
+}
+
+.fieldBoxed .chip {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.fieldBoxed > button:last-of-type {
+  width: calc(var(--ds-space-scale-md) + var(--ds-space-scale-xs));
+  height: calc(var(--ds-space-scale-md) + var(--ds-space-scale-xs));
+}
+
 .chip {
   display: inline-flex;
   align-items: center;

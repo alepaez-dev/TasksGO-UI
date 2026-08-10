@@ -1,11 +1,22 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import type { ReactNode } from 'react';
 import { ActivityRow } from './ActivityRow';
 import { ExternalLink } from '../ExternalLink';
 import { Badge } from '../Badge';
+import type { IconName } from '../../icons';
+
+interface ActivityRowStoryArgs {
+  icon?: IconName;
+  tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+  leading?: ReactNode;
+  meta?: readonly ReactNode[];
+  trailing?: ReactNode;
+  children: ReactNode;
+}
 
 const meta = {
   title: 'Components/ActivityRow',
-  component: ActivityRow,
+  component: ActivityRow as (props: ActivityRowStoryArgs) => ReactNode,
   tags: ['autodocs'],
   parameters: {
     docs: {
@@ -43,7 +54,7 @@ const meta = {
     icon: 'call_merge',
     children: 'Add dark-mode toggle',
   },
-} satisfies Meta<typeof ActivityRow>;
+} satisfies Meta<ActivityRowStoryArgs>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -125,5 +136,20 @@ export const AllTones: Story = {
         Danger tone
       </ActivityRow>
     </>
+  ),
+};
+
+export const CustomLeading: Story = {
+  parameters: { controls: { disable: true } },
+  render: () => (
+    <ActivityRow
+      leading={<Badge variant="count">37</Badge>}
+      meta={['on this branch']}
+      trailing={
+        <ExternalLink href="https://example.com/commits">View all</ExternalLink>
+      }
+    >
+      37 commits
+    </ActivityRow>
   ),
 };

@@ -1,4 +1,5 @@
 .externalLink {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--ds-space-scale-xs);
