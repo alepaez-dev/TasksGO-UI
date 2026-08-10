@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">2/57 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">57/57 infos</a><span class="filter-pill ok" aria-disabled="true">258 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/57 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">57/57 infos</a><span class="filter-pill ok" aria-disabled="true">260 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -594,19 +594,19 @@
       
 <article
   class="card 
-  no-error 
+  has-error 
   has-info 
   no-story-error
   no-doc-error"
   role="listitem"
-  aria-label="ActivityRow">
+  aria-label="ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode">
   <div class="head">
     <div class="title">
-      <h2><span class="status-dot dot-ok"></span> ActivityRow</h2>
+      <h2><span class="status-dot dot-err"></span> ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode</h2>
       <div class="badges">
-        <label for="c-0-components-activityrow-props" class="badge ok as-toggle">5 prop types</label>
+        <label for="c-0-components-activityrow-err" class="badge err as-toggle">prop type error</label>
         <label for="c-0-components-activityrow-info" class="badge info as-toggle">1 info</label>
-        <label for="c-0-components-activityrow-stories" class="badge ok as-toggle">6 stories</label>
+        <label for="c-0-components-activityrow-stories" class="badge ok as-toggle">7 stories</label>
         
       </div>
     </div>
@@ -617,14 +617,186 @@
   </div>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
-  
+  <input id="c-0-components-activityrow-err" class="tg tg-err" type="checkbox" hidden />
   <input id="c-0-components-activityrow-info" class="tg tg-info" type="checkbox" hidden />
   <input id="c-0-components-activityrow-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  <input id="c-0-components-activityrow-props" class="tg tg-props" type="checkbox" hidden />
+  
 
   <div class="panels">
     
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&quot; component.
+  15 | }
+  16 |
+&gt; 17 | const meta = {
+     | ^
+  18 |   title: &#39;Components/ActivityRow&#39;,
+  19 |   component: ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode,
+  20 |   tags: [&#39;autodocs&#39;],
+
+./src/components/ActivityRow/ActivityRow.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import type { ReactNode } from &#39;react&#39;;
+import { ActivityRow } from &#39;./ActivityRow&#39;;
+import { ExternalLink } from &#39;../ExternalLink&#39;;
+import { Badge } from &#39;../Badge&#39;;
+import type { IconName } from &#39;../../icons&#39;;
+
+interface ActivityRowStoryArgs {
+  icon?: IconName;
+  tone?: &#39;neutral&#39; | &#39;info&#39; | &#39;success&#39; | &#39;warning&#39; | &#39;danger&#39;;
+  leading?: ReactNode;
+  meta?: readonly ReactNode[];
+  trailing?: ReactNode;
+  children: ReactNode;
+}
+
+const meta = {
+  title: &#39;Components/ActivityRow&#39;,
+  component: ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;A flexible two-line list row for dev activity (pull requests, commits, deployments). Slots take DS primitives directly: an ExternalLink title, a mono meta line, and trailing Badge(s). Renders an `&lt;li&gt;` — wrap rows in a `&lt;ul&gt;`. The `tone` prop tints the leading icon as visual reinforcement only (the icon is `aria-hidden`); pair danger/warning with a Badge or text so status is never conveyed by color alone.&#39;,
+      },
+    },
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          margin: 0,
+          padding: 0,
+          maxWidth: 420,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+  argTypes: {
+    icon: { control: &#39;text&#39; },
+    tone: {
+      control: &#39;inline-radio&#39;,
+      options: [&#39;neutral&#39;, &#39;info&#39;, &#39;success&#39;, &#39;warning&#39;, &#39;danger&#39;],
+      description:
+        &#39;Tints the leading icon. Visual reinforcement only — the icon is aria-hidden, so pair danger/warning with a Badge or text so status is not color-only (WCAG 1.4.1).&#39;,
+    },
+  },
+  args: {
+    icon: &#39;call_merge&#39;,
+    children: &#39;Add dark-mode toggle&#39;,
+  },
+} satisfies Meta&lt;ActivityRowStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+export const PullRequest: Story = {
+  args: {
+    icon: &#39;call_merge&#39;,
+    tone: &#39;success&#39;,
+    meta: [&#39;#142&#39;, &#39;alex&#39;, &#39;2h ago&#39;],
+    trailing: &lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;,
+    children: (
+      &lt;ExternalLink href=&quot;https://github.com/example/pr/142&quot;&gt;
+        Add dark-mode toggle
+      &lt;/ExternalLink&gt;
+    ),
+  },
+};
+
+export const Commit: Story = {
+  args: {
+    icon: &#39;code&#39;,
+    meta: [&#39;a1b9f2c&#39;, &#39;sam&#39;, &#39;5h ago&#39;],
+    children: (
+      &lt;ExternalLink href=&quot;https://github.com/example/commit/a1b9f2c&quot;&gt;
+        Fix flaky viewport test
+      &lt;/ExternalLink&gt;
+    ),
+  },
+};
+
+export const Deployment: Story = {
+  args: {
+    icon: &#39;check_circle&#39;,
+    tone: &#39;danger&#39;,
+    meta: [&#39;production&#39;, &#39;ci-bot&#39;, &#39;1d ago&#39;],
+    trailing: &lt;Badge variant=&quot;critical&quot;&gt;Failed&lt;/Badge&gt;,
+    children: &#39;Deploy v4.1.0&#39;,
+  },
+};
+
+export const Minimal: Story = {
+  args: {
+    icon: &#39;code&#39;,
+    children: &#39;A row with no meta and no trailing&#39;,
+  },
+};
+
+export const TruncatedTitle: Story = {
+  args: {
+    icon: &#39;call_merge&#39;,
+    tone: &#39;info&#39;,
+    meta: [&#39;#88&#39;, &#39;jordan&#39;, &#39;3d ago&#39;],
+    trailing: &lt;Badge variant=&quot;progress&quot;&gt;Open&lt;/Badge&gt;,
+    children: (
+      &lt;ExternalLink href=&quot;https://github.com/example/pr/88&quot;&gt;
+        feat: dynamic edge caching for API gateway responses across all regions
+      &lt;/ExternalLink&gt;
+    ),
+  },
+};
+
+export const AllTones: Story = {
+  parameters: { controls: { disable: true } },
+  render: () =&gt; (
+    &lt;&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;neutral&quot; meta={[&#39;neutral&#39;]}&gt;
+        Neutral tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;info&quot; meta={[&#39;info&#39;]}&gt;
+        Info tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;success&quot; meta={[&#39;success&#39;]}&gt;
+        Success tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;warning&quot; meta={[&#39;warning&#39;]}&gt;
+        Warning tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;danger&quot; meta={[&#39;danger&#39;]}&gt;
+        Danger tone
+      &lt;/ActivityRow&gt;
+    &lt;/&gt;
+  ),
+};
+
+export const CustomLeading: Story = {
+  parameters: { controls: { disable: true } },
+  render: () =&gt; (
+    &lt;ActivityRow
+      leading={&lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;}
+      meta={[&#39;on this branch&#39;]}
+      trailing={
+        &lt;ExternalLink href=&quot;https://example.com/commits&quot;&gt;View all&lt;/ExternalLink&gt;
+      }
+    &gt;
+      37 commits
+    &lt;/ActivityRow&gt;
+  ),
+};
+</code></pre></div>
+    </div>
+        </div>
     
         <div class="panel panel-info">
           
@@ -634,25 +806,6 @@
     </div>
         </div>
     
-        <div class="panel panel-props">
-          <div class="note ok">
-            <div class="row">
-              <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">5 prop types</span>
-            </div>
-            <pre><code>Component: src/components/ActivityRow/ActivityRow.tsx::ActivityRow</code></pre>
-            <pre><code>Props:</code></pre>
-            <pre><code>children: ReactNode
-
-icon: unknown
-
-meta?: unknown
-
-tone?: &#39;neutral&#39; | &#39;info&#39; | &#39;success&#39; | &#39;warning&#39; | &#39;danger&#39; = &#39;neutral&#39;
-
-trailing?: ReactNode</code></pre>
-          </div>
-        </div>
     
         <div class="panel panel-stories">
           
@@ -673,12 +826,12 @@ trailing?: ReactNode</code></pre>
               </div>
               
               
-              <pre><code>const PullRequest = () =&gt; &lt;ActivityRow
+              <pre><code>const PullRequest = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
     icon=&quot;call_merge&quot;
     tone=&quot;success&quot;
     meta={[&#39;#142&#39;, &#39;alex&#39;, &#39;2h ago&#39;]}
     trailing={&lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/pr/142&quot;&gt;Add dark-mode toggle
-            &lt;/ExternalLink&gt;)&lt;/ActivityRow&gt;;</code></pre>
+            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -687,8 +840,8 @@ trailing?: ReactNode</code></pre>
               </div>
               
               
-              <pre><code>const Commit = () =&gt; &lt;ActivityRow icon=&quot;code&quot; meta={[&#39;a1b9f2c&#39;, &#39;sam&#39;, &#39;5h ago&#39;]}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/commit/a1b9f2c&quot;&gt;Fix flaky viewport test
-            &lt;/ExternalLink&gt;)&lt;/ActivityRow&gt;;</code></pre>
+              <pre><code>const Commit = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode icon=&quot;code&quot; meta={[&#39;a1b9f2c&#39;, &#39;sam&#39;, &#39;5h ago&#39;]}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/commit/a1b9f2c&quot;&gt;Fix flaky viewport test
+            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -697,11 +850,11 @@ trailing?: ReactNode</code></pre>
               </div>
               
               
-              <pre><code>const Deployment = () =&gt; &lt;ActivityRow
+              <pre><code>const Deployment = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
     icon=&quot;check_circle&quot;
     tone=&quot;danger&quot;
     meta={[&#39;production&#39;, &#39;ci-bot&#39;, &#39;1d ago&#39;]}
-    trailing={&lt;Badge variant=&quot;critical&quot;&gt;Failed&lt;/Badge&gt;}&gt;Deploy v4.1.0&lt;/ActivityRow&gt;;</code></pre>
+    trailing={&lt;Badge variant=&quot;critical&quot;&gt;Failed&lt;/Badge&gt;}&gt;Deploy v4.1.0&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -710,7 +863,7 @@ trailing?: ReactNode</code></pre>
               </div>
               
               
-              <pre><code>const Minimal = () =&gt; &lt;ActivityRow icon=&quot;code&quot;&gt;A row with no meta and no trailing&lt;/ActivityRow&gt;;</code></pre>
+              <pre><code>const Minimal = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode icon=&quot;code&quot;&gt;A row with no meta and no trailing&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -719,12 +872,12 @@ trailing?: ReactNode</code></pre>
               </div>
               
               
-              <pre><code>const TruncatedTitle = () =&gt; &lt;ActivityRow
+              <pre><code>const TruncatedTitle = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
     icon=&quot;call_merge&quot;
     tone=&quot;info&quot;
     meta={[&#39;#88&#39;, &#39;jordan&#39;, &#39;3d ago&#39;]}
     trailing={&lt;Badge variant=&quot;progress&quot;&gt;Open&lt;/Badge&gt;}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/pr/88&quot;&gt;feat: dynamic edge caching for API gateway responses across all regions
-            &lt;/ExternalLink&gt;)&lt;/ActivityRow&gt;;</code></pre>
+            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -751,6 +904,25 @@ trailing?: ReactNode</code></pre>
       Danger tone
     &lt;/ActivityRow&gt;
   &lt;/&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Custom Leading</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const CustomLeading = () =&gt; (
+  &lt;ActivityRow
+    leading={&lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;}
+    meta={[&#39;on this branch&#39;]}
+    trailing={
+      &lt;ExternalLink href=&quot;https://example.com/commits&quot;&gt;View all&lt;/ExternalLink&gt;
+    }
+  &gt;
+    37 commits
+  &lt;/ActivityRow&gt;
 );</code></pre>
             </div>
         </div>
@@ -3063,9 +3235,9 @@ wordCount: number</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> EditableRefField</h2>
       <div class="badges">
-        <label for="c-16-components-editablereffield-props" class="badge ok as-toggle">13 prop types</label>
+        <label for="c-16-components-editablereffield-props" class="badge ok as-toggle">14 prop types</label>
         <label for="c-16-components-editablereffield-info" class="badge info as-toggle">1 info</label>
-        <label for="c-16-components-editablereffield-stories" class="badge ok as-toggle">7 stories</label>
+        <label for="c-16-components-editablereffield-stories" class="badge ok as-toggle">8 stories</label>
         
       </div>
     </div>
@@ -3097,11 +3269,13 @@ wordCount: number</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">13 prop types</span>
+              <span class="badge ok">14 prop types</span>
             </div>
             <pre><code>Component: src/components/EditableRefField/EditableRefField.tsx::EditableRefField</code></pre>
             <pre><code>Props:</code></pre>
-            <pre><code>cancelAriaLabel?: string = &#39;Cancel&#39;
+            <pre><code>boxed?: boolean = false
+
+cancelAriaLabel?: string = &#39;Cancel&#39;
 
 confirmAriaLabel?: string = &#39;Confirm&#39;
 
@@ -3153,6 +3327,20 @@ value: string</code></pre>
     value=&quot;feat/dynamic-edge-caching&quot;
     onStartEdit={() =&gt; {}}
     onCopy={() =&gt; {}} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Boxed</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Boxed = () =&gt; &lt;EditableRefField
+    icon=&quot;fork_right&quot;
+    value=&quot;feat/dynamic-edge-caching&quot;
+    onStartEdit={() =&gt; {}}
+    onCopy={() =&gt; {}}
+    boxed /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -9050,122 +9238,32 @@ waiveReason?: string</code></pre>
 </article>
 <article
   class="card 
-  no-error 
-  has-info 
-  no-story-error
-  no-doc-error"
-  role="listitem"
-  aria-label="TicketId">
-  <div class="head">
-    <div class="title">
-      <h2><span class="status-dot dot-ok"></span> TicketId</h2>
-      <div class="badges">
-        
-        <label for="c-53-components-ticketid-info" class="badge info as-toggle">1 info</label>
-        <label for="c-53-components-ticketid-stories" class="badge ok as-toggle">2 stories</label>
-        
-      </div>
-    </div>
-    <div class="meta" title="./src/components/TicketId/TicketId.stories.tsx">components-ticketid · ./src/components/TicketId/TicketId.stories.tsx</div>
-    
-    
-    
-  </div>
-
-  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
-  
-  <input id="c-53-components-ticketid-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-53-components-ticketid-stories" class="tg tg-stories" type="checkbox" hidden />
-  
-  
-
-  <div class="panels">
-    
-    
-        <div class="panel panel-info">
-          
-    <div class="note info">
-      <div class="note-title">Info</div>
-      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
-    </div>
-        </div>
-    
-    
-        <div class="panel panel-stories">
-          
-          
-          
-          <div class="note ok">
-                <div class="row">
-                  <span class="ex-name">Imports</span>
-                </div>
-                <pre><code>import { TicketId } from "@all3hp/tasksgo-ui";</code></pre>
-              </div>
-          
-          
-            <div class="note ok">
-              <div class="row">
-                <span class="ex-name">Default</span>
-                <span class="badge ok">story ok</span>
-              </div>
-              
-              
-              <pre><code>const Default = () =&gt; &lt;TicketId&gt;ENG-902&lt;/TicketId&gt;;</code></pre>
-            </div>
-            <div class="note ok">
-              <div class="row">
-                <span class="ex-name">All Examples</span>
-                <span class="badge ok">story ok</span>
-              </div>
-              
-              
-              <pre><code>const AllExamples = () =&gt; (
-  &lt;div
-    style={{
-      display: &#39;flex&#39;,
-      gap: &#39;var(--ds-space-scale-sm)&#39;,
-      alignItems: &#39;center&#39;,
-    }}
-  &gt;
-    &lt;TicketId&gt;ENG-902&lt;/TicketId&gt;
-    &lt;TicketId&gt;INFRA-441&lt;/TicketId&gt;
-    &lt;TicketId&gt;OPS-112&lt;/TicketId&gt;
-    &lt;TicketId&gt;DOC-42&lt;/TicketId&gt;
-  &lt;/div&gt;
-);</code></pre>
-            </div>
-        </div>
-    
-  </div>
-</article>
-<article
-  class="card 
   has-error 
   has-info 
   no-story-error
   no-doc-error"
   role="listitem"
-  aria-label="TicketOverview">
+  aria-label="Ticket">
   <div class="head">
     <div class="title">
-      <h2><span class="status-dot dot-err"></span> TicketOverview</h2>
+      <h2><span class="status-dot dot-err"></span> Ticket</h2>
       <div class="badges">
-        <label for="c-54-pages-ticket-overview-err" class="badge err as-toggle">prop type error</label>
-        <label for="c-54-pages-ticket-overview-info" class="badge info as-toggle">1 info</label>
-        <label for="c-54-pages-ticket-overview-stories" class="badge ok as-toggle">1 story</label>
+        <label for="c-53-pages-ticket-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-53-pages-ticket-info" class="badge info as-toggle">1 info</label>
+        <label for="c-53-pages-ticket-stories" class="badge ok as-toggle">1 story</label>
         
       </div>
     </div>
-    <div class="meta" title="./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx">pages-ticket-overview · ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx</div>
+    <div class="meta" title="./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx">pages-ticket · ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx</div>
     
     
     
   </div>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
-  <input id="c-54-pages-ticket-overview-err" class="tg tg-err" type="checkbox" hidden />
-  <input id="c-54-pages-ticket-overview-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-54-pages-ticket-overview-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-53-pages-ticket-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-53-pages-ticket-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-53-pages-ticket-stories" class="tg tg-stories" type="checkbox" hidden />
   
   
 
@@ -9176,13 +9274,13 @@ waiveReason?: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  600 | }
-  601 |
-&gt; 602 | const meta: Meta = {
+  636 | }
+  637 |
+&gt; 638 | const meta: Meta = {
       | ^
-  603 |   title: &#39;Pages/Ticket Overview&#39;,
-  604 |   parameters: {
-  605 |     layout: &#39;fullscreen&#39;,
+  639 |   title: &#39;Pages/Ticket&#39;,
+  640 |   parameters: {
+  641 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef } from &#39;react&#39;;
@@ -9208,7 +9306,7 @@ import { EditableMarkdown } from &#39;../../../components/EditableMarkdown&#39;;
 import { CollapsibleCard } from &#39;../../../components/CollapsibleCard&#39;;
 import { ChecklistRow } from &#39;../../../components/ChecklistRow&#39;;
 import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
-import { EditableRefField } from &#39;../../../components/EditableRefField&#39;;
+import { Scratchpad } from &#39;../../../components/Scratchpad&#39;;
 import { TicketId } from &#39;../../../components/TicketId&#39;;
 import { PipelineHierarchyPanel } from &#39;../../../components/PipelineHierarchyPanel&#39;;
 import {
@@ -9218,7 +9316,10 @@ import {
 } from &#39;../../helpers/pageChrome&#39;;
 import { useMarkdownEditor } from &#39;../../../hooks/useMarkdownEditor&#39;;
 import { useTicketOverviewState } from &#39;./useTicketOverviewState&#39;;
+import { DevDetailsPanel } from &#39;./DevDetailsPanel&#39;;
+import { DevDetailsCard } from &#39;./DevDetailsCard&#39;;
 import {
+  devScratchpadTask,
   getPerson,
   getPriorityOption,
   getProject,
@@ -9297,6 +9398,10 @@ function TicketOverviewRender() {
     confirmBranch,
     cancelBranch,
     copyBranch,
+    dev,
+    scratchpad,
+    devDetailsOpen,
+    toggleDevDetails,
     addingStage,
     addStageDraft,
     addStageMessage,
@@ -9553,10 +9658,38 @@ function TicketOverviewRender() {
                     role=&quot;tabpanel&quot;
                     id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
                     aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
-                    className={styles.tabPanelEmpty}
+                    className={
+                      tabValue === &#39;dev&#39;
+                        ? styles.tabPanel
+                        : styles.tabPanelEmpty
+                    }
                     hidden={activeTab !== tabValue}
                   &gt;
-                    Nothing here yet.
+                    {tabValue === &#39;dev&#39; ? (
+                      &lt;Scratchpad
+                        aria-label=&quot;Dev scratchpad&quot;
+                        title=&quot;Scratchpad / Private Notes&quot;
+                        status=&quot;Auto-saving…&quot;
+                        placeholder=&quot;Click to add more context…&quot;
+                        highlightBadges
+                        taskBadgeInfo={devScratchpadTask}
+                        lines={scratchpad.lines}
+                        onReorder={scratchpad.onReorder}
+                        onLineTextChange={scratchpad.onLineTextChange}
+                        onLineToggle={scratchpad.onLineToggle}
+                        onLineDelete={scratchpad.onLineDelete}
+                        onAddLine={scratchpad.onAddLine}
+                        autoFocusLineId={scratchpad.autoFocusLineId}
+                        editingLineId={scratchpad.editingLineId}
+                        onLineStartEdit={scratchpad.onLineStartEdit}
+                        onLineStopEdit={scratchpad.onLineStopEdit}
+                        openBadgeId={scratchpad.openBadgeId}
+                        openBadgeManagesFocus={scratchpad.openBadgeManagesFocus}
+                        onBadgeOpenChange={scratchpad.onBadgeOpenChange}
+                      /&gt;
+                    ) : (
+                      &#39;Nothing here yet.&#39;
+                    )}
                   &lt;/div&gt;
                 ))}
               &lt;/div&gt;
@@ -9662,25 +9795,6 @@ function TicketOverviewRender() {
                   aria-label=&quot;Select status&quot;
                 /&gt;
               &lt;/PropertyRow&gt;
-              &lt;PropertyRow icon=&quot;fork_right&quot; label=&quot;Branch&quot;&gt;
-                &lt;EditableRefField
-                  className={styles.metadataBranchField}
-                  icon=&quot;fork_right&quot;
-                  value={branch}
-                  placeholder=&quot;Add branch&quot;
-                  editing={branchEditing}
-                  draftValue={branchDraft}
-                  copied={branchCopied}
-                  onStartEdit={startEditBranch}
-                  onDraftChange={changeBranchDraft}
-                  onConfirm={confirmBranch}
-                  onCancel={cancelBranch}
-                  onCopy={copyBranch}
-                  editAriaLabel=&quot;Edit branch&quot;
-                  inputAriaLabel=&quot;Branch name&quot;
-                  copyAriaLabel=&quot;Copy branch&quot;
-                /&gt;
-              &lt;/PropertyRow&gt;
               &lt;PropertyRow icon=&quot;signal_cellular_alt&quot; label=&quot;Priority&quot;&gt;
                 &lt;Selector
                   ref={prioritySelectorRef}
@@ -9770,6 +9884,26 @@ function TicketOverviewRender() {
                 }
                 return &lt;PipelineHierarchyPanel {...panelBaseProps} /&gt;;
               })()}
+            &lt;DevDetailsCard
+              open={devDetailsOpen}
+              onToggle={toggleDevDetails}
+              summary={`repo · ${dev.pullRequests.length} PR · ${dev.commits.total} commits`}
+            &gt;
+              &lt;DevDetailsPanel
+                dev={dev}
+                branch={{
+                  value: branch,
+                  draftValue: branchDraft,
+                  editing: branchEditing,
+                  copied: branchCopied,
+                  onStartEdit: startEditBranch,
+                  onDraftChange: changeBranchDraft,
+                  onConfirm: confirmBranch,
+                  onCancel: cancelBranch,
+                  onCopy: copyBranch,
+                }}
+              /&gt;
+            &lt;/DevDetailsCard&gt;
           &lt;/aside&gt;
         &lt;/div&gt;
 
@@ -9787,7 +9921,7 @@ function TicketOverviewRender() {
 }
 
 const meta: Meta = {
-  title: &#39;Pages/Ticket Overview&#39;,
+  title: &#39;Pages/Ticket&#39;,
   parameters: {
     layout: &#39;fullscreen&#39;,
     viewport: { options: desktopViewports },
@@ -9842,8 +9976,9 @@ export const Default: Story = {
     Button,
     ChecklistRow,
     CollapsibleCard,
+    DevDetailsCard,
+    DevDetailsPanel,
     EditableMarkdown,
-    EditableRefField,
     Footer,
     Header,
     Icon,
@@ -9852,6 +9987,7 @@ export const Default: Story = {
     NavItem,
     PipelineHierarchyPanel,
     PropertyRow,
+    Scratchpad,
     SectionHeader,
     Selector,
     Sidebar,
@@ -9872,6 +10008,96 @@ export const Default: Story = {
               
               
               <pre><code>const Default = () =&gt; &lt;TicketOverviewRender /&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  no-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TicketId">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-ok"></span> TicketId</h2>
+      <div class="badges">
+        
+        <label for="c-54-components-ticketid-info" class="badge info as-toggle">1 info</label>
+        <label for="c-54-components-ticketid-stories" class="badge ok as-toggle">2 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/TicketId/TicketId.stories.tsx">components-ticketid · ./src/components/TicketId/TicketId.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  
+  <input id="c-54-components-ticketid-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-54-components-ticketid-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { TicketId } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Default</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Default = () =&gt; &lt;TicketId&gt;ENG-902&lt;/TicketId&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">All Examples</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const AllExamples = () =&gt; (
+  &lt;div
+    style={{
+      display: &#39;flex&#39;,
+      gap: &#39;var(--ds-space-scale-sm)&#39;,
+      alignItems: &#39;center&#39;,
+    }}
+  &gt;
+    &lt;TicketId&gt;ENG-902&lt;/TicketId&gt;
+    &lt;TicketId&gt;INFRA-441&lt;/TicketId&gt;
+    &lt;TicketId&gt;OPS-112&lt;/TicketId&gt;
+    &lt;TicketId&gt;DOC-42&lt;/TicketId&gt;
+  &lt;/div&gt;
+);</code></pre>
             </div>
         </div>
     
@@ -10890,27 +11116,27 @@ export const EmptyState: Story = {
   no-story-error
   no-doc-error"
   role="listitem"
-  aria-label="TicketOverview">
+  aria-label="Ticket">
   <div class="head">
     <div class="title">
-      <h2><span class="status-dot dot-err"></span> TicketOverview</h2>
+      <h2><span class="status-dot dot-err"></span> Ticket</h2>
       <div class="badges">
-        <label for="c-error-1-pages-ticket-overview-err" class="badge err as-toggle">prop type error</label>
-        <label for="c-error-1-pages-ticket-overview-info" class="badge info as-toggle">1 info</label>
-        <label for="c-error-1-pages-ticket-overview-stories" class="badge ok as-toggle">1 story</label>
+        <label for="c-error-1-pages-ticket-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-error-1-pages-ticket-info" class="badge info as-toggle">1 info</label>
+        <label for="c-error-1-pages-ticket-stories" class="badge ok as-toggle">1 story</label>
         
       </div>
     </div>
-    <div class="meta" title="./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx">pages-ticket-overview · ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx</div>
+    <div class="meta" title="./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx">pages-ticket · ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx</div>
     
     
     
   </div>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
-  <input id="c-error-1-pages-ticket-overview-err" class="tg tg-err" type="checkbox" hidden />
-  <input id="c-error-1-pages-ticket-overview-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-error-1-pages-ticket-overview-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-error-1-pages-ticket-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-error-1-pages-ticket-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-error-1-pages-ticket-stories" class="tg tg-stories" type="checkbox" hidden />
   
   
 
@@ -10921,13 +11147,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  600 | }
-  601 |
-&gt; 602 | const meta: Meta = {
+  636 | }
+  637 |
+&gt; 638 | const meta: Meta = {
       | ^
-  603 |   title: &#39;Pages/Ticket Overview&#39;,
-  604 |   parameters: {
-  605 |     layout: &#39;fullscreen&#39;,
+  639 |   title: &#39;Pages/Ticket&#39;,
+  640 |   parameters: {
+  641 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef } from &#39;react&#39;;
@@ -10953,7 +11179,7 @@ import { EditableMarkdown } from &#39;../../../components/EditableMarkdown&#39;;
 import { CollapsibleCard } from &#39;../../../components/CollapsibleCard&#39;;
 import { ChecklistRow } from &#39;../../../components/ChecklistRow&#39;;
 import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
-import { EditableRefField } from &#39;../../../components/EditableRefField&#39;;
+import { Scratchpad } from &#39;../../../components/Scratchpad&#39;;
 import { TicketId } from &#39;../../../components/TicketId&#39;;
 import { PipelineHierarchyPanel } from &#39;../../../components/PipelineHierarchyPanel&#39;;
 import {
@@ -10963,7 +11189,10 @@ import {
 } from &#39;../../helpers/pageChrome&#39;;
 import { useMarkdownEditor } from &#39;../../../hooks/useMarkdownEditor&#39;;
 import { useTicketOverviewState } from &#39;./useTicketOverviewState&#39;;
+import { DevDetailsPanel } from &#39;./DevDetailsPanel&#39;;
+import { DevDetailsCard } from &#39;./DevDetailsCard&#39;;
 import {
+  devScratchpadTask,
   getPerson,
   getPriorityOption,
   getProject,
@@ -11042,6 +11271,10 @@ function TicketOverviewRender() {
     confirmBranch,
     cancelBranch,
     copyBranch,
+    dev,
+    scratchpad,
+    devDetailsOpen,
+    toggleDevDetails,
     addingStage,
     addStageDraft,
     addStageMessage,
@@ -11298,10 +11531,38 @@ function TicketOverviewRender() {
                     role=&quot;tabpanel&quot;
                     id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
                     aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
-                    className={styles.tabPanelEmpty}
+                    className={
+                      tabValue === &#39;dev&#39;
+                        ? styles.tabPanel
+                        : styles.tabPanelEmpty
+                    }
                     hidden={activeTab !== tabValue}
                   &gt;
-                    Nothing here yet.
+                    {tabValue === &#39;dev&#39; ? (
+                      &lt;Scratchpad
+                        aria-label=&quot;Dev scratchpad&quot;
+                        title=&quot;Scratchpad / Private Notes&quot;
+                        status=&quot;Auto-saving…&quot;
+                        placeholder=&quot;Click to add more context…&quot;
+                        highlightBadges
+                        taskBadgeInfo={devScratchpadTask}
+                        lines={scratchpad.lines}
+                        onReorder={scratchpad.onReorder}
+                        onLineTextChange={scratchpad.onLineTextChange}
+                        onLineToggle={scratchpad.onLineToggle}
+                        onLineDelete={scratchpad.onLineDelete}
+                        onAddLine={scratchpad.onAddLine}
+                        autoFocusLineId={scratchpad.autoFocusLineId}
+                        editingLineId={scratchpad.editingLineId}
+                        onLineStartEdit={scratchpad.onLineStartEdit}
+                        onLineStopEdit={scratchpad.onLineStopEdit}
+                        openBadgeId={scratchpad.openBadgeId}
+                        openBadgeManagesFocus={scratchpad.openBadgeManagesFocus}
+                        onBadgeOpenChange={scratchpad.onBadgeOpenChange}
+                      /&gt;
+                    ) : (
+                      &#39;Nothing here yet.&#39;
+                    )}
                   &lt;/div&gt;
                 ))}
               &lt;/div&gt;
@@ -11407,25 +11668,6 @@ function TicketOverviewRender() {
                   aria-label=&quot;Select status&quot;
                 /&gt;
               &lt;/PropertyRow&gt;
-              &lt;PropertyRow icon=&quot;fork_right&quot; label=&quot;Branch&quot;&gt;
-                &lt;EditableRefField
-                  className={styles.metadataBranchField}
-                  icon=&quot;fork_right&quot;
-                  value={branch}
-                  placeholder=&quot;Add branch&quot;
-                  editing={branchEditing}
-                  draftValue={branchDraft}
-                  copied={branchCopied}
-                  onStartEdit={startEditBranch}
-                  onDraftChange={changeBranchDraft}
-                  onConfirm={confirmBranch}
-                  onCancel={cancelBranch}
-                  onCopy={copyBranch}
-                  editAriaLabel=&quot;Edit branch&quot;
-                  inputAriaLabel=&quot;Branch name&quot;
-                  copyAriaLabel=&quot;Copy branch&quot;
-                /&gt;
-              &lt;/PropertyRow&gt;
               &lt;PropertyRow icon=&quot;signal_cellular_alt&quot; label=&quot;Priority&quot;&gt;
                 &lt;Selector
                   ref={prioritySelectorRef}
@@ -11515,6 +11757,26 @@ function TicketOverviewRender() {
                 }
                 return &lt;PipelineHierarchyPanel {...panelBaseProps} /&gt;;
               })()}
+            &lt;DevDetailsCard
+              open={devDetailsOpen}
+              onToggle={toggleDevDetails}
+              summary={`repo · ${dev.pullRequests.length} PR · ${dev.commits.total} commits`}
+            &gt;
+              &lt;DevDetailsPanel
+                dev={dev}
+                branch={{
+                  value: branch,
+                  draftValue: branchDraft,
+                  editing: branchEditing,
+                  copied: branchCopied,
+                  onStartEdit: startEditBranch,
+                  onDraftChange: changeBranchDraft,
+                  onConfirm: confirmBranch,
+                  onCancel: cancelBranch,
+                  onCopy: copyBranch,
+                }}
+              /&gt;
+            &lt;/DevDetailsCard&gt;
           &lt;/aside&gt;
         &lt;/div&gt;
 
@@ -11532,7 +11794,7 @@ function TicketOverviewRender() {
 }
 
 const meta: Meta = {
-  title: &#39;Pages/Ticket Overview&#39;,
+  title: &#39;Pages/Ticket&#39;,
   parameters: {
     layout: &#39;fullscreen&#39;,
     viewport: { options: desktopViewports },
@@ -11587,8 +11849,9 @@ export const Default: Story = {
     Button,
     ChecklistRow,
     CollapsibleCard,
+    DevDetailsCard,
+    DevDetailsPanel,
     EditableMarkdown,
-    EditableRefField,
     Footer,
     Header,
     Icon,
@@ -11597,6 +11860,7 @@ export const Default: Story = {
     NavItem,
     PipelineHierarchyPanel,
     PropertyRow,
+    Scratchpad,
     SectionHeader,
     Selector,
     Sidebar,
@@ -11617,6 +11881,353 @@ export const Default: Story = {
               
               
               <pre><code>const Default = () =&gt; &lt;TicketOverviewRender /&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article></div>
+        </section>
+      
+        <section class="group">
+          <input id="no-component-import-found-toggle" class="group-tg" type="checkbox" hidden />
+          <label for="no-component-import-found-toggle" class="group-header">
+            <span class="caret">▸</span>
+            <span class="group-title">No component import found</span>
+            <span class="group-count">1</span>
+          </label>
+          <div class="group-cards">
+<article
+  class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode</h2>
+      <div class="badges">
+        <label for="c-error-0-components-activityrow-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-error-0-components-activityrow-info" class="badge info as-toggle">1 info</label>
+        <label for="c-error-0-components-activityrow-stories" class="badge ok as-toggle">7 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/ActivityRow/ActivityRow.stories.tsx">components-activityrow · ./src/components/ActivityRow/ActivityRow.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-error-0-components-activityrow-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-error-0-components-activityrow-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-error-0-components-activityrow-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&quot; component.
+  15 | }
+  16 |
+&gt; 17 | const meta = {
+     | ^
+  18 |   title: &#39;Components/ActivityRow&#39;,
+  19 |   component: ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode,
+  20 |   tags: [&#39;autodocs&#39;],
+
+./src/components/ActivityRow/ActivityRow.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import type { ReactNode } from &#39;react&#39;;
+import { ActivityRow } from &#39;./ActivityRow&#39;;
+import { ExternalLink } from &#39;../ExternalLink&#39;;
+import { Badge } from &#39;../Badge&#39;;
+import type { IconName } from &#39;../../icons&#39;;
+
+interface ActivityRowStoryArgs {
+  icon?: IconName;
+  tone?: &#39;neutral&#39; | &#39;info&#39; | &#39;success&#39; | &#39;warning&#39; | &#39;danger&#39;;
+  leading?: ReactNode;
+  meta?: readonly ReactNode[];
+  trailing?: ReactNode;
+  children: ReactNode;
+}
+
+const meta = {
+  title: &#39;Components/ActivityRow&#39;,
+  component: ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;A flexible two-line list row for dev activity (pull requests, commits, deployments). Slots take DS primitives directly: an ExternalLink title, a mono meta line, and trailing Badge(s). Renders an `&lt;li&gt;` — wrap rows in a `&lt;ul&gt;`. The `tone` prop tints the leading icon as visual reinforcement only (the icon is `aria-hidden`); pair danger/warning with a Badge or text so status is never conveyed by color alone.&#39;,
+      },
+    },
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          margin: 0,
+          padding: 0,
+          maxWidth: 420,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+  argTypes: {
+    icon: { control: &#39;text&#39; },
+    tone: {
+      control: &#39;inline-radio&#39;,
+      options: [&#39;neutral&#39;, &#39;info&#39;, &#39;success&#39;, &#39;warning&#39;, &#39;danger&#39;],
+      description:
+        &#39;Tints the leading icon. Visual reinforcement only — the icon is aria-hidden, so pair danger/warning with a Badge or text so status is not color-only (WCAG 1.4.1).&#39;,
+    },
+  },
+  args: {
+    icon: &#39;call_merge&#39;,
+    children: &#39;Add dark-mode toggle&#39;,
+  },
+} satisfies Meta&lt;ActivityRowStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+export const PullRequest: Story = {
+  args: {
+    icon: &#39;call_merge&#39;,
+    tone: &#39;success&#39;,
+    meta: [&#39;#142&#39;, &#39;alex&#39;, &#39;2h ago&#39;],
+    trailing: &lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;,
+    children: (
+      &lt;ExternalLink href=&quot;https://github.com/example/pr/142&quot;&gt;
+        Add dark-mode toggle
+      &lt;/ExternalLink&gt;
+    ),
+  },
+};
+
+export const Commit: Story = {
+  args: {
+    icon: &#39;code&#39;,
+    meta: [&#39;a1b9f2c&#39;, &#39;sam&#39;, &#39;5h ago&#39;],
+    children: (
+      &lt;ExternalLink href=&quot;https://github.com/example/commit/a1b9f2c&quot;&gt;
+        Fix flaky viewport test
+      &lt;/ExternalLink&gt;
+    ),
+  },
+};
+
+export const Deployment: Story = {
+  args: {
+    icon: &#39;check_circle&#39;,
+    tone: &#39;danger&#39;,
+    meta: [&#39;production&#39;, &#39;ci-bot&#39;, &#39;1d ago&#39;],
+    trailing: &lt;Badge variant=&quot;critical&quot;&gt;Failed&lt;/Badge&gt;,
+    children: &#39;Deploy v4.1.0&#39;,
+  },
+};
+
+export const Minimal: Story = {
+  args: {
+    icon: &#39;code&#39;,
+    children: &#39;A row with no meta and no trailing&#39;,
+  },
+};
+
+export const TruncatedTitle: Story = {
+  args: {
+    icon: &#39;call_merge&#39;,
+    tone: &#39;info&#39;,
+    meta: [&#39;#88&#39;, &#39;jordan&#39;, &#39;3d ago&#39;],
+    trailing: &lt;Badge variant=&quot;progress&quot;&gt;Open&lt;/Badge&gt;,
+    children: (
+      &lt;ExternalLink href=&quot;https://github.com/example/pr/88&quot;&gt;
+        feat: dynamic edge caching for API gateway responses across all regions
+      &lt;/ExternalLink&gt;
+    ),
+  },
+};
+
+export const AllTones: Story = {
+  parameters: { controls: { disable: true } },
+  render: () =&gt; (
+    &lt;&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;neutral&quot; meta={[&#39;neutral&#39;]}&gt;
+        Neutral tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;info&quot; meta={[&#39;info&#39;]}&gt;
+        Info tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;success&quot; meta={[&#39;success&#39;]}&gt;
+        Success tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;warning&quot; meta={[&#39;warning&#39;]}&gt;
+        Warning tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;danger&quot; meta={[&#39;danger&#39;]}&gt;
+        Danger tone
+      &lt;/ActivityRow&gt;
+    &lt;/&gt;
+  ),
+};
+
+export const CustomLeading: Story = {
+  parameters: { controls: { disable: true } },
+  render: () =&gt; (
+    &lt;ActivityRow
+      leading={&lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;}
+      meta={[&#39;on this branch&#39;]}
+      trailing={
+        &lt;ExternalLink href=&quot;https://example.com/commits&quot;&gt;View all&lt;/ExternalLink&gt;
+      }
+    &gt;
+      37 commits
+    &lt;/ActivityRow&gt;
+  ),
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { ActivityRow, Badge, ExternalLink } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Pull Request</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const PullRequest = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
+    icon=&quot;call_merge&quot;
+    tone=&quot;success&quot;
+    meta={[&#39;#142&#39;, &#39;alex&#39;, &#39;2h ago&#39;]}
+    trailing={&lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/pr/142&quot;&gt;Add dark-mode toggle
+            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Commit</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Commit = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode icon=&quot;code&quot; meta={[&#39;a1b9f2c&#39;, &#39;sam&#39;, &#39;5h ago&#39;]}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/commit/a1b9f2c&quot;&gt;Fix flaky viewport test
+            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Deployment</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Deployment = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
+    icon=&quot;check_circle&quot;
+    tone=&quot;danger&quot;
+    meta={[&#39;production&#39;, &#39;ci-bot&#39;, &#39;1d ago&#39;]}
+    trailing={&lt;Badge variant=&quot;critical&quot;&gt;Failed&lt;/Badge&gt;}&gt;Deploy v4.1.0&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Minimal</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Minimal = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode icon=&quot;code&quot;&gt;A row with no meta and no trailing&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Truncated Title</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const TruncatedTitle = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
+    icon=&quot;call_merge&quot;
+    tone=&quot;info&quot;
+    meta={[&#39;#88&#39;, &#39;jordan&#39;, &#39;3d ago&#39;]}
+    trailing={&lt;Badge variant=&quot;progress&quot;&gt;Open&lt;/Badge&gt;}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/pr/88&quot;&gt;feat: dynamic edge caching for API gateway responses across all regions
+            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">All Tones</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const AllTones = () =&gt; (
+  &lt;&gt;
+    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;neutral&quot; meta={[&#39;neutral&#39;]}&gt;
+      Neutral tone
+    &lt;/ActivityRow&gt;
+    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;info&quot; meta={[&#39;info&#39;]}&gt;
+      Info tone
+    &lt;/ActivityRow&gt;
+    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;success&quot; meta={[&#39;success&#39;]}&gt;
+      Success tone
+    &lt;/ActivityRow&gt;
+    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;warning&quot; meta={[&#39;warning&#39;]}&gt;
+      Warning tone
+    &lt;/ActivityRow&gt;
+    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;danger&quot; meta={[&#39;danger&#39;]}&gt;
+      Danger tone
+    &lt;/ActivityRow&gt;
+  &lt;/&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Custom Leading</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const CustomLeading = () =&gt; (
+  &lt;ActivityRow
+    leading={&lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;}
+    meta={[&#39;on this branch&#39;]}
+    trailing={
+      &lt;ExternalLink href=&quot;https://example.com/commits&quot;&gt;View all&lt;/ExternalLink&gt;
+    }
+  &gt;
+    37 commits
+  &lt;/ActivityRow&gt;
+);</code></pre>
             </div>
         </div>
     
