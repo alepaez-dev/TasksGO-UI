@@ -22,6 +22,12 @@ type Story = StoryObj<typeof EditableRefField>;
 
 export const Resting: Story = {};
 
+export const Boxed: Story = {
+  args: {
+    boxed: true,
+  },
+};
+
 export const LongValueTruncates: Story = {
   args: {
     value: 'feat/dynamic-edge-caching-with-an-unusually-long-branch-name',

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { storyUrl } from '../helpers/storyUrl';
 
-const STORY_ID = 'pages-ticket-overview--default';
+const STORY_ID = 'pages-ticket--default';
 
 async function loadStory(page: import('@playwright/test').Page) {
   await page.goto(storyUrl(STORY_ID));
@@ -30,14 +30,14 @@ test.describe('Ticket Overview page — tab navigation', () => {
   test('clicking another tab switches selection and renders placeholder', async ({
     page,
   }) => {
-    const devTab = page.getByRole('tab', { name: 'Dev' });
-    await devTab.click();
-    await expect(devTab).toHaveAttribute('aria-selected', 'true');
+    const qaTab = page.getByRole('tab', { name: 'QA' });
+    await qaTab.click();
+    await expect(qaTab).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByRole('tab', { name: 'Overview' })).toHaveAttribute(
       'aria-selected',
       'false',
     );
-    await expect(page.getByRole('tabpanel', { name: 'Dev' })).toContainText(
+    await expect(page.getByRole('tabpanel', { name: 'QA' })).toContainText(
       'Nothing here yet.',
     );
     await expect(

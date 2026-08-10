@@ -15,6 +15,7 @@
   align-self: center;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
 }
 
 .toneNeutral {
@@ -78,4 +79,10 @@
   align-items: flex-end;
   justify-content: flex-start;
   gap: var(--ds-space-scale-xs);
+}
+
+/* No meta row: the trailing spans a single content row, so center it on it. */
+.trailingSingle {
+  grid-row: 1;
+  align-self: center;
 }

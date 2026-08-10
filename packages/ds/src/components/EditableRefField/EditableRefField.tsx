@@ -19,6 +19,7 @@ interface EditableRefFieldCommonProps extends Omit<
   icon: IconName;
   value: string;
   placeholder?: string;
+  boxed?: boolean;
   copied?: boolean;
   copiedLabel?: string;
   onStartEdit: () => void;
@@ -54,6 +55,7 @@ export const EditableRefField = forwardRef<
       icon,
       value,
       placeholder = 'Add value',
+      boxed = false,
       editing = false,
       draftValue = '',
       copied = false,
@@ -102,7 +104,15 @@ export const EditableRefField = forwardRef<
     };
 
     return (
-      <div ref={ref} className={cn(styles.field, className)} {...rest}>
+      <div
+        ref={ref}
+        className={cn(
+          styles.field,
+          boxed && !editing && styles.fieldBoxed,
+          className,
+        )}
+        {...rest}
+      >
         {editing ? (
           <>
             <span className={styles.inputWrapper}>

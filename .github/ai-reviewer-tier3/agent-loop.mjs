@@ -191,6 +191,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   ];
 
   let findings = null;
+  let dismissed = null;
   let rounds = 0;
   let toolCalls = 0;
   let lastUsage = null;
@@ -206,6 +207,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let bankedFindings = null;
   let bankedAudit = null;
   let bankedConfirm = null;
+  let bankedDismissed = null;
 
   const clearUserBreakpoints = () => {
     for (const m of messages) {
@@ -304,6 +306,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       const submittedAudit = submit.input?.callSiteAudit;
       const submittedConfirm = submit.input?.confirmSuppressed;
       const submittedFindings = submit.input?.findings;
+      const submittedDismissed = submit.input?.dismissed;
       // The one sanctioned budget overrun: bounded to one round, asks only for work already done, and
       // stashes findings first. Nothing else here may skip the ceiling — see the audit-gate tests.
       if ((!Array.isArray(submittedAudit) || !Array.isArray(submittedConfirm)) && !auditRejected) {
@@ -311,6 +314,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
         if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
         if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
+        if (Array.isArray(submittedDismissed) && submittedDismissed.length) bankedDismissed = submittedDismissed;
         const missing =[!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed'].filter(Boolean);
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing ${missing.join(' + ')} — asking once for the completeness record.`);
         clearUserBreakpoints();
@@ -347,6 +351,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
         if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
         if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
+        if (Array.isArray(submittedDismissed) && submittedDismissed.length) bankedDismissed = submittedDismissed;
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: reasoning hand-waved ${hedges.length} concern(s) — asking once for each to enter confirmSuppressed.`);
         clearUserBreakpoints();
         messages.push({
@@ -382,6 +387,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       if (bankedFindings && !findings.length) findings = bankedFindings;
       if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
       if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
+      if (Array.isArray(submittedDismissed)) dismissed = submittedDismissed;
+      if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
         surfaceReasoning(log, msg.content);
@@ -454,8 +461,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
 
   return {
     findings: findings?.length ? findings : (bankedFindings ?? findings ?? []),
-    callSiteAudit,
-    confirmSuppressed,
+    callSiteAudit: callSiteAudit.length ? callSiteAudit : (bankedAudit ?? []),
+    confirmSuppressed: confirmSuppressed.length ? confirmSuppressed : (bankedConfirm ?? []),
+    dismissed: dismissed?.length ? dismissed : (bankedDismissed ?? []),
     usage: governor.totalUsage(),
     costUsd: governor.spentUsd(),
     usedFallback: modelIdx > 0,

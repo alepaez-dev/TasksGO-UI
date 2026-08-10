@@ -21,7 +21,7 @@ import { EditableMarkdown } from '../../../components/EditableMarkdown';
 import { CollapsibleCard } from '../../../components/CollapsibleCard';
 import { ChecklistRow } from '../../../components/ChecklistRow';
 import { PropertyRow } from '../../../components/PropertyRow';
-import { EditableRefField } from '../../../components/EditableRefField';
+import { Scratchpad } from '../../../components/Scratchpad';
 import { TicketId } from '../../../components/TicketId';
 import { PipelineHierarchyPanel } from '../../../components/PipelineHierarchyPanel';
 import {
@@ -31,7 +31,10 @@ import {
 } from '../../helpers/pageChrome';
 import { useMarkdownEditor } from '../../../hooks/useMarkdownEditor';
 import { useTicketOverviewState } from './useTicketOverviewState';
+import { DevDetailsPanel } from './DevDetailsPanel';
+import { DevDetailsCard } from './DevDetailsCard';
 import {
+  devScratchpadTask,
   getPerson,
   getPriorityOption,
   getProject,
@@ -110,6 +113,10 @@ function TicketOverviewRender() {
     confirmBranch,
     cancelBranch,
     copyBranch,
+    dev,
+    scratchpad,
+    devDetailsOpen,
+    toggleDevDetails,
     addingStage,
     addStageDraft,
     addStageMessage,
@@ -366,10 +373,38 @@ function TicketOverviewRender() {
                     role="tabpanel"
                     id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
                     aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
-                    className={styles.tabPanelEmpty}
+                    className={
+                      tabValue === 'dev'
+                        ? styles.tabPanel
+                        : styles.tabPanelEmpty
+                    }
                     hidden={activeTab !== tabValue}
                   >
-                    Nothing here yet.
+                    {tabValue === 'dev' ? (
+                      <Scratchpad
+                        aria-label="Dev scratchpad"
+                        title="Scratchpad / Private Notes"
+                        status="Auto-saving…"
+                        placeholder="Click to add more context…"
+                        highlightBadges
+                        taskBadgeInfo={devScratchpadTask}
+                        lines={scratchpad.lines}
+                        onReorder={scratchpad.onReorder}
+                        onLineTextChange={scratchpad.onLineTextChange}
+                        onLineToggle={scratchpad.onLineToggle}
+                        onLineDelete={scratchpad.onLineDelete}
+                        onAddLine={scratchpad.onAddLine}
+                        autoFocusLineId={scratchpad.autoFocusLineId}
+                        editingLineId={scratchpad.editingLineId}
+                        onLineStartEdit={scratchpad.onLineStartEdit}
+                        onLineStopEdit={scratchpad.onLineStopEdit}
+                        openBadgeId={scratchpad.openBadgeId}
+                        openBadgeManagesFocus={scratchpad.openBadgeManagesFocus}
+                        onBadgeOpenChange={scratchpad.onBadgeOpenChange}
+                      />
+                    ) : (
+                      'Nothing here yet.'
+                    )}
                   </div>
                 ))}
               </div>
@@ -475,25 +510,6 @@ function TicketOverviewRender() {
                   aria-label="Select status"
                 />
               </PropertyRow>
-              <PropertyRow icon="fork_right" label="Branch">
-                <EditableRefField
-                  className={styles.metadataBranchField}
-                  icon="fork_right"
-                  value={branch}
-                  placeholder="Add branch"
-                  editing={branchEditing}
-                  draftValue={branchDraft}
-                  copied={branchCopied}
-                  onStartEdit={startEditBranch}
-                  onDraftChange={changeBranchDraft}
-                  onConfirm={confirmBranch}
-                  onCancel={cancelBranch}
-                  onCopy={copyBranch}
-                  editAriaLabel="Edit branch"
-                  inputAriaLabel="Branch name"
-                  copyAriaLabel="Copy branch"
-                />
-              </PropertyRow>
               <PropertyRow icon="signal_cellular_alt" label="Priority">
                 <Selector
                   ref={prioritySelectorRef}
@@ -583,6 +599,26 @@ function TicketOverviewRender() {
                 }
                 return <PipelineHierarchyPanel {...panelBaseProps} />;
               })()}
+            <DevDetailsCard
+              open={devDetailsOpen}
+              onToggle={toggleDevDetails}
+              summary={`repo · ${dev.pullRequests.length} PR · ${dev.commits.total} commits`}
+            >
+              <DevDetailsPanel
+                dev={dev}
+                branch={{
+                  value: branch,
+                  draftValue: branchDraft,
+                  editing: branchEditing,
+                  copied: branchCopied,
+                  onStartEdit: startEditBranch,
+                  onDraftChange: changeBranchDraft,
+                  onConfirm: confirmBranch,
+                  onCancel: cancelBranch,
+                  onCopy: copyBranch,
+                }}
+              />
+            </DevDetailsCard>
           </aside>
         </div>
 
@@ -600,7 +636,7 @@ function TicketOverviewRender() {
 }
 
 const meta: Meta = {
-  title: 'Pages/Ticket Overview',
+  title: 'Pages/Ticket',
   parameters: {
     layout: 'fullscreen',
     viewport: { options: desktopViewports },

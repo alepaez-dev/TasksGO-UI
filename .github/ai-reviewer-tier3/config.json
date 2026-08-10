@@ -13,6 +13,7 @@
   "minConfidence": "medium",
   "minSeverity": "low",
   "maxFindings": 25,
+  "maxClearedConcerns": 3,
   "allowUnchangedFileFindings": true,
   "maxFilePatchChars": 50000,
   "maxTotalDiffChars": 400000,

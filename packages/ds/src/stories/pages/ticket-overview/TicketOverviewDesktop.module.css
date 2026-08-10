@@ -15,9 +15,11 @@
 
 .body {
   --ds-space-ticket-content-padding-x: var(--ds-space-scale-lg);
+  --ds-space-layout-right-rail-width: 360px;
   flex: 1;
   display: grid;
   grid-template-columns: 1fr var(--ds-space-layout-right-rail-width);
+  column-gap: var(--ds-space-scale-xl);
   grid-template-rows: auto 1fr;
   min-height: 0;
   overflow: hidden;
@@ -126,6 +128,10 @@
   color: var(--ds-color-text-secondary);
 }
 
+.tabPanel {
+  padding: 0;
+}
+
 .rightRail {
   grid-column: 2;
   grid-row: 2;
@@ -133,9 +139,13 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: calc(var(--ds-space-scale-lg) + var(--ds-space-scale-sm))
+  padding: calc(var(--ds-space-scale-md) + var(--ds-space-scale-xs) / 2)
     var(--ds-space-sidebar-padding-x) var(--ds-space-sidebar-padding-y);
-  gap: var(--ds-space-sidebar-section-gap);
+  gap: var(--ds-space-scale-lg);
+}
+
+.rightRail > * {
+  flex-shrink: 0;
 }
 
 .metadataList {
@@ -193,10 +203,6 @@
 .metadataSelector {
   --ds-space-dropdown-end-width: 180px;
   --ds-text-nav-label-font-size: 12px;
-}
-
-.metadataBranchField {
-  max-width: 180px;
 }
 
 .qaCardHeader {

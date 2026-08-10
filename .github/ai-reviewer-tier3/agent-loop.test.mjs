@@ -746,6 +746,71 @@ test('a real resubmit still replaces the banked records (restore is a fallback, 
   assert.deepEqual(out.callSiteAudit, second, 'a non-empty resubmit must win over the bank');
 });
 
+// A bounce banks the records, then the run dies before any accepted submit: prose -> nudge -> prose -> break.
+// Everything banked must still reach the caller, or the bounce silently costs the work it was protecting.
+const diesAfterBounce = (firstInput) =>
+  stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: firstInput }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'I think that is all.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'still all.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+
+test('banked dismissed survives a run that never lands an accepted submit', async () => {
+  const dismissed = [{ title: 'ref could be stale', why: 'the effect re-runs on every open', anchor: 'a.ts:1' }];
+  const client = diesAfterBounce({ findings: [], callSiteAudit: [], dismissed });
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.dismissed, dismissed, 'cleared concerns must still reach the status comment');
+});
+
+test('banked callSiteAudit survives a run that never lands an accepted submit', async () => {
+  const audit = [{ file: 'a.ts', quotedLine: 'fn(x)', verdict: 'passes', why: 'all callers updated' }];
+  const client = diesAfterBounce({ findings: [], callSiteAudit: audit });
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.callSiteAudit, audit, 'the audit must still reach the job summary');
+});
+
+test('banked confirmSuppressed survives a run that never lands an accepted submit', async () => {
+  const confirm = [
+    { claim: 'c', predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' },
+  ];
+  // callSiteAudit omitted, not empty — supplying both fields would satisfy the gate and never bounce.
+  const client = diesAfterBounce({ findings: [], confirmSuppressed: confirm });
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.confirmSuppressed, confirm, 'the suppression record must survive the bounce');
+});
+
+test('an empty resubmit does not wipe the dismissed banked by the bounce', async () => {
+  const dismissed = [{ title: 'ref could be stale', why: 'the effect re-runs on every open', anchor: 'a.ts:1' }];
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], dismissed } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [], dismissed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.dismissed, dismissed, 'an empty resubmit must not drop banked clears');
+});
+
+test('a real resubmit still replaces the banked dismissed (restore is a fallback, not a freeze)', async () => {
+  const first = [{ title: 'old concern', why: 'old', anchor: 'a.ts:1' }];
+  const second = [{ title: 'revised concern', why: 'new', anchor: 'a.ts:2' }];
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], dismissed: first } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [], dismissed: second } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.dismissed, second, 'a non-empty resubmit must win over the bank');
+});
+
+test('a resubmit that omits dismissed still restores the banked copy', async () => {
+  const dismissed = [{ title: 'ref could be stale', why: 'the effect re-runs on every open', anchor: 'a.ts:1' }];
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], dismissed } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    // answers only the bounce's question; omission means "did not re-answer", not "withdrawn"
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.dismissed, dismissed);
+});
+
 test('the hedge bounce fires at most once', async () => {
   const hedge = { type: 'thinking', thinking: 'that is harmless so I will skip it.' };
   const submit = (id) => ({

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { storyUrl } from '../helpers/storyUrl';
 
-const STORY_ID = 'pages-ticket-overview--mobile';
+const STORY_ID = 'pages-ticket--mobile';
 
 async function loadStory(page: import('@playwright/test').Page) {
   await page.goto(storyUrl(STORY_ID));
