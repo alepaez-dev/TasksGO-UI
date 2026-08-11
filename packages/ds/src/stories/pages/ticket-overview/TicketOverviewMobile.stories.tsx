@@ -204,6 +204,7 @@ function TicketOverviewMobileRender() {
 
   function closeDetails() {
     cancelAddStage();
+    setPrQuery('');
     setDetailsOpen(false);
   }
 

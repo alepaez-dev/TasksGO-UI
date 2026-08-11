@@ -137,6 +137,27 @@ test.describe('Ticket mobile — Dev details sheet', () => {
     ).toBeVisible();
   });
 
+  test('dismissing the sheet clears the PR filter for the next open', async ({
+    page,
+  }) => {
+    await openDevTab(page);
+    await openDetails(page);
+    await page.getByRole('button', { name: /Pull requests/ }).click();
+
+    const list = page.getByRole('list', { name: 'Pull requests' });
+    await page.getByLabel('Find pull request').fill('884');
+    await expect(list.getByRole('link')).toHaveCount(1);
+
+    // Dismiss the sheet (Escape → closeDetails), NOT "Back to details".
+    await page.keyboard.press('Escape');
+    await expect(page.getByLabel('Find pull request')).toHaveCount(0);
+
+    // Reopening and drilling back in must show the full, unfiltered list.
+    await openDetails(page);
+    await page.getByRole('button', { name: /Pull requests/ }).click();
+    await expect(list.getByRole('link')).toHaveCount(3);
+  });
+
   test('drilling in keeps focus in the sheet and restores it on back', async ({
     page,
   }) => {
