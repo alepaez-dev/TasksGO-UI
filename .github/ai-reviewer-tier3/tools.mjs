@@ -1,7 +1,7 @@
 import { readFile, readdir, stat, realpath } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import { createInterface } from 'node:readline';
-import { join, relative, extname, sep, resolve } from 'node:path';
+import { join, relative, extname, sep, resolve, basename } from 'node:path';
 import { confineToRepo, FINDINGS_SCHEMA, globToRegExp, isIgnored } from '../ai-reviewer/review.mjs';
 
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'storybook-static', '.next', 'coverage']);
@@ -252,6 +252,29 @@ export function makeToolRunner({ root, config }) {
   let realRootPromise;
   const realRoot = () => (realRootPromise ??= realpath(root).catch(() => resolve(root)));
 
+  let basenameIndexPromise;
+  const basenameIndex = () =>
+    (basenameIndexPromise ??= (async () => {
+      const idx = new Map();
+      for await (const full of walkFiles(root)) {
+        const relPosix = relative(root, full).split(sep).join('/');
+        if (exts && !exts.includes(extname(relPosix))) continue;
+        if (isIgnored(relPosix, ignore)) continue;
+        const key = basename(relPosix);
+        const hits = idx.get(key);
+        if (!hits) idx.set(key, [relPosix]);
+        else if (hits.length < 5) hits.push(relPosix);
+      }
+      return idx;
+    })().catch(() => new Map()));
+
+  async function notFoundError(rel) {
+    const hits = (await basenameIndex()).get(basename(rel)) ?? [];
+    return hits.length
+      ? `Not found: ${rel}. A file with that name exists at: ${hits.join(', ')} — read one of those instead of searching for it.`
+      : `Not found: ${rel}. No file with that basename exists in the repository; do not search for it.`;
+  }
+
   async function resolveInRepo(rel) {
     const abs = confineToRepo(root, rel);
     if (!abs) return { error: `Path "${rel}" is outside the repository; not allowed.` };
@@ -259,7 +282,7 @@ export function makeToolRunner({ root, config }) {
     try {
       real = await realpath(abs);
     } catch (e) {
-      if (e && e.code === 'ENOENT') return { error: `Not found: ${rel}` };
+      if (e && e.code === 'ENOENT') return { error: await notFoundError(rel) };
       return { error: `Could not resolve "${rel}".` };
     }
     const rr = await realRoot();

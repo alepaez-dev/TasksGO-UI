@@ -1077,4 +1077,19 @@ check('escapeHtmlText makes model free text safe to interpolate into a summary c
   assert.equal(escapeHtmlText('&&&', 2), '&amp;&amp;', 'slice happens before escaping, so entities are never split');
 });
 
+check('buildDiffContext is byte-identical when no renderBlock hook is passed', () => {
+  const files = [{ filename: 'a.ts', status: 'modified', additions: 1, deletions: 0, patch: '@@ -1,1 +1,2 @@\n const a = 1;\n+const b = 2;' }];
+  const cfg = { maxFilePatchChars: 50000, maxTotalDiffChars: 400000, ignore: [] };
+  assert.equal(buildDiffContext(files, cfg).diffText, buildDiffContext(files, cfg, undefined).diffText);
+});
+
+check('a renderBlock hook replaces the body but never the commentable lines', () => {
+  const files = [{ filename: 'a.ts', status: 'modified', additions: 1, deletions: 0, patch: '@@ -1,1 +1,2 @@\n const a = 1;\n+const b = 2;' }];
+  const cfg = { maxFilePatchChars: 50000, maxTotalDiffChars: 400000, ignore: [] };
+  const withHook = buildDiffContext(files, cfg, () => 'REPLACED');
+  const plain = buildDiffContext(files, cfg);
+  assert.match(withHook.diffText, /REPLACED/);
+  assert.deepEqual([...withHook.commentableByFile.get('a.ts')], [...plain.commentableByFile.get('a.ts')]);
+});
+
 console.log(`\nAll ${passed} self-tests passed.`);

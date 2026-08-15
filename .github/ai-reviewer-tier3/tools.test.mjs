@@ -261,3 +261,30 @@ test('read_file slice reports the byte cap (not "no lines in range") when the fi
   });
   assert.match(empty.content, /no lines in range/);
 });
+
+test('a slice request on a 20KB file is honoured, not widened to the whole file', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 't3slice-'));
+  const path = 'big.css';
+  writeFileSync(join(dir, path), Array.from({ length: 800 }, (_, i) => `.rule-${i} { color: red; }`).join('\n'));
+  const run = makeToolRunner({ root: dir, config: { ...cfg, maxWholeFileExpandBytes: 16000, toolExtensions: ['.css'], ignore: [] } });
+  const out = await run('read_file', { path, startLine: 1, endLine: 20 });
+  assert.match(out.content, /^ *20: /m, 'the requested range must be present');
+  assert.doesNotMatch(out.content, /^ *21: /m, 'a 20KB file must not be widened past the requested range');
+});
+
+test('a wrong path points at the real file instead of returning a bare Not found', async () => {
+  const root = mkdtempSync(join(tmpdir(), 't3find-'));
+  mkdirSync(join(root, 'components', 'OverlayShell'), { recursive: true });
+  writeFileSync(join(root, 'components', 'OverlayShell', 'OverlayShell.tsx'), 'export const OverlayShell = () => null;\n');
+  const run = makeToolRunner({ root, config: { ...cfg, toolExtensions: ['.tsx'], ignore: [] } });
+  const out = await run('read_file', { path: 'components/_internal/OverlayShell.tsx' });
+  assert.equal(out.isError, true);
+  assert.match(out.content, /components\/OverlayShell\/OverlayShell\.tsx/, 'must name the real location');
+});
+
+test('a genuinely absent basename says so, so the model does not go hunting', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: { ...cfg, toolExtensions: ['.ts'], ignore: [] } });
+  const out = await run('read_file', { path: 'src/NoSuchThing.ts' });
+  assert.equal(out.isError, true);
+  assert.match(out.content, /No file with that basename/);
+});

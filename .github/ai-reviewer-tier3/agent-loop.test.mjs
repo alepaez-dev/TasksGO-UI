@@ -414,7 +414,8 @@ test('budget interrupt runs one wind-down turn that captures partial findings', 
     { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: partial, callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 2000, output_tokens: 100 } },
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
-  assert.equal(out.interruptedReason, 'budget');
+  assert.equal(out.windDownReason, 'budget', 'the capped scope still has to be reported');
+  assert.equal(out.interruptedReason, null, 'a completed submit after wind-down is not an interrupt');
   assert.deepEqual(out.findings, partial);
   assert.equal(out.rounds, 2);
 });
@@ -1176,4 +1177,72 @@ test('a normal submit logs the records exactly once', async () => {
   const lines = [];
   await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
   assert.equal(lines.filter((l) => /audit · PASSES/.test(l)).length, 1, 'the restore-path call must not double-log');
+});
+
+test('the ceiling stops the loop even after wind-down has begun', async () => {
+  const tight = { ...config, costCeilingUsd: 1.0, terminalTurnOutputTokens: 8000 };
+  const client = stubClient([
+    // Round 1: cheap exploration. 4000 output = $0.10.
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 4000 } },
+    // Round 2: expensive. 30000 output = $0.75. Spent = $0.85.
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'read_file', input: { path: 'b.ts' } }], usage: { input_tokens: 0, output_tokens: 30000 } },
+    // Round 3 is the wind-down submit turn. It omits confirmSuppressed, which would normally
+    // bounce. 8000 output = $0.20. Spent = $1.05, over the $1.00 ceiling.
+    { content: [{ type: 'tool_use', id: 'tu_3', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 0, output_tokens: 8000 } },
+    // This must NEVER be requested. If the loop consumes it, the ceiling is unenforced.
+    { content: [{ type: 'tool_use', id: 'tu_4', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 0, output_tokens: 8000 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config: tight, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  assert.equal(out.rounds, 3, 'the loop must not make a fourth request once the ceiling is passed');
+  assert.equal(out.interruptedReason, 'budget');
+});
+
+test('a bounce that cannot be afforded is skipped loudly, not silently', async () => {
+  const tight = { ...config, costCeilingUsd: 1.0, terminalTurnOutputTokens: 8000 };
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 30000 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 0, output_tokens: 8000 } },
+    { content: [{ type: 'tool_use', id: 'tu_3', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 0, output_tokens: 8000 } },
+  ]);
+  const lines = [];
+  await runReviewAgent({ client, config: tight, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  assert.match(lines.join('\n'), /gate-skipped/, 'skipping a gate for budget reasons must be logged');
+});
+
+test('a bounce that CAN be afforded still runs — the gate is not weakened', async () => {
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  assert.equal(out.rounds, 2, 'with budget to spare the completeness bounce must still fire');
+  assert.match(lines.join('\n'), /missing confirmSuppressed/);
+});
+
+test('winding down and then submitting is NOT an interrupt — the commit must be markable', async () => {
+  const tight = { ...config, costCeilingUsd: 1.0, terminalTurnOutputTokens: 8000 };
+  const client = stubClient([
+    // Round 1 is expensive enough that round 2 trips the wind-down projection.
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 30000 } },
+    // Round 2 is the wind-down turn and the model does exactly what it was asked: a complete submit.
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 0, output_tokens: 100 } },
+  ]);
+  const out = await runReviewAgent({ client, config: tight, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.equal(out.submitted, true, 'the model submitted');
+  assert.equal(out.windDownReason, 'budget', 'the wind-down still has to be reported');
+  assert.equal(out.interruptedReason, null, 'a completed submit after wind-down is NOT an interrupt');
+});
+
+test('winding down and then NOT submitting is still an interrupt', async () => {
+  const tight = { ...config, costCeilingUsd: 1.0, terminalTurnOutputTokens: 8000 };
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 30000 } },
+    // Told to submit; keeps reading instead.
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'read_file', input: { path: 'b.ts' } }], usage: { input_tokens: 0, output_tokens: 100 } },
+  ]);
+  const out = await runReviewAgent({ client, config: tight, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.equal(out.submitted, false);
+  assert.equal(out.interruptedReason, 'budget', 'ignoring the submit request must block the checkpoint');
 });
