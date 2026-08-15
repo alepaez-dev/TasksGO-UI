@@ -318,6 +318,17 @@ check('renderStatusBody shows cost and is NOT parsed as a finding marker', () =>
   assert.equal(parseMarkers(body).length, 0);
 });
 
+// `note` is the one status/summary value that interpolates PR-controlled text: the too-large-file
+// note lists changed FILENAMES, and `<`/`&` are legal in them. GitHub renders a subset of HTML in
+// comment bodies, so an unescaped note is live markup from a fork PR.
+check('renderStatusBody escapes a note carrying a hostile filename', () => {
+  const note = 'No findings review: the only changed file(s) were too large (src/<img src=x onerror=alert(1)>.ts).';
+  const body = renderStatusBody({ skipped: true, note, markerPrefix: 'ai-reviewer-tier3' });
+  assert.ok(body.includes('src/&lt;img src=x onerror=alert(1)&gt;.ts'), 'the filename must render as text');
+  assert.ok(!/<img/.test(body), 'no live markup may reach the status comment');
+  assert.equal(parseMarkers(body).length, 0, 'and it still must not forge a finding marker');
+});
+
 check('renderStatusBody reports a skip with no spend', () => {
   const body = renderStatusBody({ model: 'claude-opus-4-8', skipped: true, note: 'Skipped — too large.', inputTokens: 999999 });
   assert.match(body, /⚠️ Skipped — too large\./);

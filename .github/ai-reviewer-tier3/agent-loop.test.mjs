@@ -171,6 +171,34 @@ test('an empty audit on a malformed submit is still the model reporting none', a
   assert.doesNotMatch(joined, /never submitted an audit/, 'must not call the model silent after it reported');
 });
 
+// Both bounces bank NON-EMPTY arrays only (an empty [] must not overwrite real banked records), so a
+// valid EMPTY audit survives neither the banking nor the accept path. The flag has to be set on every
+// branch that saw the array, or a bounced-then-stalled run reports the model silent after it spoke.
+for (const [label, input] of [
+  ['the completeness gate', { findings: [], callSiteAudit: [] }], //             confirmSuppressed missing -> bounced
+  ['the hedge bounce', { findings: [], callSiteAudit: [], confirmSuppressed: [] }], // hand-wave -> bounced
+]) {
+  test(`an empty audit reported on a turn bounced by ${label} still counts as reported`, async () => {
+    const client = stubClient([
+      {
+        content: [
+          { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+          { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input },
+        ],
+        usage: { input_tokens: 100, output_tokens: 10 },
+      },
+      { content: [{ type: 'text', text: 'I have nothing more to add.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+      { content: [{ type: 'text', text: 'Still nothing.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    ]);
+    const lines = [];
+    const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+    const joined = lines.join('\n');
+    assert.equal(out.submitted, false, 'the run never landed an accepted submit');
+    assert.match(joined, /audit · none/, 'the model reported an empty audit before the bounce');
+    assert.doesNotMatch(joined, /never submitted an audit/, 'must not call the model silent after it reported');
+  });
+}
+
 test('a bounced turn answers EVERY tool_use block (a missing tool_result is a 400 on the next request)', async () => {
   const scripted = [
     // Parallel tool use: grep + submit_findings in ONE turn, submit missing the audit -> bounce.

@@ -1070,7 +1070,7 @@ export function renderStatusBody({
 }) {
   const lines = ['### 🤖 AI bug review — latest run', ''];
   if (skipped) {
-    lines.push(`⚠️ ${note || 'Skipped — no review was run.'}`, '');
+    lines.push(`⚠️ ${escapeHtmlText(note || 'Skipped — no review was run.', 1000)}`, '');
   } else if (posted > 0) {
     lines.push(`Posted **${posted}** new issue(s). Previously reported (skipped): ${seenCount}.`, '');
   } else if (findingsCount > 0) {
@@ -1891,7 +1891,7 @@ export async function writeJobSummary({
 }) {
   try {
     core.summary.addHeading('🤖 AI bug review', 2);
-    if (note) core.summary.addRaw(`> ⚠️ ${note}\n\n`);
+    if (note) core.summary.addRaw(`> ⚠️ ${escapeHtmlText(note, 1000)}\n\n`);
     core.summary.addRaw(
       `Model \`${config.model}\` · effort \`${config.effort}\` · min confidence \`${config.minConfidence}\` · min severity \`${config.minSeverity}\`.\n\n`,
     );

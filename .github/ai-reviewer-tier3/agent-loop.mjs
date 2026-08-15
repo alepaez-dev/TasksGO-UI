@@ -350,6 +350,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
         if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
         if (Array.isArray(submittedDismissed) && submittedDismissed.length) bankedDismissed = submittedDismissed;
+        // Deliberately NOT gated on .length like the banking above: an empty audit is still the model
+        // reporting one, and that is the whole distinction this flag carries.
+        if (Array.isArray(submittedAudit)) auditReported = true;
         const missing =[!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed'].filter(Boolean);
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing ${missing.join(' + ')} — asking once for the completeness record.`);
         clearUserBreakpoints();
@@ -387,6 +390,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
         if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
         if (Array.isArray(submittedDismissed) && submittedDismissed.length) bankedDismissed = submittedDismissed;
+        // Same as the completeness gate above — a bounced turn that carried an audit still reported one.
+        if (Array.isArray(submittedAudit)) auditReported = true;
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: reasoning hand-waved ${hedges.length} concern(s) — asking once for each to enter confirmSuppressed.`);
         clearUserBreakpoints();
         messages.push({
