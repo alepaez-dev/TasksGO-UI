@@ -202,6 +202,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   // Distinct from `submitted`: the model can supply a valid audit array on a submit whose `findings`
   // is malformed, so "was an audit reported" is not answerable from "was the submit accepted".
   let auditReported = false;
+  // Did the ACCEPTED submit carry confirmSuppressed at all? The hedge bounce explicitly offers "or
+  // move it to `findings`", so an empty array on the resubmit is a legitimate retraction, not a
+  // dropped record — restoring the bank there resurrects a clearance the model withdrew.
+  let confirmSupplied = false;
   let auditRejected = false;
   let hedgeRejected = false;
   let reasoningSoFar = '';
@@ -215,7 +219,12 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   const restoreBanked = () => {
     if (bankedFindings && !findings?.length) findings = bankedFindings;
     if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
-    if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
+    // Asymmetric on purpose. findings/audit/dismissed restore whenever they came back EMPTY, because a
+    // bounced model often resubmits minimally and an empty there means "dropped", not "retracted".
+    // confirmSuppressed is the exception: the hedge bounce invites the model to move a concern into
+    // `findings` instead, so an empty array it actually SUPPLIED is a deliberate retraction and must
+    // stand — otherwise the record publishes a clearance for a concern now filed as a bug.
+    if (bankedConfirm && !confirmSupplied) confirmSuppressed = bankedConfirm;
     if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
   };
 
@@ -420,7 +429,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         callSiteAudit = submittedAudit;
         auditReported = true;
       }
-      if (Array.isArray(submittedConfirm)) confirmSuppressed = submittedConfirm;
+      if (Array.isArray(submittedConfirm)) {
+        confirmSuppressed = submittedConfirm;
+        confirmSupplied = true;
+      }
       if (Array.isArray(submittedFindings)) {
         submitted = true;
         findings = submittedFindings;
@@ -493,7 +505,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   return {
     findings: findings?.length ? findings : (bankedFindings ?? findings ?? []),
     callSiteAudit: callSiteAudit.length ? callSiteAudit : (bankedAudit ?? []),
-    confirmSuppressed: confirmSuppressed.length ? confirmSuppressed : (bankedConfirm ?? []),
+    // Mirrors restoreBanked's exception: a SUPPLIED empty array is a retraction and must not be
+    // re-filled here either, or the bank sneaks back in past the guard above.
+    confirmSuppressed: confirmSuppressed.length || confirmSupplied ? confirmSuppressed : (bankedConfirm ?? []),
     dismissed: dismissed?.length ? dismissed : (bankedDismissed ?? []),
     usage: governor.totalUsage(),
     costUsd: governor.spentUsd(),

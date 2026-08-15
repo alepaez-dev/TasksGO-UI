@@ -774,7 +774,38 @@ test('an empty resubmit does not wipe the callSiteAudit banked by the hedge boun
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
   assert.deepEqual(out.callSiteAudit, audit, 'completed call-site audit work must survive the bounce');
-  assert.deepEqual(out.confirmSuppressed, confirm, 'the suppression record must survive the bounce');
+  // confirmSuppressed is deliberately NOT restored here: no bounce ever asks the model to empty its
+  // audit, so an empty audit means "dropped" — but the hedge bounce explicitly offers "or move it to
+  // `findings`", so a SUPPLIED empty confirmSuppressed is a retraction we must honour. See the
+  // promote-and-empty test below for the case this protects.
+  assert.deepEqual(out.confirmSuppressed, [], 'a supplied empty suppression record is a retraction, not a drop');
+});
+
+// The compliant path through the hedge bounce: the model is told "put it in confirmSuppressed … or
+// move it to findings", it chooses findings, and resubmits with confirmSuppressed: []. Re-injecting
+// the bank there publishes "Clearance gate — 1 cleared" for a concern the model just filed as a bug.
+test('a concern promoted into findings is not resurrected as a cleared entry', async () => {
+  const claim = 'the transient a11y window';
+  const cleared = [{ claim, predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' }];
+  const promoted = [{ file: 'a.ts', line: 1, title: claim, body: 'b', confidence: 'high', severity: 'low', category: 'bug', suggestion: '', confidenceBasis: 'a.ts:1' }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: cleared } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    // obeys the bounce: promotes the concern and empties the suppression record
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: promoted, callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.findings.length, 1, 'the promoted concern is reported');
+  assert.deepEqual(out.confirmSuppressed, [], 'and must NOT also appear as cleared');
+  assert.ok(
+    !out.confirmSuppressed.some((c) => c.claim === out.findings[0].title),
+    'the same concern must never be both a finding and a clearance',
+  );
 });
 
 test('a populated callSiteAudit survives the audit-gate bounce when confirmSuppressed was missing', async () => {
