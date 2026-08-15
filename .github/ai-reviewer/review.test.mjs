@@ -931,12 +931,43 @@ check('renderClearanceRecord surfaces the gate, and flags an uncited clearance (
   const out = renderClearanceRecord([
     { claim: 'dismissed lost on exit', verdict: 'cleared-all-five-passed', invariant: 'none enforced', enforcingCode: 'agent-loop.mjs:466' },
   ]);
-  assert.ok(out.includes('Considered and cleared (1)'));
+  assert.ok(out.includes('1 cleared'));
+  assert.ok(!out.includes('moved to findings'), 'nothing was promoted, so do not mention it');
   assert.ok(out.includes('dismissed lost on exit'));
   assert.ok(out.includes('agent-loop.mjs:466'));
   // a clearance with no citation must be visibly called out, not rendered blank
   const uncited = renderClearanceRecord([{ claim: 'x', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: '  ' }]);
   assert.ok(uncited.includes('NO CODE CITED'));
+});
+
+// confirmSuppressed carries BOTH gate outcomes; a promoted bug is not a dismissal and must not be
+// counted as one — this record is what a human audits the reviewer's silence with.
+check('renderClearanceRecord does not count a failed gate as cleared', () => {
+  const out = renderClearanceRecord([
+    { claim: 'really cleared', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: 'a.mjs:1' },
+    { claim: 'gate failed, promoted', verdict: 'is-a-bug-moved-to-findings', invariant: 'none', enforcingCode: '' },
+  ]);
+  assert.ok(out.includes('1 cleared'), 'only the passing entry counts as cleared');
+  assert.ok(out.includes('1 moved to findings'), 'the promoted one is reported separately');
+  assert.ok(!out.includes('2 cleared'), 'the count must not lump the two outcomes together');
+  // both rows still render — the promoted entry is the gate working, and worth seeing
+  assert.ok(out.includes('really cleared') && out.includes('gate failed, promoted'));
+});
+
+// core.summary.addRaw/addTable interpolate verbatim, and a cited line is usually source code.
+check('renderClearanceRecord escapes markup — a cited JSX line renders as text, not live HTML', () => {
+  const out = renderClearanceRecord([
+    {
+      claim: 'a & b',
+      verdict: 'cleared-all-five-passed',
+      invariant: 'i',
+      enforcingCode: 'DevDetailsCard.tsx:41 <div className={styles.collapseInner}>{shouldRender && children}</div>',
+    },
+  ]);
+  assert.ok(out.includes('&lt;div className={styles.collapseInner}&gt;'), 'the cited source line must be escaped');
+  assert.ok(!/<div className=/.test(out), 'no live markup may reach the job summary');
+  assert.ok(out.includes('a &amp; b'), 'ampersands escape too, and before the angle brackets');
+  assert.ok(out.includes('<td>') && out.includes('<code>'), 'our own wrapper tags stay intact');
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);

@@ -220,7 +220,13 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   const logRecords = () => {
     if (logLevel === 'quiet' || recordsLogged) return;
     recordsLogged = true;
-    if (callSiteAudit.length === 0) log('  audit · none — no shared call shape reported as changed');
+    if (callSiteAudit.length === 0) {
+      log(
+        submitted
+          ? '  audit · none — no shared call shape reported as changed'
+          : '  audit · not reported — the run never submitted',
+      );
+    }
     for (const a of callSiteAudit) {
       const where = `${a?.file ?? '?'}:${a?.line ?? '?'}`;
       log(`  audit · ${String(a?.verdict ?? '?').toUpperCase()} ${a?.symbol ? `${a.symbol} ` : ''}${where}${a?.why ? ` — ${a.why}` : ''}`);

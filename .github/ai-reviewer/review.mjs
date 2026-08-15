@@ -287,6 +287,10 @@ export function sanitizeText(value, max = 200) {
     .slice(0, max);
 }
 
+export function escapeHtmlText(value, max = 200) {
+  return sanitizeText(value, max).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 // Only comments authored by our own bot are a trustworthy source of de-dup markers. An attacker
 // who can comment on a PR (e.g. the author of a fork PR) must not be able to forge markers that
 // suppress real findings or poison the "already reported" list fed back to the model.
@@ -1127,18 +1131,20 @@ export function extractClearedBlock(body) {
 export function renderClearanceRecord(confirmSuppressed) {
   const entries = (confirmSuppressed || []).filter((c) => c && typeof c === 'object');
   if (!entries.length) return '';
+  const moved = entries.filter((c) => c.verdict === 'is-a-bug-moved-to-findings').length;
+  const cleared = entries.length - moved;
   const rows = entries.map((c) => {
     const cited = String(c.enforcingCode ?? '').trim();
     return (
-      `<tr><td>${sanitizeText(c.claim, 300)}</td>` +
-      `<td>${sanitizeText(c.verdict, 40)}</td>` +
-      `<td>${sanitizeText(c.invariant, 200)}</td>` +
-      `<td>${cited ? `<code>${sanitizeText(cited, 200)}</code>` : '<strong>NO CODE CITED</strong>'}</td></tr>`
+      `<tr><td>${escapeHtmlText(c.claim, 300)}</td>` +
+      `<td>${escapeHtmlText(c.verdict, 40)}</td>` +
+      `<td>${escapeHtmlText(c.invariant, 200)}</td>` +
+      `<td>${cited ? `<code>${escapeHtmlText(cited, 200)}</code>` : '<strong>NO CODE CITED</strong>'}</td></tr>`
     );
   });
   return [
     '<details>',
-    `<summary>🔍 Considered and cleared (${entries.length})</summary>`,
+    `<summary>🔍 Clearance gate — ${cleared} cleared${moved ? `, ${moved} moved to findings` : ''}</summary>`,
     '',
     `<table><tr><th>Claim</th><th>Verdict</th><th>Invariant</th><th>Enforced by</th></tr>${rows.join('')}</table>`,
     '',
@@ -1910,11 +1916,11 @@ export async function writeJobSummary({
           { data: 'Why', header: true },
         ],
         ...callSiteAudit.map((a) => [
-          String(a?.verdict ?? '?'),
-          String(a?.symbol ?? ''),
-          `${a?.file ?? '?'}${a?.line ? `:${a.line}` : ''}`,
-          `\`${String(a?.quotedLine ?? '').trim().slice(0, 160)}\``,
-          String(a?.why ?? ''),
+          escapeHtmlText(a?.verdict ?? '?', 40),
+          escapeHtmlText(a?.symbol ?? '', 120),
+          escapeHtmlText(`${a?.file ?? '?'}${a?.line ? `:${a.line}` : ''}`, 200),
+          `\`${escapeHtmlText(a?.quotedLine ?? '', 160)}\``,
+          escapeHtmlText(a?.why ?? '', 300),
         ]),
       ]);
       core.summary.addRaw('\n</details>\n\n');

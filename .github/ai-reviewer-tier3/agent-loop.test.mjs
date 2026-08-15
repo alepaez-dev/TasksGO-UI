@@ -140,6 +140,22 @@ test('an empty callSiteAudit is logged as an explicit assertion, not silence', a
   assert.match(lines.join('\n'), /audit · none/, 'an empty audit must be distinguishable from no audit at all');
 });
 
+// "none" is a verdict the model gave. A run that never submitted was never asked, and the log must
+// not put that verdict in its mouth — the post-loop logRecords() reaches this on every exit path.
+test('a run that never submits does NOT claim the model reported an empty audit', async () => {
+  const client = stubClient([
+    { content: [{ type: 'text', text: 'Here are my thoughts in prose.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'Still prose, never calling the tool.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'And done.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.equal(out.submitted, false, 'this run never submitted');
+  assert.doesNotMatch(joined, /audit · none/, 'must not assert a verdict the model never gave');
+  assert.match(joined, /audit · not reported — the run never submitted/, 'must say the run never submitted');
+});
+
 test('a bounced turn answers EVERY tool_use block (a missing tool_result is a 400 on the next request)', async () => {
   const scripted = [
     // Parallel tool use: grep + submit_findings in ONE turn, submit missing the audit -> bounce.
