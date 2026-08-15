@@ -46,6 +46,14 @@ describe('MarkdownEditor', () => {
     ).toBeInTheDocument();
   });
 
+  it('opts the textarea out of iOS autocorrect and capitalisation', () => {
+    render(<Harness />);
+    const textarea = screen.getByRole('textbox', { name: 'Markdown' });
+    expect(textarea).toHaveAttribute('autocorrect', 'off');
+    expect(textarea).toHaveAttribute('autocapitalize', 'off');
+    expect(textarea).toHaveAttribute('spellcheck', 'false');
+  });
+
   it('renders the optional header slot', () => {
     render(
       <MarkdownEditor

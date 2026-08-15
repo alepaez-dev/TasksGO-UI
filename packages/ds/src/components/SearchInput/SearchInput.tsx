@@ -1,4 +1,4 @@
-import { forwardRef, type InputHTMLAttributes } from 'react';
+import { forwardRef, useRef, type InputHTMLAttributes } from 'react';
 import { Icon } from '../Icon';
 import { cn } from '../../utils/cn';
 import styles from './SearchInput.module.css';
@@ -27,6 +27,19 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     },
     ref,
   ) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const setInputRef = (node: HTMLInputElement | null) => {
+      inputRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) Object.assign(ref, { current: node });
+    };
+
+    const handleClear = () => {
+      inputRef.current?.focus();
+      onClear?.();
+    };
+
     return (
       <div
         className={cn(
@@ -38,7 +51,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       >
         <Icon name="search" size="sm" className={styles.icon} />
         <input
-          ref={ref}
+          ref={setInputRef}
           type="search"
           className={styles.input}
           {...inputProps}
@@ -47,7 +60,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           <button
             type="button"
             className={styles.clearButton}
-            onClick={onClear}
+            onClick={handleClear}
             aria-label="Clear search"
           >
             <Icon name="cancel" size="sm" />

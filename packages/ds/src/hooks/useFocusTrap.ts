@@ -3,6 +3,12 @@ import { useEffect, useRef } from 'react';
 export const FOCUSABLE_SELECTOR =
   'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
 
+function focusablesIn(root: HTMLElement): HTMLElement[] {
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+  ).filter((el) => !el.closest('[inert]'));
+}
+
 export interface UseFocusTrapOptions {
   autoFocus?: boolean;
 }
@@ -21,8 +27,7 @@ export function useFocusTrap(
     previouslyFocused.current = document.activeElement as HTMLElement;
 
     if (autoFocus) {
-      const focusables =
-        ref.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      const focusables = focusablesIn(ref.current);
       if (focusables.length > 0) {
         focusables[0].focus();
       }
@@ -31,8 +36,7 @@ export function useFocusTrap(
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key !== 'Tab' || !ref.current) return;
 
-      const currentFocusables =
-        ref.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      const currentFocusables = focusablesIn(ref.current);
       if (currentFocusables.length === 0) return;
 
       const first = currentFocusables[0];

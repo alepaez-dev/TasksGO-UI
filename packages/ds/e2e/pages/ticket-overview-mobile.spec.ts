@@ -12,8 +12,22 @@ async function loadStory(page: import('@playwright/test').Page) {
 
 test.describe('Ticket Overview mobile — inline body editor', () => {
   test.beforeEach(async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
     await loadStory(page);
+  });
+
+  test('coarse-pointer styles apply, giving the edit pencil a 44px touch target', async ({
+    page,
+  }) => {
+    const coarse = await page.evaluate(
+      () => matchMedia('(pointer: coarse)').matches,
+    );
+    expect(coarse).toBe(true);
+
+    const box = await page
+      .getByRole('button', { name: 'Edit ticket template' })
+      .boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
   });
 
   test('the edit pencil is visible without hover and opens the editor', async ({

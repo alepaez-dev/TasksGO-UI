@@ -163,6 +163,21 @@ describe('Scratchpad', () => {
       expect(textboxes[0]).toHaveValue('# Implementation Strategy');
     });
 
+    it('opts the edit textarea out of iOS autocorrect and capitalisation', () => {
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={lines}
+          onLineTextChange={() => {}}
+          editingLineId="h1"
+        />,
+      );
+      const textarea = screen.getByRole('textbox', { name: 'Edit heading' });
+      expect(textarea).toHaveAttribute('autocorrect', 'off');
+      expect(textarea).toHaveAttribute('autocapitalize', 'off');
+      expect(textarea).toHaveAttribute('spellcheck', 'false');
+    });
+
     it('fires onLineTextChange with the line id and new text', () => {
       const onLineTextChange = vi.fn();
       render(

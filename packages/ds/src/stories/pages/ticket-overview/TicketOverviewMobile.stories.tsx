@@ -20,12 +20,22 @@ import { BottomTabBar } from '../../../components/BottomTabBar';
 import { NavItem } from '../../../components/NavItem';
 import { BottomSheet } from '../../../components/BottomSheet';
 import { PropertyRow } from '../../../components/PropertyRow';
-import { EditableRefField } from '../../../components/EditableRefField';
+import { RefLink } from '../../../components/RefLink';
+import { Scratchpad } from '../../../components/Scratchpad';
 import { OptionList } from '../../../components/OptionList';
 import { PipelineHierarchyPanel } from '../../../components/PipelineHierarchyPanel';
+import { SearchInput } from '../../../components/SearchInput';
+import { ExternalLink } from '../../../components/ExternalLink';
 import { useMarkdownEditor } from '../../../hooks/useMarkdownEditor';
+import { cn } from '../../../utils/cn';
+import { sanitizeHref } from '../../../utils/sanitizeHref';
+import type { IconName } from '../../../icons';
 import { useTicketOverviewState } from './useTicketOverviewState';
+import { filterPullRequests } from './filterPullRequests';
 import {
+  PR_BADGE,
+  devScratchpadTask,
+  type DevData,
   getPerson,
   getPriorityOption,
   getProject,
@@ -41,9 +51,30 @@ import styles from './TicketOverviewMobile.module.css';
 
 const TAB_ID_PREFIX = 'ticket-overview-mobile';
 
+type TicketCiStatus = DevData['repository']['ci']['status'];
+
 const uploadImage = (file: File) => Promise.resolve(URL.createObjectURL(file));
 
-type DetailsView = 'metadata' | 'pipeline';
+type DetailsView = 'metadata' | 'pipeline' | 'pullRequests' | 'commits';
+
+const DETAILS_VIEW_LABEL = {
+  metadata: 'Ticket details',
+  pipeline: 'Pipeline',
+  pullRequests: 'Pull requests',
+  commits: 'Commits',
+} as const satisfies Record<DetailsView, string>;
+
+const CI_ICON = {
+  passing: 'check_circle',
+  failing: 'cancel',
+  running: 'schedule',
+} as const satisfies Record<TicketCiStatus, IconName>;
+
+const CI_CLASS: Record<TicketCiStatus, string> = {
+  passing: styles.ciPassing,
+  failing: styles.ciFailing,
+  running: styles.ciRunning,
+};
 
 function TicketOverviewMobileRender() {
   const {
@@ -86,15 +117,14 @@ function TicketOverviewMobileRender() {
     confirmAddStage,
     cancelAddStage,
     branch,
-    branchDraft,
-    branchEditing,
     branchCopied,
-    startEditBranch,
-    changeBranchDraft,
-    confirmBranch,
-    cancelBranch,
     copyBranch,
+    scratchpad,
   } = useTicketOverviewState();
+  // The keyboard-docked formatting toolbar sits where the tab bar is, so the
+  // bar steps aside while a scratchpad line is being edited.
+  const scratchpadEditing =
+    activeTab === 'dev' && scratchpad.editingLineId !== null;
   const activeProject = getProject('eng-core');
   const activeAssignee = getPerson(assignee);
   const activeReporter = getPerson(reporter);
@@ -103,10 +133,19 @@ function TicketOverviewMobileRender() {
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsView, setDetailsView] = useState<DetailsView>('metadata');
+  const [prQuery, setPrQuery] = useState('');
+  const filteredPullRequests = filterPullRequests(
+    ticket.dev.pullRequests,
+    prQuery,
+  );
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const [condensed, setCondensed] = useState(false);
+
+  const backButtonRef = useRef<HTMLButtonElement>(null);
+  const drillOriginRef = useRef<HTMLElement | null>(null);
+  const restoreDrillOrigin = useRef(false);
 
   const { wordCount, isUploading, textareaRef, applyAction, insertImageFiles } =
     useMarkdownEditor({
@@ -142,6 +181,15 @@ function TicketOverviewMobileRender() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (detailsView !== 'metadata') {
+      backButtonRef.current?.focus();
+    } else if (restoreDrillOrigin.current) {
+      restoreDrillOrigin.current = false;
+      drillOriginRef.current?.focus();
+    }
+  }, [detailsView]);
+
   const activeStageLabel = pipelineStages.find(
     (stage) => stage.value === activeStage,
   )?.label;
@@ -156,11 +204,14 @@ function TicketOverviewMobileRender() {
 
   function closeDetails() {
     cancelAddStage();
+    setPrQuery('');
     setDetailsOpen(false);
   }
 
   function backToMetadata() {
     cancelAddStage();
+    setPrQuery('');
+    restoreDrillOrigin.current = true;
     setDetailsView('metadata');
   }
 
@@ -326,74 +377,108 @@ function TicketOverviewMobileRender() {
               role="tabpanel"
               id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
               aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
-              className={styles.tabPanelEmpty}
+              className={
+                tabValue === 'dev' ? styles.devPanel : styles.tabPanelEmpty
+              }
               hidden={activeTab !== tabValue}
             >
-              Nothing here yet.
+              {activeTab === tabValue &&
+                (tabValue === 'dev' ? (
+                  <Scratchpad
+                    className={styles.devScratchpad}
+                    aria-label="Dev scratchpad"
+                    title="Scratchpad / Debug notes"
+                    status="Auto-saved · 2m"
+                    addLineLabel="Add a line…"
+                    highlightBadges
+                    formattingToolbar
+                    taskCardPresentation="sheet"
+                    taskBadgeInfo={devScratchpadTask}
+                    lines={scratchpad.lines}
+                    onReorder={scratchpad.onReorder}
+                    onLineTextChange={scratchpad.onLineTextChange}
+                    onLineToggle={scratchpad.onLineToggle}
+                    onLineDelete={scratchpad.onLineDelete}
+                    onAddLine={scratchpad.onAddLine}
+                    autoFocusLineId={scratchpad.autoFocusLineId}
+                    editingLineId={scratchpad.editingLineId}
+                    onLineStartEdit={scratchpad.onLineStartEdit}
+                    onLineStopEdit={scratchpad.onLineStopEdit}
+                    openBadgeId={scratchpad.openBadgeId}
+                    openBadgeManagesFocus={scratchpad.openBadgeManagesFocus}
+                    onBadgeOpenChange={scratchpad.onBadgeOpenChange}
+                  />
+                ) : (
+                  'Nothing here yet.'
+                ))}
             </div>
           ))}
         </div>
       </div>
 
-      <div className={styles.actionBar}>
-        <Button
-          variant="primary"
-          size="md"
-          className={styles.addScenarioButton}
-        >
-          Add scenario
-        </Button>
-        <IconButton
-          icon="more_horiz"
-          aria-label="More actions"
-          className={styles.moreButton}
-        />
-      </div>
+      {activeTab !== 'dev' && (
+        <div className={styles.actionBar}>
+          <Button
+            variant="primary"
+            size="md"
+            className={styles.addScenarioButton}
+          >
+            Add scenario
+          </Button>
+          <IconButton
+            icon="more_horiz"
+            aria-label="More actions"
+            className={styles.moreButton}
+          />
+        </div>
+      )}
 
-      <BottomTabBar aria-label="Main navigation">
-        <NavItem
-          icon="task_alt"
-          activeIcon="check_circle"
-          label="Tasks"
-          href="#tasks"
-          orientation="vertical"
-        />
-        <NavItem
-          icon="confirmation_number"
-          activeIcon="confirmation_number_filled"
-          label="Tickets"
-          href="#tickets"
-          orientation="vertical"
-          active
-        />
-        <NavItem
-          icon="description"
-          activeIcon="description_filled"
-          label="Docs"
-          href="#docs"
-          orientation="vertical"
-        />
-        <NavItem
-          icon="more_horiz"
-          label="More"
-          href="#more"
-          orientation="vertical"
-        />
-      </BottomTabBar>
+      {!scratchpadEditing && (
+        <BottomTabBar aria-label="Main navigation">
+          <NavItem
+            icon="task_alt"
+            activeIcon="check_circle"
+            label="Tasks"
+            href="#tasks"
+            orientation="vertical"
+          />
+          <NavItem
+            icon="confirmation_number"
+            activeIcon="confirmation_number_filled"
+            label="Tickets"
+            href="#tickets"
+            orientation="vertical"
+            active
+          />
+          <NavItem
+            icon="description"
+            activeIcon="description_filled"
+            label="Docs"
+            href="#docs"
+            orientation="vertical"
+          />
+          <NavItem
+            icon="more_horiz"
+            label="More"
+            href="#more"
+            orientation="vertical"
+          />
+        </BottomTabBar>
+      )}
 
       <BottomSheet
         open={detailsOpen}
         onClose={closeDetails}
-        aria-label={detailsView === 'metadata' ? 'Ticket details' : 'Pipeline'}
+        aria-label={DETAILS_VIEW_LABEL[detailsView]}
       >
-        <div style={{ overflowX: 'clip' }}>
+        <div className={styles.sheetViewport}>
           <div
             className={styles.slider}
             style={{
               transform:
-                detailsView === 'pipeline'
-                  ? 'translateX(-100%)'
-                  : 'translateX(0)',
+                detailsView === 'metadata'
+                  ? 'translateX(0)'
+                  : 'translateX(-100%)',
             }}
           >
             <div
@@ -414,25 +499,6 @@ function TicketOverviewMobileRender() {
 
               <SectionHeader headingLevel={2}>Metadata</SectionHeader>
               <div className={styles.metadataList}>
-                <PropertyRow icon="fork_right" label="Branch">
-                  <EditableRefField
-                    className={styles.metadataBranchField}
-                    icon="fork_right"
-                    value={branch}
-                    placeholder="Add branch"
-                    editing={branchEditing}
-                    draftValue={branchDraft}
-                    copied={branchCopied}
-                    onStartEdit={startEditBranch}
-                    onDraftChange={changeBranchDraft}
-                    onConfirm={confirmBranch}
-                    onCancel={cancelBranch}
-                    onCopy={copyBranch}
-                    editAriaLabel="Edit branch"
-                    inputAriaLabel="Branch name"
-                    copyAriaLabel="Copy branch"
-                  />
-                </PropertyRow>
                 <PropertyRow
                   icon="person"
                   label="Assignee"
@@ -514,7 +580,10 @@ function TicketOverviewMobileRender() {
                 <PropertyRow
                   icon="tag"
                   label="Pipeline"
-                  onClick={() => setDetailsView('pipeline')}
+                  onClick={(event) => {
+                    drillOriginRef.current = event.currentTarget;
+                    setDetailsView('pipeline');
+                  }}
                 >
                   <span className={styles.pipelineSummary}>
                     {pipelineSummary}
@@ -522,58 +591,249 @@ function TicketOverviewMobileRender() {
                   <Icon name="chevron_right" size="sm" />
                 </PropertyRow>
               </div>
+
+              {activeTab === 'dev' && (
+                <>
+                  <SectionHeader
+                    headingLevel={2}
+                    className={styles.devSectionHeader}
+                  >
+                    Dev
+                  </SectionHeader>
+                  <div className={styles.metadataList}>
+                    <PropertyRow icon="code" label="Repository">
+                      <ExternalLink href={ticket.dev.repository.url} size="sm">
+                        {ticket.dev.repository.name}
+                      </ExternalLink>
+                    </PropertyRow>
+                    <PropertyRow icon="fork_right" label="Branch">
+                      <RefLink
+                        boxed
+                        value={branch}
+                        href={ticket.dev.repository.branchUrl}
+                        copied={branchCopied}
+                        onCopy={copyBranch}
+                        copyAriaLabel="Copy branch"
+                      />
+                    </PropertyRow>
+                    <PropertyRow icon="check_circle" label="CI / Build">
+                      <span
+                        className={cn(
+                          styles.ciValue,
+                          CI_CLASS[ticket.dev.repository.ci.status],
+                        )}
+                      >
+                        <Icon
+                          name={CI_ICON[ticket.dev.repository.ci.status]}
+                          size="sm"
+                        />
+                        {ticket.dev.repository.ci.label}
+                      </span>
+                      <span className={styles.ciBuild}>
+                        {ticket.dev.repository.ci.build}
+                      </span>
+                    </PropertyRow>
+                    <PropertyRow
+                      icon="call_merge"
+                      label="Pull requests"
+                      valueLabel={`Pull requests: ${ticket.dev.pullRequests.length}`}
+                      onClick={(event) => {
+                        drillOriginRef.current = event.currentTarget;
+                        setDetailsView('pullRequests');
+                      }}
+                    >
+                      <Badge variant="count">
+                        {String(ticket.dev.pullRequests.length)}
+                      </Badge>
+                      <Icon name="chevron_right" size="sm" />
+                    </PropertyRow>
+                    <PropertyRow
+                      icon="code"
+                      label="Commits"
+                      valueLabel={`Commits: ${ticket.dev.commits.total}`}
+                      onClick={(event) => {
+                        drillOriginRef.current = event.currentTarget;
+                        setDetailsView('commits');
+                      }}
+                    >
+                      <Badge variant="count">
+                        {String(ticket.dev.commits.total)}
+                      </Badge>
+                      <Icon name="chevron_right" size="sm" />
+                    </PropertyRow>
+                  </div>
+                </>
+              )}
             </div>
 
             <div
               className={styles.panel}
-              inert={detailsView !== 'pipeline' || undefined}
+              inert={detailsView === 'metadata' || undefined}
             >
-              <div className={styles.sheetHeader}>
-                <div className={styles.sheetHeaderLeft}>
-                  <IconButton
-                    icon="chevron_left"
-                    aria-label="Back to details"
-                    onClick={backToMetadata}
-                  />
-                  <span className={styles.sheetTitle}>Pipeline</span>
-                </div>
-                <span className={styles.sheetTicketId}>{ticket.id}</span>
-              </div>
-
-              {(() => {
-                const panelBaseProps = {
-                  title: 'Stages',
-                  style: { border: 'none', padding: 0 },
-                  // Stop reorder touch-drags from bubbling to the BottomSheet's
-                  // drag-to-dismiss (it tracks touch; reorder uses pointer).
-                  onTouchStart: (e: TouchEvent<HTMLDivElement>) =>
-                    e.stopPropagation(),
-                  onTouchMove: (e: TouchEvent<HTMLDivElement>) =>
-                    e.stopPropagation(),
-                  stages: pipelineStages,
-                  activeValue: activeStage,
-                  onSelect: setActiveStage,
-                  onReorder: setPipelineStages,
-                  reorderHint: ticket.pipeline.reorderHint,
-                  addLabel: ticket.pipeline.addLabel,
-                  addStagePlaceholder: ticket.pipeline.addStagePlaceholder,
-                  onAddStage: openAddStage,
-                };
-                if (addingStage) {
-                  return (
-                    <PipelineHierarchyPanel
-                      {...panelBaseProps}
-                      addingStage
-                      addStageValue={addStageDraft}
-                      addStageMessage={addStageMessage}
-                      onAddStageValueChange={setAddStageDraft}
-                      onAddStageConfirm={confirmAddStage}
-                      onAddStageCancel={cancelAddStage}
+              {detailsView !== 'metadata' && (
+                <div className={styles.sheetHeader}>
+                  <div className={styles.sheetHeaderLeft}>
+                    <IconButton
+                      ref={backButtonRef}
+                      icon="chevron_left"
+                      aria-label="Back to details"
+                      onClick={backToMetadata}
                     />
-                  );
-                }
-                return <PipelineHierarchyPanel {...panelBaseProps} />;
-              })()}
+                    <span className={styles.sheetTitle}>
+                      {DETAILS_VIEW_LABEL[detailsView]}
+                    </span>
+                  </div>
+                  <span className={styles.sheetTicketId}>{ticket.id}</span>
+                </div>
+              )}
+
+              {detailsView === 'pipeline' &&
+                (() => {
+                  const panelBaseProps = {
+                    title: 'Stages',
+                    style: { border: 'none', padding: 0 },
+                    // Stop reorder touch-drags from bubbling to the BottomSheet's
+                    // drag-to-dismiss (it tracks touch; reorder uses pointer).
+                    onTouchStart: (e: TouchEvent<HTMLDivElement>) =>
+                      e.stopPropagation(),
+                    onTouchMove: (e: TouchEvent<HTMLDivElement>) =>
+                      e.stopPropagation(),
+                    stages: pipelineStages,
+                    activeValue: activeStage,
+                    onSelect: setActiveStage,
+                    onReorder: setPipelineStages,
+                    reorderHint: ticket.pipeline.reorderHint,
+                    addLabel: ticket.pipeline.addLabel,
+                    addStagePlaceholder: ticket.pipeline.addStagePlaceholder,
+                    onAddStage: openAddStage,
+                  };
+                  if (addingStage) {
+                    return (
+                      <PipelineHierarchyPanel
+                        {...panelBaseProps}
+                        addingStage
+                        addStageValue={addStageDraft}
+                        addStageMessage={addStageMessage}
+                        onAddStageValueChange={setAddStageDraft}
+                        onAddStageConfirm={confirmAddStage}
+                        onAddStageCancel={cancelAddStage}
+                      />
+                    );
+                  }
+                  return <PipelineHierarchyPanel {...panelBaseProps} />;
+                })()}
+
+              {detailsView === 'pullRequests' && (
+                <>
+                  <div className={styles.subViewSearch}>
+                    <SearchInput
+                      placeholder="Find pull request..."
+                      aria-label="Find pull request"
+                      size="sm"
+                      value={prQuery}
+                      onChange={(e) => setPrQuery(e.target.value)}
+                      onClear={prQuery ? () => setPrQuery('') : undefined}
+                    />
+                  </div>
+                  <ul className={styles.devList} aria-label="Pull requests">
+                    {filteredPullRequests.map((pr) => (
+                      <li key={pr.id}>
+                        <a
+                          className={styles.devRowLink}
+                          href={sanitizeHref(pr.href)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Icon
+                            name="call_merge"
+                            size="sm"
+                            className={styles.devRowLeading}
+                          />
+                          <span className={styles.devRowBody}>
+                            <span className={styles.devRowTitle}>
+                              {pr.title}
+                            </span>
+                            <span className={styles.devRowMeta}>
+                              <span>{pr.number}</span>
+                              <Badge variant={PR_BADGE[pr.state]}>
+                                {pr.state}
+                              </Badge>
+                              <span aria-hidden="true">·</span>
+                              <span>{pr.author}</span>
+                              <span aria-hidden="true">·</span>
+                              <span>{pr.when}</span>
+                            </span>
+                          </span>
+                          <Icon
+                            name="open_in_new"
+                            size="sm"
+                            className={styles.devRowTrailing}
+                          />
+                          <span className={styles.srOnly}>
+                            {' '}
+                            (opens in a new tab)
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  {filteredPullRequests.length === 0 && (
+                    <p className={styles.subViewEmpty}>
+                      No pull requests match “{prQuery}”.
+                    </p>
+                  )}
+                </>
+              )}
+
+              {detailsView === 'commits' && (
+                <>
+                  <div className={styles.subViewSummary}>
+                    <Badge variant="reference">{branch}</Badge>
+                    <span className={styles.subViewCount}>
+                      {ticket.dev.commits.total} commits
+                    </span>
+                  </div>
+                  <ul className={styles.devList} aria-label="Commits">
+                    {ticket.dev.commits.items.map((commit) => (
+                      <li key={commit.sha}>
+                        <a
+                          className={styles.devRowLink}
+                          href={sanitizeHref(commit.href)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Avatar
+                            variant="profile"
+                            size="sm"
+                            initial={commit.author.initial}
+                            aria-label={commit.author.name}
+                            style={{ backgroundColor: commit.author.color }}
+                          />
+                          <span className={styles.devRowBody}>
+                            <span className={styles.devRowTitle}>
+                              {commit.title}
+                            </span>
+                            <span className={styles.devRowMeta}>
+                              <Badge variant="reference">{commit.sha}</Badge>
+                              <span aria-hidden="true">·</span>
+                              <span>{commit.when}</span>
+                            </span>
+                          </span>
+                          <Icon
+                            name="open_in_new"
+                            size="sm"
+                            className={styles.devRowTrailing}
+                          />
+                          <span className={styles.srOnly}>
+                            {' '}
+                            (opens in a new tab)
+                          </span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           </div>
         </div>

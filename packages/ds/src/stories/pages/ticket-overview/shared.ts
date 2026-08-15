@@ -54,6 +54,13 @@ export interface PersonOption {
   color: string;
 }
 
+export const PR_BADGE = {
+  open: 'progress',
+  draft: 'default',
+  merged: 'success',
+  closed: 'critical',
+} as const satisfies Record<DevPullRequest['state'], BadgeProps['variant']>;
+
 export interface DevCommitAuthor {
   name: string;
   initial: string;
@@ -65,7 +72,7 @@ export interface DevPullRequest {
   number: string;
   title: string;
   href: string;
-  state: 'open' | 'merged' | 'closed';
+  state: 'open' | 'draft' | 'merged' | 'closed';
   author: string;
   when: string;
   checks: string;
@@ -75,6 +82,7 @@ export interface DevPullRequest {
 export interface DevCommit {
   sha: string;
   title: string;
+  href: string;
   author: DevCommitAuthor;
   when: string;
 }
@@ -84,6 +92,7 @@ export interface DevData {
     name: string;
     url: string;
     branch: string;
+    branchUrl: string;
     ci: {
       status: 'passing' | 'failing' | 'running';
       label: string;
@@ -254,6 +263,8 @@ export const ticket: TicketMeta = {
       name: 'edge-gateway-service',
       url: 'https://github.com/example/edge-gateway-service',
       branch: 'feat/dynamic-edge-caching',
+      branchUrl:
+        'https://github.com/example/edge-gateway-service/tree/feat/dynamic-edge-caching',
       ci: { status: 'passing', label: 'Passing', build: '#1287' },
     },
     pullRequests: [
@@ -268,6 +279,28 @@ export const ticket: TicketMeta = {
         checks: 'Checks passed',
         reviewer: { initial: 'AM', color: '#c98a6b' },
       },
+      {
+        id: 'pr-884',
+        number: '#884',
+        title: 'refactor: extract header mutation helpers',
+        href: 'https://github.com/example/pull/884',
+        state: 'draft',
+        author: 'Jordan D.',
+        when: '1d ago',
+        checks: 'Checks passed',
+        reviewer: { initial: 'SK', color: '#4a90a4' },
+      },
+      {
+        id: 'pr-871',
+        number: '#871',
+        title: 'test: gateway TTL inheritance coverage',
+        href: 'https://github.com/example/pull/871',
+        state: 'merged',
+        author: 'Mike R.',
+        when: '3d ago',
+        checks: 'Checks passed',
+        reviewer: { initial: 'JD', color: '#6a8759' },
+      },
     ],
     commits: {
       total: 37,
@@ -277,18 +310,21 @@ export const ticket: TicketMeta = {
         {
           sha: 'a3f9c1d',
           title: 'feat: add TTL inheritance from origin headers',
+          href: 'https://github.com/example/commit/a3f9c1d',
           author: { name: 'Jordan D.', initial: 'JD', color: '#6a8759' },
           when: '2h ago',
         },
         {
           sha: '7e21b04',
           title: 'fix: guard SNS invalidation race on warm start',
+          href: 'https://github.com/example/commit/7e21b04',
           author: { name: 'Sam K.', initial: 'SK', color: '#4a90a4' },
           when: '5h ago',
         },
         {
           sha: 'cbd0a52',
           title: 'chore: bump edge runtime to 2.4.1',
+          href: 'https://github.com/example/commit/cbd0a52',
           author: { name: 'Alex M.', initial: 'AM', color: '#c98a6b' },
           when: '1d ago',
         },

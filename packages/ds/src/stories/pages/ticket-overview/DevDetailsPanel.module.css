@@ -119,6 +119,10 @@
   color: var(--ds-color-status-info);
 }
 
+.prIconMuted {
+  color: var(--ds-color-text-secondary);
+}
+
 .prIconSuccess {
   color: var(--ds-color-status-success);
 }

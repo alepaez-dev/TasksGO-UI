@@ -191,6 +191,11 @@ function ScratchpadRow({
           rows={1}
           placeholder={placeholder}
           aria-label={editLabel[block.kind]}
+          // iOS would otherwise capitalise every line and autocorrect
+          // markdown syntax and technical values.
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           onChange={(e) => onLineTextChange(line.id, e.target.value)}
           onKeyDown={handleTextKeyDown}
           onBlur={() => onStopEdit?.(line.id)}
@@ -373,12 +378,7 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
         {...rest}
       >
         {(title || status) && (
-          <div
-            className={cn(
-              styles.header,
-              reorderable && styles.headerReorderable,
-            )}
-          >
+          <div className={styles.header}>
             {title && <span className={styles.title}>{title}</span>}
             {status && <span className={styles.status}>{status}</span>}
           </div>

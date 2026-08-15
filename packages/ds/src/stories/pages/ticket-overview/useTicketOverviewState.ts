@@ -101,13 +101,7 @@ export interface UseTicketOverviewState {
   pipelineOpen: boolean;
   togglePipelineOpen: () => void;
   branch: string;
-  branchDraft: string;
-  branchEditing: boolean;
   branchCopied: boolean;
-  startEditBranch: () => void;
-  changeBranchDraft: (next: string) => void;
-  confirmBranch: () => void;
-  cancelBranch: () => void;
   copyBranch: () => void;
   dev: DevData;
   scratchpad: UseScratchpadControls;
@@ -176,9 +170,7 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     setAddStageDraft('');
   };
 
-  const [branch, setBranch] = useState(ticket.dev.repository.branch);
-  const [branchDraft, setBranchDraft] = useState('');
-  const [branchEditing, setBranchEditing] = useState(false);
+  const branch = ticket.dev.repository.branch;
   const [branchCopied, setBranchCopied] = useState(false);
   const [branchCopyTick, setBranchCopyTick] = useState(0);
   const scratchpad = useScratchpad(DEV_SCRATCHPAD_SEED);
@@ -191,26 +183,6 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     () => setDevDetailsOpen((prev) => !prev),
     [],
   );
-
-  const startEditBranch = useCallback(() => {
-    setBranchDraft(branch);
-    setBranchEditing(true);
-  }, [branch]);
-
-  const changeBranchDraft = useCallback((next: string) => {
-    setBranchDraft(next);
-  }, []);
-
-  const confirmBranch = useCallback(() => {
-    const trimmed = branchDraft.trim();
-    if (trimmed === '') return;
-    setBranch(trimmed);
-    setBranchEditing(false);
-  }, [branchDraft]);
-
-  const cancelBranch = useCallback(() => {
-    setBranchEditing(false);
-  }, []);
 
   const copyBranch = useCallback(() => {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return;
@@ -263,13 +235,7 @@ export function useTicketOverviewState(): UseTicketOverviewState {
     pipelineOpen,
     togglePipelineOpen,
     branch,
-    branchDraft,
-    branchEditing,
     branchCopied,
-    startEditBranch,
-    changeBranchDraft,
-    confirmBranch,
-    cancelBranch,
     copyBranch,
     dev: ticket.dev,
     scratchpad,
