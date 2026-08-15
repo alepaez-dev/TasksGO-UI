@@ -158,6 +158,21 @@ test.describe('Ticket mobile — Dev details sheet', () => {
     await expect(list.getByRole('link')).toHaveCount(3);
   });
 
+  test('clearing the PR search keeps focus inside the sheet', async ({
+    page,
+  }) => {
+    await openDevTab(page);
+    await openDetails(page);
+    await page.getByRole('button', { name: /Pull requests/ }).click();
+
+    const search = page.getByLabel('Find pull request');
+    await search.fill('884');
+    // Activating the clear button removes it from the DOM; focus must land back
+    // on the search input, not <body> (which would let Tab escape the modal).
+    await page.getByRole('button', { name: 'Clear search' }).click();
+    await expect(search).toBeFocused();
+  });
+
   test('drilling in keeps focus in the sheet and restores it on back', async ({
     page,
   }) => {
