@@ -288,7 +288,13 @@ export function sanitizeText(value, max = 200) {
 }
 
 export function escapeHtmlText(value, max = 200) {
-  return sanitizeText(value, max).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(value ?? '')
+    .replace(/[\u0000-\u001f\u007f]+/g, ' ')
+    .trim()
+    .slice(0, max)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 // Only comments authored by our own bot are a trustworthy source of de-dup markers. An attacker
@@ -1246,7 +1252,12 @@ query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
           isResolved
           isOutdated
           viewerCanResolve
-          comments(first: 50) { nodes { body diffHunk author { login __typename } } }
+          # Both ends, deliberately: the ROOT identifies the finding (its marker + diffHunk) and the
+          # TAIL carries the newest verify marker. A single comments(first: N) loses the marker once a
+          # thread passes N, which silently re-arms the verify reply; comments(last: N) alone loses the
+          # root, which drops the thread from verification entirely.
+          root: comments(first: 1) { nodes { id body diffHunk author { login __typename } } }
+          recent: comments(last: 50) { nodes { id body diffHunk author { login __typename } } }
         }
       }
     }
@@ -1254,6 +1265,13 @@ query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
 }`;
 const RESOLVE_THREAD_MUTATION = `mutation($id: ID!) { resolveReviewThread(input: { threadId: $id }) { thread { id isResolved } } }`;
 const REPLY_THREAD_MUTATION = `mutation($id: ID!, $body: String!) { addPullRequestReviewThreadReply(input: { pullRequestReviewThreadId: $id, body: $body }) { comment { id } } }`;
+
+export function mergeThreadComments(rootNodes, recentNodes) {
+  const recent = recentNodes || [];
+  const seen = new Set(recent.map((c) => c?.id).filter(Boolean));
+  const rootOnly = (rootNodes || []).filter((c) => c && (!c.id || !seen.has(c.id)));
+  return [...rootOnly, ...recent];
+}
 
 async function fetchReviewThreads(octokit, owner, repo, number) {
   const threads = [];
@@ -1269,7 +1287,7 @@ async function fetchReviewThreads(octokit, owner, repo, number) {
         isResolved: t.isResolved,
         isOutdated: t.isOutdated,
         viewerCanResolve: t.viewerCanResolve,
-        comments: (t.comments?.nodes || []).map((c) => ({
+        comments: mergeThreadComments(t.root?.nodes, t.recent?.nodes).map((c) => ({
           body: c.body,
           diffHunk: c.diffHunk,
           user: { login: c.author?.login, type: c.author?.__typename },
@@ -1554,7 +1572,7 @@ async function main() {
   // code). Derived from the RAW list — not diffText, which omits ignored/binary/too-large files.
   const prHasNonRemovedFiles = files.some((f) => f.status !== 'removed');
 
-  // 2. Gather what we've already reported (for both dedup and the prompt). 
+  // 2. Gather what we've already reported (for both dedup and the prompt).
   const [reviewComments, issueComments] = await Promise.all([
     octokit.paginate(octokit.rest.pulls.listReviewComments, { owner, repo, pull_number, per_page: 100 }),
     octokit.paginate(octokit.rest.issues.listComments, { owner, repo, issue_number: pull_number, per_page: 100 }),
@@ -1893,10 +1911,10 @@ export async function writeJobSummary({
         ],
         ...findings.map((f) => [
           SEVERITY_LABEL[f.severity],
-          f.confidence,
+          escapeHtmlText(f.confidence, 20),
           CATEGORY_META[f.category].label,
-          `${f.file}${f.line ? `:${f.line}` : ''}`,
-          f.title,
+          escapeHtmlText(`${f.file}${f.line ? `:${f.line}` : ''}`, 200),
+          escapeHtmlText(f.title, 300),
         ]),
       ]);
     }

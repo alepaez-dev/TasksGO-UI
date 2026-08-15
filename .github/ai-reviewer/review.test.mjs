@@ -28,6 +28,8 @@ import {
   parseVerifyMarker,
   renderVerifyReply,
   renderClearanceRecord,
+  escapeHtmlText,
+  mergeThreadComments,
   selectThreadsToVerify,
   extractWindow,
   shouldPostVerifyReply,
@@ -563,6 +565,35 @@ check('shouldPostVerifyReply is idempotent: each status announced once, includin
   assert.equal(shouldPostVerifyReply('still_present', 'still_present'), false);
 });
 
+check('mergeThreadComments keeps the root first and the newest comments last', () => {
+  const c = (id, body) => ({ id, body });
+  // Short thread: the two windows overlap, so `recent` already starts with the root.
+  const short = mergeThreadComments([c('r', 'root')], [c('r', 'root'), c('2', 'reply')]);
+  assert.deepEqual(short.map((x) => x.id), ['r', '2'], 'the root must not be duplicated');
+  // Long thread: the root has fallen out of the tail window and must be prepended.
+  const long = mergeThreadComments([c('r', 'root')], [c('80', 'old'), c('81', 'newest')]);
+  assert.deepEqual(long.map((x) => x.id), ['r', '80', '81'], 'root first, newest last');
+  assert.deepEqual(mergeThreadComments(null, null), [], 'missing windows are not a crash');
+  assert.deepEqual(mergeThreadComments([c('r', 'root')], []).map((x) => x.id), ['r']);
+});
+
+check('a long thread still reads back its newest verify marker (no re-posted reply)', () => {
+  const bot = 'github-actions';
+  const author = { login: bot, type: 'Bot' };
+  const rootBody = 'finding\n<!-- ai-reviewer v1 {"fp":"abc","file":"a.ts","line":1,"title":"t"} -->';
+  const verify = (status) => ({ id: status, body: `r\n<!-- ai-reviewer-verify v1 {"status":"${status}"} -->`, user: author });
+  // Root fell out of the tail window; the tail holds an older then a newer verify marker.
+  const comments = mergeThreadComments(
+    [{ id: 'r', body: rootBody, diffHunk: '@@', user: author }],
+    [verify('unsure'), verify('still_present')],
+  );
+  const [item] = selectThreadsToVerify([{ id: 'T', isResolved: false, comments }], { botActor: bot });
+  assert.ok(item, 'the thread is still identified even though the root left the tail window');
+  assert.equal(item.fp, 'abc');
+  assert.equal(item.lastVerifyStatus, 'still_present', 'the NEWEST marker wins');
+  assert.equal(shouldPostVerifyReply('still_present', item.lastVerifyStatus), false, 'so no duplicate reply');
+});
+
 check('orderThreadsForVerification puts never-checked + outdated first so the cap does not starve them (M3)', () => {
   const c = (id, lastVerifyStatus, isOutdated) => ({ threadId: id, lastVerifyStatus, isOutdated });
   const ordered = orderThreadsForVerification([
@@ -968,6 +999,23 @@ check('renderClearanceRecord escapes markup — a cited JSX line renders as text
   assert.ok(!/<div className=/.test(out), 'no live markup may reach the job summary');
   assert.ok(out.includes('a &amp; b'), 'ampersands escape too, and before the angle brackets');
   assert.ok(out.includes('<td>') && out.includes('<code>'), 'our own wrapper tags stay intact');
+  // a citation is evidence: escaping must make it safe to display, never edit what it says
+  const verbatim = renderClearanceRecord([
+    { claim: 'c', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: 'loop.ts:9 while (x --> 0)  step();' },
+  ]);
+  assert.ok(verbatim.includes('while (x --&gt; 0)  step();'), '`-->` and internal spacing must survive verbatim');
+  assert.ok(!verbatim.includes('→'), 'sanitizeText’s `-->` rewrite must not reach a citation');
+});
+
+// Every job-summary table interpolates cells verbatim (core.summary.wrap does no escaping), so any
+// model-supplied cell — findings title/file as well as audit and clearance cells — must go through
+// escapeHtmlText. A finding ABOUT a comparison is the everyday case that breaks.
+check('escapeHtmlText makes model free text safe to interpolate into a summary cell', () => {
+  assert.equal(escapeHtmlText('comparator `a < b` inverted & unhandled', 300), 'comparator `a &lt; b` inverted &amp; unhandled');
+  assert.equal(escapeHtmlText('src/<weird>.tsx:12', 200), 'src/&lt;weird&gt;.tsx:12');
+  assert.equal(escapeHtmlText(null), '', 'nullish is empty, never "null"');
+  assert.equal(escapeHtmlText('x'.repeat(10), 4), 'xxxx', 'max counts source characters');
+  assert.equal(escapeHtmlText('&&&', 2), '&amp;&amp;', 'slice happens before escaping, so entities are never split');
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);

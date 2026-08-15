@@ -199,6 +199,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let toolBudgetExhausted = false;
   let nudgedToSubmit = false;
   let submitted = false;
+  // Distinct from `submitted`: the model can supply a valid audit array on a submit whose `findings`
+  // is malformed, so "was an audit reported" is not answerable from "was the submit accepted".
+  let auditReported = false;
   let auditRejected = false;
   let hedgeRejected = false;
   let reasoningSoFar = '';
@@ -222,9 +225,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     recordsLogged = true;
     if (callSiteAudit.length === 0) {
       log(
-        submitted
+        auditReported
           ? '  audit · none — no shared call shape reported as changed'
-          : '  audit · not reported — the run never submitted',
+          : '  audit · not reported — the run never submitted an audit',
       );
     }
     for (const a of callSiteAudit) {
@@ -408,7 +411,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         });
         continue;
       }
-      if (Array.isArray(submittedAudit)) callSiteAudit = submittedAudit;
+      if (Array.isArray(submittedAudit)) {
+        callSiteAudit = submittedAudit;
+        auditReported = true;
+      }
       if (Array.isArray(submittedConfirm)) confirmSuppressed = submittedConfirm;
       if (Array.isArray(submittedFindings)) {
         submitted = true;

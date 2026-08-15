@@ -156,6 +156,21 @@ test('a run that never submits does NOT claim the model reported an empty audit'
   assert.match(joined, /audit · not reported — the run never submitted/, 'must say the run never submitted');
 });
 
+// `submitted` answers "was the submit accepted", NOT "did the model report an audit". A malformed
+// `findings` leaves submitted=false on a turn that supplied a perfectly good (empty) audit, so the
+// two must be tracked separately or the log calls the model silent after it spoke.
+test('an empty audit on a malformed submit is still the model reporting none', async () => {
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: 'oops', callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.equal(out.submitted, false, 'a malformed findings payload is still not a valid submission');
+  assert.match(joined, /audit · none/, 'the model DID report an empty audit — say so');
+  assert.doesNotMatch(joined, /never submitted an audit/, 'must not call the model silent after it reported');
+});
+
 test('a bounced turn answers EVERY tool_use block (a missing tool_result is a 400 on the next request)', async () => {
   const scripted = [
     // Parallel tool use: grep + submit_findings in ONE turn, submit missing the audit -> bounce.
