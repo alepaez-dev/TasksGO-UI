@@ -35,7 +35,7 @@ function Controlled(props: TestScenarioCardProps) {
   const [actualDraft, setActualDraft] = useState('');
   const [editingSections, setEditingSections] = useState<
     readonly TestScenarioSection[]
-  >([]);
+  >(props.editingSections ?? []);
   const [description, setDescription] = useState(props.description);
   const [expected, setExpected] = useState(props.expected);
   const [steps, setSteps] = useState<readonly string[]>(props.steps ?? []);
@@ -147,7 +147,7 @@ export const Passed: Story = {
       byline="Verified by Sarah K. · 2h ago"
       assigneeInitial="SK"
       assigneeLabel="Sarah K."
-      assigneeColor="#6C89A8"
+      assigneeColor="var(--ds-color-avatar-tone-profile-steel)"
       description="A second request for the same asset within the TTL window is served from the edge cache."
       expected="Response carries `X-Cache: HIT` and TTFB drops below 40ms."
       open
@@ -164,7 +164,7 @@ export const Failed: Story = {
       byline="Failed by Mike R. · 3d ago"
       assigneeInitial="MR"
       assigneeLabel="Mike R."
-      assigneeColor="#C38E70"
+      assigneeColor="var(--ds-color-avatar-tone-profile-tan)"
       description="Requests exceeding the burst threshold on `/v1/assets` should return 429."
       steps={[
         'Deploy recent build to `QA-01` environment',
@@ -191,7 +191,7 @@ export const Pending: Story = {
       byline="Not run yet"
       assigneeInitial="JD"
       assigneeLabel="Jordan D."
-      assigneeColor="#7D9B84"
+      assigneeColor="var(--ds-color-avatar-tone-profile-sage)"
       description="Client TTL override should persist across reloads within the max-age window."
       expected="Override survives a hard reload and is reflected in `Cache-Control`."
       actual="Not run yet."
@@ -206,10 +206,10 @@ export const Waived: Story = {
       caseId="TC-409"
       title="WebSocket Connection Persistence"
       status="waived"
-      byline="Waived by Alex T. · 1d ago"
-      assigneeInitial="AT"
-      assigneeLabel="Alex T."
-      assigneeColor="#856D4A"
+      byline="Waived by Ale P. · 1d ago"
+      assigneeInitial="AP"
+      assigneeLabel="Ale P."
+      assigneeColor="var(--ds-color-avatar-tone-profile-plum)"
       description="Ensure WebSocket connections reconnect after a network interruption of < 500ms without dropping session context."
       waiveReason="Dev confirmed out of scope for this ticket; tracked separately under `ENG-2871`."
       steps={[
@@ -243,30 +243,38 @@ export const Collapsed: Story = {
       byline="Verified by Mike R. · 4h ago"
       assigneeInitial="MR"
       assigneeLabel="Mike R."
-      assigneeColor="#C38E70"
+      assigneeColor="var(--ds-color-avatar-tone-profile-tan)"
       description="An SNS publish purges the matching edge cache keys within 5 seconds."
       expected="Subsequent request is a `MISS` then repopulates."
     />
   ),
 };
 
-export const Editable: Story = {
+export const Editing: Story = {
   render: () => (
     <Controlled
-      caseId="TC-418"
-      title="Rate Limit Edge Case"
-      status="failed"
-      byline="Failed by Mike R. · 3d ago"
-      assigneeInitial="MR"
-      assigneeLabel="Mike R."
-      assigneeColor="#C38E70"
-      description="Requests exceeding the burst threshold on `/v1/assets` should return 429."
+      caseId="TC-409"
+      title="WebSocket Connection Persistence"
+      status="waived"
+      byline="Waived by Ale P. · 1d ago"
+      assigneeInitial="AP"
+      assigneeLabel="Ale P."
+      assigneeColor="var(--ds-color-avatar-tone-profile-plum)"
+      description="Ensure WebSocket connections reconnect after a network interruption."
+      waiveReason="Dev confirmed out of scope for this ticket; tracked under `ENG-2871`."
       steps={[
         'Deploy recent build to `QA-01` environment',
-        'Fire 500 rps against `/v1/assets/hot` for 30s',
+        'Trigger concurrent updates via `/api/v1/sync`',
       ]}
-      expected="Gateway returns `429 Too Many Requests` with `Retry-After`."
-      actual="Stale cached body returned with `200 OK`."
+      expected="Connection should recover within 2 seconds without session state loss."
+      actual="Not run — scenario waived before execution."
+      editingSections={[
+        'waiveReason',
+        'description',
+        'steps',
+        'expected',
+        'actual',
+      ]}
       open
     />
   ),

@@ -4,23 +4,19 @@ import {
   useRef,
   type ChangeEvent,
   type HTMLAttributes,
-  type KeyboardEvent,
   type ReactNode,
 } from 'react';
-import { useAutoGrowTextarea } from '../../hooks/useAutoGrowTextarea';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { Avatar } from '../Avatar';
 import { Badge, type BadgeProps } from '../Badge';
-import { Callout } from '../Callout';
-import { EditToggle } from '../EditToggle';
 import { Icon } from '../Icon';
-import { Markdown } from '../Markdown';
 import { RefLabel } from '../RefLabel';
 import { SectionHeader } from '../SectionHeader';
 import { Selector } from '../Selector';
-import { StepList } from '../StepList';
 import { TicketId } from '../TicketId';
 import { cn } from '../../utils/cn';
+import { EditableSection } from './EditableSection';
+import { StepsSection } from './StepsSection';
 import styles from './TestScenarioCard.module.css';
 
 export type TestScenarioStatus = 'passed' | 'failed' | 'pending' | 'waived';
@@ -47,24 +43,23 @@ export interface TestScenarioCardProps extends Omit<
   byline: string;
   assigneeInitial: string;
   assigneeLabel: string;
-  assigneeColor?: string;
   description: string;
+  expected: string;
+  assigneeColor?: string;
   steps?: readonly string[];
   evidence?: readonly TestScenarioEvidence[];
-  expected: string;
   actual?: string;
   waiveReason?: string;
+
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   statusSelectOpen?: boolean;
   onStatusSelectOpenChange?: (open: boolean) => void;
-  onStatusChange?: (status: TestScenarioStatus) => void;
   evidenceExpanded?: boolean;
   onEvidenceExpandedChange?: (expanded: boolean) => void;
-  onAddEvidence?: (files: readonly File[]) => void;
-  onRemoveEvidence?: (index: number) => void;
-  maxEvidence?: number;
-  evidenceAccept?: string;
+  stepsExpanded?: boolean;
+  onStepsExpandedChange?: (expanded: boolean) => void;
+
   editingSections?: readonly TestScenarioSection[];
   onEditingSectionsChange?: (sections: readonly TestScenarioSection[]) => void;
   onWaiveReasonChange?: (value: string) => void;
@@ -72,11 +67,15 @@ export interface TestScenarioCardProps extends Omit<
   onExpectedChange?: (value: string) => void;
   onActualChange?: (value: string) => void;
   onStepsChange?: (steps: readonly string[]) => void;
-  stepsExpanded?: boolean;
-  onStepsExpandedChange?: (expanded: boolean) => void;
+
+  onStatusChange?: (status: TestScenarioStatus) => void;
+  onAddEvidence?: (files: readonly File[]) => void;
+  onRemoveEvidence?: (index: number) => void;
+  maxEvidence?: number;
+  evidenceAccept?: string;
 }
 
-const STATUS_ORDER: readonly TestScenarioStatus[] = [
+const STATUS_VALUES: readonly TestScenarioStatus[] = [
   'passed',
   'failed',
   'pending',
@@ -97,16 +96,15 @@ const STATUS_BADGE: Record<TestScenarioStatus, BadgeProps['variant']> = {
   waived: 'waived',
 };
 
-const STATUS_OPTIONS = STATUS_ORDER.map((value) => ({
+const STATUS_OPTIONS = STATUS_VALUES.map((value) => ({
   value,
   label: STATUS_LABEL[value],
 }));
 
 const EVIDENCE_PREVIEW_COUNT = 3;
-const STEPS_PREVIEW_COUNT = 3;
 
 function toStatus(value: string): TestScenarioStatus | undefined {
-  return STATUS_ORDER.find((status) => status === value);
+  return STATUS_VALUES.find((status) => status === value);
 }
 
 function IndicatorGlyph({ status }: { status: TestScenarioStatus }): ReactNode {
@@ -114,67 +112,6 @@ function IndicatorGlyph({ status }: { status: TestScenarioStatus }): ReactNode {
   if (status === 'failed') return <Icon name="close" size="xs" />;
   if (status === 'pending') return <Icon name="more_horiz" size="xs" />;
   return null;
-}
-
-interface StepEditorRowProps {
-  index: number;
-  value: string;
-  onChange: (value: string) => void;
-  onEnter: () => void;
-  onRemove: () => void;
-}
-
-function StepEditorRow({
-  index,
-  value,
-  onChange,
-  onEnter,
-  onRemove,
-}: StepEditorRowProps): ReactNode {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  useAutoGrowTextarea(textareaRef, value);
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
-    event.preventDefault();
-    const textarea = textareaRef.current;
-    if (event.metaKey || event.ctrlKey || event.shiftKey) {
-      const start = textarea?.selectionStart ?? value.length;
-      const end = textarea?.selectionEnd ?? value.length;
-      onChange(`${value.slice(0, start)}\n${value.slice(end)}`);
-      requestAnimationFrame(() => {
-        const el = textareaRef.current;
-        if (el) el.selectionStart = el.selectionEnd = start + 1;
-      });
-      return;
-    }
-    onEnter();
-  };
-
-  return (
-    <div className={styles.stepRow}>
-      <span className={styles.stepNumber} aria-hidden="true">
-        {index + 1}
-      </span>
-      <textarea
-        ref={textareaRef}
-        rows={1}
-        className={styles.stepInput}
-        aria-label={`Step ${index + 1}`}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-      />
-      <button
-        type="button"
-        className={styles.evidenceRemove}
-        aria-label={`Remove step ${index + 1}`}
-        onClick={onRemove}
-      >
-        <Icon name="close" size="xs" />
-      </button>
-    </div>
-  );
 }
 
 export const TestScenarioCard = forwardRef<
@@ -189,24 +126,23 @@ export const TestScenarioCard = forwardRef<
       byline,
       assigneeInitial,
       assigneeLabel,
-      assigneeColor,
       description,
-      steps,
-      evidence,
       expected,
+      assigneeColor,
+      steps = [],
+      evidence = [],
       actual,
       waiveReason,
+
       open = false,
       onOpenChange,
       statusSelectOpen = false,
       onStatusSelectOpenChange,
-      onStatusChange,
       evidenceExpanded = false,
       onEvidenceExpandedChange,
-      onAddEvidence,
-      onRemoveEvidence,
-      maxEvidence,
-      evidenceAccept,
+      stepsExpanded = false,
+      onStepsExpandedChange,
+
       editingSections = [],
       onEditingSectionsChange,
       onWaiveReasonChange,
@@ -214,8 +150,13 @@ export const TestScenarioCard = forwardRef<
       onExpectedChange,
       onActualChange,
       onStepsChange,
-      stepsExpanded = false,
-      onStepsExpandedChange,
+
+      onStatusChange,
+      onAddEvidence,
+      onRemoveEvidence,
+      maxEvidence,
+      evidenceAccept,
+
       className,
       ...rest
     },
@@ -223,25 +164,18 @@ export const TestScenarioCard = forwardRef<
   ) => {
     const bodyId = `${caseId}-body`;
     const actualTone = status === 'failed' ? 'critical' : 'neutral';
-    const evidenceItems = evidence ?? [];
-    const hasEvidence = evidenceItems.length > 0;
-    const canToggleEvidence = evidenceItems.length > EVIDENCE_PREVIEW_COUNT;
+    const hasEvidence = evidence.length > 0;
+    const canToggleEvidence = evidence.length > EVIDENCE_PREVIEW_COUNT;
     const visibleEvidence = evidenceExpanded
-      ? evidenceItems
-      : evidenceItems.slice(0, EVIDENCE_PREVIEW_COUNT);
-    const hiddenEvidenceCount = evidenceItems.length - EVIDENCE_PREVIEW_COUNT;
+      ? evidence
+      : evidence.slice(0, EVIDENCE_PREVIEW_COUNT);
+    const hiddenEvidenceCount = evidence.length - EVIDENCE_PREVIEW_COUNT;
+    // no maxEvidence = unlimited; a provided value is the cap (negatives clamp to 0)
     const evidenceLimit =
-      maxEvidence != null && maxEvidence >= 1 ? maxEvidence : undefined;
+      maxEvidence != null ? Math.max(0, maxEvidence) : undefined;
     const limitReached =
-      evidenceLimit != null && evidenceItems.length >= evidenceLimit;
-    const stepItems = steps ?? [];
-    const canToggleSteps = stepItems.length > STEPS_PREVIEW_COUNT;
-    const visibleSteps = stepsExpanded
-      ? stepItems
-      : stepItems.slice(0, STEPS_PREVIEW_COUNT);
-    const hiddenStepsCount = stepItems.length - STEPS_PREVIEW_COUNT;
+      evidenceLimit != null && evidence.length >= evidenceLimit;
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const stepEditorRef = useRef<HTMLDivElement>(null);
     const statusSelectRef = useRef<HTMLDivElement>(null);
     const closeStatusSelect = useCallback(
       () => onStatusSelectOpenChange?.(false),
@@ -358,266 +292,62 @@ export const TestScenarioCard = forwardRef<
         {open && (
           <div id={bodyId} className={styles.body}>
             {status === 'waived' && (waiveReason || onWaiveReasonChange) && (
-              <section className={styles.section}>
-                <div className={styles.sectionHead}>
-                  <SectionHeader headingLevel={3}>Waive Reason</SectionHeader>
-                  {onWaiveReasonChange &&
-                    (isEditing('waiveReason') || waiveReason) && (
-                      <EditToggle
-                        className={
-                          isEditing('waiveReason')
-                            ? undefined
-                            : styles.sectionEdit
-                        }
-                        editing={isEditing('waiveReason')}
-                        onEditingChange={(next) =>
-                          setSectionEditing('waiveReason', next)
-                        }
-                      />
-                    )}
-                </div>
-                {isEditing('waiveReason') && onWaiveReasonChange ? (
-                  <div className={cn(styles.calloutEditor, styles.toneWarning)}>
-                    <textarea
-                      className={styles.editorTextarea}
-                      aria-label="Waive Reason"
-                      value={waiveReason ?? ''}
-                      onChange={(e) => onWaiveReasonChange(e.target.value)}
-                    />
-                  </div>
-                ) : waiveReason ? (
-                  <Callout variant="warning">
-                    <Markdown source={waiveReason} />
-                  </Callout>
-                ) : onWaiveReasonChange ? (
-                  <button
-                    type="button"
-                    className={styles.addStep}
-                    onClick={() => setSectionEditing('waiveReason', true)}
-                  >
-                    <Icon name="add" size="xs" />
-                    Add reason
-                  </button>
-                ) : null}
-              </section>
+              <EditableSection
+                title="Waive Reason"
+                value={waiveReason ?? ''}
+                editing={isEditing('waiveReason')}
+                onEditingChange={(next) =>
+                  setSectionEditing('waiveReason', next)
+                }
+                onChange={onWaiveReasonChange}
+                tone="warning"
+                addLabel="Add reason"
+              />
             )}
 
-            <section className={styles.section}>
-              <div className={styles.sectionHead}>
-                <SectionHeader headingLevel={3}>Description</SectionHeader>
-                {onDescriptionChange && (
-                  <EditToggle
-                    className={
-                      isEditing('description') ? undefined : styles.sectionEdit
-                    }
-                    editing={isEditing('description')}
-                    onEditingChange={(next) =>
-                      setSectionEditing('description', next)
-                    }
-                  />
-                )}
-              </div>
-              {isEditing('description') && onDescriptionChange ? (
-                <textarea
-                  className={styles.editorTextarea}
-                  aria-label="Description"
-                  value={description}
-                  onChange={(e) => onDescriptionChange(e.target.value)}
-                />
-              ) : (
-                <Markdown source={description} />
-              )}
-            </section>
+            <EditableSection
+              title="Description"
+              value={description}
+              editing={isEditing('description')}
+              onEditingChange={(next) => setSectionEditing('description', next)}
+              onChange={onDescriptionChange}
+            />
 
-            {((steps && steps.length > 0) || onStepsChange) && (
-              <section className={styles.section}>
-                <div className={styles.sectionHead}>
-                  <SectionHeader headingLevel={3}>
-                    Steps to Reproduce
-                  </SectionHeader>
-                  {onStepsChange &&
-                    (isEditing('steps') || stepItems.length > 0) && (
-                      <EditToggle
-                        className={
-                          isEditing('steps') ? undefined : styles.sectionEdit
-                        }
-                        editing={isEditing('steps')}
-                        onEditingChange={(next) =>
-                          setSectionEditing('steps', next)
-                        }
-                      />
-                    )}
-                </div>
-                {isEditing('steps') && onStepsChange ? (
-                  <div className={styles.stepEditor} ref={stepEditorRef}>
-                    {(steps ?? []).map((step, index) => (
-                      <StepEditorRow
-                        key={index}
-                        index={index}
-                        value={step}
-                        onChange={(value) =>
-                          onStepsChange(
-                            (steps ?? []).map((s, i) =>
-                              i === index ? value : s,
-                            ),
-                          )
-                        }
-                        onEnter={() => {
-                          const src = steps ?? [];
-                          onStepsChange([
-                            ...src.slice(0, index + 1),
-                            '',
-                            ...src.slice(index + 1),
-                          ]);
-                          requestAnimationFrame(() => {
-                            const areas =
-                              stepEditorRef.current?.querySelectorAll(
-                                'textarea',
-                              );
-                            areas?.[index + 1]?.focus();
-                          });
-                        }}
-                        onRemove={() =>
-                          onStepsChange(
-                            (steps ?? []).filter((_, i) => i !== index),
-                          )
-                        }
-                      />
-                    ))}
-                    <button
-                      type="button"
-                      className={styles.addStep}
-                      onClick={() => onStepsChange([...(steps ?? []), ''])}
-                    >
-                      <Icon name="add" size="xs" />
-                      Add step
-                    </button>
-                  </div>
-                ) : stepItems.length > 0 ? (
-                  <>
-                    <StepList steps={visibleSteps} dividers />
-                    {canToggleSteps && (
-                      <button
-                        type="button"
-                        className={styles.stepsToggle}
-                        aria-expanded={stepsExpanded}
-                        onClick={() => onStepsExpandedChange?.(!stepsExpanded)}
-                      >
-                        <Icon
-                          name="expand_more"
-                          size="xs"
-                          className={cn(
-                            styles.chevron,
-                            stepsExpanded && styles.chevronOpen,
-                          )}
-                        />
-                        {stepsExpanded
-                          ? 'Show less'
-                          : `Show ${hiddenStepsCount} more`}
-                      </button>
-                    )}
-                  </>
-                ) : onStepsChange ? (
-                  <button
-                    type="button"
-                    className={styles.addStep}
-                    onClick={() => {
-                      onStepsChange(['']);
-                      setSectionEditing('steps', true);
-                    }}
-                  >
-                    <Icon name="add" size="xs" />
-                    Add step
-                  </button>
-                ) : null}
-              </section>
-            )}
+            <StepsSection
+              steps={steps}
+              onStepsChange={onStepsChange}
+              editing={isEditing('steps')}
+              onEditingChange={(next) => setSectionEditing('steps', next)}
+              expanded={stepsExpanded}
+              onExpandedChange={onStepsExpandedChange}
+            />
 
-            <section className={styles.section}>
-              <div className={styles.sectionHead}>
-                <SectionHeader headingLevel={3}>Expected Result</SectionHeader>
-                {onExpectedChange && (
-                  <EditToggle
-                    className={
-                      isEditing('expected') ? undefined : styles.sectionEdit
-                    }
-                    editing={isEditing('expected')}
-                    onEditingChange={(next) =>
-                      setSectionEditing('expected', next)
-                    }
-                  />
-                )}
-              </div>
-              {isEditing('expected') && onExpectedChange ? (
-                <div className={cn(styles.calloutEditor, styles.tonePositive)}>
-                  <textarea
-                    className={styles.editorTextarea}
-                    aria-label="Expected Result"
-                    value={expected}
-                    onChange={(e) => onExpectedChange(e.target.value)}
-                  />
-                </div>
-              ) : (
-                <Callout variant="positive">
-                  <Markdown source={expected} />
-                </Callout>
-              )}
-            </section>
+            <EditableSection
+              title="Expected Result"
+              value={expected}
+              editing={isEditing('expected')}
+              onEditingChange={(next) => setSectionEditing('expected', next)}
+              onChange={onExpectedChange}
+              tone="positive"
+            />
 
             {(actual || onActualChange) && (
-              <section className={styles.section}>
-                <div className={styles.sectionHead}>
-                  <SectionHeader headingLevel={3}>Actual Result</SectionHeader>
-                  {onActualChange && (isEditing('actual') || actual) && (
-                    <EditToggle
-                      className={
-                        isEditing('actual') ? undefined : styles.sectionEdit
-                      }
-                      editing={isEditing('actual')}
-                      onEditingChange={(next) =>
-                        setSectionEditing('actual', next)
-                      }
-                    />
-                  )}
-                </div>
-                {isEditing('actual') && onActualChange ? (
-                  <div
-                    className={cn(
-                      styles.calloutEditor,
-                      actualTone === 'critical'
-                        ? styles.toneCritical
-                        : styles.toneNeutral,
-                    )}
-                  >
-                    <textarea
-                      className={styles.editorTextarea}
-                      aria-label="Actual Result"
-                      value={actual ?? ''}
-                      onChange={(e) => onActualChange(e.target.value)}
-                    />
-                  </div>
-                ) : actual ? (
-                  <Callout variant={actualTone}>
-                    <Markdown source={actual} />
-                  </Callout>
-                ) : onActualChange ? (
-                  <button
-                    type="button"
-                    className={styles.addStep}
-                    onClick={() => setSectionEditing('actual', true)}
-                  >
-                    <Icon name="add" size="xs" />
-                    Add actual result
-                  </button>
-                ) : null}
-              </section>
+              <EditableSection
+                title="Actual Result"
+                value={actual ?? ''}
+                editing={isEditing('actual')}
+                onEditingChange={(next) => setSectionEditing('actual', next)}
+                onChange={onActualChange}
+                tone={actualTone}
+                addLabel="Add actual result"
+              />
             )}
 
             {(hasEvidence || onAddEvidence) && (
               <section className={styles.section}>
                 <div className={styles.evidenceHeader}>
                   <SectionHeader headingLevel={3}>
-                    {`Evidence (${evidenceItems.length})`}
+                    {`Evidence (${evidence.length})`}
                   </SectionHeader>
                   {evidenceLimit != null && (
                     <span
@@ -626,7 +356,7 @@ export const TestScenarioCard = forwardRef<
                         limitReached && styles.evidenceCountFull,
                       )}
                     >
-                      {evidenceItems.length}/{evidenceLimit}
+                      {evidence.length}/{evidenceLimit}
                     </span>
                   )}
                 </div>
@@ -642,7 +372,7 @@ export const TestScenarioCard = forwardRef<
                       {onRemoveEvidence && (
                         <button
                           type="button"
-                          className={styles.evidenceRemove}
+                          className={styles.removeButton}
                           aria-label={`Remove ${item.label}`}
                           onClick={() => onRemoveEvidence(index)}
                         >

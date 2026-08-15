@@ -1,14 +1,11 @@
 import { forwardRef } from 'react';
-import { ConfirmDialog, type ConfirmDialogProps } from '../ConfirmDialog';
+import { ConfirmDialog, type ConfirmDialogPresetProps } from '../ConfirmDialog';
 import styles from './WaiveScenarioDialog.module.css';
 
 const DEFAULT_PLACEHOLDER =
   'e.g. Out of scope for this ticket; tracked separately under ENG-2871.';
 
-export interface WaiveScenarioDialogProps extends Omit<
-  ConfirmDialogProps,
-  'icon' | 'iconTone' | 'title' | 'description' | 'field' | 'confirmLabel'
-> {
+export interface WaiveScenarioDialogProps extends ConfirmDialogPresetProps {
   scenarioTitle: string;
   reason: string;
   onReasonChange: (reason: string) => void;

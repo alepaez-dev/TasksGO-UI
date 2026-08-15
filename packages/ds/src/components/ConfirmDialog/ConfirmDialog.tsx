@@ -42,6 +42,11 @@ export interface ConfirmDialogProps extends Omit<
   onClosed?: () => void;
 }
 
+export type ConfirmDialogPresetProps = Omit<
+  ConfirmDialogProps,
+  'icon' | 'iconTone' | 'title' | 'description' | 'field' | 'confirmLabel'
+>;
+
 export const ConfirmDialog = forwardRef<HTMLDivElement, ConfirmDialogProps>(
   (
     {
@@ -56,7 +61,7 @@ export const ConfirmDialog = forwardRef<HTMLDivElement, ConfirmDialogProps>(
       onCancel,
       onConfirm,
       duration = 'normal',
-      forceMount,
+      forceMount = false,
       onOpened,
       onClosed,
       id: idProp,

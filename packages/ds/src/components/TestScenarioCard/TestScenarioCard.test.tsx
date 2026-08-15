@@ -121,12 +121,12 @@ describe('TestScenarioCard', () => {
     expect(onStatusChange).toHaveBeenCalledWith('waived');
   });
 
-  it('shows the amber waive-reason and neutral actual for a waived scenario', () => {
+  it('shows the waive-reason section and actual result for a waived scenario', () => {
     render(
       <TestScenarioCard
         {...base}
         status="waived"
-        byline="Waived by Alex T. · 1d ago"
+        byline="Waived by Ale P. · 1d ago"
         waiveReason="Out of scope; tracked under `ENG-2871`."
         actual="Not run — scenario waived before execution."
         open
@@ -228,6 +228,7 @@ describe('TestScenarioCard', () => {
     const { container, rerender } = render(
       <TestScenarioCard {...base} open onAddEvidence={() => {}} />,
     );
+    // file input is aria-hidden/tabIndex=-1 by design — no role query reaches it
     const input = container.querySelector('input[type="file"]');
     expect(input).not.toBeNull();
     expect(input).not.toHaveAttribute('accept');
@@ -274,6 +275,7 @@ describe('TestScenarioCard', () => {
     const { container } = render(
       <TestScenarioCard {...base} open onAddEvidence={onAddEvidence} />,
     );
+    // file input is aria-hidden/tabIndex=-1 by design — no role query reaches it
     const input = container.querySelector(
       'input[type="file"]',
     ) as HTMLInputElement;
@@ -321,7 +323,7 @@ describe('TestScenarioCard', () => {
     expect(screen.getByRole('button', { name: 'Add evidence' })).toBeEnabled();
   });
 
-  it('treats a non-positive maxEvidence as no limit', () => {
+  it('treats maxEvidence 0 as a reached limit (no slots)', () => {
     render(
       <TestScenarioCard
         {...base}
@@ -332,8 +334,10 @@ describe('TestScenarioCard', () => {
         evidence={[{ label: 'a.png', kind: 'image' }]}
       />,
     );
-    expect(screen.queryByText('1/0')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Add evidence' })).toBeEnabled();
+    expect(screen.getByText('1/0')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Limit reached' }),
+    ).toBeDisabled();
   });
 
   it('renders a remove button per chip and fires onRemoveEvidence with the index', async () => {
@@ -396,7 +400,7 @@ describe('TestScenarioCard', () => {
     expect(onEditingSectionsChange).toHaveBeenCalledWith(['description']);
   });
 
-  it('edits, adds, and removes steps via onStepsChange', async () => {
+  it('adds a step via the Add step button', async () => {
     const onStepsChange = vi.fn();
     render(
       <TestScenarioCard
@@ -407,19 +411,39 @@ describe('TestScenarioCard', () => {
         editingSections={['steps']}
       />,
     );
-    // add
     await userEvent.click(screen.getByRole('button', { name: 'Add step' }));
     expect(onStepsChange).toHaveBeenCalledWith(['first', 'second', '']);
-    // remove index 0
-    onStepsChange.mockClear();
+  });
+
+  it('removes a step via its remove button', async () => {
+    const onStepsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['first', 'second']}
+        onStepsChange={onStepsChange}
+        editingSections={['steps']}
+      />,
+    );
     await userEvent.click(
       screen.getByRole('button', { name: 'Remove step 1' }),
     );
     expect(onStepsChange).toHaveBeenCalledWith(['second']);
-    // edit index 1
-    onStepsChange.mockClear();
-    const inputs = screen.getAllByRole('textbox');
-    await userEvent.type(inputs[1], 'X');
+  });
+
+  it('edits a step via onStepsChange', async () => {
+    const onStepsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['first', 'second']}
+        onStepsChange={onStepsChange}
+        editingSections={['steps']}
+      />,
+    );
+    await userEvent.type(screen.getByRole('textbox', { name: 'Step 2' }), 'X');
     expect(onStepsChange).toHaveBeenCalledWith(['first', 'secondX']);
   });
 
@@ -434,8 +458,9 @@ describe('TestScenarioCard', () => {
         editingSections={['steps']}
       />,
     );
-    const inputs = screen.getAllByRole('textbox');
-    fireEvent.keyDown(inputs[0], { key: 'Enter' });
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Step 1' }), {
+      key: 'Enter',
+    });
     expect(onStepsChange).toHaveBeenCalledWith(['first', '', 'second']);
   });
 
@@ -450,7 +475,9 @@ describe('TestScenarioCard', () => {
         editingSections={['steps']}
       />,
     );
-    const textarea = screen.getAllByRole('textbox')[0] as HTMLTextAreaElement;
+    const textarea = screen.getByRole('textbox', {
+      name: 'Step 1',
+    }) as HTMLTextAreaElement;
     textarea.focus();
     textarea.setSelectionRange(2, 2);
     fireEvent.keyDown(textarea, { key: 'Enter', ctrlKey: true });
@@ -468,7 +495,9 @@ describe('TestScenarioCard', () => {
         editingSections={['steps']}
       />,
     );
-    const textarea = screen.getAllByRole('textbox')[0] as HTMLTextAreaElement;
+    const textarea = screen.getByRole('textbox', {
+      name: 'Step 1',
+    }) as HTMLTextAreaElement;
     textarea.focus();
     textarea.setSelectionRange(5, 5);
     fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: true });
@@ -486,8 +515,44 @@ describe('TestScenarioCard', () => {
         editingSections={['steps']}
       />,
     );
-    const inputs = screen.getAllByRole('textbox');
-    fireEvent.keyDown(inputs[0], { key: 'Enter', isComposing: true });
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Step 1' }), {
+      key: 'Enter',
+      isComposing: true,
+    });
+    expect(onStepsChange).not.toHaveBeenCalled();
+  });
+
+  it('deletes an empty step on Backspace', () => {
+    const onStepsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['first', '']}
+        onStepsChange={onStepsChange}
+        editingSections={['steps']}
+      />,
+    );
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Step 2' }), {
+      key: 'Backspace',
+    });
+    expect(onStepsChange).toHaveBeenCalledWith(['first']);
+  });
+
+  it('does not delete a non-empty step on Backspace', () => {
+    const onStepsChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        steps={['first', 'second']}
+        onStepsChange={onStepsChange}
+        editingSections={['steps']}
+      />,
+    );
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Step 2' }), {
+      key: 'Backspace',
+    });
     expect(onStepsChange).not.toHaveBeenCalled();
   });
 

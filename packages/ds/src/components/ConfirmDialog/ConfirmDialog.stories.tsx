@@ -57,6 +57,10 @@ function Controlled({
   );
 }
 
+export const Default: Story = {
+  render: () => <Controlled triggerLabel="Re-open as pending" />,
+};
+
 export const WithRequiredField: Story = {
   render: () => (
     <Controlled
@@ -68,7 +72,7 @@ export const WithRequiredField: Story = {
   ),
 };
 
-export const WarningNoField: Story = {
+export const WarningTone: Story = {
   render: () => (
     <Controlled
       triggerLabel="Delete"

@@ -1,11 +1,8 @@
 import { forwardRef } from 'react';
-import { ConfirmDialog, type ConfirmDialogProps } from '../ConfirmDialog';
+import { ConfirmDialog, type ConfirmDialogPresetProps } from '../ConfirmDialog';
 import { Icon } from '../Icon';
 
-export interface ReopenPendingDialogProps extends Omit<
-  ConfirmDialogProps,
-  'icon' | 'iconTone' | 'title' | 'description' | 'field' | 'confirmLabel'
-> {
+export interface ReopenPendingDialogProps extends ConfirmDialogPresetProps {
   scenarioTitle: string;
   actualResult: string;
   onActualResultChange: (value: string) => void;
