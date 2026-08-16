@@ -147,6 +147,11 @@ const SEVERITY_LABEL = {
   low: '⚪ Low',
 };
 
+export function enumKey(map, value, fallback) {
+  const key = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  return Object.hasOwn(map, key) ? key : fallback;
+}
+
 export const FINDINGS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -877,8 +882,8 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
       dropped.invalid += 1;
       continue;
     }
-    const confidence = (f.confidence || 'low').toLowerCase();
-    const severity = (f.severity || 'low').toLowerCase();
+    const confidence = enumKey(CONFIDENCE_RANK, f.confidence, 'low');
+    const severity = enumKey(SEVERITY_RANK, f.severity, 'low');
     if ((CONFIDENCE_RANK[confidence] ?? 1) < minConf) {
       dropped.byConfidence += 1;
       continue;
@@ -920,8 +925,8 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
       file: f.file,
       line,
       confidence,
-      severity: SEVERITY_LABEL[severity] ? severity : 'low',
-      category: CATEGORY_META[f.category] ? f.category : 'other',
+      severity,
+      category: enumKey(CATEGORY_META, f.category, 'other'),
       title: f.title.trim(),
       body: (f.body || '').trim(),
       suggestion: (f.suggestion || '').trim(),

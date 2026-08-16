@@ -829,6 +829,31 @@ test('a concern promoted into findings is not resurrected as a cleared entry', a
   );
 });
 
+test('the exit restore cannot resurrect a bank the accept path already settled', async () => {
+  const cl = (claim) => ({ claim, predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' });
+  const promoted = [{ file: 'a.ts', line: 1, title: 'concern A', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '', confidenceBasis: 'a.ts:1' }];
+  const client = stubClient([
+    // round 1 banks BOTH clearances
+    {
+      content: [
+        { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [cl('concern A'), cl('concern B')] } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    // round 2 accepted: promotes A, and its record contains ONLY A — so the drop empties it
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: promoted, callSiteAudit: [], confirmSuppressed: [cl('concern A')] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  assert.deepEqual(out.confirmSuppressed, [], 'concern B was never in the final submit and must not come back');
+  assert.equal(
+    lines.filter((l) => l.startsWith('  confirm · ')).length,
+    out.confirmSuppressed.length,
+    'the run log and the published record must agree',
+  );
+});
+
 // The invariant is about IDENTITY, not presence. An unrelated finding on the resubmit must not cost
 // the whole clearance record — that was the flaw in the earlier "did this submit report findings" rule.
 test('an UNRELATED finding does not discard the banked clearance record', async () => {

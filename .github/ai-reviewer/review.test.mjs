@@ -28,6 +28,7 @@ import {
   parseVerifyMarker,
   renderVerifyReply,
   renderClearanceRecord,
+  renderInlineBody,
   escapeHtmlText,
   mergeThreadComments,
   selectThreadsToVerify,
@@ -1022,6 +1023,20 @@ check('renderStatusBody discloses findings that were not posted', () => {
 });
 
 // `category` was clamped and `severity` was not, so an off-enum severity rendered as "· undefined".
+check('filterFindings clamps a prototype key, not just an unknown one', () => {
+  for (const evil of ['constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+    const { findings } = filterFindings(
+      [{ file: 'a.ts', line: 1, severity: evil, confidence: evil, category: evil, title: 'T', body: '', suggestion: '' }],
+      { config: { ...DEFAULT_CONFIG, minConfidence: 'low', minSeverity: 'low', allowUnchangedFileFindings: true }, commentableByFile: new Map([['a.ts', new Set([1])]]), seenFingerprints: new Set() },
+    );
+    if (!findings.length) continue; // dropped by a threshold is also a safe outcome
+    assert.equal(findings[0].severity, 'low', `severity "${evil}" must clamp`);
+    assert.equal(findings[0].category, 'other', `category "${evil}" must clamp`);
+    const first = renderInlineBody(findings[0]).split('\n')[0];
+    assert.ok(!/native code|undefined/.test(first), `"${evil}" must not reach the comment: ${first}`);
+  }
+});
+
 check('filterFindings clamps an off-enum severity like it clamps category', () => {
   const { findings } = filterFindings(
     [{ file: 'a.ts', line: 1, severity: 'moderate', confidence: 'high', category: 'logic', title: 'T', body: '', suggestion: '' }],

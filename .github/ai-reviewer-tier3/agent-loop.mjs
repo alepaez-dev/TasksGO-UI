@@ -113,7 +113,7 @@ function logRound({ log, logLevel, config, rounds, msg, uses, outs, spentUsd, fr
       if (raw) log(`      ⤷ ${raw}`);
     }
   }
-  // debug: what we told the model 
+  // debug: what we told the model
   log(`  budget -> model: ${budgetPhase(frac, softFraction)} (${Math.round(frac * 100)}% spent)`);
 }
 
@@ -231,7 +231,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     if (dismissed?.length) dismissed = dismissed.filter((d) => !filed.has(concernKey(d?.title)));
   };
 
+  let bankRestored = false;
   const restoreBanked = () => {
+    if (bankRestored) return;
+    bankRestored = true;
     if (bankedFindings && !findings?.length) findings = bankedFindings;
     // callSiteAudit has NO retraction path on purpose, and repeated reviews keep proposing one: neither
     // bounce ever invites emptying it (the completeness trailer reads "Record the call-site audit, then
