@@ -364,7 +364,11 @@ async function main() {
       `${reviewCostUsd != null ? ` → ≈ $${reviewCostUsd.toFixed(3)}` : ''}.`,
   );
 
-  const note = interruptNote(result, config);
+  const note =
+    interruptNote(result, config) ??
+    (result.toolBudgetExhausted
+      ? `Tier 3 hit the tool-call budget (maxToolCalls=${config.maxToolCalls}) and was asked to wrap up; exploration may be incomplete.`
+      : null);
   const banner = note ? `> ⚠️ ${note}` : null;
   if (result.interruptedReason === 'budget') {
     core.warning(`Tier 3 stopped early at the $${config.costCeilingUsd} ceiling (≈ $${reviewCostUsd?.toFixed(3)}); findings may be incomplete.`);
@@ -423,7 +427,9 @@ async function main() {
   const reviewComplete = result.submitted && !result.interruptedReason;
   if (!result.submitted && !result.interruptedReason) {
     core.warning(
-      'Tier 3 ended without calling submit_findings (model returned prose only); not marking the commit reviewed so a re-run retries.',
+      result.rounds > 0 && result.findings?.length
+        ? 'Tier 3 never landed a well-formed submit_findings (the last one was bounced or malformed); recovered banked findings, but not marking the commit reviewed so a re-run retries.'
+        : 'Tier 3 ended without calling submit_findings (model returned prose only); not marking the commit reviewed so a re-run retries.',
     );
   }
 
@@ -484,7 +490,10 @@ async function main() {
   const fullySurfaced = reviewFullySurfaced({ postSummaryComment: config.postSummaryComment, generalCount: general.length, postedGeneral, failedInline });
   // Only mark the commit reviewed if the agent finished AND every finding was surfaced.
   const reviewedSha = reviewComplete && fullySurfaced ? pr.headSha : lastReviewedSha;
-  if (!reviewComplete) core.warning(`Tier 3 was interrupted (${result.interruptedReason}); not marking ${pr.headSha.slice(0, 7)} reviewed so a re-run resumes.`);
+  if (!reviewComplete) {
+    const why = result.interruptedReason ? `was interrupted (${result.interruptedReason})` : 'never landed an accepted submit_findings';
+    core.warning(`Tier 3 ${why}; not marking ${pr.headSha.slice(0, 7)} reviewed so a re-run resumes.`);
+  }
 
   await writeJobSummary({ findings, dropped, capped, config, postedInline, postedGeneral, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit, confirmSuppressed: result.confirmSuppressed });
   await upsertStatus(

@@ -202,10 +202,6 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   // Distinct from `submitted`: the model can supply a valid audit array on a submit whose `findings`
   // is malformed, so "was an audit reported" is not answerable from "was the submit accepted".
   let auditReported = false;
-  // Did the ACCEPTED submit carry confirmSuppressed at all? The hedge bounce explicitly offers "or
-  // move it to `findings`", so an empty array on the resubmit is a legitimate retraction, not a
-  // dropped record — restoring the bank there resurrects a clearance the model withdrew.
-  let confirmSupplied = false;
   let auditRejected = false;
   let hedgeRejected = false;
   let reasoningSoFar = '';
@@ -216,16 +212,36 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let bankedConfirm = null;
   let bankedDismissed = null;
 
+  const concernKey = (s) => (typeof s === 'string' ? s.trim().toLowerCase() : '');
+
+  // The relation an earlier "was it supplied empty" flag was only approximating: a concern must never
+  // be FILED and CLEARED at once. Presence of *some* finding cannot tell you *this* concern moved.
+  const dropClearancesForFiledConcerns = () => {
+    const filed = new Set(
+      [
+        ...(findings ?? []).map((f) => concernKey(f?.title)),
+        ...confirmSuppressed.filter((c) => c?.verdict === 'is-a-bug-moved-to-findings').map((c) => concernKey(c?.claim)),
+      ].filter(Boolean),
+    );
+    if (!filed.size) return;
+    // A moved-to-findings row is KEPT: it is the gate succeeding, and the summary labels it "moved".
+    confirmSuppressed = confirmSuppressed.filter(
+      (c) => c?.verdict === 'is-a-bug-moved-to-findings' || !filed.has(concernKey(c?.claim)),
+    );
+    if (dismissed?.length) dismissed = dismissed.filter((d) => !filed.has(concernKey(d?.title)));
+  };
+
   const restoreBanked = () => {
     if (bankedFindings && !findings?.length) findings = bankedFindings;
+    // callSiteAudit has NO retraction path on purpose, and repeated reviews keep proposing one: neither
+    // bounce ever invites emptying it (the completeness trailer reads "Record the call-site audit, then
+    // submit"), and its schema spells "nothing to report" as a not_examined ROW, so an empty resubmit
+    // can only mean dropped. Making it retractable re-introduces the false "audit · none — no shared
+    // call shape reported as changed" on a run that reported one.
     if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
-    // Asymmetric on purpose. findings/audit/dismissed restore whenever they came back EMPTY, because a
-    // bounced model often resubmits minimally and an empty there means "dropped", not "retracted".
-    // confirmSuppressed is the exception: the hedge bounce invites the model to move a concern into
-    // `findings` instead, so an empty array it actually SUPPLIED is a deliberate retraction and must
-    // stand — otherwise the record publishes a clearance for a concern now filed as a bug.
-    if (bankedConfirm && !confirmSupplied) confirmSuppressed = bankedConfirm;
+    if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
     if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
+    dropClearancesForFiledConcerns();
   };
 
   let recordsLogged = false;
@@ -263,6 +279,15 @@ export async function runReviewAgent({ client, config, system, userMessage, root
 
   while (true) {
     const roundStart = Date.now();
+    // The HARD ceiling, checked before every round. It lives here rather than inside the wind-down
+    // block because the bounce branches `continue`, and once windingDown is set that block is skipped
+    // forever — so nesting it there let a bounced wind-down turn buy unbounded extra rounds at the
+    // most expensive point of the run (measured: 2.4x the ceiling with both gates firing).
+    if (governor.spentUsd() >= config.costCeilingUsd) {
+      if (!governor.interruptedReason) governor.interrupt('budget');
+      if (logLevel !== 'quiet') log(`[ceiling] $${governor.spentUsd().toFixed(2)} reached the $${config.costCeilingUsd} ceiling — stopping.`);
+      break;
+    }
     // When budget/rounds are about to be exceeded, give the model ONE final turn to submit the
     // findings it already has.
     if (!windingDown) {
@@ -272,7 +297,6 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         governor.interrupt(overRounds ? 'max_rounds' : 'budget');
         if (logLevel !== 'quiet')
           log(`[wind-down] ${overRounds ? 'round cap' : 'budget'} reached at $${governor.spentUsd().toFixed(2)} — asking the model to submit and stop.`);
-        if (governor.spentUsd() >= config.costCeilingUsd) break;
         windingDown = true;
         clearUserBreakpoints();
         const limitReached = overRounds
@@ -429,10 +453,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         callSiteAudit = submittedAudit;
         auditReported = true;
       }
-      if (Array.isArray(submittedConfirm)) {
-        confirmSuppressed = submittedConfirm;
-        confirmSupplied = true;
-      }
+      if (Array.isArray(submittedConfirm)) confirmSuppressed = submittedConfirm;
       if (Array.isArray(submittedFindings)) {
         submitted = true;
         findings = submittedFindings;
@@ -440,6 +461,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         findings = [];
       }
       if (Array.isArray(submittedDismissed)) dismissed = submittedDismissed;
+      // Restore BEFORE the log block on purpose: the count below reports what will actually be
+      // published, and logRecords() a few lines down is post-restore too. Moving it after the log
+      // makes the run say "→ 0 finding(s)" on a run that posts one.
       restoreBanked();
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
@@ -503,12 +527,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   logRecords();
 
   return {
-    findings: findings?.length ? findings : (bankedFindings ?? findings ?? []),
-    callSiteAudit: callSiteAudit.length ? callSiteAudit : (bankedAudit ?? []),
-    // Mirrors restoreBanked's exception: a SUPPLIED empty array is a retraction and must not be
-    // re-filled here either, or the bank sneaks back in past the guard above.
-    confirmSuppressed: confirmSuppressed.length || confirmSupplied ? confirmSuppressed : (bankedConfirm ?? []),
-    dismissed: dismissed?.length ? dismissed : (bankedDismissed ?? []),
+    findings: findings ?? [],
+    callSiteAudit,
+    confirmSuppressed,
+    dismissed: dismissed ?? [],
     usage: governor.totalUsage(),
     costUsd: governor.spentUsd(),
     usedFallback: modelIdx > 0,

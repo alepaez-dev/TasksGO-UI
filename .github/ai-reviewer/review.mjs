@@ -919,8 +919,8 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
     kept.push({
       file: f.file,
       line,
-      severity,
       confidence,
+      severity: SEVERITY_LABEL[severity] ? severity : 'low',
       category: CATEGORY_META[f.category] ? f.category : 'other',
       title: f.title.trim(),
       body: (f.body || '').trim(),
@@ -1072,7 +1072,14 @@ export function renderStatusBody({
   if (skipped) {
     lines.push(`⚠️ ${escapeHtmlText(note || 'Skipped — no review was run.', 1000)}`, '');
   } else if (posted > 0) {
-    lines.push(`Posted **${posted}** new issue(s). Previously reported (skipped): ${seenCount}.`, '');
+    // The withheld count has to be said out loud: `posted` alone reads as the whole story, and the
+    // `posted: 0` branch below DOES disclose them — so a partial post was the one case that silently
+    // dropped findings from the summary.
+    const withheld = Math.max(0, (findingsCount ?? posted) - posted);
+    lines.push(
+      `Posted **${posted}** new issue(s)${withheld ? `, **${withheld}** not posted (see the run log)` : ''}. Previously reported (skipped): ${seenCount}.`,
+      '',
+    );
   } else if (findingsCount > 0) {
     lines.push(
       `Found **${findingsCount}** new issue(s), but none were posted (off-diff with summaries disabled, or the GitHub API rejected them — see the run log). Previously reported: ${seenCount}.`,
@@ -1137,22 +1144,32 @@ export function extractClearedBlock(body) {
 export function renderClearanceRecord(confirmSuppressed) {
   const entries = (confirmSuppressed || []).filter((c) => c && typeof c === 'object');
   if (!entries.length) return '';
+  // Count the verdict space three ways, not two: a row with a missing or unrecognised verdict is
+  // neither cleared nor moved, and calling it "cleared" overstates the dismissals this record exists
+  // to make auditable. (A moved row is KEPT beside its finding on purpose — that is the gate working,
+  // and `moved` in the heading is its label; do not dedup it away.)
   const moved = entries.filter((c) => c.verdict === 'is-a-bug-moved-to-findings').length;
-  const cleared = entries.length - moved;
+  const cleared = entries.filter((c) => c.verdict === 'cleared-all-five-passed').length;
+  const unlabelled = entries.length - moved - cleared;
   const rows = entries.map((c) => {
     const cited = String(c.enforcingCode ?? '').trim();
+    const attempted = String(c.counterexample ?? '').trim();
     return (
       `<tr><td>${escapeHtmlText(c.claim, 300)}</td>` +
       `<td>${escapeHtmlText(c.verdict, 40)}</td>` +
       `<td>${escapeHtmlText(c.invariant, 200)}</td>` +
-      `<td>${cited ? `<code>${escapeHtmlText(cited, 200)}</code>` : '<strong>NO CODE CITED</strong>'}</td></tr>`
+      `<td>${cited ? `<code>${escapeHtmlText(cited, 200)}</code>` : '<strong>NO CODE CITED</strong>'}</td>` +
+      // Step 5 is published because it is the step that fails silently. Step 3 has a visible tell
+      // ("NO CODE CITED"), so a reader can spot an uncited clearance; an unattempted counterexample
+      // looked identical to a real one, which is how "cited but insufficient" clearances survived.
+      `<td>${attempted ? escapeHtmlText(attempted, 300) : '<strong>NOT ATTEMPTED — step 5 failed</strong>'}</td></tr>`
     );
   });
   return [
     '<details>',
-    `<summary>🔍 Clearance gate — ${cleared} cleared${moved ? `, ${moved} moved to findings` : ''}</summary>`,
+    `<summary>🔍 Clearance gate — ${cleared} cleared${moved ? `, ${moved} moved to findings` : ''}${unlabelled ? `, ${unlabelled} unlabelled` : ''}</summary>`,
     '',
-    `<table><tr><th>Claim</th><th>Verdict</th><th>Invariant</th><th>Enforced by</th></tr>${rows.join('')}</table>`,
+    `<table><tr><th>Claim</th><th>Verdict</th><th>Invariant</th><th>Enforced by</th><th>Counterexample tried</th></tr>${rows.join('')}</table>`,
     '',
     '</details>',
     '',

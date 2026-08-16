@@ -997,6 +997,39 @@ check('renderClearanceRecord does not count a failed gate as cleared', () => {
 });
 
 // core.summary.addRaw/addTable interpolate verbatim, and a cited line is usually source code.
+// The verdict space has THREE outcomes, and a row with no verdict is neither cleared nor moved —
+// counting it as cleared overstates the dismissals this record exists to make auditable.
+check('renderClearanceRecord counts the verdict space three ways', () => {
+  const out = renderClearanceRecord([
+    { claim: 'a', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: 'a:1', counterexample: 'tried' },
+    { claim: 'b', invariant: 'i', enforcingCode: 'b:1' },
+    { claim: 'c', verdict: 'is-a-bug-moved-to-findings', invariant: 'i', enforcingCode: 'c:1' },
+  ]);
+  assert.ok(out.includes('1 cleared, 1 moved to findings, 1 unlabelled'), 'an unlabelled verdict must not be counted as cleared');
+});
+
+// Step 3 already had a visible tell (NO CODE CITED); step 5 had none, so an unattempted counterexample
+// looked identical to a real one — which is how "cited but insufficient" clearances survived review.
+check('renderClearanceRecord publishes whether a counterexample was actually attempted', () => {
+  const out = renderClearanceRecord([{ claim: 'x', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: 'a:1', counterexample: '  ' }]);
+  assert.ok(out.includes('NOT ATTEMPTED — step 5 failed'), 'a blank counterexample must be visible in the published record');
+  assert.ok(out.includes('<th>Counterexample tried</th>'));
+});
+
+check('renderStatusBody discloses findings that were not posted', () => {
+  assert.ok(renderStatusBody({ posted: 2, findingsCount: 5 }).includes('**3** not posted'), 'a partial post must say what was withheld');
+  assert.ok(!renderStatusBody({ posted: 2, findingsCount: 2 }).includes('not posted'), 'and stay quiet when nothing was withheld');
+});
+
+// `category` was clamped and `severity` was not, so an off-enum severity rendered as "· undefined".
+check('filterFindings clamps an off-enum severity like it clamps category', () => {
+  const { findings } = filterFindings(
+    [{ file: 'a.ts', line: 1, severity: 'moderate', confidence: 'high', category: 'logic', title: 'T', body: '', suggestion: '' }],
+    { config: { ...DEFAULT_CONFIG, minConfidence: 'low', minSeverity: 'low', allowUnchangedFileFindings: true }, commentableByFile: new Map([['a.ts', new Set([1])]]), seenFingerprints: new Set() },
+  );
+  assert.equal(findings[0].severity, 'low', 'an unrecognised severity must fall back, not render as undefined');
+});
+
 check('renderClearanceRecord escapes markup — a cited JSX line renders as text, not live HTML', () => {
   const out = renderClearanceRecord([
     {
