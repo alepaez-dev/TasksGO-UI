@@ -104,14 +104,7 @@ function TicketOverviewRender() {
     setActiveStage,
     pipelineOpen,
     togglePipelineOpen,
-    branch,
-    branchDraft,
-    branchEditing,
     branchCopied,
-    startEditBranch,
-    changeBranchDraft,
-    confirmBranch,
-    cancelBranch,
     copyBranch,
     dev,
     scratchpad,
@@ -606,17 +599,8 @@ function TicketOverviewRender() {
             >
               <DevDetailsPanel
                 dev={dev}
-                branch={{
-                  value: branch,
-                  draftValue: branchDraft,
-                  editing: branchEditing,
-                  copied: branchCopied,
-                  onStartEdit: startEditBranch,
-                  onDraftChange: changeBranchDraft,
-                  onConfirm: confirmBranch,
-                  onCancel: cancelBranch,
-                  onCopy: copyBranch,
-                }}
+                branchCopied={branchCopied}
+                onCopyBranch={copyBranch}
               />
             </DevDetailsCard>
           </aside>

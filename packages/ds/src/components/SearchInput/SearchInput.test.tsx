@@ -65,6 +65,12 @@ describe('SearchInput', () => {
     expect(handleClear).toHaveBeenCalledOnce();
   });
 
+  it('keeps focus on the input when the clear button is clicked', async () => {
+    render(<SearchInput aria-label="Search" onClear={() => {}} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Clear search' }));
+    expect(screen.getByRole('searchbox')).toHaveFocus();
+  });
+
   it('does not render shortcutHint when onClear is present', () => {
     const { container } = render(
       <SearchInput aria-label="Search" shortcutHint="⌘K" onClear={() => {}} />,

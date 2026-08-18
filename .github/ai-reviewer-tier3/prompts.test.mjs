@@ -95,3 +95,4 @@ test('the prompt names the five confirmSuppressed fields it now depends on', () 
     assert.match(REVIEW_AGENT_SYSTEM_PROMPT, new RegExp(f), `${f} must be named in the prompt`);
   }
 });
+

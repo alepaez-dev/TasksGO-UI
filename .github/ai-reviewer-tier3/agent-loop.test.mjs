@@ -140,6 +140,65 @@ test('an empty callSiteAudit is logged as an explicit assertion, not silence', a
   assert.match(lines.join('\n'), /audit · none/, 'an empty audit must be distinguishable from no audit at all');
 });
 
+// "none" is a verdict the model gave. A run that never submitted was never asked, and the log must
+// not put that verdict in its mouth — the post-loop logRecords() reaches this on every exit path.
+test('a run that never submits does NOT claim the model reported an empty audit', async () => {
+  const client = stubClient([
+    { content: [{ type: 'text', text: 'Here are my thoughts in prose.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'Still prose, never calling the tool.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'And done.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.equal(out.submitted, false, 'this run never submitted');
+  assert.doesNotMatch(joined, /audit · none/, 'must not assert a verdict the model never gave');
+  assert.match(joined, /audit · not reported — the run never submitted/, 'must say the run never submitted');
+});
+
+// `submitted` answers "was the submit accepted", NOT "did the model report an audit". A malformed
+// `findings` leaves submitted=false on a turn that supplied a perfectly good (empty) audit, so the
+// two must be tracked separately or the log calls the model silent after it spoke.
+test('an empty audit on a malformed submit is still the model reporting none', async () => {
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: 'oops', callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.equal(out.submitted, false, 'a malformed findings payload is still not a valid submission');
+  assert.match(joined, /audit · none/, 'the model DID report an empty audit — say so');
+  assert.doesNotMatch(joined, /never submitted an audit/, 'must not call the model silent after it reported');
+});
+
+// Both bounces bank NON-EMPTY arrays only (an empty [] must not overwrite real banked records), so a
+// valid EMPTY audit survives neither the banking nor the accept path. The flag has to be set on every
+// branch that saw the array, or a bounced-then-stalled run reports the model silent after it spoke.
+for (const [label, input] of [
+  ['the completeness gate', { findings: [], callSiteAudit: [] }], //             confirmSuppressed missing -> bounced
+  ['the hedge bounce', { findings: [], callSiteAudit: [], confirmSuppressed: [] }], // hand-wave -> bounced
+]) {
+  test(`an empty audit reported on a turn bounced by ${label} still counts as reported`, async () => {
+    const client = stubClient([
+      {
+        content: [
+          { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+          { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input },
+        ],
+        usage: { input_tokens: 100, output_tokens: 10 },
+      },
+      { content: [{ type: 'text', text: 'I have nothing more to add.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+      { content: [{ type: 'text', text: 'Still nothing.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    ]);
+    const lines = [];
+    const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+    const joined = lines.join('\n');
+    assert.equal(out.submitted, false, 'the run never landed an accepted submit');
+    assert.match(joined, /audit · none/, 'the model reported an empty audit before the bounce');
+    assert.doesNotMatch(joined, /never submitted an audit/, 'must not call the model silent after it reported');
+  });
+}
+
 test('a bounced turn answers EVERY tool_use block (a missing tool_result is a 400 on the next request)', async () => {
   const scripted = [
     // Parallel tool use: grep + submit_findings in ONE turn, submit missing the audit -> bounce.
@@ -209,6 +268,28 @@ test('the audit gate fires, then a budget death STOPS the run — the bounce mus
   assert.equal(out.interruptedReason, 'budget');
   assert.deepEqual(out.findings, found, 'the bounced findings survive the budget death');
   assert.equal(out.submitted, false, 'a bounced submit is not a completed submission — the commit must not be marked reviewed');
+});
+
+// The wind-down message asks only for "every genuine bug you have confirmed so far" and never names
+// callSiteAudit/confirmSuppressed, so a minimal submit is the COMPLIANT reply and the completeness
+// bounce is the expected outcome. Those bounce rounds `continue`, and windingDown makes the wind-down
+// block unreachable — so the ceiling has to be checked at the top of the loop, not inside it.
+test('a bounced wind-down turn cannot buy extra rounds past the cost ceiling', async () => {
+  const usage = { input_tokens: 200000, output_tokens: 8000 }; // ≈ $1.20 a round at 5/25 per M
+  const cfg = { ...config, costCeilingUsd: 2, pricing: { 'claude-opus-4-8': { input: 5, output: 25 } }, model: 'claude-opus-4-8' };
+  const found = [{ file: 'a.ts', line: 1, title: 'Real bug', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '', confidenceBasis: 'a.ts:1' }];
+  const client = stubClient([
+    { content: [{ type: 'text', text: 'thinking' }], usage }, // round 1 → $1.20, trips wind-down
+    // round 2: the natural minimal reply to the wind-down prompt → completeness bounce → `continue`
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: found } }], usage },
+    // these must never run
+    { content: [{ type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' }, { type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: found, callSiteAudit: [], confirmSuppressed: [] } }], usage },
+    { content: [{ type: 'tool_use', id: 'tu_3', name: 'submit_findings', input: { findings: found, callSiteAudit: [], confirmSuppressed: [] } }], usage },
+  ]);
+  const out = await runReviewAgent({ client, config: cfg, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.equal(out.rounds, 2, 'the bounce must not start a third round once the ceiling is reached');
+  assert.ok(out.costUsd <= 2.4 + 1e-9, `spend must stop at the one sanctioned overrun round, got $${out.costUsd}`);
+  assert.deepEqual(out.findings, found, 'and the banked findings still survive the stop');
 });
 
 test('a bounced submit does not lose its findings if the run then dies on budget', async () => {
@@ -715,8 +796,160 @@ test('an empty resubmit does not wipe the callSiteAudit banked by the hedge boun
   ]);
   const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
   assert.deepEqual(out.callSiteAudit, audit, 'completed call-site audit work must survive the bounce');
-  assert.deepEqual(out.confirmSuppressed, confirm, 'the suppression record must survive the bounce');
+  // This resubmit reported NO findings, so the model promoted nothing — the empty confirmSuppressed is
+  // a dropped record like the others, and the bank is the better answer. Contrast the promote-and-empty
+  // test below, where the same empty array IS a retraction because the concern moved into `findings`.
+  assert.deepEqual(out.confirmSuppressed, confirm, 'nothing was promoted, so an empty record is a drop');
 });
+
+// The compliant path through the hedge bounce: the model is told "put it in confirmSuppressed … or
+// move it to findings", it chooses findings, and resubmits with confirmSuppressed: []. Re-injecting
+// the bank there publishes "Clearance gate — 1 cleared" for a concern the model just filed as a bug.
+test('a concern promoted into findings is not resurrected as a cleared entry', async () => {
+  const claim = 'the transient a11y window';
+  const cleared = [{ claim, predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' }];
+  const promoted = [{ file: 'a.ts', line: 1, title: claim, body: 'b', confidence: 'high', severity: 'low', category: 'bug', suggestion: '', confidenceBasis: 'a.ts:1' }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: cleared } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    // obeys the bounce: promotes the concern and empties the suppression record
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: promoted, callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.findings.length, 1, 'the promoted concern is reported');
+  assert.deepEqual(out.confirmSuppressed, [], 'and must NOT also appear as cleared');
+  assert.ok(
+    !out.confirmSuppressed.some((c) => c.claim === out.findings[0].title),
+    'the same concern must never be both a finding and a clearance',
+  );
+});
+
+test('the exit restore cannot resurrect a bank the accept path already settled', async () => {
+  const cl = (claim) => ({ claim, predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' });
+  const promoted = [{ file: 'a.ts', line: 1, title: 'concern A', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '', confidenceBasis: 'a.ts:1' }];
+  const client = stubClient([
+    // round 1 banks BOTH clearances
+    {
+      content: [
+        { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [cl('concern A'), cl('concern B')] } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    // round 2 accepted: promotes A, and its record contains ONLY A — so the drop empties it
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: promoted, callSiteAudit: [], confirmSuppressed: [cl('concern A')] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  assert.deepEqual(out.confirmSuppressed, [], 'concern B was never in the final submit and must not come back');
+  assert.equal(
+    lines.filter((l) => l.startsWith('  confirm · ')).length,
+    out.confirmSuppressed.length,
+    'the run log and the published record must agree',
+  );
+});
+
+// The invariant is about IDENTITY, not presence. An unrelated finding on the resubmit must not cost
+// the whole clearance record — that was the flaw in the earlier "did this submit report findings" rule.
+test('an UNRELATED finding does not discard the banked clearance record', async () => {
+  const unrelated = [{ file: 'z.ts', line: 9, title: 'Unrelated bug in Button', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '', confidenceBasis: 'z.ts:9' }];
+  const cleared = [{ claim: 'a totally different cleared concern', predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: unrelated, callSiteAudit: [], confirmSuppressed: cleared } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: unrelated, callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.confirmSuppressed, cleared, 'an unrelated finding must not cost the clearance record');
+});
+
+// A moved-to-findings row is the gate SUCCEEDING and must be kept beside its finding — and its claim
+// is the cross-reference that survives the finding being reworded on the way into `findings`.
+test('a moved-to-findings claim clears its twin even when the finding was reworded', async () => {
+  const claim = 'stale ref after unmount';
+  const moved = [{ claim, predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'is-a-bug-moved-to-findings' }];
+  const alsoCleared = [...moved, { claim, predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' }];
+  const reworded = [{ file: 'a.ts', line: 1, title: 'Drawer keeps a stale element ref after it unmounts', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '', confidenceBasis: 'a.ts:1' }];
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: reworded, callSiteAudit: [], confirmSuppressed: alsoCleared, dismissed: [{ title: claim, why: 'w' }] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.confirmSuppressed.length, 1, 'the duplicate CLEARED twin is dropped');
+  assert.equal(out.confirmSuppressed[0].verdict, 'is-a-bug-moved-to-findings', 'the moved row is kept — that is the gate working');
+  assert.deepEqual(out.dismissed, [], 'and the PR comment must not clear a concern this run filed');
+});
+
+// The whole restore table, not just the cells that got reported. Five defects in this area were fixes
+// that were right for the reported cell and wrong for a neighbouring one; this pins every cell so the
+// next change has to state which one it means to move.
+{
+  const F1 = [{ file: 'a.ts', line: 1, title: 'F1', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '', confidenceBasis: 'a.ts:1' }];
+  const A1 = [{ file: 'a.ts', quotedLine: 'A1', verdict: 'passes', why: 'w' }];
+  const C1 = [{ claim: 'C1', predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' }];
+  const D1 = [{ title: 'D1', why: 'w' }];
+  const FRESH = {
+    findings: [{ file: 'b.ts', line: 2, title: 'F2', body: 'b', confidence: 'high', severity: 'high', category: 'logic', suggestion: '', confidenceBasis: 'b.ts:2' }],
+    callSiteAudit: [{ file: 'b.ts', quotedLine: 'A2', verdict: 'passes', why: 'w' }],
+    confirmSuppressed: [{ claim: 'C2', predictedFailure: 'p', invariant: 'i', enforcingCode: 'b.ts:2', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' }],
+    dismissed: [{ title: 'D2', why: 'w' }],
+  };
+  const idOf = (arr) => (arr?.length ? (arr[0].title ?? arr[0].claim ?? arr[0].quotedLine) : 'EMPTY');
+
+  // Round 1 banks all four (hedge-bounced). Round 2 varies ONE record; the rest come back supplied-empty.
+  const bounceThenResubmit = async (round2) =>
+    runReviewAgent({
+      client: stubClient([
+        {
+          content: [
+            { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+            { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: F1, callSiteAudit: A1, confirmSuppressed: C1, dismissed: D1 } },
+          ],
+          usage: { input_tokens: 100, output_tokens: 10 },
+        },
+        { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: round2 }], usage: { input_tokens: 100, output_tokens: 10 } },
+        // An ABSENT record trips the completeness gate, so that turn is bounced too and the model has
+        // to answer once more. The gate is one-shot, so the identical payload is accepted next time.
+        { content: [{ type: 'tool_use', id: 'tu_3', name: 'submit_findings', input: round2 }], usage: { input_tokens: 100, output_tokens: 10 } },
+      ]),
+      config, system: 'sys', userMessage: 'r', root, log: () => {},
+    });
+
+  const BANK = { findings: 'F1', callSiteAudit: 'A1', confirmSuppressed: 'C1', dismissed: 'D1' };
+  // The rule, stated once: a submitted non-empty array wins, otherwise the bank does. Retraction is
+  // NOT a per-record state — it is the filed/cleared invariant, and it only removes a clearance whose
+  // claim IDENTIFIES a filed concern. None of the fixtures here collide, so nothing is dropped; the
+  // identity case has its own test below.
+  const expectFor = (record, input) => (Array.isArray(input[record]) && input[record].length ? idOf(FRESH[record]) : BANK[record]);
+
+  for (const record of ['findings', 'callSiteAudit', 'confirmSuppressed', 'dismissed']) {
+    for (const [state, build] of [
+      ['absent', (i) => { delete i[record]; }],
+      ['supplied-empty', (i) => { i[record] = []; }],
+      ['supplied-non-empty', (i) => { i[record] = FRESH[record]; }],
+    ]) {
+      test(`restore table: ${record} ${state}`, async () => {
+        const input = { findings: [], callSiteAudit: [], confirmSuppressed: [], dismissed: [] };
+        build(input);
+        const out = await bounceThenResubmit(input);
+        // Assert EVERY record, not just the varied one — the cross-record rule (findings promoting a
+        // concern retracts confirmSuppressed) is exactly the kind of coupling point fixes kept missing.
+        for (const r of ['findings', 'callSiteAudit', 'confirmSuppressed', 'dismissed']) {
+          assert.equal(idOf(out[r]), expectFor(r, input), `${record} ${state}: ${r} must resolve to ${expectFor(r, input)}`);
+        }
+      });
+    }
+  }
+}
 
 test('a populated callSiteAudit survives the audit-gate bounce when confirmSuppressed was missing', async () => {
   const audit = [{ file: 'b.ts', quotedLine: 'g(y)', verdict: 'bug', why: 'omission erases shared state' }];
@@ -864,4 +1097,83 @@ test('a cleared concern logs its cited enforcing code, and a missing citation is
   assert.match(joined, /agent-loop\.mjs:294/, 'the cited enforcing line must be visible in the run log');
   assert.match(joined, /NO CODE CITED/, 'an empty enforcingCode must be called out, not printed as blank');
   assert.match(joined, /NOT ATTEMPTED/, 'a missing counterexample must be called out');
+});
+
+// Six break statements reach the return without passing the in-submit restore, so a bounced submit's
+// audit/confirm were banked and then dropped on any non-submit exit.
+test("a bounced submit's audit and confirm survive a no-tool-call exit", async () => {
+  const audit = [{ file: 'a.ts', quotedLine: 'fn(x)', verdict: 'passes', why: 'supplies the field' }];
+  const confirm = [{ claim: 'c', predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: audit, confirmSuppressed: confirm } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    { content: [{ type: 'text', text: 'I am done.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'Still done.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.submitted, false, 'no successful submit happened');
+  assert.deepEqual(out.callSiteAudit, audit, 'banked audit must survive an exit that never reaches the submit branch');
+  assert.deepEqual(out.confirmSuppressed, confirm, 'banked confirm must survive the same exit');
+});
+
+test('the accepted-submit path still wins over the bank', async () => {
+  const banked = [{ file: 'a.ts', quotedLine: 'old', verdict: 'passes', why: 'old' }];
+  const fresh = [{ file: 'a.ts', quotedLine: 'new', verdict: 'bug', why: 'revised' }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'this is harmless, skipping.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: banked, confirmSuppressed: [] } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: fresh, confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.deepEqual(out.callSiteAudit, fresh, 'a non-empty resubmit must still beat the bank');
+});
+
+// Restoring the records is pointless if nobody can read them: every exit path breaks before the
+// submit branch's logging, so a bounced-then-interrupted run printed nothing about the gate.
+test('the audit and the clearance gate are logged even when the run never submits', async () => {
+  const audit = [{ file: 'a.ts', line: 7, quotedLine: 'fn(x)', verdict: 'bug', why: 'omission erases shared state' }];
+  const confirm = [{
+    claim: 'dismissed lost on exit', predictedFailure: 'bank then break', invariant: 'none enforced',
+    enforcingCode: 'agent-loop.mjs:466 `dismissed ?? []`', coversThisPath: 'breaks never set it',
+    counterexample: 'constructed it', verdict: 'cleared-all-five-passed',
+  }];
+  const client = stubClient([
+    {
+      content: [
+        { type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' },
+        { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: audit, confirmSuppressed: confirm } },
+      ],
+      usage: { input_tokens: 100, output_tokens: 10 },
+    },
+    { content: [{ type: 'text', text: 'I am done.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'Still done.' }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.equal(out.submitted, false, 'this run never successfully submitted');
+  assert.match(joined, /audit · BUG .*a\.ts:7/, 'the banked audit must be readable in the run log');
+  assert.match(joined, /confirm · CLEARED-ALL-FIVE-PASSED dismissed lost on exit/, 'the gate record must be readable');
+  assert.match(joined, /invariant: none enforced/, 'the failed gate step must be readable');
+  assert.doesNotMatch(joined, /submit_findings →/, 'a run that never submitted must not claim it did');
+});
+
+test('a normal submit logs the records exactly once', async () => {
+  const audit = [{ file: 'a.ts', line: 1, quotedLine: 'fn(x)', verdict: 'passes', why: 'supplies it' }];
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: audit, confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const lines = [];
+  await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  assert.equal(lines.filter((l) => /audit · PASSES/.test(l)).length, 1, 'the restore-path call must not double-log');
 });

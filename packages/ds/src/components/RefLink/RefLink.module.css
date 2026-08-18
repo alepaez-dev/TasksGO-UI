@@ -1,0 +1,64 @@
+.refLink {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.boxed {
+  padding-right: var(--ds-space-scale-xs);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-secondary);
+}
+
+.link {
+  min-width: 0;
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-property-row-value-font-size);
+  line-height: var(--ds-text-property-row-value-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.boxed .link {
+  padding-right: 0;
+}
+
+.linkCopied {
+  color: var(--ds-color-badge-success-text);
+}
+
+.copiedToast {
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-section-header-font-size);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ds-color-text-secondary);
+  flex-shrink: 0;
+}
+
+.copyButton {
+  flex-shrink: 0;
+}
+
+@media (pointer: coarse) {
+  .copyButton {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

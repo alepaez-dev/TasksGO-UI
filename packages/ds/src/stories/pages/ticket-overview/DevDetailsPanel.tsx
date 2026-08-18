@@ -1,32 +1,20 @@
 import { SectionHeader } from '../../../components/SectionHeader';
 import { PropertyRow } from '../../../components/PropertyRow';
-import { EditableRefField } from '../../../components/EditableRefField';
+import { RefLink } from '../../../components/RefLink';
 import { ActivityRow } from '../../../components/ActivityRow';
 import { Badge } from '../../../components/Badge';
 import { ExternalLink } from '../../../components/ExternalLink';
 import { Avatar } from '../../../components/Avatar';
 import { Icon } from '../../../components/Icon';
 import { cn } from '../../../utils/cn';
-import type { BadgeProps } from '../../../components/Badge';
 import type { IconName } from '../../../icons';
-import type { DevData, DevPullRequest } from './shared';
+import { PR_BADGE, type DevData, type DevPullRequest } from './shared';
 import styles from './DevDetailsPanel.module.css';
-
-export interface DevBranchFieldProps {
-  value: string;
-  draftValue: string;
-  editing: boolean;
-  copied: boolean;
-  onStartEdit: () => void;
-  onDraftChange: (next: string) => void;
-  onConfirm: () => void;
-  onCancel: () => void;
-  onCopy: () => void;
-}
 
 export interface DevDetailsPanelProps {
   dev: DevData;
-  branch: DevBranchFieldProps;
+  branchCopied: boolean;
+  onCopyBranch: () => void;
 }
 
 type CiStatus = DevData['repository']['ci']['status'];
@@ -44,16 +32,16 @@ const CI_CLASS: Record<CiStatus, string> = {
 
 const PR_ICON_CLASS: Record<DevPullRequest['state'], string> = {
   open: styles.prIconInfo,
+  draft: styles.prIconMuted,
   merged: styles.prIconSuccess,
   closed: styles.prIconDanger,
 };
-const PR_BADGE: Record<DevPullRequest['state'], BadgeProps['variant']> = {
-  open: 'progress',
-  merged: 'success',
-  closed: 'critical',
-};
 
-export function DevDetailsPanel({ dev, branch }: DevDetailsPanelProps) {
+export function DevDetailsPanel({
+  dev,
+  branchCopied,
+  onCopyBranch,
+}: DevDetailsPanelProps) {
   const { repository: repo, commits } = dev;
   const { ci } = repo;
 
@@ -70,21 +58,12 @@ export function DevDetailsPanel({ dev, branch }: DevDetailsPanelProps) {
             label="Branch"
             className={styles.branchRow}
           >
-            <EditableRefField
-              icon="fork_right"
+            <RefLink
               boxed
-              value={branch.value}
-              placeholder="Add branch"
-              editing={branch.editing}
-              draftValue={branch.draftValue}
-              copied={branch.copied}
-              onStartEdit={branch.onStartEdit}
-              onDraftChange={branch.onDraftChange}
-              onConfirm={branch.onConfirm}
-              onCancel={branch.onCancel}
-              onCopy={branch.onCopy}
-              editAriaLabel="Edit branch"
-              inputAriaLabel="Branch name"
+              value={repo.branch}
+              href={repo.branchUrl}
+              copied={branchCopied}
+              onCopy={onCopyBranch}
               copyAriaLabel="Copy branch"
             />
           </PropertyRow>

@@ -64,6 +64,7 @@ export { Checkbox, type CheckboxProps } from './components/Checkbox';
 export { TicketId, type TicketIdProps } from './components/TicketId';
 export { DateCell, type DateCellProps } from './components/DateCell';
 export { RefLabel, type RefLabelProps } from './components/RefLabel';
+export { RefLink, type RefLinkProps } from './components/RefLink';
 export {
   ExternalLink,
   type ExternalLinkProps,
@@ -147,10 +148,6 @@ export {
   type TaskDrawerSectionProps,
 } from './components/TaskDrawer';
 export { PropertyRow, type PropertyRowProps } from './components/PropertyRow';
-export {
-  EditableRefField,
-  type EditableRefFieldProps,
-} from './components/EditableRefField';
 export {
   EditableMarkdown,
   type EditableMarkdownProps,
