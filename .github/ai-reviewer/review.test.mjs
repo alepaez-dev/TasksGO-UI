@@ -27,6 +27,10 @@ import {
   buildVerifyMarker,
   parseVerifyMarker,
   renderVerifyReply,
+  renderClearanceRecord,
+  renderInlineBody,
+  escapeHtmlText,
+  mergeThreadComments,
   selectThreadsToVerify,
   extractWindow,
   shouldPostVerifyReply,
@@ -315,6 +319,17 @@ check('renderStatusBody shows cost and is NOT parsed as a finding marker', () =>
   assert.equal(parseMarkers(body).length, 0);
 });
 
+// `note` is the one status/summary value that interpolates PR-controlled text: the too-large-file
+// note lists changed FILENAMES, and `<`/`&` are legal in them. GitHub renders a subset of HTML in
+// comment bodies, so an unescaped note is live markup from a fork PR.
+check('renderStatusBody escapes a note carrying a hostile filename', () => {
+  const note = 'No findings review: the only changed file(s) were too large (src/<img src=x onerror=alert(1)>.ts).';
+  const body = renderStatusBody({ skipped: true, note, markerPrefix: 'ai-reviewer-tier3' });
+  assert.ok(body.includes('src/&lt;img src=x onerror=alert(1)&gt;.ts'), 'the filename must render as text');
+  assert.ok(!/<img/.test(body), 'no live markup may reach the status comment');
+  assert.equal(parseMarkers(body).length, 0, 'and it still must not forge a finding marker');
+});
+
 check('renderStatusBody reports a skip with no spend', () => {
   const body = renderStatusBody({ model: 'claude-opus-4-8', skipped: true, note: 'Skipped — too large.', inputTokens: 999999 });
   assert.match(body, /⚠️ Skipped — too large\./);
@@ -550,13 +565,45 @@ check('extractWindow clamps long lines and keeps the flagged line under a char b
   assert.ok(!/z{200}/.test(win), 'long lines should be clamped');
 });
 
-check('shouldPostVerifyReply is idempotent: announce fixed/unsure once, quiet on still-present (M1)', () => {
+check('shouldPostVerifyReply is idempotent: each status announced once, including still-present (M1)', () => {
   assert.equal(shouldPostVerifyReply('fixed', null), true);
   assert.equal(shouldPostVerifyReply('fixed', 'fixed'), false); // already announced -> idempotent
   assert.equal(shouldPostVerifyReply('unsure', null), true);
   assert.equal(shouldPostVerifyReply('unsure', 'unsure'), false);
-  assert.equal(shouldPostVerifyReply('still_present', null), false);
-  assert.equal(shouldPostVerifyReply('still_present', 'fixed'), false);
+  // still-present is news the first time and after any other verdict: silence and success look the
+  // same to someone who just pushed a fix. Repeats stay quiet.
+  assert.equal(shouldPostVerifyReply('still_present', null), true);
+  assert.equal(shouldPostVerifyReply('still_present', 'fixed'), true);
+  assert.equal(shouldPostVerifyReply('still_present', 'still_present'), false);
+});
+
+check('mergeThreadComments keeps the root first and the newest comments last', () => {
+  const c = (id, body) => ({ id, body });
+  // Short thread: the two windows overlap, so `recent` already starts with the root.
+  const short = mergeThreadComments([c('r', 'root')], [c('r', 'root'), c('2', 'reply')]);
+  assert.deepEqual(short.map((x) => x.id), ['r', '2'], 'the root must not be duplicated');
+  // Long thread: the root has fallen out of the tail window and must be prepended.
+  const long = mergeThreadComments([c('r', 'root')], [c('80', 'old'), c('81', 'newest')]);
+  assert.deepEqual(long.map((x) => x.id), ['r', '80', '81'], 'root first, newest last');
+  assert.deepEqual(mergeThreadComments(null, null), [], 'missing windows are not a crash');
+  assert.deepEqual(mergeThreadComments([c('r', 'root')], []).map((x) => x.id), ['r']);
+});
+
+check('a long thread still reads back its newest verify marker (no re-posted reply)', () => {
+  const bot = 'github-actions';
+  const author = { login: bot, type: 'Bot' };
+  const rootBody = 'finding\n<!-- ai-reviewer v1 {"fp":"abc","file":"a.ts","line":1,"title":"t"} -->';
+  const verify = (status) => ({ id: status, body: `r\n<!-- ai-reviewer-verify v1 {"status":"${status}"} -->`, user: author });
+  // Root fell out of the tail window; the tail holds an older then a newer verify marker.
+  const comments = mergeThreadComments(
+    [{ id: 'r', body: rootBody, diffHunk: '@@', user: author }],
+    [verify('unsure'), verify('still_present')],
+  );
+  const [item] = selectThreadsToVerify([{ id: 'T', isResolved: false, comments }], { botActor: bot });
+  assert.ok(item, 'the thread is still identified even though the root left the tail window');
+  assert.equal(item.fp, 'abc');
+  assert.equal(item.lastVerifyStatus, 'still_present', 'the NEWEST marker wins');
+  assert.equal(shouldPostVerifyReply('still_present', item.lastVerifyStatus), false, 'so no duplicate reply');
 });
 
 check('orderThreadsForVerification puts never-checked + outdated first so the cap does not starve them (M3)', () => {
@@ -568,6 +615,26 @@ check('orderThreadsForVerification puts never-checked + outdated first so the ca
     c('new-fresh', null, false),
   ]).map((t) => t.threadId);
   assert.deepEqual(ordered, ['new-outdated', 'new-fresh', 'checked-outdated', 'checked-fresh']);
+});
+
+// A still-present thread is the one a push is most likely to fix, so it must not sort behind a
+// settled one. Before still_present could reply it never carried a marker, so this tier was
+// unreachable and the M3 case above was using it as a stand-in for "checked".
+check('orderThreadsForVerification ranks still-present ahead of settled threads (M3b)', () => {
+  const c = (id, lastVerifyStatus, isOutdated) => ({ threadId: id, lastVerifyStatus, isOutdated });
+  const ordered = orderThreadsForVerification([
+    c('fixed-fresh', 'fixed', false),
+    c('still-fresh', 'still_present', false),
+    c('unsure-outdated', 'unsure', true),
+    c('never-fresh', null, false),
+    c('still-outdated', 'still_present', true),
+    c('never-outdated', null, true),
+  ]).map((t) => t.threadId);
+  assert.deepEqual(ordered, [
+    'never-outdated', 'never-fresh',      // rank 0, 1
+    'still-outdated', 'still-fresh',      // rank 2, 3 — ahead of anything settled
+    'unsure-outdated', 'fixed-fresh',     // rank 4, 5
+  ]);
 });
 
 check('classifyVerifyFile maps fetch outcome + file status to a disposition (B1)', () => {
@@ -898,6 +965,116 @@ check('filterFindings: unchanged-file findings drop by default (Tier 2) but rout
   assert.deepEqual(t3.offDiffDropped, [
     { file: 'other.ts', line: 13, confidence: 'medium', category: 'bug', title: 'cross-file medium in undiffed file' },
   ]);
+});
+
+check('renderClearanceRecord surfaces the gate, and flags an uncited clearance (M1)', () => {
+  assert.equal(renderClearanceRecord([]), '');
+  assert.equal(renderClearanceRecord(null), '');
+  assert.equal(renderClearanceRecord([null, 'nope']), '');
+  const out = renderClearanceRecord([
+    { claim: 'dismissed lost on exit', verdict: 'cleared-all-five-passed', invariant: 'none enforced', enforcingCode: 'agent-loop.mjs:466' },
+  ]);
+  assert.ok(out.includes('1 cleared'));
+  assert.ok(!out.includes('moved to findings'), 'nothing was promoted, so do not mention it');
+  assert.ok(out.includes('dismissed lost on exit'));
+  assert.ok(out.includes('agent-loop.mjs:466'));
+  // a clearance with no citation must be visibly called out, not rendered blank
+  const uncited = renderClearanceRecord([{ claim: 'x', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: '  ' }]);
+  assert.ok(uncited.includes('NO CODE CITED'));
+});
+
+// confirmSuppressed carries BOTH gate outcomes; a promoted bug is not a dismissal and must not be
+// counted as one — this record is what a human audits the reviewer's silence with.
+check('renderClearanceRecord does not count a failed gate as cleared', () => {
+  const out = renderClearanceRecord([
+    { claim: 'really cleared', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: 'a.mjs:1' },
+    { claim: 'gate failed, promoted', verdict: 'is-a-bug-moved-to-findings', invariant: 'none', enforcingCode: '' },
+  ]);
+  assert.ok(out.includes('1 cleared'), 'only the passing entry counts as cleared');
+  assert.ok(out.includes('1 moved to findings'), 'the promoted one is reported separately');
+  assert.ok(!out.includes('2 cleared'), 'the count must not lump the two outcomes together');
+  // both rows still render — the promoted entry is the gate working, and worth seeing
+  assert.ok(out.includes('really cleared') && out.includes('gate failed, promoted'));
+});
+
+// core.summary.addRaw/addTable interpolate verbatim, and a cited line is usually source code.
+// The verdict space has THREE outcomes, and a row with no verdict is neither cleared nor moved —
+// counting it as cleared overstates the dismissals this record exists to make auditable.
+check('renderClearanceRecord counts the verdict space three ways', () => {
+  const out = renderClearanceRecord([
+    { claim: 'a', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: 'a:1', counterexample: 'tried' },
+    { claim: 'b', invariant: 'i', enforcingCode: 'b:1' },
+    { claim: 'c', verdict: 'is-a-bug-moved-to-findings', invariant: 'i', enforcingCode: 'c:1' },
+  ]);
+  assert.ok(out.includes('1 cleared, 1 moved to findings, 1 unlabelled'), 'an unlabelled verdict must not be counted as cleared');
+});
+
+// Step 3 already had a visible tell (NO CODE CITED); step 5 had none, so an unattempted counterexample
+// looked identical to a real one — which is how "cited but insufficient" clearances survived review.
+check('renderClearanceRecord publishes whether a counterexample was actually attempted', () => {
+  const out = renderClearanceRecord([{ claim: 'x', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: 'a:1', counterexample: '  ' }]);
+  assert.ok(out.includes('NOT ATTEMPTED — step 5 failed'), 'a blank counterexample must be visible in the published record');
+  assert.ok(out.includes('<th>Counterexample tried</th>'));
+});
+
+check('renderStatusBody discloses findings that were not posted', () => {
+  assert.ok(renderStatusBody({ posted: 2, findingsCount: 5 }).includes('**3** not posted'), 'a partial post must say what was withheld');
+  assert.ok(!renderStatusBody({ posted: 2, findingsCount: 2 }).includes('not posted'), 'and stay quiet when nothing was withheld');
+});
+
+// `category` was clamped and `severity` was not, so an off-enum severity rendered as "· undefined".
+check('filterFindings clamps a prototype key, not just an unknown one', () => {
+  for (const evil of ['constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+    const { findings } = filterFindings(
+      [{ file: 'a.ts', line: 1, severity: evil, confidence: evil, category: evil, title: 'T', body: '', suggestion: '' }],
+      { config: { ...DEFAULT_CONFIG, minConfidence: 'low', minSeverity: 'low', allowUnchangedFileFindings: true }, commentableByFile: new Map([['a.ts', new Set([1])]]), seenFingerprints: new Set() },
+    );
+    if (!findings.length) continue; // dropped by a threshold is also a safe outcome
+    assert.equal(findings[0].severity, 'low', `severity "${evil}" must clamp`);
+    assert.equal(findings[0].category, 'other', `category "${evil}" must clamp`);
+    const first = renderInlineBody(findings[0]).split('\n')[0];
+    assert.ok(!/native code|undefined/.test(first), `"${evil}" must not reach the comment: ${first}`);
+  }
+});
+
+check('filterFindings clamps an off-enum severity like it clamps category', () => {
+  const { findings } = filterFindings(
+    [{ file: 'a.ts', line: 1, severity: 'moderate', confidence: 'high', category: 'logic', title: 'T', body: '', suggestion: '' }],
+    { config: { ...DEFAULT_CONFIG, minConfidence: 'low', minSeverity: 'low', allowUnchangedFileFindings: true }, commentableByFile: new Map([['a.ts', new Set([1])]]), seenFingerprints: new Set() },
+  );
+  assert.equal(findings[0].severity, 'low', 'an unrecognised severity must fall back, not render as undefined');
+});
+
+check('renderClearanceRecord escapes markup — a cited JSX line renders as text, not live HTML', () => {
+  const out = renderClearanceRecord([
+    {
+      claim: 'a & b',
+      verdict: 'cleared-all-five-passed',
+      invariant: 'i',
+      enforcingCode: 'DevDetailsCard.tsx:41 <div className={styles.collapseInner}>{shouldRender && children}</div>',
+    },
+  ]);
+  assert.ok(out.includes('&lt;div className={styles.collapseInner}&gt;'), 'the cited source line must be escaped');
+  assert.ok(!/<div className=/.test(out), 'no live markup may reach the job summary');
+  assert.ok(out.includes('a &amp; b'), 'ampersands escape too, and before the angle brackets');
+  assert.ok(out.includes('<td>') && out.includes('<code>'), 'our own wrapper tags stay intact');
+  // a citation is evidence: escaping must make it safe to display, never edit what it says
+  const verbatim = renderClearanceRecord([
+    { claim: 'c', verdict: 'cleared-all-five-passed', invariant: 'i', enforcingCode: 'loop.ts:9 while (x --> 0)  step();' },
+  ]);
+  assert.ok(verbatim.includes('while (x --&gt; 0)  step();'), '`-->` and internal spacing must survive verbatim');
+  assert.ok(!verbatim.includes('→'), 'sanitizeText’s `-->` rewrite must not reach a citation');
+});
+
+// Every job-summary table interpolates cells verbatim (core.summary.wrap does no escaping), so any
+// model-supplied cell — findings title/file as well as audit and clearance cells — must go through
+// escapeHtmlText. A finding ABOUT a comparison is the everyday case that breaks.
+check('escapeHtmlText makes model free text safe to interpolate into a summary cell', () => {
+  assert.equal(escapeHtmlText('comparator `a < b` inverted & unhandled', 300), 'comparator `a &lt; b` inverted &amp; unhandled');
+  assert.equal(escapeHtmlText('src/<weird>.tsx:12', 200), 'src/&lt;weird&gt;.tsx:12');
+  assert.equal(escapeHtmlText(null), '', 'nullish is empty, never "null"');
+  assert.equal(escapeHtmlText('x'.repeat(10), 4), 'xxxx', 'max counts source characters');
+  assert.equal(escapeHtmlText('&&&', 2), '&amp;&amp;', 'slice happens before escaping, so entities are never split');
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);

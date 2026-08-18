@@ -113,7 +113,7 @@ function logRound({ log, logLevel, config, rounds, msg, uses, outs, spentUsd, fr
       if (raw) log(`      ⤷ ${raw}`);
     }
   }
-  // debug: what we told the model 
+  // debug: what we told the model
   log(`  budget -> model: ${budgetPhase(frac, softFraction)} (${Math.round(frac * 100)}% spent)`);
 }
 
@@ -199,6 +199,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let toolBudgetExhausted = false;
   let nudgedToSubmit = false;
   let submitted = false;
+  // Distinct from `submitted`: the model can supply a valid audit array on a submit whose `findings`
+  // is malformed, so "was an audit reported" is not answerable from "was the submit accepted".
+  let auditReported = false;
   let auditRejected = false;
   let hedgeRejected = false;
   let reasoningSoFar = '';
@@ -208,6 +211,66 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let bankedAudit = null;
   let bankedConfirm = null;
   let bankedDismissed = null;
+
+  const concernKey = (s) => (typeof s === 'string' ? s.trim().toLowerCase() : '');
+
+  // The relation an earlier "was it supplied empty" flag was only approximating: a concern must never
+  // be FILED and CLEARED at once. Presence of *some* finding cannot tell you *this* concern moved.
+  const dropClearancesForFiledConcerns = () => {
+    const filed = new Set(
+      [
+        ...(findings ?? []).map((f) => concernKey(f?.title)),
+        ...confirmSuppressed.filter((c) => c?.verdict === 'is-a-bug-moved-to-findings').map((c) => concernKey(c?.claim)),
+      ].filter(Boolean),
+    );
+    if (!filed.size) return;
+    // A moved-to-findings row is KEPT: it is the gate succeeding, and the summary labels it "moved".
+    confirmSuppressed = confirmSuppressed.filter(
+      (c) => c?.verdict === 'is-a-bug-moved-to-findings' || !filed.has(concernKey(c?.claim)),
+    );
+    if (dismissed?.length) dismissed = dismissed.filter((d) => !filed.has(concernKey(d?.title)));
+  };
+
+  let bankRestored = false;
+  const restoreBanked = () => {
+    if (bankRestored) return;
+    bankRestored = true;
+    if (bankedFindings && !findings?.length) findings = bankedFindings;
+    // callSiteAudit has NO retraction path on purpose, and repeated reviews keep proposing one: neither
+    // bounce ever invites emptying it (the completeness trailer reads "Record the call-site audit, then
+    // submit"), and its schema spells "nothing to report" as a not_examined ROW, so an empty resubmit
+    // can only mean dropped. Making it retractable re-introduces the false "audit · none — no shared
+    // call shape reported as changed" on a run that reported one.
+    if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
+    if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
+    if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
+    dropClearancesForFiledConcerns();
+  };
+
+  let recordsLogged = false;
+  const logRecords = () => {
+    if (logLevel === 'quiet' || recordsLogged) return;
+    recordsLogged = true;
+    if (callSiteAudit.length === 0) {
+      log(
+        auditReported
+          ? '  audit · none — no shared call shape reported as changed'
+          : '  audit · not reported — the run never submitted an audit',
+      );
+    }
+    for (const a of callSiteAudit) {
+      const where = `${a?.file ?? '?'}:${a?.line ?? '?'}`;
+      log(`  audit · ${String(a?.verdict ?? '?').toUpperCase()} ${a?.symbol ? `${a.symbol} ` : ''}${where}${a?.why ? ` — ${a.why}` : ''}`);
+    }
+    for (const c of confirmSuppressed) {
+      log(`  confirm · ${String(c?.verdict ?? '?').toUpperCase()} ${c?.claim ?? '?'}`);
+      log(`      predicts: ${c?.predictedFailure ?? '?'}`);
+      log(`      invariant: ${c?.invariant ?? '?'}`);
+      log(`      enforced by: ${c?.enforcingCode?.trim() ? c.enforcingCode : '(NO CODE CITED — step 3 failed)'}`);
+      log(`      covers this path: ${c?.coversThisPath ?? '?'}`);
+      log(`      counterexample: ${c?.counterexample?.trim() ? c.counterexample : '(NOT ATTEMPTED — step 5 failed)'}`);
+    }
+  };
 
   const clearUserBreakpoints = () => {
     for (const m of messages) {
@@ -219,6 +282,15 @@ export async function runReviewAgent({ client, config, system, userMessage, root
 
   while (true) {
     const roundStart = Date.now();
+    // The HARD ceiling, checked before every round. It lives here rather than inside the wind-down
+    // block because the bounce branches `continue`, and once windingDown is set that block is skipped
+    // forever — so nesting it there let a bounced wind-down turn buy unbounded extra rounds at the
+    // most expensive point of the run (measured: 2.4x the ceiling with both gates firing).
+    if (governor.spentUsd() >= config.costCeilingUsd) {
+      if (!governor.interruptedReason) governor.interrupt('budget');
+      if (logLevel !== 'quiet') log(`[ceiling] $${governor.spentUsd().toFixed(2)} reached the $${config.costCeilingUsd} ceiling — stopping.`);
+      break;
+    }
     // When budget/rounds are about to be exceeded, give the model ONE final turn to submit the
     // findings it already has.
     if (!windingDown) {
@@ -228,7 +300,6 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         governor.interrupt(overRounds ? 'max_rounds' : 'budget');
         if (logLevel !== 'quiet')
           log(`[wind-down] ${overRounds ? 'round cap' : 'budget'} reached at $${governor.spentUsd().toFixed(2)} — asking the model to submit and stop.`);
-        if (governor.spentUsd() >= config.costCeilingUsd) break;
         windingDown = true;
         clearUserBreakpoints();
         const limitReached = overRounds
@@ -315,6 +386,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
         if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
         if (Array.isArray(submittedDismissed) && submittedDismissed.length) bankedDismissed = submittedDismissed;
+        // Deliberately NOT gated on .length like the banking above: an empty audit is still the model
+        // reporting one, and that is the whole distinction this flag carries.
+        if (Array.isArray(submittedAudit)) auditReported = true;
         const missing =[!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed'].filter(Boolean);
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing ${missing.join(' + ')} — asking once for the completeness record.`);
         clearUserBreakpoints();
@@ -352,6 +426,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
         if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
         if (Array.isArray(submittedDismissed) && submittedDismissed.length) bankedDismissed = submittedDismissed;
+        // Same as the completeness gate above — a bounced turn that carried an audit still reported one.
+        if (Array.isArray(submittedAudit)) auditReported = true;
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: reasoning hand-waved ${hedges.length} concern(s) — asking once for each to enter confirmSuppressed.`);
         clearUserBreakpoints();
         messages.push({
@@ -376,7 +452,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         });
         continue;
       }
-      if (Array.isArray(submittedAudit)) callSiteAudit = submittedAudit;
+      if (Array.isArray(submittedAudit)) {
+        callSiteAudit = submittedAudit;
+        auditReported = true;
+      }
       if (Array.isArray(submittedConfirm)) confirmSuppressed = submittedConfirm;
       if (Array.isArray(submittedFindings)) {
         submitted = true;
@@ -384,11 +463,11 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       } else {
         findings = [];
       }
-      if (bankedFindings && !findings.length) findings = bankedFindings;
-      if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
-      if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
       if (Array.isArray(submittedDismissed)) dismissed = submittedDismissed;
-      if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
+      // Restore BEFORE the log block on purpose: the count below reports what will actually be
+      // published, and logRecords() a few lines down is post-restore too. Moving it after the log
+      // makes the run say "→ 0 finding(s)" on a run that posts one.
+      restoreBanked();
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
         surfaceReasoning(log, msg.content);
@@ -396,20 +475,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
           log(`  · ${f?.severity ?? '?'}/${f?.confidence ?? '?'} ${f?.title ?? '(untitled)'}`);
           log(`      basis: ${f?.confidenceBasis?.trim() ? f.confidenceBasis : '(NONE — confidence is unbacked)'}`);
         }
-        if (callSiteAudit.length === 0) log('  audit · none — no shared call shape reported as changed');
-        for (const a of callSiteAudit) {
-          const where = `${a?.file ?? '?'}:${a?.line ?? '?'}`;
-          log(`  audit · ${String(a?.verdict ?? '?').toUpperCase()} ${a?.symbol ? `${a.symbol} ` : ''}${where}${a?.why ? ` — ${a.why}` : ''}`);
-        }
-        for (const c of confirmSuppressed) {
-          log(`  confirm · ${String(c?.verdict ?? '?').toUpperCase()} ${c?.claim ?? '?'}`);
-          log(`      predicts: ${c?.predictedFailure ?? '?'}`);
-          log(`      invariant: ${c?.invariant ?? '?'}`);
-          log(`      enforced by: ${c?.enforcingCode?.trim() ? c.enforcingCode : '(NO CODE CITED — step 3 failed)'}`);
-          log(`      covers this path: ${c?.coversThisPath ?? '?'}`);
-          log(`      counterexample: ${c?.counterexample?.trim() ? c.counterexample : '(NOT ATTEMPTED — step 5 failed)'}`);
-        }
       }
+      logRecords();
       break;
     }
 
@@ -459,11 +526,14 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     });
   }
 
+  restoreBanked();
+  logRecords();
+
   return {
-    findings: findings?.length ? findings : (bankedFindings ?? findings ?? []),
-    callSiteAudit: callSiteAudit.length ? callSiteAudit : (bankedAudit ?? []),
-    confirmSuppressed: confirmSuppressed.length ? confirmSuppressed : (bankedConfirm ?? []),
-    dismissed: dismissed?.length ? dismissed : (bankedDismissed ?? []),
+    findings: findings ?? [],
+    callSiteAudit,
+    confirmSuppressed,
+    dismissed: dismissed ?? [],
     usage: governor.totalUsage(),
     costUsd: governor.spentUsd(),
     usedFallback: modelIdx > 0,

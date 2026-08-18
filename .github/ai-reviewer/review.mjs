@@ -147,6 +147,11 @@ const SEVERITY_LABEL = {
   low: '⚪ Low',
 };
 
+export function enumKey(map, value, fallback) {
+  const key = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  return Object.hasOwn(map, key) ? key : fallback;
+}
+
 export const FINDINGS_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -285,6 +290,16 @@ export function sanitizeText(value, max = 200) {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, max);
+}
+
+export function escapeHtmlText(value, max = 200) {
+  return String(value ?? '')
+    .replace(/[\u0000-\u001f\u007f]+/g, ' ')
+    .trim()
+    .slice(0, max)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 // Only comments authored by our own bot are a trustworthy source of de-dup markers. An attacker
@@ -867,8 +882,8 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
       dropped.invalid += 1;
       continue;
     }
-    const confidence = (f.confidence || 'low').toLowerCase();
-    const severity = (f.severity || 'low').toLowerCase();
+    const confidence = enumKey(CONFIDENCE_RANK, f.confidence, 'low');
+    const severity = enumKey(SEVERITY_RANK, f.severity, 'low');
     if ((CONFIDENCE_RANK[confidence] ?? 1) < minConf) {
       dropped.byConfidence += 1;
       continue;
@@ -909,9 +924,9 @@ export function filterFindings(rawFindings, { config, commentableByFile, seenFin
     kept.push({
       file: f.file,
       line,
-      severity,
       confidence,
-      category: CATEGORY_META[f.category] ? f.category : 'other',
+      severity,
+      category: enumKey(CATEGORY_META, f.category, 'other'),
       title: f.title.trim(),
       body: (f.body || '').trim(),
       suggestion: (f.suggestion || '').trim(),
@@ -994,11 +1009,13 @@ export function isTrustedAuthor(authorAssociation) {
 export function shouldPostVerifyReply(status, lastVerifyStatus) {
   if (status === 'fixed') return lastVerifyStatus !== 'fixed';
   if (status === 'unsure') return lastVerifyStatus !== 'unsure';
+  if (status === 'still_present') return lastVerifyStatus !== 'still_present';
   return false;
 }
 
 export function orderThreadsForVerification(candidates) {
-  const rank = (c) => (c.lastVerifyStatus ? 2 : 0) + (c.isOutdated ? 0 : 1);
+  const statusRank = (s) => (s === 'still_present' ? 1 : s ? 2 : 0);
+  const rank = (c) => statusRank(c.lastVerifyStatus) * 2 + (c.isOutdated ? 0 : 1);
   return [...(candidates || [])].sort((a, b) => rank(a) - rank(b));
 }
 
@@ -1058,9 +1075,16 @@ export function renderStatusBody({
 }) {
   const lines = ['### 🤖 AI bug review — latest run', ''];
   if (skipped) {
-    lines.push(`⚠️ ${note || 'Skipped — no review was run.'}`, '');
+    lines.push(`⚠️ ${escapeHtmlText(note || 'Skipped — no review was run.', 1000)}`, '');
   } else if (posted > 0) {
-    lines.push(`Posted **${posted}** new issue(s). Previously reported (skipped): ${seenCount}.`, '');
+    // The withheld count has to be said out loud: `posted` alone reads as the whole story, and the
+    // `posted: 0` branch below DOES disclose them — so a partial post was the one case that silently
+    // dropped findings from the summary.
+    const withheld = Math.max(0, (findingsCount ?? posted) - posted);
+    lines.push(
+      `Posted **${posted}** new issue(s)${withheld ? `, **${withheld}** not posted (see the run log)` : ''}. Previously reported (skipped): ${seenCount}.`,
+      '',
+    );
   } else if (findingsCount > 0) {
     lines.push(
       `Found **${findingsCount}** new issue(s), but none were posted (off-diff with summaries disabled, or the GitHub API rejected them — see the run log). Previously reported: ${seenCount}.`,
@@ -1120,6 +1144,41 @@ const CLEARED_BLOCK_RE = /<details>\n<summary>🔍 Considered and cleared \(\d+\
 
 export function extractClearedBlock(body) {
   return (body || '').match(CLEARED_BLOCK_RE)?.[0] ?? '';
+}
+
+export function renderClearanceRecord(confirmSuppressed) {
+  const entries = (confirmSuppressed || []).filter((c) => c && typeof c === 'object');
+  if (!entries.length) return '';
+  // Count the verdict space three ways, not two: a row with a missing or unrecognised verdict is
+  // neither cleared nor moved, and calling it "cleared" overstates the dismissals this record exists
+  // to make auditable. (A moved row is KEPT beside its finding on purpose — that is the gate working,
+  // and `moved` in the heading is its label; do not dedup it away.)
+  const moved = entries.filter((c) => c.verdict === 'is-a-bug-moved-to-findings').length;
+  const cleared = entries.filter((c) => c.verdict === 'cleared-all-five-passed').length;
+  const unlabelled = entries.length - moved - cleared;
+  const rows = entries.map((c) => {
+    const cited = String(c.enforcingCode ?? '').trim();
+    const attempted = String(c.counterexample ?? '').trim();
+    return (
+      `<tr><td>${escapeHtmlText(c.claim, 300)}</td>` +
+      `<td>${escapeHtmlText(c.verdict, 40)}</td>` +
+      `<td>${escapeHtmlText(c.invariant, 200)}</td>` +
+      `<td>${cited ? `<code>${escapeHtmlText(cited, 200)}</code>` : '<strong>NO CODE CITED</strong>'}</td>` +
+      // Step 5 is published because it is the step that fails silently. Step 3 has a visible tell
+      // ("NO CODE CITED"), so a reader can spot an uncited clearance; an unattempted counterexample
+      // looked identical to a real one, which is how "cited but insufficient" clearances survived.
+      `<td>${attempted ? escapeHtmlText(attempted, 300) : '<strong>NOT ATTEMPTED — step 5 failed</strong>'}</td></tr>`
+    );
+  });
+  return [
+    '<details>',
+    `<summary>🔍 Clearance gate — ${cleared} cleared${moved ? `, ${moved} moved to findings` : ''}${unlabelled ? `, ${unlabelled} unlabelled` : ''}</summary>`,
+    '',
+    `<table><tr><th>Claim</th><th>Verdict</th><th>Invariant</th><th>Enforced by</th><th>Counterexample tried</th></tr>${rows.join('')}</table>`,
+    '',
+    '</details>',
+    '',
+  ].join('\n');
 }
 
 export function renderInlineBody(finding, markerPrefix = 'ai-reviewer') {
@@ -1215,7 +1274,12 @@ query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
           isResolved
           isOutdated
           viewerCanResolve
-          comments(first: 50) { nodes { body diffHunk author { login __typename } } }
+          # Both ends, deliberately: the ROOT identifies the finding (its marker + diffHunk) and the
+          # TAIL carries the newest verify marker. A single comments(first: N) loses the marker once a
+          # thread passes N, which silently re-arms the verify reply; comments(last: N) alone loses the
+          # root, which drops the thread from verification entirely.
+          root: comments(first: 1) { nodes { id body diffHunk author { login __typename } } }
+          recent: comments(last: 50) { nodes { id body diffHunk author { login __typename } } }
         }
       }
     }
@@ -1223,6 +1287,13 @@ query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
 }`;
 const RESOLVE_THREAD_MUTATION = `mutation($id: ID!) { resolveReviewThread(input: { threadId: $id }) { thread { id isResolved } } }`;
 const REPLY_THREAD_MUTATION = `mutation($id: ID!, $body: String!) { addPullRequestReviewThreadReply(input: { pullRequestReviewThreadId: $id, body: $body }) { comment { id } } }`;
+
+export function mergeThreadComments(rootNodes, recentNodes) {
+  const recent = recentNodes || [];
+  const seen = new Set(recent.map((c) => c?.id).filter(Boolean));
+  const rootOnly = (rootNodes || []).filter((c) => c && (!c.id || !seen.has(c.id)));
+  return [...rootOnly, ...recent];
+}
 
 async function fetchReviewThreads(octokit, owner, repo, number) {
   const threads = [];
@@ -1238,7 +1309,7 @@ async function fetchReviewThreads(octokit, owner, repo, number) {
         isResolved: t.isResolved,
         isOutdated: t.isOutdated,
         viewerCanResolve: t.viewerCanResolve,
-        comments: (t.comments?.nodes || []).map((c) => ({
+        comments: mergeThreadComments(t.root?.nodes, t.recent?.nodes).map((c) => ({
           body: c.body,
           diffHunk: c.diffHunk,
           user: { login: c.author?.login, type: c.author?.__typename },
@@ -1523,7 +1594,7 @@ async function main() {
   // code). Derived from the RAW list — not diffText, which omits ignored/binary/too-large files.
   const prHasNonRemovedFiles = files.some((f) => f.status !== 'removed');
 
-  // 2. Gather what we've already reported (for both dedup and the prompt). 
+  // 2. Gather what we've already reported (for both dedup and the prompt).
   const [reviewComments, issueComments] = await Promise.all([
     octokit.paginate(octokit.rest.pulls.listReviewComments, { owner, repo, pull_number, per_page: 100 }),
     octokit.paginate(octokit.rest.issues.listComments, { owner, repo, issue_number: pull_number, per_page: 100 }),
@@ -1838,10 +1909,11 @@ export async function writeJobSummary({
   note = null,
   resolved = 0,
   callSiteAudit = null,
+  confirmSuppressed = null,
 }) {
   try {
     core.summary.addHeading('🤖 AI bug review', 2);
-    if (note) core.summary.addRaw(`> ⚠️ ${note}\n\n`);
+    if (note) core.summary.addRaw(`> ⚠️ ${escapeHtmlText(note, 1000)}\n\n`);
     core.summary.addRaw(
       `Model \`${config.model}\` · effort \`${config.effort}\` · min confidence \`${config.minConfidence}\` · min severity \`${config.minSeverity}\`.\n\n`,
     );
@@ -1861,10 +1933,10 @@ export async function writeJobSummary({
         ],
         ...findings.map((f) => [
           SEVERITY_LABEL[f.severity],
-          f.confidence,
+          escapeHtmlText(f.confidence, 20),
           CATEGORY_META[f.category].label,
-          `${f.file}${f.line ? `:${f.line}` : ''}`,
-          f.title,
+          escapeHtmlText(`${f.file}${f.line ? `:${f.line}` : ''}`, 200),
+          escapeHtmlText(f.title, 300),
         ]),
       ]);
     }
@@ -1884,15 +1956,17 @@ export async function writeJobSummary({
           { data: 'Why', header: true },
         ],
         ...callSiteAudit.map((a) => [
-          String(a?.verdict ?? '?'),
-          String(a?.symbol ?? ''),
-          `${a?.file ?? '?'}${a?.line ? `:${a.line}` : ''}`,
-          `\`${String(a?.quotedLine ?? '').trim().slice(0, 160)}\``,
-          String(a?.why ?? ''),
+          escapeHtmlText(a?.verdict ?? '?', 40),
+          escapeHtmlText(a?.symbol ?? '', 120),
+          escapeHtmlText(`${a?.file ?? '?'}${a?.line ? `:${a.line}` : ''}`, 200),
+          `\`${escapeHtmlText(a?.quotedLine ?? '', 160)}\``,
+          escapeHtmlText(a?.why ?? '', 300),
         ]),
       ]);
       core.summary.addRaw('\n</details>\n\n');
     }
+    const clearances = renderClearanceRecord(confirmSuppressed);
+    if (clearances) core.summary.addRaw(`\n\n${clearances}`);
 
     const spend = [];
     // Use the actual billed usage (same source as the PR status comment) so the two always agree;
