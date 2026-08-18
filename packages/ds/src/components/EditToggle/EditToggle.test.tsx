@@ -22,6 +22,21 @@ describe('EditToggle', () => {
     expect(onEditingChange).toHaveBeenCalledWith(false);
   });
 
+  it('runs a consumer onClick without swallowing the toggle', async () => {
+    const onEditingChange = vi.fn();
+    const onClick = vi.fn();
+    render(
+      <EditToggle
+        editing={false}
+        onEditingChange={onEditingChange}
+        onClick={onClick}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    expect(onClick).toHaveBeenCalled();
+    expect(onEditingChange).toHaveBeenCalledWith(true);
+  });
+
   it('supports custom labels', () => {
     render(
       <EditToggle

@@ -21,6 +21,7 @@ export const EditToggle = forwardRef<HTMLButtonElement, EditToggleProps>(
       editLabel = 'Edit',
       doneLabel = 'Done',
       className,
+      onClick,
       ...rest
     },
     ref,
@@ -34,7 +35,10 @@ export const EditToggle = forwardRef<HTMLButtonElement, EditToggleProps>(
         className,
       )}
       aria-pressed={editing}
-      onClick={() => onEditingChange(!editing)}
+      onClick={(event) => {
+        onClick?.(event);
+        onEditingChange(!editing);
+      }}
       {...rest}
     >
       <Icon name={editing ? 'check' : 'edit'} size="xs" />

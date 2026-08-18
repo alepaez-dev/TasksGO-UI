@@ -99,6 +99,9 @@ function Controlled(props: TestScenarioCardProps) {
         onAddEvidence={handleAddEvidence}
         onRemoveEvidence={handleRemoveEvidence}
         maxEvidence={props.maxEvidence}
+        addEvidenceDisabled={
+          props.maxEvidence != null && evidence.length >= props.maxEvidence
+        }
         editingSections={editingSections}
         onEditingSectionsChange={setEditingSections}
         onWaiveReasonChange={setWaiveReason}

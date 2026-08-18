@@ -72,6 +72,7 @@ export interface TestScenarioCardProps extends Omit<
   onAddEvidence?: (files: readonly File[]) => void;
   onRemoveEvidence?: (index: number) => void;
   maxEvidence?: number;
+  addEvidenceDisabled?: boolean;
   evidenceAccept?: string;
 }
 
@@ -155,6 +156,7 @@ export const TestScenarioCard = forwardRef<
       onAddEvidence,
       onRemoveEvidence,
       maxEvidence,
+      addEvidenceDisabled = false,
       evidenceAccept,
 
       className,
@@ -170,10 +172,10 @@ export const TestScenarioCard = forwardRef<
       ? evidence
       : evidence.slice(0, EVIDENCE_PREVIEW_COUNT);
     const hiddenEvidenceCount = evidence.length - EVIDENCE_PREVIEW_COUNT;
-    // no maxEvidence = unlimited; a provided value is the cap (negatives clamp to 0)
+    // maxEvidence is display-only — the consumer owns the array and the Add control
     const evidenceLimit =
       maxEvidence != null ? Math.max(0, maxEvidence) : undefined;
-    const limitReached =
+    const atEvidenceLimit =
       evidenceLimit != null && evidence.length >= evidenceLimit;
     const fileInputRef = useRef<HTMLInputElement>(null);
     const statusSelectRef = useRef<HTMLDivElement>(null);
@@ -353,7 +355,7 @@ export const TestScenarioCard = forwardRef<
                     <span
                       className={cn(
                         styles.evidenceCount,
-                        limitReached && styles.evidenceCountFull,
+                        atEvidenceLimit && styles.evidenceCountFull,
                       )}
                     >
                       {evidence.length}/{evidenceLimit}
@@ -409,10 +411,10 @@ export const TestScenarioCard = forwardRef<
                         type="button"
                         className={styles.addEvidence}
                         onClick={() => fileInputRef.current?.click()}
-                        disabled={limitReached}
+                        disabled={addEvidenceDisabled}
                       >
                         <Icon name="file_upload" size="xs" />
-                        {limitReached ? 'Limit reached' : 'Add evidence'}
+                        {atEvidenceLimit ? 'Limit reached' : 'Add evidence'}
                       </button>
                       <input
                         ref={fileInputRef}

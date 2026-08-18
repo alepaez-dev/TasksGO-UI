@@ -285,7 +285,7 @@ describe('TestScenarioCard', () => {
     expect(onAddEvidence.mock.calls[0][0][0].name).toBe('shot.png');
   });
 
-  it('shows the count and disables Add ("Limit reached") at the evidence limit', () => {
+  it('shows the count and labels Add "Limit reached" at the evidence limit', () => {
     render(
       <TestScenarioCard
         {...base}
@@ -293,6 +293,7 @@ describe('TestScenarioCard', () => {
         open
         onAddEvidence={() => {}}
         maxEvidence={2}
+        addEvidenceDisabled
         evidence={[
           { label: 'a.png', kind: 'image' },
           { label: 'b.log', kind: 'file' },
@@ -306,6 +307,33 @@ describe('TestScenarioCard', () => {
     expect(
       screen.queryByRole('button', { name: 'Add evidence' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('leaves the Add control to the consumer — maxEvidence alone does not disable it', () => {
+    const { rerender } = render(
+      <TestScenarioCard
+        {...base}
+        status="failed"
+        open
+        onAddEvidence={() => {}}
+        maxEvidence={1}
+        evidence={[{ label: 'a.png', kind: 'image' }]}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Limit reached' })).toBeEnabled();
+
+    // and it disables without any maxEvidence — e.g. an upload in flight
+    rerender(
+      <TestScenarioCard
+        {...base}
+        status="failed"
+        open
+        onAddEvidence={() => {}}
+        addEvidenceDisabled
+        evidence={[{ label: 'a.png', kind: 'image' }]}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Add evidence' })).toBeDisabled();
   });
 
   it('keeps Add enabled and shows progress below the limit', () => {
@@ -331,6 +359,7 @@ describe('TestScenarioCard', () => {
         open
         onAddEvidence={() => {}}
         maxEvidence={0}
+        addEvidenceDisabled
         evidence={[{ label: 'a.png', kind: 'image' }]}
       />,
     );
