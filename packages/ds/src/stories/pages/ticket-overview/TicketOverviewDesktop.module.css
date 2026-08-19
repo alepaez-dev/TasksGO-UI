@@ -129,7 +129,7 @@
 }
 
 .tabPanel {
-  padding: var(--ds-space-scale-lg) var(--ds-space-ticket-content-padding-x)
+  padding: var(--ds-space-scale-md) var(--ds-space-ticket-content-padding-x)
     var(--ds-space-scale-sm);
 }
 
