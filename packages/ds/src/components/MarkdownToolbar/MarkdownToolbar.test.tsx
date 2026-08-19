@@ -1,6 +1,6 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { MarkdownToolbar } from './MarkdownToolbar';
 
 const labels = [
@@ -14,28 +14,6 @@ const labels = [
   'Image',
   'Checklist item',
 ];
-
-function openKeyboard() {
-  Object.defineProperty(window, 'visualViewport', {
-    value: {
-      height: 400,
-      offsetTop: 0,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    },
-    configurable: true,
-    writable: true,
-  });
-  window.innerHeight = 800;
-}
-
-afterEach(() => {
-  Object.defineProperty(window, 'visualViewport', {
-    value: undefined,
-    configurable: true,
-    writable: true,
-  });
-});
 
 describe('MarkdownToolbar', () => {
   it('renders a labelled toolbar with one button per action', () => {
@@ -121,11 +99,11 @@ describe('MarkdownToolbar', () => {
     expect(screen.getByRole('toolbar')).toHaveClass('custom');
   });
 
-  it('renders only the actions passed via `actions`, in that order', () => {
+  it('renders only the actions passed via `groups`, in that order', () => {
     render(
       <MarkdownToolbar
         onAction={() => {}}
-        actions={['bold', 'code', 'checkbox']}
+        groups={[['bold', 'code'], ['checkbox']]}
       />,
     );
     const buttons = screen.getAllByRole('button');
@@ -135,71 +113,46 @@ describe('MarkdownToolbar', () => {
       'Checklist item',
     ]);
   });
-});
 
-describe('MarkdownToolbar — accessory variant', () => {
-  it('renders the toolbar and a Done button when the keyboard is open', () => {
-    openKeyboard();
-    const onDone = vi.fn();
-    render(
+  it('renders a separator between groups but not at the edges', () => {
+    const { container } = render(
       <MarkdownToolbar
-        variant="accessory"
         onAction={() => {}}
-        onDone={onDone}
+        groups={[['bold'], ['code'], ['link']]}
       />,
     );
-    expect(
-      screen.getByRole('toolbar', { name: 'Formatting' }),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
-    expect(onDone).toHaveBeenCalledTimes(1);
+    expect(container.querySelectorAll('[data-separator]')).toHaveLength(2);
   });
 
-  it('anchors its bottom to the visual viewport bottom edge', () => {
-    openKeyboard(); // height 400, offsetTop 0
+  it('renders token actions as pills with a visible label', () => {
+    const onAction = vi.fn();
+    render(<MarkdownToolbar onAction={onAction} groups={[['task', 'qa']]} />);
+    const addTask = screen.getByRole('button', { name: 'Add task' });
+    expect(addTask).toHaveTextContent('Add task');
+    fireEvent.click(addTask);
+    expect(onAction).toHaveBeenCalledWith('task');
+    fireEvent.click(screen.getByRole('button', { name: 'Add QA scenario' }));
+    expect(onAction).toHaveBeenCalledWith('qa');
+  });
+
+  it('roving arrow keys traverse buttons across group boundaries', () => {
     render(
-      <MarkdownToolbar
-        variant="accessory"
-        onAction={() => {}}
-        onDone={() => {}}
-      />,
+      <MarkdownToolbar onAction={() => {}} groups={[['bold'], ['code']]} />,
     );
+    const buttons = screen.getAllByRole('button');
+    buttons[0].focus();
+    fireEvent.keyDown(buttons[0], { key: 'ArrowRight' });
+    expect(buttons[1]).toHaveFocus();
+  });
+
+  it('suppresses blur so a press keeps the caret in the editor', () => {
+    render(<MarkdownToolbar onAction={() => {}} />);
     const toolbar = screen.getByRole('toolbar', { name: 'Formatting' });
-    expect(toolbar).toBeInTheDocument();
-    // Anchored to the visual viewport bottom (offsetTop 0 + height 400) via a
-    // single transform; `- 100%` lifts it by its own height above the keyboard.
-    expect(toolbar).toHaveStyle({
-      transform: 'translateY(calc(400px - 100%))',
-    });
+    expect(fireEvent.pointerDown(toolbar)).toBe(false);
   });
 
-  it('suppresses blur on a pointerdown anywhere on the bar, not just a button', () => {
-    openKeyboard();
-    render(<MarkdownToolbar variant="accessory" onAction={() => {}} />);
-    // tap the bar container itself (the empty flex area), not a button
-    const toolbar = screen.getByRole('toolbar', { name: 'Formatting' });
-    const event = new MouseEvent('pointerdown', {
-      bubbles: true,
-      cancelable: true,
-    });
-    toolbar.dispatchEvent(event);
-    expect(event.defaultPrevented).toBe(true);
-  });
-
-  it('does not render a Done button in the default inline variant', () => {
-    render(<MarkdownToolbar onAction={() => {}} onDone={() => {}} />);
-    expect(
-      screen.queryByRole('button', { name: 'Done' }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('forwards ref to the portaled toolbar element', () => {
-    openKeyboard();
-    const ref = createRef<HTMLDivElement>();
-    render(
-      <MarkdownToolbar ref={ref} variant="accessory" onAction={() => {}} />,
-    );
-    expect(ref.current).toBeInstanceOf(HTMLDivElement);
-    expect(ref.current?.getAttribute('role')).toBe('toolbar');
+  it('renders a hint when supplied', () => {
+    render(<MarkdownToolbar onAction={() => {}} hint="Markdown supported" />);
+    expect(screen.getByText('Markdown supported')).toBeInTheDocument();
   });
 });

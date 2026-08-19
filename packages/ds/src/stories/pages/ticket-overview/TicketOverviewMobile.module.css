@@ -70,6 +70,8 @@
   position: sticky;
   top: 0;
   z-index: 2;
+  box-sizing: border-box;
+  height: var(--ds-space-ticket-tabs-bar-height);
   margin: 0 calc(-1 * var(--ds-space-scale-md));
   padding: 0 var(--ds-space-scale-md);
   background-color: var(--ds-color-surface-primary);
@@ -119,10 +121,14 @@
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  /* Cancels .content's row gap so the toolbar sits flush under the tab bar. */
+  margin-top: calc(-1 * var(--ds-space-scale-lg));
 }
 
 .devScratchpad {
   flex: 1;
+  --ds-scratchpad-toolbar-offset: var(--ds-space-ticket-tabs-bar-height);
+  --ds-scratchpad-toolbar-inset: var(--ds-space-scale-md);
 }
 
 .section {

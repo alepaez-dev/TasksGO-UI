@@ -21,7 +21,10 @@ import { NavItem } from '../../../components/NavItem';
 import { BottomSheet } from '../../../components/BottomSheet';
 import { PropertyRow } from '../../../components/PropertyRow';
 import { RefLink } from '../../../components/RefLink';
-import { Scratchpad } from '../../../components/Scratchpad';
+import {
+  Scratchpad,
+  type ScratchpadLine,
+} from '../../../components/Scratchpad';
 import { OptionList } from '../../../components/OptionList';
 import { PipelineHierarchyPanel } from '../../../components/PipelineHierarchyPanel';
 import { SearchInput } from '../../../components/SearchInput';
@@ -76,7 +79,11 @@ const CI_CLASS: Record<TicketCiStatus, string> = {
   running: styles.ciRunning,
 };
 
-function TicketOverviewMobileRender() {
+function TicketOverviewMobileRender({
+  scratchpadSeed,
+}: {
+  scratchpadSeed?: readonly ScratchpadLine[];
+}) {
   const {
     activeTab,
     setActiveTab,
@@ -120,11 +127,7 @@ function TicketOverviewMobileRender() {
     branchCopied,
     copyBranch,
     scratchpad,
-  } = useTicketOverviewState();
-  // The keyboard-docked formatting toolbar sits where the tab bar is, so the
-  // bar steps aside while a scratchpad line is being edited.
-  const scratchpadEditing =
-    activeTab === 'dev' && scratchpad.editingLineId !== null;
+  } = useTicketOverviewState(scratchpadSeed);
   const activeProject = getProject('eng-core');
   const activeAssignee = getPerson(assignee);
   const activeReporter = getPerson(reporter);
@@ -392,6 +395,7 @@ function TicketOverviewMobileRender() {
                     addLineLabel="Add a line…"
                     highlightBadges
                     formattingToolbar
+                    toolbarPosition="above-header"
                     taskCardPresentation="sheet"
                     taskBadgeInfo={devScratchpadTask}
                     lines={scratchpad.lines}
@@ -433,38 +437,36 @@ function TicketOverviewMobileRender() {
         </div>
       )}
 
-      {!scratchpadEditing && (
-        <BottomTabBar aria-label="Main navigation">
-          <NavItem
-            icon="task_alt"
-            activeIcon="check_circle"
-            label="Tasks"
-            href="#tasks"
-            orientation="vertical"
-          />
-          <NavItem
-            icon="confirmation_number"
-            activeIcon="confirmation_number_filled"
-            label="Tickets"
-            href="#tickets"
-            orientation="vertical"
-            active
-          />
-          <NavItem
-            icon="description"
-            activeIcon="description_filled"
-            label="Docs"
-            href="#docs"
-            orientation="vertical"
-          />
-          <NavItem
-            icon="more_horiz"
-            label="More"
-            href="#more"
-            orientation="vertical"
-          />
-        </BottomTabBar>
-      )}
+      <BottomTabBar aria-label="Main navigation">
+        <NavItem
+          icon="task_alt"
+          activeIcon="check_circle"
+          label="Tasks"
+          href="#tasks"
+          orientation="vertical"
+        />
+        <NavItem
+          icon="confirmation_number"
+          activeIcon="confirmation_number_filled"
+          label="Tickets"
+          href="#tickets"
+          orientation="vertical"
+          active
+        />
+        <NavItem
+          icon="description"
+          activeIcon="description_filled"
+          label="Docs"
+          href="#docs"
+          orientation="vertical"
+        />
+        <NavItem
+          icon="more_horiz"
+          label="More"
+          href="#more"
+          orientation="vertical"
+        />
+      </BottomTabBar>
 
       <BottomSheet
         open={detailsOpen}
@@ -948,4 +950,49 @@ type Story = StoryObj;
 
 export const Mobile: Story = {
   render: () => <TicketOverviewMobileRender />,
+};
+
+// Enough notes to scroll the page well past the sticky threshold, which the
+// six-line default never reaches.
+const LONG_SCRATCHPAD_SEED: readonly ScratchpadLine[] = [
+  { id: 'long-1', text: '## Debug notes' },
+  {
+    id: 'long-2',
+    text: '[ ] Repro: cold-start cache miss on `/gateway` when SNS invalidation fires mid-write',
+  },
+  { id: 'long-3', text: '[ ] Verify **TTL** headers inherited from origin' },
+  { id: 'long-4', text: 'Refactor the [task] edge-caching header mutation' },
+  {
+    id: 'long-5',
+    text: '[x] Initial research on *CloudFront* function limits',
+  },
+  { id: 'long-6', text: 'Debug: [qa] latency spikes in `us-west-2` staging' },
+  { id: 'long-7', text: '## Invalidation' },
+  { id: 'long-8', text: '[ ] Confirm SNS fan-out ordering under retry' },
+  { id: 'long-9', text: '[ ] Measure purge latency at p99' },
+  { id: 'long-10', text: 'Cache keys collide when the vary header is absent' },
+  { id: 'long-11', text: '[x] Ruled out clock skew between edge nodes' },
+  { id: 'long-12', text: '## Rollout' },
+  { id: 'long-13', text: '[ ] Shadow traffic for one full peak cycle' },
+  { id: 'long-14', text: '[ ] Alert on origin error rate above baseline' },
+  { id: 'long-15', text: 'Staging bake needs a week before the next stage' },
+  { id: 'long-16', text: '[ ] Document the rollback switch' },
+  { id: 'long-17', text: '## Open questions' },
+  { id: 'long-18', text: 'Do stale-while-revalidate hits count toward quota?' },
+  { id: 'long-19', text: '[ ] Ask platform about per-tenant limits' },
+  { id: 'long-20', text: 'Follow up on the [task] multi-value header work' },
+];
+
+export const MobileLongNotes: Story = {
+  render: () => (
+    <TicketOverviewMobileRender scratchpadSeed={LONG_SCRATCHPAD_SEED} />
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A scratchpad long enough for the page to scroll, so the formatting toolbar stays parked beneath the tab bar instead of scrolling away.',
+      },
+    },
+  },
 };

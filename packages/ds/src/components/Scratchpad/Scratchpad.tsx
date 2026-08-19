@@ -8,11 +8,10 @@ import {
   type ReactNode,
 } from 'react';
 import { Icon } from '../Icon';
-import { MarkdownToolbar } from '../MarkdownToolbar';
+import { MarkdownToolbar, type MarkdownToolbarGroup } from '../MarkdownToolbar';
 import { cn } from '../../utils/cn';
 import { useDragReorder } from '../../hooks/useDragReorder';
 import { useScratchpadEditing } from '../../hooks/useScratchpadEditing';
-import { type MarkdownAction } from '../../utils/markdown/applyMarkdownAction';
 import { parseLine, type ScratchpadBlockKind } from './parseLine';
 import { type ScratchpadTaskRef } from './TokenBadge';
 import { ScratchpadLineMarkdown } from './ScratchpadLineMarkdown';
@@ -39,12 +38,14 @@ export interface ScratchpadProps extends Omit<
   onLineTextChange?: (id: string, text: string) => void;
   onLineToggle?: (id: string) => void;
   onLineDelete?: (id: string) => void;
-  onAddLine?: (afterId: string) => void;
+  // Inserts after `afterId`, or appends when it is null (no lines yet).
+  onAddLine?: (afterId: string | null, initialText?: string) => void;
   placeholder?: string;
   addLineLabel?: string;
   autoFocusLineId?: string | null;
   highlightBadges?: boolean;
   formattingToolbar?: boolean;
+  toolbarPosition?: 'above-header' | 'below-header';
   editingLineId?: string | null;
   onLineStartEdit?: (id: string) => void;
   onLineStopEdit?: (id: string) => void;
@@ -57,13 +58,10 @@ export interface ScratchpadProps extends Omit<
   taskCardPresentation?: 'popover' | 'sheet';
 }
 
-const MOBILE_TOOLBAR_ACTIONS: readonly MarkdownAction[] = [
-  'heading',
-  'bold',
-  'italic',
-  'code',
-  'link',
-  'checkbox',
+export const SCRATCHPAD_TOOLBAR_GROUPS: readonly MarkdownToolbarGroup[] = [
+  ['heading', 'bold', 'italic', 'code'],
+  ['checkbox', 'list', 'link', 'image'],
+  ['task', 'qa'],
 ];
 
 const editLabel: Record<ScratchpadBlockKind, string> = {
@@ -84,7 +82,7 @@ interface ScratchpadRowProps {
   onLineTextChange?: (id: string, text: string) => void;
   onLineToggle?: (id: string) => void;
   onLineDelete?: (id: string) => void;
-  onAddLine?: (afterId: string) => void;
+  onAddLine?: (afterId: string | null, initialText?: string) => void;
   placeholder?: string;
   shouldFocus: boolean;
   highlightBadges: boolean;
@@ -323,6 +321,7 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
       autoFocusLineId,
       highlightBadges = false,
       formattingToolbar = false,
+      toolbarPosition = 'below-header',
       editingLineId,
       onLineStartEdit,
       onLineStopEdit,
@@ -339,10 +338,13 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
     const listRef = useRef<HTMLUListElement>(null);
     const reorderable = onReorder !== undefined;
 
-    const { activeTextareaRef, applyLineAction } = useScratchpadEditing(
-      editingLineId,
-      onLineTextChange,
-    );
+    const { activeTextareaRef, applyLineAction, canApply } =
+      useScratchpadEditing({
+        editingLineId,
+        onLineTextChange,
+        onAddLine,
+        lastLineId: lines[lines.length - 1]?.id ?? null,
+      });
 
     const { onPointerDown, onKeyDown } = useDragReorder({
       items: lines,
@@ -369,6 +371,17 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
         }
       : undefined;
 
+    const toolbar = formattingToolbar ? (
+      <MarkdownToolbar
+        aria-label="Formatting"
+        className={styles.toolbar}
+        groups={SCRATCHPAD_TOOLBAR_GROUPS}
+        hint="Markdown supported"
+        disabled={!canApply}
+        onAction={applyLineAction}
+      />
+    ) : null;
+
     return (
       <div
         ref={ref}
@@ -377,12 +390,14 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
         aria-label={ariaLabel}
         {...rest}
       >
+        {toolbarPosition === 'above-header' && toolbar}
         {(title || status) && (
           <div className={styles.header}>
             {title && <span className={styles.title}>{title}</span>}
             {status && <span className={styles.status}>{status}</span>}
           </div>
         )}
+        {toolbarPosition === 'below-header' && toolbar}
         <ul ref={listRef} className={styles.list}>
           {lines.map((line, index) => (
             <ScratchpadRow
@@ -418,27 +433,12 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
           <button
             type="button"
             className={styles.addLine}
-            onClick={() =>
-              onAddLine(lines.length ? lines[lines.length - 1].id : '')
-            }
+            onClick={() => onAddLine(lines[lines.length - 1]?.id ?? null)}
           >
             <Icon name="add" size="sm" />
             {addLineLabel}
           </button>
         )}
-        {formattingToolbar &&
-          editingLineId != null &&
-          onLineTextChange !== undefined && (
-            <MarkdownToolbar
-              variant="accessory"
-              aria-label="Formatting"
-              actions={MOBILE_TOOLBAR_ACTIONS}
-              onAction={applyLineAction}
-              onDone={() => {
-                if (editingLineId != null) onLineStopEdit?.(editingLineId);
-              }}
-            />
-          )}
       </div>
     );
   },

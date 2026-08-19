@@ -22,6 +22,7 @@ import { CollapsibleCard } from '../../../components/CollapsibleCard';
 import { ChecklistRow } from '../../../components/ChecklistRow';
 import { PropertyRow } from '../../../components/PropertyRow';
 import { Scratchpad } from '../../../components/Scratchpad';
+import { StatusDot } from '../../../components/StatusDot';
 import { TicketId } from '../../../components/TicketId';
 import { PipelineHierarchyPanel } from '../../../components/PipelineHierarchyPanel';
 import {
@@ -375,11 +376,23 @@ function TicketOverviewRender() {
                   >
                     {tabValue === 'dev' ? (
                       <Scratchpad
+                        className={styles.devScratchpad}
                         aria-label="Dev scratchpad"
                         title="Scratchpad / Private Notes"
-                        status="Auto-saving…"
+                        status={
+                          <>
+                            {/* Decorative */}
+                            <StatusDot
+                              variant="active"
+                              label="Saved"
+                              aria-hidden="true"
+                            />
+                            Auto-saved · 2m ago
+                          </>
+                        }
                         placeholder="Click to add more context…"
                         highlightBadges
+                        formattingToolbar
                         taskBadgeInfo={devScratchpadTask}
                         lines={scratchpad.lines}
                         onReorder={scratchpad.onReorder}

@@ -88,4 +88,24 @@ describe('applyMarkdownAction', () => {
     const edit = applyMarkdownAction('checkbox', at('one\ntwo', 0, 7));
     expect(edit.value).toBe('[ ] one\n[ ] two');
   });
+
+  it('inserts a task token at the caret and collapses after it', () => {
+    const edit = applyMarkdownAction('task', at('note ', 5));
+    expect(edit.value).toBe('note [task]');
+    expect(edit.selectionStart).toBe(11);
+    expect(edit.selectionEnd).toBe(11);
+  });
+
+  it('inserts a qa token into an empty value', () => {
+    const edit = applyMarkdownAction('qa', at('', 0));
+    expect(edit.value).toBe('[qa]');
+    expect(edit.selectionStart).toBe(4);
+    expect(edit.selectionEnd).toBe(4);
+  });
+
+  it('preserves a selection and inserts the token after it', () => {
+    const edit = applyMarkdownAction('task', at('fix the bug', 4, 7));
+    expect(edit.value).toBe('fix the[task] bug');
+    expect(edit.value.slice(edit.selectionStart, edit.selectionEnd)).toBe('');
+  });
 });

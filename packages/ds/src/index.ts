@@ -224,6 +224,7 @@ export {
   MarkdownToolbar,
   type MarkdownToolbarProps,
   type MarkdownToolbarAction,
+  type MarkdownToolbarGroup,
 } from './components/MarkdownToolbar';
 export type { MarkdownAction } from './utils/markdown/applyMarkdownAction';
 export {

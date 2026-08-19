@@ -79,3 +79,135 @@ test.describe('Ticket — Dev Details card closing window', () => {
     expect(probe.focused).toBe(false);
   });
 });
+
+test.describe('Ticket — Dev tab scratchpad toolbar', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).waitFor({ state: 'visible' });
+    await page.getByRole('tab', { name: 'Dev' }).click();
+  });
+
+  test('adds a task token line when nothing is being edited', async ({
+    page,
+  }) => {
+    const panel = page.getByRole('tabpanel', { name: 'Dev' });
+    await expect(
+      panel.getByRole('toolbar', { name: 'Formatting' }),
+    ).toBeVisible();
+
+    await panel.getByRole('button', { name: 'Add task' }).click();
+    await expect(panel.getByRole('textbox', { name: 'Edit note' })).toHaveValue(
+      '[task]',
+    );
+  });
+
+  test('inserts the token into the focused line instead of a new one', async ({
+    page,
+  }) => {
+    const panel = page.getByRole('tabpanel', { name: 'Dev' });
+    const rows = panel.getByRole('listitem');
+    const before = await rows.count();
+
+    await panel.getByRole('button', { name: 'Edit note' }).first().click();
+    const editor = panel.getByRole('textbox', { name: 'Edit note' });
+    await expect(editor).toBeFocused();
+    const original = await editor.inputValue();
+
+    await panel.getByRole('button', { name: 'Add task' }).click();
+
+    // The press must not blur the line: the token lands in it, no row is added.
+    await expect(editor).toHaveValue(`${original}[task]`);
+    await expect(rows).toHaveCount(before);
+  });
+
+  test('shows pill labels and the markdown hint at desktop width', async ({
+    page,
+  }) => {
+    const panel = page.getByRole('tabpanel', { name: 'Dev' });
+    await expect(
+      panel.getByRole('button', { name: 'Add QA scenario' }),
+    ).toHaveText('Add QA scenario');
+    await expect(panel.getByText('Markdown supported')).toBeVisible();
+  });
+});
+
+test.describe('Ticket — toolbar dividers', () => {
+  // A divider only means anything between items sharing a line. The row never
+  // wraps at these widths, so dividers must be present and never stranded;
+  // the wrapping half of this invariant is covered on mobile.
+  const WIDTHS = [1280, 1440, 1600, 1920];
+
+  for (const width of WIDTHS) {
+    test(`keeps dividers unstranded at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(storyUrl(STORY_ID));
+      await page.getByRole('tab', { name: 'Dev' }).click();
+      const toolbar = page
+        .getByRole('tabpanel', { name: 'Dev' })
+        .getByRole('toolbar', { name: 'Formatting' });
+      await expect(toolbar).toBeVisible();
+
+      const layout = await toolbar.evaluate((el) => {
+        const row = el.querySelector<HTMLElement>('[data-toolbar-row]');
+        if (!row)
+          throw new Error('Expected the toolbar to render its button row');
+        const visible = [...row.children].filter(
+          (child) => child.getBoundingClientRect().width > 0,
+        );
+        // Bucket by vertical centre: pills are a different height to icon
+        // buttons, so their top edges differ on the very same line.
+        const lines = new Map<number, { divider: boolean; right: number }[]>();
+        for (const child of visible) {
+          const box = child.getBoundingClientRect();
+          const key = Math.round((box.top + box.bottom) / 2 / 10);
+          const bucket = lines.get(key) ?? [];
+          bucket.push({
+            divider: child.hasAttribute('data-separator'),
+            right: box.right,
+          });
+          lines.set(key, bucket);
+        }
+        let stranded = 0;
+        for (const items of lines.values()) {
+          const last = items.reduce((a, b) => (b.right > a.right ? b : a));
+          if (last.divider) stranded += 1;
+        }
+        const dividers = visible.filter((child) =>
+          child.hasAttribute('data-separator'),
+        ).length;
+        return { dividers, stranded, lines: lines.size };
+      });
+
+      if (layout.lines > 1) {
+        expect(layout.dividers).toBe(0);
+      } else {
+        // Guard against a vacuous pass: the query must not hide dividers at
+        // widths where the row comfortably fits on one line.
+        expect(layout.dividers).toBeGreaterThan(0);
+      }
+      expect(layout.stranded).toBe(0);
+    });
+  }
+
+  test('does show dividers when the row fits on one line', async ({ page }) => {
+    // Pins the other half: the query must not hide dividers everywhere, which
+    // would make the sweep above pass for the wrong reason.
+    await page.setViewportSize({ width: 1920, height: 900 });
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+    const toolbar = page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('toolbar', { name: 'Formatting' });
+    await expect(toolbar).toBeVisible();
+
+    const dividers = await toolbar.evaluate(
+      (el) =>
+        [...(el.querySelector('[data-toolbar-row]')?.children ?? [])].filter(
+          (child) =>
+            child.hasAttribute('data-separator') &&
+            child.getBoundingClientRect().width > 0,
+        ).length,
+    );
+    expect(dividers).toBeGreaterThan(0);
+  });
+});

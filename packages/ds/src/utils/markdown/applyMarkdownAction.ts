@@ -7,7 +7,9 @@ export type MarkdownAction =
   | 'code'
   | 'link'
   | 'image'
-  | 'checkbox';
+  | 'checkbox'
+  | 'task'
+  | 'qa';
 
 export interface TextSelection {
   value: string;
@@ -35,6 +37,11 @@ const LINE_PREFIX: Record<'heading' | 'list' | 'quote' | 'checkbox', string> = {
   list: '- ',
   quote: '> ',
   checkbox: '[ ] ',
+};
+
+const TOKEN: Record<'task' | 'qa', string> = {
+  task: '[task]',
+  qa: '[qa]',
 };
 
 function wrap(
@@ -95,6 +102,17 @@ function insertLink(action: 'link' | 'image', sel: TextSelection): TextEdit {
   };
 }
 
+function insertToken(action: 'task' | 'qa', sel: TextSelection): TextEdit {
+  const token = TOKEN[action];
+  const { value, selectionEnd } = sel;
+  const caret = selectionEnd + token.length;
+  return {
+    value: value.slice(0, selectionEnd) + token + value.slice(selectionEnd),
+    selectionStart: caret,
+    selectionEnd: caret,
+  };
+}
+
 export function applyMarkdownAction(
   action: MarkdownAction,
   sel: TextSelection,
@@ -112,5 +130,8 @@ export function applyMarkdownAction(
     case 'link':
     case 'image':
       return insertLink(action, sel);
+    case 'task':
+    case 'qa':
+      return insertToken(action, sel);
   }
 }

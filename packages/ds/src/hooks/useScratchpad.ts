@@ -10,7 +10,8 @@ export interface UseScratchpadControls {
   readonly onLineTextChange: (id: string, text: string) => void;
   readonly onLineToggle: (id: string) => void;
   readonly onLineDelete: (id: string) => void;
-  readonly onAddLine: (afterId: string) => void;
+  // `afterId` is the line to insert after, or null to append at the end.
+  readonly onAddLine: (afterId: string | null, initialText?: string) => void;
   readonly autoFocusLineId: string | null;
   readonly editingLineId: string | null;
   readonly onLineStartEdit: (id: string) => void;
@@ -81,12 +82,16 @@ export function useScratchpad(
     );
   }, []);
 
-  const onAddLine = useCallback((afterId: string) => {
+  const onAddLine = useCallback((afterId: string | null, initialText = '') => {
     const id = `scratchpad-line-${nextId.current++}`;
     setLines((prev) => {
-      const index = prev.findIndex((line) => line.id === afterId);
       const next = [...prev];
-      next.splice(index + 1, 0, { id, text: '' });
+      if (afterId === null) {
+        next.push({ id, text: initialText });
+        return next;
+      }
+      const index = prev.findIndex((line) => line.id === afterId);
+      next.splice(index + 1, 0, { id, text: initialText });
       return next;
     });
     setAutoFocusLineId(id);

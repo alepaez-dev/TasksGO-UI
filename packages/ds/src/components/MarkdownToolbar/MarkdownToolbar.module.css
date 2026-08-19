@@ -1,74 +1,116 @@
+/* The hint rides at the end of the button row, and drops to its own line when
+   the two no longer fit side by side. */
 .toolbar {
+  container-type: inline-size;
+  container-name: markdown-toolbar;
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--ds-space-scale-sm);
+  row-gap: var(--ds-space-scale-xs);
+  min-width: 0;
+}
+
+/* An icon button centres its glyph in a larger box, so the row starts a few
+   pixels in. Consumers that align the toolbar to body text pull that back. */
+.row {
+  display: flex;
+  /* Wraps rather than scrolls: a scrolling row hid 2-5 of the 10 buttons on
+     every phone width, with no scrollbar to hint that more existed. */
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--ds-space-scale-xs);
+  /* Grows to push the hint to the far edge while they share a line. */
+  flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
+  margin-left: calc(-1 * var(--ds-markdown-toolbar-optical-inset, 0px));
   padding: var(--ds-focus-ring-width) 0;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 
-.toolbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* Keep buttons full-size so the row scrolls instead of squashing on narrow screens. */
-.toolbar > * {
+/* Full-size buttons: they move to the next line rather than squashing. */
+.row > * {
   flex-shrink: 0;
 }
 
+@container markdown-toolbar (max-width: 510px) {
+  .separator {
+    display: none;
+  }
+}
+
 @media (pointer: coarse) {
-  .toolbar > * {
+  .row > button {
     min-width: 44px;
     min-height: 44px;
   }
 }
 
-.accessory {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: var(--ds-z-floating-action-bar);
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-scale-sm);
-  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
-  padding-bottom: calc(var(--ds-space-scale-xs) + env(safe-area-inset-bottom));
-  background-color: var(--ds-color-surface-primary);
-  border-top: 1px solid var(--ds-color-border-default);
-  /* Positioned via translate (see MarkdownToolbar.tsx); hint the compositor so
-     re-anchoring during scroll stays smooth. */
-  will-change: transform;
+.separator {
+  flex-shrink: 0;
+  align-self: stretch;
+  width: 1px;
+  margin: 0 var(--ds-space-scale-xs);
+  background-color: var(--ds-color-border-default);
 }
 
-.accessoryScroll {
-  display: flex;
+.pill {
+  display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: var(--ds-space-scale-xs);
-  min-width: 0;
-  flex: 1;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding: var(--ds-focus-ring-width) 0;
+  padding: 2px var(--ds-space-scale-sm);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background-color: transparent;
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-metadata-font-size);
+  cursor: pointer;
+  transition-property: var(--ds-transition-property);
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
 }
 
-.accessoryScroll::-webkit-scrollbar {
-  display: none;
+/* The ghost token, not secondary's: a pill sits among ghost icon buttons and
+   should highlight identically to the rest of the row. */
+.pill:hover:not(:disabled) {
+  background-color: var(--ds-color-button-ghost-hover-bg);
 }
 
-.accessoryScroll > * {
+.pill:disabled {
+  cursor: not-allowed;
+  opacity: var(--ds-effect-disabled-opacity);
+}
+
+.pill:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.taskIconTint {
+  color: var(--ds-color-accent-primary);
+}
+
+.qaIconTint {
+  color: var(--ds-color-status-critical);
+}
+
+/* Not text-disabled: at 11px that grey lands at 2.39:1 on the toolbar, under
+   the 4.5:1 AA floor. The lightest grey that passes here is only #727272. */
+.hint {
   flex-shrink: 0;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-metadata-font-size);
 }
 
-.done {
-  flex-shrink: 0;
-}
-
-@media (pointer: coarse) {
-  .accessoryScroll > *,
-  .done {
-    min-width: 44px;
-    min-height: 44px;
+/* 480px is the project's one breakpoint (Drawer, Selector, TaskDrawer,
+   ScopeBlock). Below it the pills fall back to their icons and the hint drops,
+   both still reachable through each button's accessible name. */
+@media (max-width: 480px) {
+  .pillLabel,
+  .hint {
+    display: none;
   }
 }
