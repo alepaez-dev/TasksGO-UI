@@ -8,6 +8,7 @@ import { StepEditor } from './StepEditor';
 import styles from './TestScenarioCard.module.css';
 
 const STEPS_PREVIEW_COUNT = 3;
+const STEPS_TITLE = 'Steps to Reproduce';
 
 export interface StepsSectionProps {
   steps: readonly string[];
@@ -75,12 +76,15 @@ export function StepsSection({
   return (
     <section className={styles.section}>
       <div className={styles.sectionHead}>
-        <SectionHeader headingLevel={3}>Steps to Reproduce</SectionHeader>
+        <SectionHeader headingLevel={3}>{STEPS_TITLE}</SectionHeader>
         {onStepsChange && (editing || steps.length > 0) && (
           <EditToggle
             className={editing ? undefined : styles.sectionEdit}
             editing={editing}
             onEditingChange={onEditingChange}
+            aria-label={
+              editing ? `Done editing ${STEPS_TITLE}` : `Edit ${STEPS_TITLE}`
+            }
           />
         )}
       </div>

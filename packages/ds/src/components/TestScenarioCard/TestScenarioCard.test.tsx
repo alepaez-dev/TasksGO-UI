@@ -390,12 +390,14 @@ describe('TestScenarioCard', () => {
   it('shows a section Edit toggle only when its change handler is provided', () => {
     const { rerender } = render(<TestScenarioCard {...base} open />);
     expect(
-      screen.queryByRole('button', { name: 'Edit' }),
+      screen.queryByRole('button', { name: 'Edit Description' }),
     ).not.toBeInTheDocument();
     rerender(
       <TestScenarioCard {...base} open onDescriptionChange={() => {}} />,
     );
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Edit Description' }),
+    ).toBeInTheDocument();
   });
 
   it('renders the description textarea when in editingSections and emits changes', async () => {
@@ -425,8 +427,38 @@ describe('TestScenarioCard', () => {
         onEditingSectionsChange={onEditingSectionsChange}
       />,
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Edit Description' }),
+    );
     expect(onEditingSectionsChange).toHaveBeenCalledWith(['description']);
+  });
+
+  it('names every section Edit toggle after its own section', () => {
+    render(
+      <TestScenarioCard
+        {...base}
+        status="waived"
+        open
+        waiveReason="Blocked by an upstream outage."
+        actual="Not run."
+        steps={['Call the endpoint twice within the TTL window.']}
+        onWaiveReasonChange={() => {}}
+        onDescriptionChange={() => {}}
+        onStepsChange={() => {}}
+        onExpectedChange={() => {}}
+        onActualChange={() => {}}
+      />,
+    );
+    const names = screen
+      .getAllByRole('button', { name: /^Edit / })
+      .map((button) => button.getAttribute('aria-label'));
+    expect(names).toEqual([
+      'Edit Waive Reason',
+      'Edit Description',
+      'Edit Steps to Reproduce',
+      'Edit Expected Result',
+      'Edit Actual Result',
+    ]);
   });
 
   it('adds a step via the Add step button', async () => {
@@ -598,7 +630,7 @@ describe('TestScenarioCard', () => {
     );
     // no EDIT toggle when empty — just the Add step entry point
     expect(
-      screen.queryByRole('button', { name: 'Edit' }),
+      screen.queryByRole('button', { name: 'Edit Steps to Reproduce' }),
     ).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Add step' }));
     expect(onStepsChange).toHaveBeenCalledWith(['']);

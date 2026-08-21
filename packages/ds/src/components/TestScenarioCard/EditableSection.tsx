@@ -57,6 +57,7 @@ export function EditableSection({
             className={editing ? undefined : styles.sectionEdit}
             editing={editing}
             onEditingChange={onEditingChange}
+            aria-label={editing ? `Done editing ${title}` : `Edit ${title}`}
           />
         )}
       </div>
