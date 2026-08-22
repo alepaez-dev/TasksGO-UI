@@ -180,6 +180,7 @@ export const TestScenarioCard = forwardRef<
     const fileInputRef = useRef<HTMLInputElement>(null);
     const evidenceRef = useRef<HTMLDivElement>(null);
     const addEvidenceRef = useRef<HTMLButtonElement>(null);
+    const bodyRef = useRef<HTMLDivElement>(null);
     const statusSelectRef = useRef<HTMLDivElement>(null);
     const closeStatusSelect = useCallback(
       () => onStatusSelectOpenChange?.(false),
@@ -197,7 +198,8 @@ export const TestScenarioCard = forwardRef<
           );
         const el = buttons?.[target];
         if (el) el.focus();
-        else addEvidenceRef.current?.focus();
+        else if (addEvidenceRef.current) addEvidenceRef.current.focus();
+        else bodyRef.current?.focus();
       });
     };
 
@@ -308,7 +310,7 @@ export const TestScenarioCard = forwardRef<
         </div>
 
         {open && (
-          <div id={bodyId} className={styles.body}>
+          <div ref={bodyRef} id={bodyId} className={styles.body} tabIndex={-1}>
             {status === 'waived' && (waiveReason || onWaiveReasonChange) && (
               <EditableSection
                 title="Waive Reason"
@@ -432,7 +434,9 @@ export const TestScenarioCard = forwardRef<
                         disabled={addEvidenceDisabled}
                       >
                         <Icon name="file_upload" size="xs" />
-                        {atEvidenceLimit ? 'Limit reached' : 'Add evidence'}
+                        {addEvidenceDisabled && atEvidenceLimit
+                          ? 'Limit reached'
+                          : 'Add evidence'}
                       </button>
                       <input
                         ref={fileInputRef}

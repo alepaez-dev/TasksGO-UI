@@ -320,7 +320,9 @@ describe('TestScenarioCard', () => {
         evidence={[{ label: 'a.png', kind: 'image' }]}
       />,
     );
-    expect(screen.getByRole('button', { name: 'Limit reached' })).toBeEnabled();
+    // still enabled, and the label must not claim a limit the card is not enforcing
+    expect(screen.getByRole('button', { name: 'Add evidence' })).toBeEnabled();
+    expect(screen.getByText('1/1')).toBeInTheDocument();
 
     // and it disables without any maxEvidence — e.g. an upload in flight
     rerender(
@@ -412,6 +414,32 @@ describe('TestScenarioCard', () => {
         screen.getByRole('button', { name: 'Remove a.png' }),
       ).toHaveFocus(),
     );
+  });
+
+  it('keeps focus in the card when the last chip goes and there is no Add control', async () => {
+    function Harness() {
+      const [evidence, setEvidence] = useState([
+        { label: 'a.png', kind: 'image' as const },
+      ]);
+      return (
+        <TestScenarioCard
+          {...base}
+          status="failed"
+          open
+          evidence={evidence}
+          onRemoveEvidence={(index) =>
+            setEvidence((prev) => prev.filter((_, i) => i !== index))
+          }
+        />
+      );
+    }
+    const { container } = render(<Harness />);
+    await userEvent.click(screen.getByRole('button', { name: 'Remove a.png' }));
+    // the whole evidence section unmounts here — focus must not fall to <body>
+    await waitFor(() => {
+      expect(document.activeElement).not.toBe(document.body);
+      expect(container.querySelector('[id$="-body"]')).toHaveFocus();
+    });
   });
 
   it('shows a section Edit toggle only when its change handler is provided', () => {
