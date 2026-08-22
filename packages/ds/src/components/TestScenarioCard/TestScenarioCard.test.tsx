@@ -1,8 +1,8 @@
-import { createRef } from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef, useState } from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import { TestScenarioCard } from './TestScenarioCard';
+import { TestScenarioCard, type TestScenarioSection } from './TestScenarioCard';
 
 const base = {
   caseId: 'TC-402',
@@ -670,6 +670,58 @@ describe('TestScenarioCard', () => {
     expect(screen.getByText('Waive Reason')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Add reason' }));
     expect(onEditingSectionsChange).toHaveBeenCalledWith(['waiveReason']);
+  });
+
+  it('moves focus into the editor when an add affordance is used', async () => {
+    function Harness() {
+      const [editingSections, setEditingSections] = useState<
+        readonly TestScenarioSection[]
+      >([]);
+      const [actual, setActual] = useState('');
+      return (
+        <TestScenarioCard
+          {...base}
+          open
+          actual={actual}
+          onActualChange={setActual}
+          editingSections={editingSections}
+          onEditingSectionsChange={setEditingSections}
+        />
+      );
+    }
+    render(<Harness />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Add actual result' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('textbox', { name: 'Actual Result' }),
+      ).toHaveFocus(),
+    );
+  });
+
+  it('moves focus into the step editor when "Add step" is used', async () => {
+    function Harness() {
+      const [editingSections, setEditingSections] = useState<
+        readonly TestScenarioSection[]
+      >([]);
+      const [steps, setSteps] = useState<readonly string[]>([]);
+      return (
+        <TestScenarioCard
+          {...base}
+          open
+          steps={steps}
+          onStepsChange={setSteps}
+          editingSections={editingSections}
+          onEditingSectionsChange={setEditingSections}
+        />
+      );
+    }
+    render(<Harness />);
+    await userEvent.click(screen.getByRole('button', { name: 'Add step' }));
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: 'Step 1' })).toHaveFocus(),
+    );
   });
 
   it('gives each section editor an accessible name matching its heading', () => {

@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { Callout } from '../Callout';
 import { EditToggle } from '../EditToggle';
 import { Icon } from '../Icon';
@@ -39,8 +39,11 @@ export function EditableSection({
   const showToggle =
     editable && (addLabel == null || editing || value.length > 0);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const editor = (
     <textarea
+      ref={textareaRef}
       className={styles.editorTextarea}
       aria-label={title}
       value={value}
@@ -81,7 +84,10 @@ export function EditableSection({
         <button
           type="button"
           className={styles.addStep}
-          onClick={() => onEditingChange(true)}
+          onClick={() => {
+            onEditingChange(true);
+            requestAnimationFrame(() => textareaRef.current?.focus());
+          }}
         >
           <Icon name="add" size="xs" />
           {addLabel}

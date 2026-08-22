@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { EditToggle } from '../EditToggle';
 import { Icon } from '../Icon';
 import { SectionHeader } from '../SectionHeader';
@@ -27,6 +27,8 @@ export function StepsSection({
   expanded,
   onExpandedChange,
 }: StepsSectionProps): ReactNode {
+  const sectionRef = useRef<HTMLElement>(null);
+
   if (steps.length === 0 && !onStepsChange) return null;
 
   const canToggle = steps.length > STEPS_PREVIEW_COUNT;
@@ -65,6 +67,9 @@ export function StepsSection({
         onClick={() => {
           onStepsChange(['']);
           onEditingChange(true);
+          requestAnimationFrame(() => {
+            sectionRef.current?.querySelector('textarea')?.focus();
+          });
         }}
       >
         <Icon name="add" size="xs" />
@@ -74,7 +79,7 @@ export function StepsSection({
   }
 
   return (
-    <section className={styles.section}>
+    <section ref={sectionRef} className={styles.section}>
       <div className={styles.sectionHead}>
         <SectionHeader headingLevel={3}>{STEPS_TITLE}</SectionHeader>
         {onStepsChange && (editing || steps.length > 0) && (
