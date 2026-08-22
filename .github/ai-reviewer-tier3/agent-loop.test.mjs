@@ -1246,3 +1246,47 @@ test('winding down and then NOT submitting is still an interrupt', async () => {
   assert.equal(out.submitted, false);
   assert.equal(out.interruptedReason, 'budget', 'ignoring the submit request must block the checkpoint');
 });
+
+test('a truncated round is NOT re-issued when the retry would pass the ceiling', async () => {
+  // Ceiling $0.50. The truncated turn emits its full 12k cap = $0.30, and a re-issue is priced at
+  // another $0.30, so 0.30 + 0.30 > 0.50 and the retry must not be bought.
+  const tight = { ...config, costCeilingUsd: 0.5, roundOutputTokens: 12000, maxOutputTokens: 64000, terminalTurnOutputTokens: 8000 };
+  let calls = 0;
+  const client = {
+    beta: {
+      messages: {
+        stream(params) {
+          calls += 1;
+          if (calls === 1) {
+            return { finalMessage: async () => ({ content: [{ type: 'text', text: 'partial' }], usage: { input_tokens: 0, output_tokens: 12000 }, stop_reason: 'max_tokens' }) };
+          }
+          throw new Error(`re-issued at max_tokens=${params.max_tokens} despite having no budget for it`);
+        },
+      },
+    },
+  };
+  const out = await runReviewAgent({ client, config: tight, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.equal(calls, 1, 'the unaffordable re-issue must never be sent');
+  assert.equal(out.interruptedReason, 'budget');
+  assert.equal(out.submitted, false, 'a truncated turn is not a submission — the commit must not be marked reviewed');
+});
+
+test('a truncated round IS re-issued at the full cap when the budget covers it', async () => {
+  const roomy = { ...config, costCeilingUsd: 50, roundOutputTokens: 12000, maxOutputTokens: 64000, terminalTurnOutputTokens: 8000 };
+  const seen = [];
+  const client = {
+    beta: {
+      messages: {
+        stream(params) {
+          seen.push(params.max_tokens);
+          return seen.length === 1
+            ? { finalMessage: async () => ({ content: [{ type: 'text', text: 'partial' }], usage: { input_tokens: 0, output_tokens: 12000 }, stop_reason: 'max_tokens' }) }
+            : { finalMessage: async () => ({ content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 0, output_tokens: 100 }, stop_reason: 'tool_use' }) };
+        },
+      },
+    },
+  };
+  const out = await runReviewAgent({ client, config: roomy, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.deepEqual(seen, [12000, 64000], 'the retry must raise the cap to maxOutputTokens');
+  assert.equal(out.submitted, true);
+});

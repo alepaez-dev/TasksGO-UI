@@ -324,6 +324,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     }
 
     let msg;
+    let truncatedUnaffordable = false;
     try {
       const roundCap = windingDown
         ? (config.terminalOutputTokens ?? config.maxOutputTokens)
@@ -339,16 +340,26 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       });
       if (res.msg?.stop_reason === 'max_tokens' && roundCap < config.maxOutputTokens) {
         governor.record(res.msg.usage, models[res.idx]);
-        log(`round ${rounds + 1}/${config.maxRounds}: output hit the ${roundCap}-token cap — re-issuing at ${config.maxOutputTokens}.`);
-        res = await streamRoundWithRetry({
-          client,
-          models,
-          startIdx: res.idx,
-          maxRetries,
-          baseDelay,
-          params: { config, system, tools, messages, maxTokens: config.maxOutputTokens },
-          log,
-        });
+        if (governor.wouldExceed(governor.projectTerminalTurnUsd(res.msg.usage, models[res.idx]))) {
+          governor.interrupt('budget');
+          if (logLevel !== 'quiet')
+            log(
+              `round ${rounds + 1}/${config.maxRounds}: output hit the ${roundCap}-token cap at $${governor.spentUsd().toFixed(2)} — ` +
+                `a re-issue would pass the $${config.costCeilingUsd} ceiling, so stopping instead.`,
+            );
+          truncatedUnaffordable = true;
+        } else {
+          log(`round ${rounds + 1}/${config.maxRounds}: output hit the ${roundCap}-token cap — re-issuing at ${config.maxOutputTokens}.`);
+          res = await streamRoundWithRetry({
+            client,
+            models,
+            startIdx: res.idx,
+            maxRetries,
+            baseDelay,
+            params: { config, system, tools, messages, maxTokens: config.maxOutputTokens },
+            log,
+          });
+        }
       }
       msg = res.msg;
       modelIdx = res.idx;
@@ -356,6 +367,12 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       if (rounds === 0) throw e;
       governor.interrupt('error');
       log(`model request failed after ${rounds} round(s) (retries + fallback exhausted); returning findings so far: ${errMsg(e)}`);
+      break;
+    }
+    // The truncated turn was billed but its tool call is unusable, and there is no budget to redo it.
+    // Stop with whatever is banked
+    if (truncatedUnaffordable) {
+      findings = findings ?? [];
       break;
     }
     rounds += 1;
