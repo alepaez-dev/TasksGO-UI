@@ -23,6 +23,7 @@ export interface TokenBadgeHandlers {
   openBadgeId?: string | null;
   openBadgeManagesFocus?: boolean;
   onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) => void;
+  onViewTask?: (task: ScratchpadTaskRef) => void;
   taskCardPresentation?: 'popover' | 'sheet';
 }
 
@@ -38,6 +39,7 @@ export function TokenBadge({
   openBadgeId,
   openBadgeManagesFocus,
   onBadgeOpenChange,
+  onViewTask,
   taskCardPresentation = 'popover',
 }: TokenBadgeProps) {
   const ref = useRef<HTMLButtonElement>(null);
@@ -49,6 +51,17 @@ export function TokenBadge({
     tokenKey === 'task' &&
     taskBadgeInfo !== undefined &&
     onBadgeOpenChange !== undefined;
+
+  // Dismissal is the chip's own concern, so the card only ever sees one handler.
+  // Focus is anchored here before the drawer traps it, so closing returns to the
+  // chip rather than <body> when the card was opened by hover.
+  const viewTask = onViewTask
+    ? (task: ScratchpadTaskRef) => {
+        ref.current?.focus();
+        onBadgeOpenChange?.(null);
+        onViewTask(task);
+      }
+    : undefined;
 
   if (!interactive) {
     return (
@@ -84,7 +97,7 @@ export function TokenBadge({
           onClose={() => onBadgeOpenChange(null)}
           aria-label={`Linked task ${taskBadgeInfo.id}`}
         >
-          <LinkedTaskCard taskRef={taskBadgeInfo} bare />
+          <LinkedTaskCard taskRef={taskBadgeInfo} bare onViewTask={viewTask} />
         </BottomSheet>
       </>
     );
@@ -132,20 +145,63 @@ export function TokenBadge({
             if (!manageFocus) onBadgeOpenChange(null);
           }}
         >
-          <LinkedTaskCard taskRef={taskBadgeInfo} />
+          <LinkedTaskCard taskRef={taskBadgeInfo} onViewTask={viewTask} />
         </div>
       </Popover>
     </>
   );
 }
 
+interface ViewTaskActionProps {
+  taskRef: ScratchpadTaskRef;
+  onViewTask?: (task: ScratchpadTaskRef) => void;
+}
+
+function ViewTaskAction({ taskRef, onViewTask }: ViewTaskActionProps) {
+  if (taskRef.href) {
+    return (
+      <a
+        className={styles.viewTask}
+        href={sanitizeHref(taskRef.href)}
+        onClick={
+          onViewTask &&
+          ((e) => {
+            // Modifier clicks are new-tab intents; leave them to the browser.
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            e.preventDefault();
+            onViewTask(taskRef);
+          })
+        }
+      >
+        View Task
+      </a>
+    );
+  }
+
+  if (!onViewTask) return null;
+
+  return (
+    <button
+      type="button"
+      className={styles.viewTask}
+      onClick={() => onViewTask(taskRef)}
+    >
+      View Task
+    </button>
+  );
+}
+
+interface LinkedTaskCardProps {
+  taskRef: ScratchpadTaskRef;
+  bare?: boolean;
+  onViewTask?: (task: ScratchpadTaskRef) => void;
+}
+
 export function LinkedTaskCard({
   taskRef,
   bare = false,
-}: {
-  taskRef: ScratchpadTaskRef;
-  bare?: boolean;
-}) {
+  onViewTask,
+}: LinkedTaskCardProps) {
   return (
     <div className={cn(styles.taskCard, bare && styles.taskCardBare)}>
       <div className={styles.taskCardHeader}>
@@ -163,11 +219,7 @@ export function LinkedTaskCard({
           <Icon name="schedule" size="sm" />
           {taskRef.createdAgo}
         </span>
-        {taskRef.href && (
-          <a className={styles.viewTask} href={sanitizeHref(taskRef.href)}>
-            View Task
-          </a>
-        )}
+        <ViewTaskAction taskRef={taskRef} onViewTask={onViewTask} />
       </div>
     </div>
   );

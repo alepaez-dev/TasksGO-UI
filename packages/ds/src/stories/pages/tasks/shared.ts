@@ -2,6 +2,7 @@ import type { TaskRowProps } from '../../../components/TaskRow';
 import type { RecentTaskItem } from '../../../components/RecentTaskList';
 import type { SearchPaletteGroup } from '../../../components/SearchPalette';
 import type { ProjectPickerProject } from '../../../components/ProjectPicker';
+import type { SelectorGroupEntry } from '../../../hooks/useSelector';
 
 export type TaskItem = Pick<
   TaskRowProps,
@@ -10,6 +11,20 @@ export type TaskItem = Pick<
   id: string;
   ticketId?: string;
 };
+
+// Mirrors useSelectorGroup('assignee', 'priority', 'ticket') so the hook that
+// produces it and the drawer that consumes it cannot drift apart.
+export type TaskDrawerSelectors = Record<
+  'assignee' | 'priority' | 'ticket',
+  SelectorGroupEntry
+>;
+
+export interface PersonOption {
+  value: string;
+  label: string;
+  initial: string;
+  color: string;
+}
 
 export interface DrawerFormState {
   title: string;
@@ -114,7 +129,7 @@ export function getProject(value: string): ProjectPickerProject {
   return projectList.find((p) => p.value === value) ?? projectList[0];
 }
 
-export const assigneeOptions = [
+export const assigneeOptions: readonly PersonOption[] = [
   { value: 'alex', label: 'Alex H.', initial: 'AH', color: '#7D9B84' },
   { value: 'cleo', label: 'Cleo H.', initial: 'CH', color: '#C38E70' },
   { value: 'vader', label: 'Vader P.', initial: 'VP', color: '#6C89A8' },

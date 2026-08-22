@@ -18,15 +18,10 @@ import { StatusDot } from '../../../components/StatusDot';
 import { TaskSection } from '../../../components/TaskSection';
 import { TaskRow } from '../../../components/TaskRow';
 import { OptionList } from '../../../components/OptionList';
-import { Drawer } from '../../../components/Drawer';
-import {
-  TaskDrawer,
-  TaskDrawerField,
-  TaskDrawerSection,
-} from '../../../components/TaskDrawer';
+import { TaskFormDrawer } from '../../helpers/TaskFormDrawer';
+import { TaskDrawerSection } from '../../../components/TaskDrawer';
 import { PropertyRow } from '../../../components/PropertyRow';
 import { RecentTaskList } from '../../../components/RecentTaskList';
-import { Button } from '../../../components/Button';
 import {
   orderByLabelStyle,
   orderByValueStyle,
@@ -423,230 +418,191 @@ function TasksMobileRender({
         </div>
       </BottomSheet>
 
-      <Drawer
+      <TaskFormDrawer
         open={tasks.drawerOpen}
+        title={tasks.drawerTitle}
         onClose={tasks.handleDrawerClose}
-        side="right"
-        aria-label={tasks.drawerTitle}
+        form={tasks.form}
+        setForm={tasks.setForm}
+        submitLabel={tasks.drawerSubmitLabel}
       >
-        <TaskDrawer
-          title={tasks.drawerTitle}
-          onCancel={tasks.handleDrawerClose}
-          onSubmit={tasks.handleDrawerClose}
-          submitLabel={tasks.drawerSubmitLabel}
-        >
-          <TaskDrawerField label="Task Title">
-            <input
-              type="text"
-              value={tasks.form.title}
-              onChange={(e) =>
-                tasks.setForm((f) => ({ ...f, title: e.target.value }))
-              }
-              placeholder="Describe the task..."
-              aria-label="Task title"
-            />
-          </TaskDrawerField>
-
-          <TaskDrawerField
-            label="Description"
-            action={
-              <Button variant="ai" size="sm">
-                <Icon name="auto_awesome" size="sm" />
-                Generate with AI
-              </Button>
-            }
+        <TaskDrawerSection label="Properties">
+          <PropertyRow
+            icon="person"
+            label="Assignee"
+            onClick={() => onAssigneeChange(true)}
+            valueLabel={`Assignee: ${selectedAssignee?.label ?? 'Unassigned'}`}
           >
-            <textarea
-              value={tasks.form.description}
-              onChange={(e) =>
-                tasks.setForm((f) => ({ ...f, description: e.target.value }))
+            <Avatar
+              variant="profile"
+              size="sm"
+              initial={selectedAssignee?.initial ?? '?'}
+              aria-label={selectedAssignee?.label ?? 'No assignee'}
+              style={
+                selectedAssignee?.color
+                  ? { backgroundColor: selectedAssignee.color }
+                  : undefined
               }
-              placeholder="Add details..."
-              rows={4}
-              aria-label="Description"
             />
-          </TaskDrawerField>
+            <span>{selectedAssignee?.label ?? 'Unassigned'}</span>
+            <Icon name="expand_more" size="sm" />
+          </PropertyRow>
 
-          <TaskDrawerSection label="Properties">
-            <PropertyRow
-              icon="person"
-              label="Assignee"
-              onClick={() => onAssigneeChange(true)}
-              valueLabel={`Assignee: ${selectedAssignee?.label ?? 'Unassigned'}`}
-            >
-              <Avatar
-                variant="profile"
+          <PropertyRow
+            icon="signal_cellular_alt"
+            label="Priority"
+            onClick={() => onPriorityChange(true)}
+            valueLabel={`Priority: ${selectedPriority?.label ?? 'None'}`}
+          >
+            {selectedPriority && (
+              <Icon
+                name={selectedPriority.icon}
                 size="sm"
-                initial={selectedAssignee?.initial ?? '?'}
-                aria-label={selectedAssignee?.label ?? 'No assignee'}
-                style={
-                  selectedAssignee?.color
-                    ? { backgroundColor: selectedAssignee.color }
-                    : undefined
-                }
+                style={{ color: selectedPriority.iconColor }}
               />
-              <span>{selectedAssignee?.label ?? 'Unassigned'}</span>
-              <Icon name="expand_more" size="sm" />
-            </PropertyRow>
+            )}
+            <span>{selectedPriority?.label ?? 'None'}</span>
+            <Icon name="expand_more" size="sm" />
+          </PropertyRow>
 
-            <PropertyRow
-              icon="signal_cellular_alt"
-              label="Priority"
-              onClick={() => onPriorityChange(true)}
-              valueLabel={`Priority: ${selectedPriority?.label ?? 'None'}`}
-            >
-              {selectedPriority && (
-                <Icon
-                  name={selectedPriority.icon}
-                  size="sm"
-                  style={{ color: selectedPriority.iconColor }}
-                />
-              )}
-              <span>{selectedPriority?.label ?? 'None'}</span>
-              <Icon name="expand_more" size="sm" />
-            </PropertyRow>
+          <PropertyRow
+            icon="confirmation_number"
+            label="Linked Ticket"
+            onClick={() => onTicketChange(true)}
+            valueLabel={`Linked ticket: ${
+              selectedTicket
+                ? `${selectedTicket.prefix}, ${selectedTicket.label}`
+                : 'None'
+            }`}
+          >
+            <span>{selectedTicket ? selectedTicket.prefix : 'None'}</span>
+            <Icon name="expand_more" size="sm" />
+          </PropertyRow>
+        </TaskDrawerSection>
 
-            <PropertyRow
-              icon="confirmation_number"
-              label="Linked Ticket"
-              onClick={() => onTicketChange(true)}
-              valueLabel={`Linked ticket: ${
-                selectedTicket
-                  ? `${selectedTicket.prefix}, ${selectedTicket.label}`
-                  : 'None'
-              }`}
-            >
-              <span>{selectedTicket ? selectedTicket.prefix : 'None'}</span>
-              <Icon name="expand_more" size="sm" />
-            </PropertyRow>
-          </TaskDrawerSection>
-
-          <BottomSheet
-            open={assigneeOpen}
-            onClose={() => {
-              onAssigneeChange(false);
+        <BottomSheet
+          open={assigneeOpen}
+          onClose={() => {
+            onAssigneeChange(false);
+            tasks.setAssigneeQuery('');
+          }}
+          aria-label="Select assignee"
+        >
+          <SectionHeader headingLevel={3}>Assignee</SectionHeader>
+          <OptionList
+            options={
+              tasks.assigneeQuery
+                ? assigneeOptions.filter((m) =>
+                    m.label
+                      .toLowerCase()
+                      .includes(tasks.assigneeQuery.toLowerCase()),
+                  )
+                : assigneeOptions
+            }
+            value={tasks.form.assignee}
+            onSelect={(v) => {
+              tasks.setForm((f) => ({ ...f, assignee: v }));
               tasks.setAssigneeQuery('');
+              onAssigneeChange(false);
             }}
-            aria-label="Select assignee"
-          >
-            <SectionHeader headingLevel={3}>Assignee</SectionHeader>
-            <OptionList
-              options={
-                tasks.assigneeQuery
-                  ? assigneeOptions.filter((m) =>
-                      m.label
+            header={
+              <SearchInput
+                value={tasks.assigneeQuery}
+                onChange={(e) => tasks.setAssigneeQuery(e.target.value)}
+                placeholder="Search members..."
+                aria-label="Search members"
+                size="sm"
+              />
+            }
+            emptyState="No members found"
+            renderOptionIndicator={(opt) => {
+              const member = assigneeOptions.find((m) => m.value === opt.value);
+              return member ? (
+                <Avatar
+                  variant="profile"
+                  size="sm"
+                  initial={member.initial}
+                  aria-label={member.label}
+                  style={{ backgroundColor: member.color }}
+                />
+              ) : null;
+            }}
+            aria-label="Members"
+          />
+        </BottomSheet>
+
+        <BottomSheet
+          open={priorityOpen}
+          onClose={() => onPriorityChange(false)}
+          aria-label="Select priority"
+        >
+          <SectionHeader headingLevel={3}>Priority</SectionHeader>
+          <OptionList
+            options={priorityOptions}
+            value={tasks.form.priority}
+            onSelect={(v) => {
+              tasks.setForm((f) => ({ ...f, priority: v }));
+              onPriorityChange(false);
+            }}
+            aria-label="Priority"
+          />
+        </BottomSheet>
+
+        <BottomSheet
+          open={ticketOpen}
+          onClose={() => {
+            onTicketChange(false);
+            tasks.setTicketQuery('');
+          }}
+          aria-label="Select linked ticket"
+        >
+          <SectionHeader headingLevel={3}>Linked Ticket</SectionHeader>
+          <OptionList
+            options={
+              tasks.ticketQuery
+                ? ticketOptions.filter(
+                    (t) =>
+                      t.label
                         .toLowerCase()
-                        .includes(tasks.assigneeQuery.toLowerCase()),
-                    )
-                  : assigneeOptions
-              }
-              value={tasks.form.assignee}
-              onSelect={(v) => {
-                tasks.setForm((f) => ({ ...f, assignee: v }));
-                tasks.setAssigneeQuery('');
-                onAssigneeChange(false);
-              }}
-              header={
-                <SearchInput
-                  value={tasks.assigneeQuery}
-                  onChange={(e) => tasks.setAssigneeQuery(e.target.value)}
-                  placeholder="Search members..."
-                  aria-label="Search members"
-                  size="sm"
-                />
-              }
-              emptyState="No members found"
-              renderOptionIndicator={(opt) => {
-                const member = assigneeOptions.find(
-                  (m) => m.value === opt.value,
-                );
-                return member ? (
-                  <Avatar
-                    variant="profile"
-                    size="sm"
-                    initial={member.initial}
-                    aria-label={member.label}
-                    style={{ backgroundColor: member.color }}
-                  />
-                ) : null;
-              }}
-              aria-label="Members"
-            />
-          </BottomSheet>
-
-          <BottomSheet
-            open={priorityOpen}
-            onClose={() => onPriorityChange(false)}
-            aria-label="Select priority"
-          >
-            <SectionHeader headingLevel={3}>Priority</SectionHeader>
-            <OptionList
-              options={priorityOptions}
-              value={tasks.form.priority}
-              onSelect={(v) => {
-                tasks.setForm((f) => ({ ...f, priority: v }));
-                onPriorityChange(false);
-              }}
-              aria-label="Priority"
-            />
-          </BottomSheet>
-
-          <BottomSheet
-            open={ticketOpen}
-            onClose={() => {
-              onTicketChange(false);
+                        .includes(tasks.ticketQuery.toLowerCase()) ||
+                      t.prefix
+                        .toLowerCase()
+                        .includes(tasks.ticketQuery.toLowerCase()),
+                  )
+                : ticketOptions
+            }
+            value={tasks.form.linkedTicket}
+            onSelect={(v) => {
+              tasks.setForm((f) => ({ ...f, linkedTicket: v }));
               tasks.setTicketQuery('');
+              onTicketChange(false);
             }}
-            aria-label="Select linked ticket"
-          >
-            <SectionHeader headingLevel={3}>Linked Ticket</SectionHeader>
-            <OptionList
-              options={
-                tasks.ticketQuery
-                  ? ticketOptions.filter(
-                      (t) =>
-                        t.label
-                          .toLowerCase()
-                          .includes(tasks.ticketQuery.toLowerCase()) ||
-                        t.prefix
-                          .toLowerCase()
-                          .includes(tasks.ticketQuery.toLowerCase()),
-                    )
-                  : ticketOptions
-              }
-              value={tasks.form.linkedTicket}
-              onSelect={(v) => {
-                tasks.setForm((f) => ({ ...f, linkedTicket: v }));
-                tasks.setTicketQuery('');
+            header={
+              <SearchInput
+                value={tasks.ticketQuery}
+                onChange={(e) => tasks.setTicketQuery(e.target.value)}
+                placeholder="Search tickets..."
+                aria-label="Search tickets"
+                size="sm"
+              />
+            }
+            action={{
+              label: 'Create new ticket',
+              icon: 'add',
+              onClick: () => {
                 onTicketChange(false);
-              }}
-              header={
-                <SearchInput
-                  value={tasks.ticketQuery}
-                  onChange={(e) => tasks.setTicketQuery(e.target.value)}
-                  placeholder="Search tickets..."
-                  aria-label="Search tickets"
-                  size="sm"
-                />
-              }
-              action={{
-                label: 'Create new ticket',
-                icon: 'add',
-                onClick: () => {
-                  onTicketChange(false);
-                  tasks.setTicketQuery('');
-                },
-              }}
-              emptyState="No results found"
-              aria-label="Tickets"
-            />
-          </BottomSheet>
+                tasks.setTicketQuery('');
+              },
+            }}
+            emptyState="No results found"
+            aria-label="Tickets"
+          />
+        </BottomSheet>
 
-          <TaskDrawerSection label="Recent Tasks">
-            <RecentTaskList items={recentTasks} />
-          </TaskDrawerSection>
-        </TaskDrawer>
-      </Drawer>
+        <TaskDrawerSection label="Recent Tasks">
+          <RecentTaskList items={recentTasks} />
+        </TaskDrawerSection>
+      </TaskFormDrawer>
     </div>
   );
 }

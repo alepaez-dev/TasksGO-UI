@@ -446,9 +446,16 @@ button.checkbox:focus-visible {
   color: var(--ds-color-text-secondary);
 }
 
+/* Rendered as an anchor or a button depending on whether the task carries an
+   href, so this rule normalises both to keep the two identical. */
 .viewTask {
   flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
   font-weight: var(--ds-font-weight-medium);
+  cursor: pointer;
   color: var(--ds-color-accent-primary);
   text-decoration: none;
 }

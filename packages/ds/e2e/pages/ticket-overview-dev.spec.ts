@@ -211,3 +211,33 @@ test.describe('Ticket — toolbar dividers', () => {
     expect(dividers).toBeGreaterThan(0);
   });
 });
+
+test.describe('Ticket — View Task opens the edit drawer', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+  });
+
+  test('opens the drawer for the hovered task and restores focus on close', async ({
+    page,
+  }) => {
+    const chip = page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first();
+    await chip.hover();
+
+    await page.getByRole('link', { name: 'View Task' }).click();
+
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByLabel('Task title')).toHaveValue(
+      'Add multi-value header support to edge cache',
+    );
+
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(drawer).toHaveCount(0);
+    // useFocusTrap restores focus on close; assert it because it is inherited.
+    await expect(chip).toBeFocused();
+  });
+});

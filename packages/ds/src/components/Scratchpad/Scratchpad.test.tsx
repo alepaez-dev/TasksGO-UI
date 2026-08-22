@@ -1,5 +1,11 @@
 import { createRef } from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  createEvent,
+  within,
+} from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { Scratchpad, type ScratchpadLine } from './Scratchpad';
 import { useScratchpad } from '../../hooks/useScratchpad';
@@ -559,6 +565,88 @@ describe('Scratchpad', () => {
       expect(
         screen.getByRole('link', { name: 'View Task' }),
       ).toBeInTheDocument();
+    });
+
+    it('keeps View Task a link when onViewTask joins an href', () => {
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={tokenLine}
+          highlightBadges
+          taskBadgeInfo={taskBadgeInfo}
+          openBadgeId="l1#0"
+          onBadgeOpenChange={() => {}}
+          onViewTask={() => {}}
+        />,
+      );
+      expect(screen.getByRole('link', { name: 'View Task' })).toHaveAttribute(
+        'href',
+        '/t/9',
+      );
+    });
+
+    it('falls back to a button when the task carries no href', () => {
+      const noHref = { ...taskBadgeInfo, href: undefined };
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={tokenLine}
+          highlightBadges
+          taskBadgeInfo={noHref}
+          openBadgeId="l1#0"
+          onBadgeOpenChange={() => {}}
+          onViewTask={() => {}}
+        />,
+      );
+      expect(
+        screen.getByRole('button', { name: 'View Task' }),
+      ).toBeInTheDocument();
+    });
+
+    it('leaves modifier clicks to the browser so new-tab still works', () => {
+      const onViewTask = vi.fn();
+      const onBadgeOpenChange = vi.fn();
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={tokenLine}
+          highlightBadges
+          taskBadgeInfo={taskBadgeInfo}
+          openBadgeId="l1#0"
+          onBadgeOpenChange={onBadgeOpenChange}
+          onViewTask={onViewTask}
+        />,
+      );
+      const link = screen.getByRole('link', { name: 'View Task' });
+      const event = createEvent.click(link, { metaKey: true });
+      fireEvent(link, event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(onViewTask).not.toHaveBeenCalled();
+      expect(onBadgeOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('dismisses the card and reports the task when View Task is pressed', () => {
+      const onViewTask = vi.fn();
+      const onBadgeOpenChange = vi.fn();
+      render(
+        <Scratchpad
+          aria-label="Notes"
+          lines={tokenLine}
+          highlightBadges
+          taskBadgeInfo={taskBadgeInfo}
+          openBadgeId="l1#0"
+          onBadgeOpenChange={onBadgeOpenChange}
+          onViewTask={onViewTask}
+        />,
+      );
+      const link = screen.getByRole('link', { name: 'View Task' });
+      const event = createEvent.click(link);
+      fireEvent(link, event);
+      // A plain click stays in-app rather than following the href.
+      expect(event.defaultPrevented).toBe(true);
+      // The card closes first so only one surface is open at a time.
+      expect(onBadgeOpenChange).toHaveBeenCalledWith(null);
+      expect(onViewTask).toHaveBeenCalledWith(taskBadgeInfo);
     });
 
     it('does not make [qa] chips interactive', () => {

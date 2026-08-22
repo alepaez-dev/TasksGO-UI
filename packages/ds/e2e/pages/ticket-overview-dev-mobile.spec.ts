@@ -372,3 +372,45 @@ test.describe('Ticket mobile — toolbar dividers', () => {
     expect(layout.dividers).toBe(0);
   });
 });
+
+test.describe('Ticket mobile — View Task opens the edit drawer', () => {
+  test.beforeEach(async ({ page }) => {
+    await loadStory(page);
+    await openDevTab(page);
+  });
+
+  test('swaps the task sheet for the drawer and restores focus on close', async ({
+    page,
+  }) => {
+    const chip = page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first();
+    await chip.click();
+
+    const sheet = page.getByRole('dialog', { name: /^Linked task/ });
+    await expect(sheet).toBeVisible();
+
+    await page.getByRole('link', { name: 'View Task' }).click();
+
+    // The sheet must unmount rather than stack behind the drawer — two live
+    // focus traps is the failure mode this pins.
+    await expect(sheet).toHaveCount(0);
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByLabel('Task title')).toHaveValue(
+      'Add multi-value header support to edge cache',
+    );
+
+    // Checked after the sheet has unmounted, so its focus-trap teardown has
+    // already run: it must not have pulled focus back out of the drawer.
+    const focusHeld = await drawer.evaluate((el) =>
+      el.contains(document.activeElement),
+    );
+    expect(focusHeld).toBe(true);
+
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(drawer).toHaveCount(0);
+    await expect(chip).toBeFocused();
+  });
+});

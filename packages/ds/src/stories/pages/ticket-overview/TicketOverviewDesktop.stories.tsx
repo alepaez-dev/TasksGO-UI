@@ -23,6 +23,7 @@ import { ChecklistRow } from '../../../components/ChecklistRow';
 import { PropertyRow } from '../../../components/PropertyRow';
 import { Scratchpad } from '../../../components/Scratchpad';
 import { StatusDot } from '../../../components/StatusDot';
+import { TaskEditDrawer } from '../../helpers/TaskEditDrawer';
 import { TicketId } from '../../../components/TicketId';
 import { PipelineHierarchyPanel } from '../../../components/PipelineHierarchyPanel';
 import {
@@ -118,6 +119,13 @@ function TicketOverviewRender() {
     setAddStageDraft,
     confirmAddStage,
     cancelAddStage,
+    viewingTask,
+    taskForm,
+    setTaskForm,
+    openTaskDrawer,
+    closeTaskDrawer,
+    taskDrawerTitle,
+    taskSelectors,
   } = useTicketOverviewState();
   const activeProject = getProject(project);
   const activeAssignee = getPerson(assignee);
@@ -394,6 +402,7 @@ function TicketOverviewRender() {
                         highlightBadges
                         formattingToolbar
                         taskBadgeInfo={devScratchpadTask}
+                        onViewTask={openTaskDrawer}
                         lines={scratchpad.lines}
                         onReorder={scratchpad.onReorder}
                         onLineTextChange={scratchpad.onLineTextChange}
@@ -628,6 +637,20 @@ function TicketOverviewRender() {
           }
         />
       </div>
+
+      <TaskEditDrawer
+        open={viewingTask !== null}
+        title={taskDrawerTitle}
+        onClose={closeTaskDrawer}
+        form={taskForm}
+        setForm={setTaskForm}
+        selectors={taskSelectors}
+        assigneeOptions={peopleOptions}
+        priorityOptions={priorityOptions}
+        ticketOptions={[
+          { value: ticket.id, label: ticket.title, prefix: ticket.id },
+        ]}
+      />
     </div>
   );
 }
