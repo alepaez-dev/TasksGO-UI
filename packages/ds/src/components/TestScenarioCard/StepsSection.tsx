@@ -28,6 +28,7 @@ export function StepsSection({
   onExpandedChange,
 }: StepsSectionProps): ReactNode {
   const sectionRef = useRef<HTMLElement>(null);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
 
   if (steps.length === 0 && !onStepsChange) return null;
 
@@ -62,6 +63,7 @@ export function StepsSection({
   } else if (onStepsChange) {
     body = (
       <button
+        ref={addButtonRef}
         type="button"
         className={styles.addStep}
         onClick={() => {
@@ -86,7 +88,12 @@ export function StepsSection({
           <EditToggle
             className={editing ? undefined : styles.sectionEdit}
             editing={editing}
-            onEditingChange={onEditingChange}
+            onEditingChange={(next) => {
+              onEditingChange(next);
+              if (!next) {
+                requestAnimationFrame(() => addButtonRef.current?.focus());
+              }
+            }}
             aria-label={
               editing ? `Done editing ${STEPS_TITLE}` : `Edit ${STEPS_TITLE}`
             }

@@ -387,6 +387,33 @@ describe('TestScenarioCard', () => {
     expect(onRemoveEvidence).toHaveBeenCalledWith(1);
   });
 
+  it('keeps focus in the evidence list after removing the last chip', async () => {
+    function Harness() {
+      const [evidence, setEvidence] = useState([
+        { label: 'a.png', kind: 'image' as const },
+        { label: 'b.log', kind: 'file' as const },
+      ]);
+      return (
+        <TestScenarioCard
+          {...base}
+          status="failed"
+          open
+          evidence={evidence}
+          onRemoveEvidence={(index) =>
+            setEvidence((prev) => prev.filter((_, i) => i !== index))
+          }
+        />
+      );
+    }
+    render(<Harness />);
+    await userEvent.click(screen.getByRole('button', { name: 'Remove b.log' }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Remove a.png' }),
+      ).toHaveFocus(),
+    );
+  });
+
   it('shows a section Edit toggle only when its change handler is provided', () => {
     const { rerender } = render(<TestScenarioCard {...base} open />);
     expect(
@@ -697,6 +724,60 @@ describe('TestScenarioCard', () => {
       expect(
         screen.getByRole('textbox', { name: 'Actual Result' }),
       ).toHaveFocus(),
+    );
+  });
+
+  it('returns focus to the add affordance when Done leaves a section empty', async () => {
+    function Harness() {
+      const [editingSections, setEditingSections] = useState<
+        readonly TestScenarioSection[]
+      >(['actual']);
+      const [actual, setActual] = useState('');
+      return (
+        <TestScenarioCard
+          {...base}
+          open
+          actual={actual}
+          onActualChange={setActual}
+          editingSections={editingSections}
+          onEditingSectionsChange={setEditingSections}
+        />
+      );
+    }
+    render(<Harness />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Done editing Actual Result' }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Add actual result' }),
+      ).toHaveFocus(),
+    );
+  });
+
+  it('returns focus to "Add step" when Done leaves the steps empty', async () => {
+    function Harness() {
+      const [editingSections, setEditingSections] = useState<
+        readonly TestScenarioSection[]
+      >(['steps']);
+      const [steps, setSteps] = useState<readonly string[]>([]);
+      return (
+        <TestScenarioCard
+          {...base}
+          open
+          steps={steps}
+          onStepsChange={setSteps}
+          editingSections={editingSections}
+          onEditingSectionsChange={setEditingSections}
+        />
+      );
+    }
+    render(<Harness />);
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Done editing Steps to Reproduce' }),
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Add step' })).toHaveFocus(),
     );
   });
 

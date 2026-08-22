@@ -40,6 +40,7 @@ export function EditableSection({
     editable && (addLabel == null || editing || value.length > 0);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
 
   const editor = (
     <textarea
@@ -59,7 +60,12 @@ export function EditableSection({
           <EditToggle
             className={editing ? undefined : styles.sectionEdit}
             editing={editing}
-            onEditingChange={onEditingChange}
+            onEditingChange={(next) => {
+              onEditingChange(next);
+              if (!next) {
+                requestAnimationFrame(() => addButtonRef.current?.focus());
+              }
+            }}
             aria-label={editing ? `Done editing ${title}` : `Edit ${title}`}
           />
         )}
@@ -82,6 +88,7 @@ export function EditableSection({
         )
       ) : editable && addLabel ? (
         <button
+          ref={addButtonRef}
           type="button"
           className={styles.addStep}
           onClick={() => {

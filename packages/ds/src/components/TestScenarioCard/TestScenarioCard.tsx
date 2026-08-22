@@ -178,12 +178,28 @@ export const TestScenarioCard = forwardRef<
     const atEvidenceLimit =
       evidenceLimit != null && evidence.length >= evidenceLimit;
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const evidenceRef = useRef<HTMLDivElement>(null);
+    const addEvidenceRef = useRef<HTMLButtonElement>(null);
     const statusSelectRef = useRef<HTMLDivElement>(null);
     const closeStatusSelect = useCallback(
       () => onStatusSelectOpenChange?.(false),
       [onStatusSelectOpenChange],
     );
     useClickOutside(statusSelectRef, closeStatusSelect, statusSelectOpen);
+
+    const removeEvidenceAt = (index: number) => {
+      const target = index > 0 ? index - 1 : 0;
+      onRemoveEvidence?.(index);
+      requestAnimationFrame(() => {
+        const buttons =
+          evidenceRef.current?.querySelectorAll<HTMLButtonElement>(
+            '[data-evidence-remove]',
+          );
+        const el = buttons?.[target];
+        if (el) el.focus();
+        else addEvidenceRef.current?.focus();
+      });
+    };
 
     const handleEvidenceFiles = (event: ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
@@ -362,7 +378,7 @@ export const TestScenarioCard = forwardRef<
                     </span>
                   )}
                 </div>
-                <div className={styles.evidence}>
+                <div ref={evidenceRef} className={styles.evidence}>
                   {visibleEvidence.map((item, index) => (
                     <span key={index} className={styles.evidenceChip}>
                       <RefLabel
@@ -376,7 +392,8 @@ export const TestScenarioCard = forwardRef<
                           type="button"
                           className={styles.removeButton}
                           aria-label={`Remove ${item.label}`}
-                          onClick={() => onRemoveEvidence(index)}
+                          data-evidence-remove=""
+                          onClick={() => removeEvidenceAt(index)}
                         >
                           <Icon name="close" size="xs" />
                         </button>
@@ -408,6 +425,7 @@ export const TestScenarioCard = forwardRef<
                   {onAddEvidence && (
                     <>
                       <button
+                        ref={addEvidenceRef}
                         type="button"
                         className={styles.addEvidence}
                         onClick={() => fileInputRef.current?.click()}
