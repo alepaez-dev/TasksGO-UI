@@ -52,9 +52,6 @@ export function TokenBadge({
     taskBadgeInfo !== undefined &&
     onBadgeOpenChange !== undefined;
 
-  // Dismissal is the chip's own concern, so the card only ever sees one handler.
-  // Focus is anchored here before the drawer traps it, so closing returns to the
-  // chip rather than <body> when the card was opened by hover.
   const viewTask = onViewTask
     ? (task: ScratchpadTaskRef) => {
         ref.current?.focus();

@@ -975,8 +975,6 @@ export const Mobile: Story = {
   render: () => <TicketOverviewMobileRender />,
 };
 
-// Enough notes to scroll the page well past the sticky threshold, which the
-// six-line default never reaches.
 const LONG_SCRATCHPAD_SEED: readonly ScratchpadLine[] = [
   { id: 'long-1', text: '## Debug notes' },
   {

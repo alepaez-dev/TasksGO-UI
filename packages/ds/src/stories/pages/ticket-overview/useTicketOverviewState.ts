@@ -218,8 +218,6 @@ export function useTicketOverviewState(
 
   const closeTaskDrawer = useCallback(() => setViewingTask(null), []);
 
-  // The fallback is never blank: the drawer outlives `viewingTask` by one exit
-  // transition, and an empty aria-label would drop its accessible name mid-close.
   const taskDrawerTitle = viewingTask
     ? `Edit task · ${viewingTask.id}`
     : 'Edit task';
