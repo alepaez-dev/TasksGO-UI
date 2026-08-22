@@ -2,24 +2,31 @@ import {
   forwardRef,
   useCallback,
   useRef,
+  type ChangeEvent,
   type HTMLAttributes,
   type ReactNode,
 } from 'react';
+import { useClickOutside } from '../../hooks/useClickOutside';
 import { Avatar } from '../Avatar';
 import { Badge, type BadgeProps } from '../Badge';
-import { Callout } from '../Callout';
 import { Icon } from '../Icon';
-import { Markdown } from '../Markdown';
 import { RefLabel } from '../RefLabel';
 import { SectionHeader } from '../SectionHeader';
 import { Selector } from '../Selector';
-import { StepList } from '../StepList';
 import { TicketId } from '../TicketId';
-import { useClickOutside } from '../../hooks/useClickOutside';
 import { cn } from '../../utils/cn';
+import { EditableSection } from './EditableSection';
+import { StepsSection } from './StepsSection';
 import styles from './TestScenarioCard.module.css';
 
 export type TestScenarioStatus = 'passed' | 'failed' | 'pending' | 'waived';
+
+export type TestScenarioSection =
+  | 'waiveReason'
+  | 'description'
+  | 'steps'
+  | 'expected'
+  | 'actual';
 
 export interface TestScenarioEvidence {
   label: string;
@@ -36,23 +43,40 @@ export interface TestScenarioCardProps extends Omit<
   byline: string;
   assigneeInitial: string;
   assigneeLabel: string;
-  assigneeColor?: string;
   description: string;
+  expected: string;
+  assigneeColor?: string;
   steps?: readonly string[];
   evidence?: readonly TestScenarioEvidence[];
-  expected: string;
   actual?: string;
   waiveReason?: string;
+
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   statusSelectOpen?: boolean;
   onStatusSelectOpenChange?: (open: boolean) => void;
-  onStatusChange?: (status: TestScenarioStatus) => void;
   evidenceExpanded?: boolean;
   onEvidenceExpandedChange?: (expanded: boolean) => void;
+  stepsExpanded?: boolean;
+  onStepsExpandedChange?: (expanded: boolean) => void;
+
+  editingSections?: readonly TestScenarioSection[];
+  onEditingSectionsChange?: (sections: readonly TestScenarioSection[]) => void;
+  onWaiveReasonChange?: (value: string) => void;
+  onDescriptionChange?: (value: string) => void;
+  onExpectedChange?: (value: string) => void;
+  onActualChange?: (value: string) => void;
+  onStepsChange?: (steps: readonly string[]) => void;
+
+  onStatusChange?: (status: TestScenarioStatus) => void;
+  onAddEvidence?: (files: readonly File[]) => void;
+  onRemoveEvidence?: (index: number) => void;
+  maxEvidence?: number;
+  addEvidenceDisabled?: boolean;
+  evidenceAccept?: string;
 }
 
-const STATUS_ORDER: readonly TestScenarioStatus[] = [
+const STATUS_VALUES: readonly TestScenarioStatus[] = [
   'passed',
   'failed',
   'pending',
@@ -73,7 +97,7 @@ const STATUS_BADGE: Record<TestScenarioStatus, BadgeProps['variant']> = {
   waived: 'waived',
 };
 
-const STATUS_OPTIONS = STATUS_ORDER.map((value) => ({
+const STATUS_OPTIONS = STATUS_VALUES.map((value) => ({
   value,
   label: STATUS_LABEL[value],
 }));
@@ -81,7 +105,7 @@ const STATUS_OPTIONS = STATUS_ORDER.map((value) => ({
 const EVIDENCE_PREVIEW_COUNT = 3;
 
 function toStatus(value: string): TestScenarioStatus | undefined {
-  return STATUS_ORDER.find((status) => status === value);
+  return STATUS_VALUES.find((status) => status === value);
 }
 
 function IndicatorGlyph({ status }: { status: TestScenarioStatus }): ReactNode {
@@ -103,20 +127,38 @@ export const TestScenarioCard = forwardRef<
       byline,
       assigneeInitial,
       assigneeLabel,
-      assigneeColor,
       description,
-      steps,
-      evidence,
       expected,
+      assigneeColor,
+      steps = [],
+      evidence = [],
       actual,
       waiveReason,
+
       open = false,
       onOpenChange,
       statusSelectOpen = false,
       onStatusSelectOpenChange,
-      onStatusChange,
       evidenceExpanded = false,
       onEvidenceExpandedChange,
+      stepsExpanded = false,
+      onStepsExpandedChange,
+
+      editingSections = [],
+      onEditingSectionsChange,
+      onWaiveReasonChange,
+      onDescriptionChange,
+      onExpectedChange,
+      onActualChange,
+      onStepsChange,
+
+      onStatusChange,
+      onAddEvidence,
+      onRemoveEvidence,
+      maxEvidence,
+      addEvidenceDisabled = false,
+      evidenceAccept,
+
       className,
       ...rest
     },
@@ -124,20 +166,55 @@ export const TestScenarioCard = forwardRef<
   ) => {
     const bodyId = `${caseId}-body`;
     const actualTone = status === 'failed' ? 'critical' : 'neutral';
-    const evidenceItems = evidence ?? [];
-    const hasEvidence = evidenceItems.length > 0;
-    const canToggleEvidence = evidenceItems.length > EVIDENCE_PREVIEW_COUNT;
+    const hasEvidence = evidence.length > 0;
+    const canToggleEvidence = evidence.length > EVIDENCE_PREVIEW_COUNT;
     const visibleEvidence = evidenceExpanded
-      ? evidenceItems
-      : evidenceItems.slice(0, EVIDENCE_PREVIEW_COUNT);
-    const hiddenEvidenceCount = evidenceItems.length - EVIDENCE_PREVIEW_COUNT;
-
+      ? evidence
+      : evidence.slice(0, EVIDENCE_PREVIEW_COUNT);
+    const hiddenEvidenceCount = evidence.length - EVIDENCE_PREVIEW_COUNT;
+    // maxEvidence is display-only — the consumer owns the array and the Add control
+    const evidenceLimit =
+      maxEvidence != null ? Math.max(0, maxEvidence) : undefined;
+    const atEvidenceLimit =
+      evidenceLimit != null && evidence.length >= evidenceLimit;
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const evidenceRef = useRef<HTMLDivElement>(null);
+    const addEvidenceRef = useRef<HTMLButtonElement>(null);
+    const bodyRef = useRef<HTMLDivElement>(null);
     const statusSelectRef = useRef<HTMLDivElement>(null);
     const closeStatusSelect = useCallback(
       () => onStatusSelectOpenChange?.(false),
       [onStatusSelectOpenChange],
     );
     useClickOutside(statusSelectRef, closeStatusSelect, statusSelectOpen);
+
+    const removeEvidenceAt = (index: number) => {
+      const target = index > 0 ? index - 1 : 0;
+      onRemoveEvidence?.(index);
+      requestAnimationFrame(() => {
+        const buttons =
+          evidenceRef.current?.querySelectorAll<HTMLButtonElement>(
+            '[data-evidence-remove]',
+          );
+        const el = buttons?.[target];
+        if (el) el.focus();
+        else if (addEvidenceRef.current) addEvidenceRef.current.focus();
+        else bodyRef.current?.focus();
+      });
+    };
+
+    const handleEvidenceFiles = (event: ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (files && files.length > 0) onAddEvidence?.(Array.from(files));
+      event.target.value = '';
+    };
+
+    const isEditing = (key: TestScenarioSection) =>
+      editingSections.includes(key);
+    const setSectionEditing = (key: TestScenarioSection, next: boolean) => {
+      const without = editingSections.filter((k) => k !== key);
+      onEditingSectionsChange?.(next ? [...without, key] : without);
+    };
 
     return (
       <div
@@ -233,52 +310,77 @@ export const TestScenarioCard = forwardRef<
         </div>
 
         {open && (
-          <div id={bodyId} className={styles.body}>
-            {status === 'waived' && waiveReason && (
-              <section className={styles.section}>
-                <SectionHeader headingLevel={3}>Waive Reason</SectionHeader>
-                <Callout variant="warning">
-                  <Markdown source={waiveReason} />
-                </Callout>
-              </section>
+          <div ref={bodyRef} id={bodyId} className={styles.body} tabIndex={-1}>
+            {status === 'waived' && (waiveReason || onWaiveReasonChange) && (
+              <EditableSection
+                title="Waive Reason"
+                value={waiveReason ?? ''}
+                editing={isEditing('waiveReason')}
+                onEditingChange={(next) =>
+                  setSectionEditing('waiveReason', next)
+                }
+                onChange={onWaiveReasonChange}
+                tone="warning"
+                addLabel="Add reason"
+              />
             )}
 
-            <section className={styles.section}>
-              <SectionHeader headingLevel={3}>Description</SectionHeader>
-              <Markdown source={description} />
-            </section>
+            <EditableSection
+              title="Description"
+              value={description}
+              editing={isEditing('description')}
+              onEditingChange={(next) => setSectionEditing('description', next)}
+              onChange={onDescriptionChange}
+            />
 
-            {steps && steps.length > 0 && (
-              <section className={styles.section}>
-                <SectionHeader headingLevel={3}>
-                  Steps to Reproduce
-                </SectionHeader>
-                <StepList steps={steps} dividers />
-              </section>
+            <StepsSection
+              steps={steps}
+              onStepsChange={onStepsChange}
+              editing={isEditing('steps')}
+              onEditingChange={(next) => setSectionEditing('steps', next)}
+              expanded={stepsExpanded}
+              onExpandedChange={onStepsExpandedChange}
+            />
+
+            <EditableSection
+              title="Expected Result"
+              value={expected}
+              editing={isEditing('expected')}
+              onEditingChange={(next) => setSectionEditing('expected', next)}
+              onChange={onExpectedChange}
+              tone="positive"
+            />
+
+            {(actual || onActualChange) && (
+              <EditableSection
+                title="Actual Result"
+                value={actual ?? ''}
+                editing={isEditing('actual')}
+                onEditingChange={(next) => setSectionEditing('actual', next)}
+                onChange={onActualChange}
+                tone={actualTone}
+                addLabel="Add actual result"
+              />
             )}
 
-            <section className={styles.section}>
-              <SectionHeader headingLevel={3}>Expected Result</SectionHeader>
-              <Callout variant="positive">
-                <Markdown source={expected} />
-              </Callout>
-            </section>
-
-            {actual && (
+            {(hasEvidence || onAddEvidence) && (
               <section className={styles.section}>
-                <SectionHeader headingLevel={3}>Actual Result</SectionHeader>
-                <Callout variant={actualTone}>
-                  <Markdown source={actual} />
-                </Callout>
-              </section>
-            )}
-
-            {hasEvidence && (
-              <section className={styles.section}>
-                <SectionHeader headingLevel={3}>
-                  {`Evidence (${evidenceItems.length})`}
-                </SectionHeader>
-                <div className={styles.evidence}>
+                <div className={styles.evidenceHeader}>
+                  <SectionHeader headingLevel={3}>
+                    {`Evidence (${evidence.length})`}
+                  </SectionHeader>
+                  {evidenceLimit != null && (
+                    <span
+                      className={cn(
+                        styles.evidenceCount,
+                        atEvidenceLimit && styles.evidenceCountFull,
+                      )}
+                    >
+                      {evidence.length}/{evidenceLimit}
+                    </span>
+                  )}
+                </div>
+                <div ref={evidenceRef} className={styles.evidence}>
                   {visibleEvidence.map((item, index) => (
                     <span key={index} className={styles.evidenceChip}>
                       <RefLabel
@@ -287,6 +389,17 @@ export const TestScenarioCard = forwardRef<
                       >
                         {item.label}
                       </RefLabel>
+                      {onRemoveEvidence && (
+                        <button
+                          type="button"
+                          className={styles.removeButton}
+                          aria-label={`Remove ${item.label}`}
+                          data-evidence-remove=""
+                          onClick={() => removeEvidenceAt(index)}
+                        >
+                          <Icon name="close" size="xs" />
+                        </button>
+                      )}
                     </span>
                   ))}
                   {canToggleEvidence && (
@@ -310,6 +423,32 @@ export const TestScenarioCard = forwardRef<
                         ? 'Show less'
                         : `+${hiddenEvidenceCount} more`}
                     </button>
+                  )}
+                  {onAddEvidence && (
+                    <>
+                      <button
+                        ref={addEvidenceRef}
+                        type="button"
+                        className={styles.addEvidence}
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={addEvidenceDisabled}
+                      >
+                        <Icon name="file_upload" size="xs" />
+                        {addEvidenceDisabled && atEvidenceLimit
+                          ? 'Limit reached'
+                          : 'Add evidence'}
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept={evidenceAccept}
+                        multiple
+                        className={styles.addEvidenceInput}
+                        onChange={handleEvidenceFiles}
+                        aria-hidden="true"
+                        tabIndex={-1}
+                      />
+                    </>
                   )}
                 </div>
               </section>

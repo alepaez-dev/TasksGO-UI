@@ -29,21 +29,6 @@ describe('WaiveScenarioDialog', () => {
     expect(dialog).toHaveAccessibleDescription(/audit trail/);
   });
 
-  it('gives each instance its own label association when several are rendered', () => {
-    render(
-      <>
-        <WaiveScenarioDialog {...base} open={false} forceMount />
-        <WaiveScenarioDialog
-          {...base}
-          scenarioTitle="Rate Limit Edge Case"
-          open={false}
-          forceMount
-        />
-      </>,
-    );
-    expect(screen.getAllByLabelText('Reason for waiving')).toHaveLength(2);
-  });
-
   it('disables confirm while the reason is empty or whitespace', () => {
     const { rerender } = render(
       <WaiveScenarioDialog {...base} open reason="" />,

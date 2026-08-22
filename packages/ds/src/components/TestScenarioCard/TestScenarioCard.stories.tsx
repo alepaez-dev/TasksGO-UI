@@ -4,8 +4,11 @@ import {
   TestScenarioCard,
   type TestScenarioCardProps,
   type TestScenarioStatus,
+  type TestScenarioEvidence,
+  type TestScenarioSection,
 } from './TestScenarioCard';
 import { WaiveScenarioDialog } from '../WaiveScenarioDialog';
+import { ReopenPendingDialog } from '../ReopenPendingDialog';
 
 const meta: Meta<typeof TestScenarioCard> = {
   title: 'Components/TestScenarioCard',
@@ -21,9 +24,22 @@ function Controlled(props: TestScenarioCardProps) {
   const [status, setStatus] = useState<TestScenarioStatus>(props.status);
   const [selectOpen, setSelectOpen] = useState(false);
   const [evidenceExpanded, setEvidenceExpanded] = useState(false);
+  const [evidence, setEvidence] = useState<readonly TestScenarioEvidence[]>(
+    props.evidence ?? [],
+  );
+  const [actual, setActual] = useState(props.actual);
   const [waiveOpen, setWaiveOpen] = useState(false);
   const [reasonDraft, setReasonDraft] = useState('');
   const [waiveReason, setWaiveReason] = useState(props.waiveReason ?? '');
+  const [reopenOpen, setReopenOpen] = useState(false);
+  const [actualDraft, setActualDraft] = useState('');
+  const [editingSections, setEditingSections] = useState<
+    readonly TestScenarioSection[]
+  >(props.editingSections ?? []);
+  const [description, setDescription] = useState(props.description);
+  const [expected, setExpected] = useState(props.expected);
+  const [steps, setSteps] = useState<readonly string[]>(props.steps ?? []);
+  const [stepsExpanded, setStepsExpanded] = useState(false);
 
   const handleStatusChange = (next: TestScenarioStatus) => {
     if (next === 'waived') {
@@ -32,7 +48,34 @@ function Controlled(props: TestScenarioCardProps) {
       setWaiveOpen(true);
       return;
     }
+    if (next === 'pending' && (status === 'passed' || status === 'waived')) {
+      setSelectOpen(false);
+      setActualDraft('');
+      setReopenOpen(true);
+      return;
+    }
     setStatus(next);
+  };
+
+  const handleAddEvidence = (files: readonly File[]) => {
+    setEvidence((prev) => {
+      const next = [
+        ...prev,
+        ...files.map((file) => ({
+          label: file.name,
+          kind: file.type.startsWith('image/')
+            ? ('image' as const)
+            : ('file' as const),
+        })),
+      ];
+      return props.maxEvidence != null
+        ? next.slice(0, props.maxEvidence)
+        : next;
+    });
+  };
+
+  const handleRemoveEvidence = (index: number) => {
+    setEvidence((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -41,6 +84,11 @@ function Controlled(props: TestScenarioCardProps) {
         {...props}
         status={status}
         waiveReason={waiveReason}
+        actual={actual}
+        description={description}
+        expected={expected}
+        steps={steps}
+        evidence={evidence}
         open={open}
         onOpenChange={setOpen}
         statusSelectOpen={selectOpen}
@@ -48,6 +96,21 @@ function Controlled(props: TestScenarioCardProps) {
         onStatusChange={handleStatusChange}
         evidenceExpanded={evidenceExpanded}
         onEvidenceExpandedChange={setEvidenceExpanded}
+        onAddEvidence={handleAddEvidence}
+        onRemoveEvidence={handleRemoveEvidence}
+        maxEvidence={props.maxEvidence}
+        addEvidenceDisabled={
+          props.maxEvidence != null && evidence.length >= props.maxEvidence
+        }
+        editingSections={editingSections}
+        onEditingSectionsChange={setEditingSections}
+        onWaiveReasonChange={setWaiveReason}
+        onDescriptionChange={setDescription}
+        onExpectedChange={setExpected}
+        onActualChange={setActual}
+        onStepsChange={setSteps}
+        stepsExpanded={stepsExpanded}
+        onStepsExpandedChange={setStepsExpanded}
       />
       <WaiveScenarioDialog
         open={waiveOpen}
@@ -59,6 +122,19 @@ function Controlled(props: TestScenarioCardProps) {
           setStatus('waived');
           setWaiveReason(reasonDraft);
           setWaiveOpen(false);
+        }}
+      />
+      <ReopenPendingDialog
+        open={reopenOpen}
+        scenarioTitle={props.title}
+        actualResult={actualDraft}
+        onActualResultChange={setActualDraft}
+        actualResultPlaceholder={actual}
+        onCancel={() => setReopenOpen(false)}
+        onConfirm={() => {
+          setStatus('pending');
+          setActual(actualDraft);
+          setReopenOpen(false);
         }}
       />
     </>
@@ -133,9 +209,9 @@ export const Waived: Story = {
       caseId="TC-409"
       title="WebSocket Connection Persistence"
       status="waived"
-      byline="Waived by Alex T. · 1d ago"
-      assigneeInitial="AT"
-      assigneeLabel="Alex T."
+      byline="Waived by Ale P. · 1d ago"
+      assigneeInitial="AP"
+      assigneeLabel="Ale P."
       assigneeColor="var(--ds-color-avatar-tone-profile-plum)"
       description="Ensure WebSocket connections reconnect after a network interruption of < 500ms without dropping session context."
       waiveReason="Dev confirmed out of scope for this ticket; tracked separately under `ENG-2871`."
@@ -152,8 +228,8 @@ export const Waived: Story = {
         { label: 'console.log', kind: 'file' },
         { label: 'network.har', kind: 'file' },
         { label: 'trace.json', kind: 'file' },
-        { label: 'heap.prof', kind: 'file' },
       ]}
+      maxEvidence={6}
       expected="Connection should recover within 2 seconds without session state loss."
       actual="Not run — scenario waived before execution."
       open
@@ -173,6 +249,36 @@ export const Collapsed: Story = {
       assigneeColor="var(--ds-color-avatar-tone-profile-tan)"
       description="An SNS publish purges the matching edge cache keys within 5 seconds."
       expected="Subsequent request is a `MISS` then repopulates."
+    />
+  ),
+};
+
+export const Editing: Story = {
+  render: () => (
+    <Controlled
+      caseId="TC-409"
+      title="WebSocket Connection Persistence"
+      status="waived"
+      byline="Waived by Ale P. · 1d ago"
+      assigneeInitial="AP"
+      assigneeLabel="Ale P."
+      assigneeColor="var(--ds-color-avatar-tone-profile-plum)"
+      description="Ensure WebSocket connections reconnect after a network interruption."
+      waiveReason="Dev confirmed out of scope for this ticket; tracked under `ENG-2871`."
+      steps={[
+        'Deploy recent build to `QA-01` environment',
+        'Trigger concurrent updates via `/api/v1/sync`',
+      ]}
+      expected="Connection should recover within 2 seconds without session state loss."
+      actual="Not run — scenario waived before execution."
+      editingSections={[
+        'waiveReason',
+        'description',
+        'steps',
+        'expected',
+        'actual',
+      ]}
+      open
     />
   ),
 };

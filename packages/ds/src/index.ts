@@ -24,7 +24,9 @@ export {
   DescriptionIcon,
   DescriptionFilledIcon,
   DragIndicatorIcon,
+  EditIcon,
   ExpandMoreIcon,
+  FileUploadIcon,
   FlagIcon,
   ForkRightIcon,
   FormatBoldIcon,
@@ -188,11 +190,23 @@ export {
   type TestScenarioCardProps,
   type TestScenarioStatus,
   type TestScenarioEvidence,
+  type TestScenarioSection,
 } from './components/TestScenarioCard';
+export { EditToggle, type EditToggleProps } from './components/EditToggle';
+export {
+  ConfirmDialog,
+  type ConfirmDialogProps,
+  type ConfirmDialogField,
+  type ConfirmDialogPresetProps,
+} from './components/ConfirmDialog';
 export {
   WaiveScenarioDialog,
   type WaiveScenarioDialogProps,
 } from './components/WaiveScenarioDialog';
+export {
+  ReopenPendingDialog,
+  type ReopenPendingDialogProps,
+} from './components/ReopenPendingDialog';
 export {
   RecentTaskList,
   type RecentTaskListProps,

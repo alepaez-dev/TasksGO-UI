@@ -19,6 +19,7 @@ export { DescriptionFilledIcon } from './descriptionFilled';
 export { DragIndicatorIcon } from './dragIndicator';
 export { EditIcon } from './edit';
 export { ExpandMoreIcon } from './expandMore';
+export { FileUploadIcon } from './fileUpload';
 export { FlagIcon } from './flag';
 export { ForkRightIcon } from './forkRight';
 export { FormatBoldIcon } from './formatBold';
