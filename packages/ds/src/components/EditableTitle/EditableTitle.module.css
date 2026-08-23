@@ -1,0 +1,89 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+}
+
+.fullWidth {
+  align-items: flex-start;
+}
+
+.fullWidth .text,
+.fullWidth .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.text {
+  margin: 0;
+  min-width: 0;
+}
+
+.textButton {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  cursor: text;
+}
+
+.textButton:empty {
+  min-height: 1em;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.textButton:focus-visible {
+  outline: none;
+  border-radius: var(--ds-radius-sm);
+  box-shadow: var(--ds-focus-ring);
+}
+
+.input {
+  box-sizing: border-box;
+  margin: 0;
+  min-width: 0;
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background-color: var(--ds-color-surface-primary);
+  color: var(--ds-color-text-primary);
+  resize: none;
+  overflow: hidden;
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--ds-color-accent-primary);
+  box-shadow: var(--ds-focus-ring);
+}
+
+@media (hover: hover) {
+  .toggleHidden {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: var(--ds-transition-duration);
+    transition-timing-function: var(--ds-transition-timing-function);
+  }
+
+  .root:hover .toggleHidden,
+  .toggleHidden:focus-visible {
+    opacity: 1;
+  }
+}

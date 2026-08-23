@@ -40,6 +40,7 @@ function Controlled(props: TestScenarioCardProps) {
   const [expected, setExpected] = useState(props.expected);
   const [steps, setSteps] = useState<readonly string[]>(props.steps ?? []);
   const [stepsExpanded, setStepsExpanded] = useState(false);
+  const [title, setTitle] = useState(props.title);
 
   const handleStatusChange = (next: TestScenarioStatus) => {
     if (next === 'waived') {
@@ -82,6 +83,7 @@ function Controlled(props: TestScenarioCardProps) {
     <>
       <TestScenarioCard
         {...props}
+        title={title}
         status={status}
         waiveReason={waiveReason}
         actual={actual}
@@ -104,6 +106,7 @@ function Controlled(props: TestScenarioCardProps) {
         }
         editingSections={editingSections}
         onEditingSectionsChange={setEditingSections}
+        onTitleChange={setTitle}
         onWaiveReasonChange={setWaiveReason}
         onDescriptionChange={setDescription}
         onExpectedChange={setExpected}
@@ -272,6 +275,7 @@ export const Editing: Story = {
       expected="Connection should recover within 2 seconds without session state loss."
       actual="Not run — scenario waived before execution."
       editingSections={[
+        'title',
         'waiveReason',
         'description',
         'steps',

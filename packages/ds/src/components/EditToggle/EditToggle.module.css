@@ -22,7 +22,7 @@
   text-transform: var(--ds-text-section-header-text-transform);
 }
 
-.edit:hover {
+.edit:hover:not(:disabled) {
   background-color: var(--ds-color-surface-hover);
   color: var(--ds-color-text-primary);
 }
@@ -35,8 +35,13 @@
   font-weight: var(--ds-text-button-label-sm-font-weight);
 }
 
-.done:hover {
+.done:hover:not(:disabled) {
   filter: brightness(0.9);
+}
+
+.toggle:disabled {
+  opacity: var(--ds-effect-disabled-opacity);
+  cursor: not-allowed;
 }
 
 .toggle:focus-visible {

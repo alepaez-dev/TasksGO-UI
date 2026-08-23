@@ -102,6 +102,10 @@ export interface UseTicketOverviewState {
   setBody: Dispatch<SetStateAction<string>>;
   bodyEditing: boolean;
   setBodyEditing: Dispatch<SetStateAction<boolean>>;
+  title: string;
+  setTitle: Dispatch<SetStateAction<string>>;
+  titleEditing: boolean;
+  setTitleEditing: Dispatch<SetStateAction<boolean>>;
   assignee: string;
   setAssignee: (value: string) => void;
   assigneeSelector: SelectorGroupEntry;
@@ -152,6 +156,8 @@ export function useTicketOverviewState(
   const [activeTab, setActiveTab] = useState('overview');
   const [bodyEditing, setBodyEditing] = useState(false);
   const [body, setBody] = useState(() => serializeTicketBody(ticket));
+  const [title, setTitle] = useState(ticket.title);
+  const [titleEditing, setTitleEditing] = useState(false);
   const [assignee, setAssignee] = useState(ticket.metadata.assigneeValue);
   const [reporter, setReporter] = useState(ticket.metadata.reporterValue);
   const [status, setStatus] = useState(ticket.metadata.statusValue);
@@ -271,6 +277,10 @@ export function useTicketOverviewState(
     setBody,
     bodyEditing,
     setBodyEditing,
+    title,
+    setTitle,
+    titleEditing,
+    setTitleEditing,
     assignee,
     setAssignee,
     assigneeSelector: metadataSelectors.assignee,

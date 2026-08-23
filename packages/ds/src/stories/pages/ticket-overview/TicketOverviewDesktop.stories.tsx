@@ -72,6 +72,10 @@ function TicketOverviewRender() {
     setBody,
     bodyEditing,
     setBodyEditing,
+    title,
+    setTitle,
+    titleEditing,
+    setTitleEditing,
     assignee,
     setAssignee,
     assigneeSelector: {
@@ -244,8 +248,11 @@ function TicketOverviewRender() {
         <div className={styles.body}>
           <div className={styles.titleSection}>
             <TicketTitleBlock
-              title={ticket.title}
+              title={title}
               badges={ticket.badges}
+              onTitleChange={setTitle}
+              titleEditing={titleEditing}
+              onTitleEditingChange={setTitleEditing}
               avatar={
                 <AvatarGroup aria-label="Assignee and reporter">
                   <Avatar

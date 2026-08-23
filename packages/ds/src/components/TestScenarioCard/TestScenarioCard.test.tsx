@@ -895,4 +895,36 @@ describe('TestScenarioCard', () => {
       screen.getByRole('button', { name: 'Show less' }),
     ).toBeInTheDocument();
   });
+
+  it('renders the title editor when the title section is editing', async () => {
+    const onTitleChange = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        onTitleChange={onTitleChange}
+        editingSections={['title']}
+      />,
+    );
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Scenario title' }),
+      'X',
+    );
+    expect(onTitleChange).toHaveBeenCalledWith(`${base.title}X`);
+  });
+
+  it('toggles the title section via its Edit toggle', async () => {
+    const onEditingSectionsChange = vi.fn();
+    render(
+      // open defaults false -> body hidden, so the title's Edit is the only one
+      <TestScenarioCard
+        {...base}
+        onTitleChange={() => {}}
+        editingSections={[]}
+        onEditingSectionsChange={onEditingSectionsChange}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    expect(onEditingSectionsChange).toHaveBeenCalledWith(['title']);
+  });
 });

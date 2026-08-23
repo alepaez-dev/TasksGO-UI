@@ -37,6 +37,17 @@ describe('EditToggle', () => {
     expect(onEditingChange).toHaveBeenCalledWith(true);
   });
 
+  it('forwards disabled and does not request a change on click', async () => {
+    const onEditingChange = vi.fn();
+    render(
+      <EditToggle editing={false} onEditingChange={onEditingChange} disabled />,
+    );
+    const btn = screen.getByRole('button', { name: 'Edit' });
+    expect(btn).toBeDisabled();
+    await userEvent.click(btn);
+    expect(onEditingChange).not.toHaveBeenCalled();
+  });
+
   it('supports custom labels', () => {
     render(
       <EditToggle

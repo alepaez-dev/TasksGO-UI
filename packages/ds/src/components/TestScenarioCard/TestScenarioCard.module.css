@@ -102,6 +102,12 @@
   gap: var(--ds-space-scale-xs);
 }
 
+/* titleBlock is pointer-events:none (falls through to the header toggle); re-enable its interactive descendants */
+.titleBlock textarea,
+.titleBlock button {
+  pointer-events: auto;
+}
+
 .title {
   font-family: var(--ds-font-family-sans);
   font-size: var(--ds-text-card-body-font-size);
@@ -197,6 +203,20 @@
 
   .section:hover .sectionEdit,
   .sectionEdit:focus-visible {
+    opacity: 1;
+  }
+
+  /* Title lives in the pointer-events:none titleBlock, so reveal its EDIT on
+     hover of the whole header (not the title) to keep click-to-expand. */
+  .titleEdit {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: var(--ds-transition-duration);
+    transition-timing-function: var(--ds-transition-timing-function);
+  }
+
+  .header:hover .titleEdit,
+  .titleEdit:focus-visible {
     opacity: 1;
   }
 }
