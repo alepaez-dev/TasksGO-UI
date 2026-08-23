@@ -1,5 +1,7 @@
 .selector {
   position: relative;
+  /* Shrinkable so a long label truncates instead of bursting its container. */
+  min-width: 0;
 }
 
 .trigger {
@@ -32,6 +34,7 @@
 
 .label {
   flex: 1;
+  min-width: 0;
   text-align: left;
   font-size: var(--ds-text-project-name-font-size);
   font-family: var(--ds-text-project-name-font-family);
@@ -52,6 +55,7 @@
 
 .inlineTrigger {
   width: auto;
+  max-width: 100%;
   gap: var(--ds-space-scale-xs);
 }
 

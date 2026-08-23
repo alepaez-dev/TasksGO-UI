@@ -1,7 +1,7 @@
 import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { Selector } from './Selector';
 
 const options = [
@@ -439,6 +439,63 @@ describe('Selector', () => {
       expect(
         screen.getByText('T-42: Implement edge-caching'),
       ).toBeInTheDocument();
+    });
+
+    // jsdom has no layout and no ResizeObserver, so the hook never reports
+    // truncation. Without this stub every title assertion passes vacuously.
+    function stubTruncated() {
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          constructor(private cb: () => void) {}
+          observe() {
+            this.cb();
+          }
+          disconnect() {}
+        },
+      );
+      vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(
+        400,
+      );
+      vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(
+        260,
+      );
+    }
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.unstubAllGlobals();
+    });
+
+    it('omits the hover title when the consumer renders the label', () => {
+      stubTruncated();
+      render(
+        <Selector
+          options={prefixOptions}
+          value="T-42"
+          renderTriggerLabel={(opt) => `${opt.prefix}: ${opt.label}`}
+        />,
+      );
+      // A title here would advertise different text than is drawn.
+      expect(
+        screen.getByText('T-42: Implement edge-caching'),
+      ).not.toHaveAttribute('title');
+    });
+
+    it('exposes the full label as a hover title when truncated', () => {
+      stubTruncated();
+      render(<Selector options={prefixOptions} value="T-42" />);
+      expect(screen.getByText('T-42 · Implement edge-caching')).toHaveAttribute(
+        'title',
+        'T-42 · Implement edge-caching',
+      );
+    });
+
+    it('omits the hover title when the label fits', () => {
+      render(<Selector options={prefixOptions} value="T-42" />);
+      expect(
+        screen.getByText('T-42 · Implement edge-caching'),
+      ).not.toHaveAttribute('title');
     });
 
     it('falls back to default format when not provided', () => {

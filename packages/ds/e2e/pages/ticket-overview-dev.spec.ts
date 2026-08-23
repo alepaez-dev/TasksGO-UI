@@ -241,3 +241,65 @@ test.describe('Ticket — View Task opens the edit drawer', () => {
     await expect(chip).toBeFocused();
   });
 });
+
+test.describe('Ticket — truncated selector labels', () => {
+  test('only the cut-off value advertises a hover title', async ({ page }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+    await page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first()
+      .hover();
+    await page.getByRole('link', { name: 'View Task' }).click();
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+
+    const titles = await drawer.evaluate((d) => {
+      const read = (label: string) => {
+        const btn = d.querySelector(`button[aria-label="${label}"]`);
+        const span = btn?.querySelector('span');
+        if (!(span instanceof HTMLElement)) return null;
+        return {
+          title: span.getAttribute('title'),
+          overflowPx: span.scrollWidth - span.clientWidth,
+        };
+      };
+      return {
+        ticket: read('Linked ticket'),
+        priority: read('Select priority'),
+      };
+    });
+
+    // The long ticket label is cut off, so it earns a tooltip; "Medium" fits,
+    // so it must not get one.
+    expect(titles.ticket?.overflowPx).toBeGreaterThan(1);
+    expect(titles.ticket?.title).toContain('Implement dynamic edge-caching');
+    expect(titles.priority?.overflowPx).toBeLessThanOrEqual(1);
+    expect(titles.priority?.title).toBeNull();
+  });
+
+  test('a multi-word property label is never the one that wraps', async ({
+    page,
+  }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+    await page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first()
+      .hover();
+    await page.getByRole('link', { name: 'View Task' }).click();
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+
+    // "Linked Ticket" sits beside the only value long enough to compete for
+    // width, so it is the row that wraps if the label absorbs any shrink.
+    const label = drawer.getByText('Linked Ticket', { exact: true });
+    const lines = await label.evaluate((el) => {
+      const lineHeight = parseFloat(getComputedStyle(el).lineHeight || '17');
+      return Math.round(el.getBoundingClientRect().height / lineHeight);
+    });
+    expect(lines).toBe(1);
+  });
+});
