@@ -1180,7 +1180,7 @@ test('a normal submit logs the records exactly once', async () => {
 });
 
 test('the ceiling stops the loop even after wind-down has begun', async () => {
-  const tight = { ...config, costCeilingUsd: 1.0, terminalTurnOutputTokens: 8000 };
+  const tight = { ...config, costCeilingUsd: 1.0, terminalOutputTokens: 8000 };
   const client = stubClient([
     // Round 1: cheap exploration. 4000 output = $0.10.
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 4000 } },
@@ -1199,7 +1199,7 @@ test('the ceiling stops the loop even after wind-down has begun', async () => {
 });
 
 test('a bounce that cannot be afforded is skipped loudly, not silently', async () => {
-  const tight = { ...config, costCeilingUsd: 1.0, terminalTurnOutputTokens: 8000 };
+  const tight = { ...config, costCeilingUsd: 1.0, terminalOutputTokens: 8000 };
   const client = stubClient([
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 30000 } },
     { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [] } }], usage: { input_tokens: 0, output_tokens: 8000 } },
@@ -1222,7 +1222,7 @@ test('a bounce that CAN be afforded still runs — the gate is not weakened', as
 });
 
 test('winding down and then submitting is NOT an interrupt — the commit must be markable', async () => {
-  const tight = { ...config, costCeilingUsd: 1.0, terminalTurnOutputTokens: 8000 };
+  const tight = { ...config, costCeilingUsd: 1.0, terminalOutputTokens: 8000 };
   const client = stubClient([
     // Round 1 is expensive enough that round 2 trips the wind-down projection.
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 30000 } },
@@ -1236,7 +1236,7 @@ test('winding down and then submitting is NOT an interrupt — the commit must b
 });
 
 test('winding down and then NOT submitting is still an interrupt', async () => {
-  const tight = { ...config, costCeilingUsd: 1.0, terminalTurnOutputTokens: 8000 };
+  const tight = { ...config, costCeilingUsd: 1.0, terminalOutputTokens: 8000 };
   const client = stubClient([
     { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 30000 } },
     // Told to submit; keeps reading instead.
@@ -1247,10 +1247,34 @@ test('winding down and then NOT submitting is still an interrupt', async () => {
   assert.equal(out.interruptedReason, 'budget', 'ignoring the submit request must block the checkpoint');
 });
 
-test('a truncated round is NOT re-issued when the retry would pass the ceiling', async () => {
-  // Ceiling $0.50. The truncated turn emits its full 12k cap = $0.30, and a re-issue is priced at
-  // another $0.30, so 0.30 + 0.30 > 0.50 and the retry must not be bought.
-  const tight = { ...config, costCeilingUsd: 0.5, roundOutputTokens: 12000, maxOutputTokens: 64000, terminalTurnOutputTokens: 8000 };
+test('the truncation re-issue is capped by the REMAINING budget, not maxOutputTokens', async () => {
+  // Ceiling $0.90. The truncated turn costs 110k cache-read ($0.055) + its 12k output cap ($0.30) =
+  // $0.355, leaving $0.545. The re-issue re-reads the same context ($0.055), so ~$0.49 is left for
+  // output — about 19600 tokens at $25/M, NOT the 64000 that maxOutputTokens would allow.
+  const cfg = { ...config, costCeilingUsd: 0.9, roundOutputTokens: 12000, maxOutputTokens: 64000 };
+  const seen = [];
+  const client = {
+    beta: {
+      messages: {
+        stream(params) {
+          seen.push(params.max_tokens);
+          return seen.length === 1
+            ? { finalMessage: async () => ({ content: [{ type: 'text', text: 'partial' }], usage: { cache_read_input_tokens: 110000, output_tokens: 12000 }, stop_reason: 'max_tokens' }) }
+            : { finalMessage: async () => ({ content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 0, output_tokens: 100 }, stop_reason: 'tool_use' }) };
+        },
+      },
+    },
+  };
+  await runReviewAgent({ client, config: cfg, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.equal(seen.length, 2, 'the retry must still happen when some budget remains');
+  assert.ok(seen[1] < cfg.maxOutputTokens, `retry cap ${seen[1]} must be budget-derived, not maxOutputTokens`);
+  assert.ok(seen[1] > 19000 && seen[1] < 21000, `expected ~20000 affordable output tokens, got ${seen[1]}`);
+});
+
+test('a truncated round is NOT re-issued when no larger cap is affordable', async () => {
+  // Ceiling $0.50: the 12k truncation alone costs $0.30, leaving $0.20 = 8000 tokens < the 12000 cap
+  // that just truncated, so a re-issue cannot get further.
+  const tight = { ...config, costCeilingUsd: 0.5, roundOutputTokens: 12000, maxOutputTokens: 64000 };
   let calls = 0;
   const client = {
     beta: {
@@ -1260,7 +1284,7 @@ test('a truncated round is NOT re-issued when the retry would pass the ceiling',
           if (calls === 1) {
             return { finalMessage: async () => ({ content: [{ type: 'text', text: 'partial' }], usage: { input_tokens: 0, output_tokens: 12000 }, stop_reason: 'max_tokens' }) };
           }
-          throw new Error(`re-issued at max_tokens=${params.max_tokens} despite having no budget for it`);
+          throw new Error(`re-issued at max_tokens=${params.max_tokens} with no budget for a larger cap`);
         },
       },
     },
@@ -1269,24 +1293,4 @@ test('a truncated round is NOT re-issued when the retry would pass the ceiling',
   assert.equal(calls, 1, 'the unaffordable re-issue must never be sent');
   assert.equal(out.interruptedReason, 'budget');
   assert.equal(out.submitted, false, 'a truncated turn is not a submission — the commit must not be marked reviewed');
-});
-
-test('a truncated round IS re-issued at the full cap when the budget covers it', async () => {
-  const roomy = { ...config, costCeilingUsd: 50, roundOutputTokens: 12000, maxOutputTokens: 64000, terminalTurnOutputTokens: 8000 };
-  const seen = [];
-  const client = {
-    beta: {
-      messages: {
-        stream(params) {
-          seen.push(params.max_tokens);
-          return seen.length === 1
-            ? { finalMessage: async () => ({ content: [{ type: 'text', text: 'partial' }], usage: { input_tokens: 0, output_tokens: 12000 }, stop_reason: 'max_tokens' }) }
-            : { finalMessage: async () => ({ content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 0, output_tokens: 100 }, stop_reason: 'tool_use' }) };
-        },
-      },
-    },
-  };
-  const out = await runReviewAgent({ client, config: roomy, system: 'sys', userMessage: 'review', root, log: () => {} });
-  assert.deepEqual(seen, [12000, 64000], 'the retry must raise the cap to maxOutputTokens');
-  assert.equal(out.submitted, true);
 });

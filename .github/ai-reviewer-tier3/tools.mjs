@@ -218,7 +218,7 @@ async function countLines(abs) {
   return n;
 }
 
-async function* walkFiles(rootDir) {
+async function* walkFiles(rootDir, maxFiles = MAX_FILES_WALKED) {
   const stack = [rootDir];
   let seen = 0;
   while (stack.length) {
@@ -234,7 +234,7 @@ async function* walkFiles(rootDir) {
       if (e.isDirectory()) {
         if (!SKIP_DIRS.has(e.name)) stack.push(full);
       } else if (e.isFile()) {
-        if (++seen > MAX_FILES_WALKED) return;
+        if (++seen > maxFiles) return;
         yield full;
       }
     }
@@ -248,6 +248,7 @@ export function makeToolRunner({ root, config }) {
   const maxMatches = config.maxGrepMatches ?? 200;
   const exts = config.toolExtensions ?? null;
   const ignore = config.ignore ?? [];
+  const maxWalk = config.maxFilesWalked ?? MAX_FILES_WALKED;
 
   let realRootPromise;
   const realRoot = () => (realRootPromise ??= realpath(root).catch(() => resolve(root)));
@@ -256,23 +257,29 @@ export function makeToolRunner({ root, config }) {
   const basenameIndex = () =>
     (basenameIndexPromise ??= (async () => {
       const idx = new Map();
-      for await (const full of walkFiles(root)) {
-        const relPosix = relative(root, full).split(sep).join('/');
-        if (exts && !exts.includes(extname(relPosix))) continue;
-        if (isIgnored(relPosix, ignore)) continue;
-        const key = basename(relPosix);
+      const add = (key, path) => {
         const hits = idx.get(key);
-        if (!hits) idx.set(key, [relPosix]);
-        else if (hits.length < 5) hits.push(relPosix);
+        if (!hits) idx.set(key, [path]);
+        else if (hits.length < 5 && !hits.includes(path)) hits.push(path);
+      };
+      let walked = 0;
+      for await (const full of walkFiles(root, maxWalk)) {
+        walked += 1;
+        const relPosix = relative(root, full).split(sep).join('/');
+        add(basename(relPosix), relPosix);
+        const parts = relPosix.split('/');
+        for (let i = parts.length - 1; i > 0; i--) add(parts[i - 1], parts.slice(0, i).join('/'));
       }
-      return idx;
-    })().catch(() => new Map()));
+      return { idx, partial: walked >= maxWalk };
+    })().catch(() => ({ idx: new Map(), partial: true })));
 
   async function notFoundError(rel) {
-    const hits = (await basenameIndex()).get(basename(rel)) ?? [];
-    return hits.length
-      ? `Not found: ${rel}. A file with that name exists at: ${hits.join(', ')} — read one of those instead of searching for it.`
-      : `Not found: ${rel}. No file with that basename exists in the repository; do not search for it.`;
+    const { idx, partial } = await basenameIndex();
+    const hits = idx.get(basename(rel)) ?? [];
+    if (hits.length) return `Not found: ${rel}. That name exists at: ${hits.join(', ')} — use one of those instead of searching for it.`;
+    return partial
+      ? `Not found: ${rel}.`
+      : `Not found: ${rel}. No file or directory with that basename exists in the repository; do not search for it.`;
   }
 
   async function resolveInRepo(rel) {

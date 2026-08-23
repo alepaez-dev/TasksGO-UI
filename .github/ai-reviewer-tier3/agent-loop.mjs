@@ -340,23 +340,25 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       });
       if (res.msg?.stop_reason === 'max_tokens' && roundCap < config.maxOutputTokens) {
         governor.record(res.msg.usage, models[res.idx]);
-        if (governor.wouldExceed(governor.projectTerminalTurnUsd(res.msg.usage, models[res.idx]))) {
+        const affordable = governor.affordableOutputTokens(res.msg.usage, models[res.idx], config.costCeilingUsd - governor.spentUsd());
+        const retryCap = Math.min(config.maxOutputTokens, affordable);
+        if (retryCap <= roundCap) {
           governor.interrupt('budget');
           if (logLevel !== 'quiet')
             log(
               `round ${rounds + 1}/${config.maxRounds}: output hit the ${roundCap}-token cap at $${governor.spentUsd().toFixed(2)} — ` +
-                `a re-issue would pass the $${config.costCeilingUsd} ceiling, so stopping instead.`,
+                `only ${affordable} more output token(s) are affordable, so a re-issue cannot get further; stopping.`,
             );
           truncatedUnaffordable = true;
         } else {
-          log(`round ${rounds + 1}/${config.maxRounds}: output hit the ${roundCap}-token cap — re-issuing at ${config.maxOutputTokens}.`);
+          log(`round ${rounds + 1}/${config.maxRounds}: output hit the ${roundCap}-token cap — re-issuing at ${retryCap} (budget-capped).`);
           res = await streamRoundWithRetry({
             client,
             models,
             startIdx: res.idx,
             maxRetries,
             baseDelay,
-            params: { config, system, tools, messages, maxTokens: config.maxOutputTokens },
+            params: { config, system, tools, messages, maxTokens: retryCap },
             log,
           });
         }
