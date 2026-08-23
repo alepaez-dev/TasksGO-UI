@@ -413,7 +413,7 @@ export function buildDiffContext(files, config, renderBlock = null) {
     }
 
     const { text, commentable } = annotatePatch(file.patch);
-    const body = renderBlock ? renderBlock(file, text) : text;
+    const body = renderBlock ? renderBlock(file, text, commentable) : text;
     const block = `### ${file.filename}  (${file.status}, +${file.additions}/-${file.deletions})\n${body}`;
     if (totalChars + block.length > config.maxTotalDiffChars) {
       truncated = true;

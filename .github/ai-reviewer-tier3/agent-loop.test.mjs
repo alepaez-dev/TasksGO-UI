@@ -1294,3 +1294,29 @@ test('a truncated round is NOT re-issued when no larger cap is affordable', asyn
   assert.equal(out.interruptedReason, 'budget');
   assert.equal(out.submitted, false, 'a truncated turn is not a submission — the commit must not be marked reviewed');
 });
+
+test('a wind-down turn that answers with prose is reported as a budget cut, not a clean pass', async () => {
+  const tight = { ...config, costCeilingUsd: 1.0, terminalOutputTokens: 8000 };
+  const client = stubClient([
+    // Round 1 is expensive enough that round 2 becomes the wind-down turn.
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 30000 } },
+    // Asked to submit; replies with prose and no tool call. The nudge is skipped while winding down.
+    { content: [{ type: 'text', text: 'I think it looks fine.' }], usage: { input_tokens: 0, output_tokens: 50 } },
+  ]);
+  const out = await runReviewAgent({ client, config: tight, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.equal(out.submitted, false);
+  assert.equal(out.interruptedReason, 'budget', 'README requires a budget cut to be flagged, never published silently');
+  assert.equal(out.windDownReason, 'budget');
+});
+
+test('an ordinary prose-only give-up is still NOT a budget interrupt', async () => {
+  // Pins the distinction the guard exists for: without wind-down this must stay null so review-agent
+  // reports "returned prose only" instead of misattributing it to the ceiling.
+  const client = stubClient([
+    { content: [{ type: 'text', text: 'looks clean' }], usage: { input_tokens: 1000, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'still clean' }], usage: { input_tokens: 500, output_tokens: 5 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.equal(out.submitted, false);
+  assert.equal(out.interruptedReason, null);
+});

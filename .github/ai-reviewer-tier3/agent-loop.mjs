@@ -406,6 +406,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         });
         continue;
       }
+      if (windingDown) governor.interrupt(windDownReason ?? 'budget');
       findings = findings ?? [];
       break;
     }

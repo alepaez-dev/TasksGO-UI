@@ -17,13 +17,15 @@ export function changedRatio(additions, deletions, headLineCount) {
   return ((additions ?? 0) + (deletions ?? 0)) / headLineCount;
 }
 
-export function renderWholeFileBlock(content) {
+export function renderWholeFileBlock(content, commentable = new Set()) {
   const body = content
     .split('\n')
-    .map((l, i) => `${String(i + 1).padStart(6)}: ${l}`)
+    .map((l, i) => (commentable.has(i + 1) ? `+ ${String(i + 1).padStart(6)}  ${l}` : `  ${String(i + 1).padStart(6)}  ${l}`))
     .join('\n');
   return (
     `NOTE: most of this file changed, so this is the WHOLE FILE at the PR head, not a patch. ` +
-    `Line numbers are head line numbers. You do not need to read it again with read_file.\n${body}`
+    `Line numbers are head line numbers. Lines marked \`+\` are the lines this PR added — they are the ONLY ` +
+    `lines an inline finding can be anchored to; a finding on any other line is reported without a location. ` +
+    `You do not need to read it again with read_file.\n${body}`
   );
 }

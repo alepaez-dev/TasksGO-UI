@@ -205,7 +205,7 @@ async function main() {
   const wholeFileMaxBytes = config.wholeFileMaxBytes ?? 60000;
   const headRoot = resolve(headDir);
   const expandedWhole = [];
-  const renderBlock = (file, patchText) => {
+  const renderBlock = (file, patchText, commentable) => {
     try {
       const abs = resolve(headRoot, file.filename);
       if (abs !== headRoot && !abs.startsWith(headRoot + sep)) return patchText;
@@ -213,7 +213,7 @@ async function main() {
       if (Buffer.byteLength(content, 'utf8') > wholeFileMaxBytes) return patchText;
       if (changedRatio(file.additions, file.deletions, content.split('\n').length) < wholeFileRatio) return patchText;
       expandedWhole.push(file.filename);
-      return renderWholeFileBlock(content);
+      return renderWholeFileBlock(content, commentable);
     } catch {
       return patchText; // unreadable at head (deleted, symlink, binary) — the patch still stands
     }
