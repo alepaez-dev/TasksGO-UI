@@ -286,7 +286,7 @@ test('a genuinely absent basename says so, so the model does not go hunting', as
   const run = makeToolRunner({ root: fixtureRoot(), config: { ...cfg, toolExtensions: ['.ts'], ignore: [] } });
   const out = await run('read_file', { path: 'src/NoSuchThing.ts' });
   assert.equal(out.isError, true);
-  assert.match(out.content, /No file or directory with that basename/);
+  assert.match(out.content, /Nothing with that basename exists in the reviewable source tree/);
 });
 
 test('a mistyped DIRECTORY is pointed at the real one, not told it does not exist', async () => {
@@ -332,4 +332,15 @@ test('a truncated index never claims a path does not exist', async () => {
   assert.equal(out.isError, true);
   assert.doesNotMatch(out.content, /do not search for it/, 'a partial index must not assert a negative');
   assert.match(out.content, /Not found: src\/definitely-absent\.ts/);
+});
+
+test('the negative is scoped to what was indexed — never a repo-wide claim', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: { ...cfg, toolExtensions: ['.ts'], ignore: [] } });
+  const out = await run('read_file', { path: 'src/NoSuchThing.ts' });
+  assert.equal(out.isError, true);
+  // walkFiles prunes SKIP_DIRS at any depth while read_file consults nothing, so "in the repository"
+  // is a claim the index cannot support — src/build/utils.ts would falsify it.
+  assert.doesNotMatch(out.content, /exists in the repository/, 'must not assert repo-wide non-existence');
+  assert.match(out.content, /reviewable source tree/, 'the claim must name its scope');
+  assert.match(out.content, /node_modules/, 'and name the directories it did not index');
 });

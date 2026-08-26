@@ -20,7 +20,7 @@
   "maxFilePatchChars": 50000,
   "maxTotalDiffChars": 400000,
   "wholeFileChangedRatio": 0.4,
-  "wholeFileMaxBytes": 60000,
+  "wholeFileMaxBlockChars": 60000,
   "maxInputTokens": 1000000,
   "maxRounds": 40,
   "maxToolCalls": 120,
@@ -28,10 +28,28 @@
   "maxWholeFileExpandBytes": 16000,
   "maxGrepMatches": 400,
   "maxGrepFileBytes": 2000000,
-  "toolExtensions": [".ts", ".tsx", ".js", ".jsx", ".css", ".json", ".md", ".mjs", ".cjs", ".yml", ".yaml"],
+  "toolExtensions": [
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".css",
+    ".json",
+    ".md",
+    ".mjs",
+    ".cjs",
+    ".yml",
+    ".yaml"
+  ],
   "pricing": {
-    "claude-opus-5": { "input": 5, "output": 25 },
-    "claude-opus-4-8": { "input": 5, "output": 25 }
+    "claude-opus-5": {
+      "input": 5,
+      "output": 25
+    },
+    "claude-opus-4-8": {
+      "input": 5,
+      "output": 25
+    }
   },
   "includeProjectGuide": true,
   "postSummaryComment": true,

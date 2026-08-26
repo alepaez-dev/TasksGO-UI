@@ -8,7 +8,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 import { REVIEW_AGENT_SYSTEM_PROMPT, PRIMARY_RULES_REMINDER } from './prompts.mjs';
 import { runReviewAgent } from './agent-loop.mjs';
-import { changedRatio, renderWholeFileBlock, sizeBand } from './diff-payload.mjs';
+import { changedRatio, deletedLinesByHeadLine, renderWholeFileBlock, sizeBand } from './diff-payload.mjs';
 import { TOOL_DEFS } from './tools.mjs';
 import {
   DEFAULT_CONFIG,
@@ -202,23 +202,25 @@ async function main() {
 
   const files = await octokit.paginate(octokit.rest.pulls.listFiles, { owner, repo, pull_number, per_page: 100 });
   const wholeFileRatio = config.wholeFileChangedRatio ?? 0.4;
-  const wholeFileMaxBytes = config.wholeFileMaxBytes ?? 60000;
+  const wholeFileMaxBlockChars = config.wholeFileMaxBlockChars ?? 60000;
   const headRoot = resolve(headDir);
-  const expandedWhole = [];
+  const expandCandidates = [];
   const renderBlock = (file, patchText, commentable) => {
     try {
       const abs = resolve(headRoot, file.filename);
       if (abs !== headRoot && !abs.startsWith(headRoot + sep)) return patchText;
       const content = readFileSync(abs, 'utf8');
-      if (Buffer.byteLength(content, 'utf8') > wholeFileMaxBytes) return patchText;
       if (changedRatio(file.additions, file.deletions, content.split('\n').length) < wholeFileRatio) return patchText;
-      expandedWhole.push(file.filename);
-      return renderWholeFileBlock(content, commentable);
+      const block = renderWholeFileBlock(content, commentable, deletedLinesByHeadLine(file.patch));
+      if (block.length > wholeFileMaxBlockChars) return patchText;
+      expandCandidates.push(file.filename);
+      return block;
     } catch {
       return patchText; // unreadable at head (deleted, symlink, binary) — the patch still stands
     }
   };
   const { diffText, commentableByFile, skippedForSize, truncated } = buildDiffContext(files, config, renderBlock);
+  const expandedWhole = expandCandidates.filter((f) => commentableByFile.has(f));
   if (expandedWhole.length) core.info(`Sent whole-file instead of patch for: ${expandedWhole.join(', ')}`);
 
   const fileStatusByPath = new Map();
@@ -399,11 +401,24 @@ async function main() {
       `${reviewCostUsd != null ? ` → ≈ $${reviewCostUsd.toFixed(3)}` : ''}.`,
   );
 
+  const coverageNote = diffIsComplete(skippedForSize, truncated)
+    ? null
+    : `Tier 3 reviewed only part of this PR: ` +
+      (skippedForSize.length ? `too large to include — ${[...skippedForSize].join(', ')}` : '') +
+      (skippedForSize.length && truncated ? '; ' : '') +
+      (truncated ? `the diff hit maxTotalDiffChars (${config.maxTotalDiffChars}) and later files were dropped` : '') +
+      `. Findings cover the included files only.`;
+  if (coverageNote) core.warning(coverageNote);
   const note =
-    interruptNote(result, config) ??
-    (result.toolBudgetExhausted
-      ? `Tier 3 hit the tool-call budget (maxToolCalls=${config.maxToolCalls}) and was asked to wrap up; exploration may be incomplete.`
-      : null);
+    [
+      interruptNote(result, config) ??
+        (result.toolBudgetExhausted
+          ? `Tier 3 hit the tool-call budget (maxToolCalls=${config.maxToolCalls}) and was asked to wrap up; exploration may be incomplete.`
+          : null),
+      coverageNote,
+    ]
+      .filter(Boolean)
+      .join(' ') || null;
   const banner = note ? `> ⚠️ ${note}` : null;
   if (result.interruptedReason === 'budget') {
     core.warning(`Tier 3 stopped early at the $${config.costCeilingUsd} ceiling (≈ $${reviewCostUsd?.toFixed(3)}); findings may be incomplete.`);

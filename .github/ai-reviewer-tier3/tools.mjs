@@ -279,7 +279,8 @@ export function makeToolRunner({ root, config }) {
     if (hits.length) return `Not found: ${rel}. That name exists at: ${hits.join(', ')} — use one of those instead of searching for it.`;
     return partial
       ? `Not found: ${rel}.`
-      : `Not found: ${rel}. No file or directory with that basename exists in the repository; do not search for it.`;
+      : `Not found: ${rel}. Nothing with that basename exists in the reviewable source tree — dependency, ` +
+        `VCS and build directories (${[...SKIP_DIRS].join(', ')}) are not indexed. Do not search the source tree for it.`;
   }
 
   async function resolveInRepo(rel) {
