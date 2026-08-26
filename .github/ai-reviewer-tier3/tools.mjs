@@ -1,7 +1,7 @@
 import { readFile, readdir, stat, realpath } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
 import { createInterface } from 'node:readline';
-import { join, relative, extname, sep, resolve } from 'node:path';
+import { join, relative, extname, sep, resolve, basename } from 'node:path';
 import { confineToRepo, FINDINGS_SCHEMA, globToRegExp, isIgnored } from '../ai-reviewer/review.mjs';
 
 const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', 'storybook-static', '.next', 'coverage']);
@@ -218,7 +218,7 @@ async function countLines(abs) {
   return n;
 }
 
-async function* walkFiles(rootDir) {
+async function* walkFiles(rootDir, maxFiles = MAX_FILES_WALKED) {
   const stack = [rootDir];
   let seen = 0;
   while (stack.length) {
@@ -234,7 +234,7 @@ async function* walkFiles(rootDir) {
       if (e.isDirectory()) {
         if (!SKIP_DIRS.has(e.name)) stack.push(full);
       } else if (e.isFile()) {
-        if (++seen > MAX_FILES_WALKED) return;
+        if (++seen > maxFiles) return;
         yield full;
       }
     }
@@ -248,9 +248,40 @@ export function makeToolRunner({ root, config }) {
   const maxMatches = config.maxGrepMatches ?? 200;
   const exts = config.toolExtensions ?? null;
   const ignore = config.ignore ?? [];
+  const maxWalk = config.maxFilesWalked ?? MAX_FILES_WALKED;
 
   let realRootPromise;
   const realRoot = () => (realRootPromise ??= realpath(root).catch(() => resolve(root)));
+
+  let basenameIndexPromise;
+  const basenameIndex = () =>
+    (basenameIndexPromise ??= (async () => {
+      const idx = new Map();
+      const add = (key, path) => {
+        const hits = idx.get(key);
+        if (!hits) idx.set(key, [path]);
+        else if (hits.length < 5 && !hits.includes(path)) hits.push(path);
+      };
+      let walked = 0;
+      for await (const full of walkFiles(root, maxWalk)) {
+        walked += 1;
+        const relPosix = relative(root, full).split(sep).join('/');
+        add(basename(relPosix), relPosix);
+        const parts = relPosix.split('/');
+        for (let i = parts.length - 1; i > 0; i--) add(parts[i - 1], parts.slice(0, i).join('/'));
+      }
+      return { idx, partial: walked >= maxWalk };
+    })().catch(() => ({ idx: new Map(), partial: true })));
+
+  async function notFoundError(rel) {
+    const { idx, partial } = await basenameIndex();
+    const hits = idx.get(basename(rel)) ?? [];
+    if (hits.length) return `Not found: ${rel}. That name exists at: ${hits.join(', ')} — use one of those instead of searching for it.`;
+    return partial
+      ? `Not found: ${rel}.`
+      : `Not found: ${rel}. Nothing with that basename exists in the reviewable source tree — dependency, ` +
+        `VCS and build directories (${[...SKIP_DIRS].join(', ')}) are not indexed. Do not search the source tree for it.`;
+  }
 
   async function resolveInRepo(rel) {
     const abs = confineToRepo(root, rel);
@@ -259,7 +290,7 @@ export function makeToolRunner({ root, config }) {
     try {
       real = await realpath(abs);
     } catch (e) {
-      if (e && e.code === 'ENOENT') return { error: `Not found: ${rel}` };
+      if (e && e.code === 'ENOENT') return { error: await notFoundError(rel) };
       return { error: `Could not resolve "${rel}".` };
     }
     const rr = await realRoot();

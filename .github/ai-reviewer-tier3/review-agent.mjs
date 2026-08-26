@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { resolve, dirname, extname } from 'node:path';
+import { resolve, dirname, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import * as core from '@actions/core';
@@ -8,6 +8,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 import { REVIEW_AGENT_SYSTEM_PROMPT, PRIMARY_RULES_REMINDER } from './prompts.mjs';
 import { runReviewAgent } from './agent-loop.mjs';
+import { changedRatio, deletedLinesByHeadLine, renderWholeFileBlock, sizeBand } from './diff-payload.mjs';
 import { TOOL_DEFS } from './tools.mjs';
 import {
   DEFAULT_CONFIG,
@@ -113,6 +114,14 @@ function neutralizeWritesForDryRun(octokit) {
 // Plain-text note for an over-budget / over-rounds interrupt (writeJobSummary wraps it as `> ⚠️ …`;
 // the PR comments prepend it as a `> ⚠️ …` banner). Null when the run finished normally.
 function interruptNote(result, config) {
+  if (!result.interruptedReason && result.windDownReason && result.submitted) {
+    const spent = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
+    const limit = result.windDownReason === 'max_rounds' ? `${config.maxRounds}-round limit` : `$${config.costCeilingUsd} budget ceiling`;
+    return (
+      `Tier 3 reached its ${limit}${spent != null ? ` (≈ $${spent.toFixed(2)})` : ''} and submitted from what it had confirmed. ` +
+      `Scope was capped by budget, not by the change — a larger PR gets fewer rounds of investigation.`
+    );
+  }
   if (!result.interruptedReason) return null;
   const spent = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
   const spend = `≈ ${formatUsage(result.usage)}${spent != null ? ` (≈ $${spent.toFixed(2)})` : ''}`;
@@ -192,7 +201,27 @@ async function main() {
   core.info(`Tier 3 reviewing PR #${pull_number} (${owner}/${repo}) at ${pr.headSha}`);
 
   const files = await octokit.paginate(octokit.rest.pulls.listFiles, { owner, repo, pull_number, per_page: 100 });
-  const { diffText, commentableByFile, skippedForSize, truncated } = buildDiffContext(files, config);
+  const wholeFileRatio = config.wholeFileChangedRatio ?? 0.4;
+  const wholeFileMaxBlockChars = config.wholeFileMaxBlockChars ?? 60000;
+  const headRoot = resolve(headDir);
+  const expandCandidates = [];
+  const renderBlock = (file, patchText, commentable) => {
+    try {
+      const abs = resolve(headRoot, file.filename);
+      if (abs !== headRoot && !abs.startsWith(headRoot + sep)) return patchText;
+      const content = readFileSync(abs, 'utf8');
+      if (changedRatio(file.additions, file.deletions, content.split('\n').length) < wholeFileRatio) return patchText;
+      const block = renderWholeFileBlock(content, commentable, deletedLinesByHeadLine(file.patch));
+      if (block.length > wholeFileMaxBlockChars) return patchText;
+      expandCandidates.push(file.filename);
+      return block;
+    } catch {
+      return patchText; // unreadable at head (deleted, symlink, binary) — the patch still stands
+    }
+  };
+  const { diffText, commentableByFile, skippedForSize, truncated } = buildDiffContext(files, config, renderBlock);
+  const expandedWhole = expandCandidates.filter((f) => commentableByFile.has(f));
+  if (expandedWhole.length) core.info(`Sent whole-file instead of patch for: ${expandedWhole.join(', ')}`);
 
   const fileStatusByPath = new Map();
   for (const f of files) {
@@ -348,6 +377,14 @@ async function main() {
     `Initial input ≈ ${inputTokens}${inputEstimated ? ' (estimated)' : ''} tokens. ` +
       `Per-request cap ≤ ${config.maxInputTokens} input; run cost ceiling ≈ $${config.costCeilingUsd} (warn at $${config.costWarnUsd}).`,
   );
+  const band = sizeBand(inputTokens ?? 0, config.costCeilingUsd);
+  core.info(
+    `[size] prompt ${inputTokens} tok · band ${band.label}` +
+      (band.usdPerRound
+        ? ` · ~$${band.usdPerRound.toFixed(3)}/round historically → ~${band.estimatedRounds} rounds at the $${config.costCeilingUsd} ceiling`
+        : ' · above every measured band — round cost unknown'),
+  );
+  core.info(`[scope] full diff from merge-base · ${files.length} changed file(s) · last reviewed sha ${lastReviewedSha ? lastReviewedSha.slice(0, 7) : '(none)'}`);
   if (config.maxInputTokens && inputTokens != null && inputTokens > config.maxInputTokens) {
     const note = `Skipped — initial ${inputEstimated ? 'estimated ' : ''}input ${inputTokens} tokens exceeds maxInputTokens (${config.maxInputTokens}). Split the PR or raise the cap.`;
     core.warning(note);
@@ -364,11 +401,24 @@ async function main() {
       `${reviewCostUsd != null ? ` → ≈ $${reviewCostUsd.toFixed(3)}` : ''}.`,
   );
 
+  const coverageNote = diffIsComplete(skippedForSize, truncated)
+    ? null
+    : `Tier 3 reviewed only part of this PR: ` +
+      (skippedForSize.length ? `too large to include — ${[...skippedForSize].join(', ')}` : '') +
+      (skippedForSize.length && truncated ? '; ' : '') +
+      (truncated ? `the diff hit maxTotalDiffChars (${config.maxTotalDiffChars}) and later files were dropped` : '') +
+      `. Findings cover the included files only.`;
+  if (coverageNote) core.warning(coverageNote);
   const note =
-    interruptNote(result, config) ??
-    (result.toolBudgetExhausted
-      ? `Tier 3 hit the tool-call budget (maxToolCalls=${config.maxToolCalls}) and was asked to wrap up; exploration may be incomplete.`
-      : null);
+    [
+      interruptNote(result, config) ??
+        (result.toolBudgetExhausted
+          ? `Tier 3 hit the tool-call budget (maxToolCalls=${config.maxToolCalls}) and was asked to wrap up; exploration may be incomplete.`
+          : null),
+      coverageNote,
+    ]
+      .filter(Boolean)
+      .join(' ') || null;
   const banner = note ? `> ⚠️ ${note}` : null;
   if (result.interruptedReason === 'budget') {
     core.warning(`Tier 3 stopped early at the $${config.costCeilingUsd} ceiling (≈ $${reviewCostUsd?.toFixed(3)}); findings may be incomplete.`);
@@ -425,6 +475,13 @@ async function main() {
   // A budget/round/error interrupt — OR the model ending without ever calling submit_findings — means
   // the review did NOT finish; do not mark this commit reviewed, so re-applying the label retries.
   const reviewComplete = result.submitted && !result.interruptedReason;
+  core.info(
+    reviewComplete
+      ? `[checkpoint] advancing reviewed sha ${lastReviewedSha ? lastReviewedSha.slice(0, 7) : '(none)'} -> ${pr.headSha.slice(0, 7)}` +
+          (result.windDownReason ? ` (wound down on ${result.windDownReason}, still submitted)` : '')
+      : `[checkpoint] NOT advancing reviewed sha (staying at ${lastReviewedSha ? lastReviewedSha.slice(0, 7) : 'none'}) — ` +
+          `submitted=${result.submitted} interrupted=${result.interruptedReason ?? 'no'}`,
+  );
   if (!result.submitted && !result.interruptedReason) {
     core.warning(
       result.rounds > 0 && result.findings?.length

@@ -261,3 +261,86 @@ test('read_file slice reports the byte cap (not "no lines in range") when the fi
   });
   assert.match(empty.content, /no lines in range/);
 });
+
+test('a slice request on a 20KB file is honoured, not widened to the whole file', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 't3slice-'));
+  const path = 'big.css';
+  writeFileSync(join(dir, path), Array.from({ length: 800 }, (_, i) => `.rule-${i} { color: red; }`).join('\n'));
+  const run = makeToolRunner({ root: dir, config: { ...cfg, maxWholeFileExpandBytes: 16000, toolExtensions: ['.css'], ignore: [] } });
+  const out = await run('read_file', { path, startLine: 1, endLine: 20 });
+  assert.match(out.content, /^ *20: /m, 'the requested range must be present');
+  assert.doesNotMatch(out.content, /^ *21: /m, 'a 20KB file must not be widened past the requested range');
+});
+
+test('a wrong path points at the real file instead of returning a bare Not found', async () => {
+  const root = mkdtempSync(join(tmpdir(), 't3find-'));
+  mkdirSync(join(root, 'components', 'OverlayShell'), { recursive: true });
+  writeFileSync(join(root, 'components', 'OverlayShell', 'OverlayShell.tsx'), 'export const OverlayShell = () => null;\n');
+  const run = makeToolRunner({ root, config: { ...cfg, toolExtensions: ['.tsx'], ignore: [] } });
+  const out = await run('read_file', { path: 'components/_internal/OverlayShell.tsx' });
+  assert.equal(out.isError, true);
+  assert.match(out.content, /components\/OverlayShell\/OverlayShell\.tsx/, 'must name the real location');
+});
+
+test('a genuinely absent basename says so, so the model does not go hunting', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: { ...cfg, toolExtensions: ['.ts'], ignore: [] } });
+  const out = await run('read_file', { path: 'src/NoSuchThing.ts' });
+  assert.equal(out.isError, true);
+  assert.match(out.content, /Nothing with that basename exists in the reviewable source tree/);
+});
+
+test('a mistyped DIRECTORY is pointed at the real one, not told it does not exist', async () => {
+  const root = mkdtempSync(join(tmpdir(), 't3dir-'));
+  mkdirSync(join(root, 'components', 'OverlayShell'), { recursive: true });
+  writeFileSync(join(root, 'components', 'OverlayShell', 'OverlayShell.tsx'), 'export const O = () => null;\n');
+  const run = makeToolRunner({ root, config: { ...cfg, toolExtensions: ['.tsx'], ignore: [] } });
+  const out = await run('list_dir', { path: 'components/_internal/OverlayShell' });
+  assert.equal(out.isError, true);
+  assert.match(out.content, /components\/OverlayShell/, 'the real directory must be named');
+  assert.doesNotMatch(out.content, /do not search for it/, 'a directory that exists must never be denied');
+});
+
+test('a file outside toolExtensions is still known to exist', async () => {
+  const root = mkdtempSync(join(tmpdir(), 't3ext-'));
+  mkdirSync(join(root, 'styles'), { recursive: true });
+  writeFileSync(join(root, 'styles', 'theme.scss'), '$c: red;\n');
+  // .scss is not in toolExtensions, but read_file can still open it — so the index must cover it.
+  const run = makeToolRunner({ root, config: { ...cfg, toolExtensions: ['.ts', '.tsx'], ignore: [] } });
+  const out = await run('read_file', { path: 'src/theme.scss' });
+  assert.equal(out.isError, true);
+  assert.match(out.content, /styles\/theme\.scss/);
+  assert.doesNotMatch(out.content, /do not search for it/);
+});
+
+test('an ignored file is still known to exist — ignore decides review scope, not existence', async () => {
+  const root = mkdtempSync(join(tmpdir(), 't3ign-'));
+  mkdirSync(join(root, 'packages'), { recursive: true });
+  writeFileSync(join(root, 'packages', 'package-lock.json'), '{}\n');
+  const run = makeToolRunner({ root, config: { ...cfg, toolExtensions: ['.ts'], ignore: ['**/package-lock.json'] } });
+  const out = await run('read_file', { path: 'package-lock.json' });
+  assert.match(out.content, /packages\/package-lock\.json/);
+  assert.doesNotMatch(out.content, /do not search for it/);
+});
+
+test('a truncated index never claims a path does not exist', async () => {
+  const root = mkdtempSync(join(tmpdir(), 't3cap-'));
+  mkdirSync(join(root, 'src'), { recursive: true });
+  for (let i = 0; i < 5; i++) writeFileSync(join(root, 'src', `f${i}.ts`), 'export {};\n');
+  // The walk stops after 2 files, so the index cannot support a repo-wide "does not exist" claim.
+  const run = makeToolRunner({ root, config: { ...cfg, maxFilesWalked: 2, toolExtensions: ['.ts'], ignore: [] } });
+  const out = await run('read_file', { path: 'src/definitely-absent.ts' });
+  assert.equal(out.isError, true);
+  assert.doesNotMatch(out.content, /do not search for it/, 'a partial index must not assert a negative');
+  assert.match(out.content, /Not found: src\/definitely-absent\.ts/);
+});
+
+test('the negative is scoped to what was indexed — never a repo-wide claim', async () => {
+  const run = makeToolRunner({ root: fixtureRoot(), config: { ...cfg, toolExtensions: ['.ts'], ignore: [] } });
+  const out = await run('read_file', { path: 'src/NoSuchThing.ts' });
+  assert.equal(out.isError, true);
+  // walkFiles prunes SKIP_DIRS at any depth while read_file consults nothing, so "in the repository"
+  // is a claim the index cannot support — src/build/utils.ts would falsify it.
+  assert.doesNotMatch(out.content, /exists in the repository/, 'must not assert repo-wide non-existence');
+  assert.match(out.content, /reviewable source tree/, 'the claim must name its scope');
+  assert.match(out.content, /node_modules/, 'and name the directories it did not index');
+});

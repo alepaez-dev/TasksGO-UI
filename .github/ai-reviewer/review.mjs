@@ -395,7 +395,7 @@ export function annotatePatch(patch) {
   return { text: out.join('\n'), commentable };
 }
 
-export function buildDiffContext(files, config) {
+export function buildDiffContext(files, config, renderBlock = null) {
   const commentableByFile = new Map();
   const blocks = [];
   const skippedForSize = [];
@@ -413,7 +413,8 @@ export function buildDiffContext(files, config) {
     }
 
     const { text, commentable } = annotatePatch(file.patch);
-    const block = `### ${file.filename}  (${file.status}, +${file.additions}/-${file.deletions})\n${text}`;
+    const body = renderBlock ? renderBlock(file, text, commentable) : text;
+    const block = `### ${file.filename}  (${file.status}, +${file.additions}/-${file.deletions})\n${body}`;
     if (totalChars + block.length > config.maxTotalDiffChars) {
       truncated = true;
       break;

@@ -129,10 +129,10 @@ export function isTransientError(e) {
   return false;
 }
 
-function buildRequestParams(model, { config, system, tools, messages }) {
+function buildRequestParams(model, { config, system, tools, messages, maxTokens }) {
   return {
     model,
-    max_tokens: config.maxOutputTokens,
+    max_tokens: maxTokens ?? config.maxOutputTokens,
     betas: [TASK_BUDGET_BETA],
     thinking: { type: 'adaptive', display: 'summarized' },
     output_config: {
@@ -196,6 +196,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let toolCalls = 0;
   let lastUsage = null;
   let windingDown = false;
+  let windDownReason = null;
   let toolBudgetExhausted = false;
   let nudgedToSubmit = false;
   let submitted = false;
@@ -280,6 +281,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     }
   };
 
+  const canAffordBounce = () => !governor.wouldExceed(governor.projectTerminalTurnUsd(lastUsage, models[modelIdx]));
+
   while (true) {
     const roundStart = Date.now();
     // The HARD ceiling, checked before every round. It lives here rather than inside the wind-down
@@ -294,10 +297,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     // When budget/rounds are about to be exceeded, give the model ONE final turn to submit the
     // findings it already has.
     if (!windingDown) {
-      const overBudget = lastUsage && governor.wouldExceed(governor.projectNextRoundUsd(lastUsage, models[modelIdx]));
+      const overBudget = lastUsage && governor.wouldExceed(governor.projectTerminalTurnUsd(lastUsage, models[modelIdx]));
       const overRounds = rounds >= config.maxRounds;
       if (overBudget || overRounds) {
-        governor.interrupt(overRounds ? 'max_rounds' : 'budget');
+        windDownReason = overRounds ? 'max_rounds' : 'budget';
         if (logLevel !== 'quiet')
           log(`[wind-down] ${overRounds ? 'round cap' : 'budget'} reached at $${governor.spentUsd().toFixed(2)} — asking the model to submit and stop.`);
         windingDown = true;
@@ -321,22 +324,57 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     }
 
     let msg;
+    let truncatedUnaffordable = false;
     try {
-      const res = await streamRoundWithRetry({
+      const roundCap = windingDown
+        ? (config.terminalOutputTokens ?? config.maxOutputTokens)
+        : (config.roundOutputTokens ?? config.maxOutputTokens);
+      let res = await streamRoundWithRetry({
         client,
         models,
         startIdx: modelIdx,
         maxRetries,
         baseDelay,
-        params: { config, system, tools, messages },
+        params: { config, system, tools, messages, maxTokens: roundCap },
         log,
       });
+      if (res.msg?.stop_reason === 'max_tokens' && roundCap < config.maxOutputTokens) {
+        governor.record(res.msg.usage, models[res.idx]);
+        const affordable = governor.affordableOutputTokens(res.msg.usage, models[res.idx], config.costCeilingUsd - governor.spentUsd());
+        const retryCap = Math.min(config.maxOutputTokens, affordable);
+        if (retryCap <= roundCap) {
+          governor.interrupt('budget');
+          if (logLevel !== 'quiet')
+            log(
+              `round ${rounds + 1}/${config.maxRounds}: output hit the ${roundCap}-token cap at $${governor.spentUsd().toFixed(2)} — ` +
+                `only ${affordable} more output token(s) are affordable, so a re-issue cannot get further; stopping.`,
+            );
+          truncatedUnaffordable = true;
+        } else {
+          log(`round ${rounds + 1}/${config.maxRounds}: output hit the ${roundCap}-token cap — re-issuing at ${retryCap} (budget-capped).`);
+          res = await streamRoundWithRetry({
+            client,
+            models,
+            startIdx: res.idx,
+            maxRetries,
+            baseDelay,
+            params: { config, system, tools, messages, maxTokens: retryCap },
+            log,
+          });
+        }
+      }
       msg = res.msg;
       modelIdx = res.idx;
     } catch (e) {
       if (rounds === 0) throw e;
       governor.interrupt('error');
       log(`model request failed after ${rounds} round(s) (retries + fallback exhausted); returning findings so far: ${errMsg(e)}`);
+      break;
+    }
+    // The truncated turn was billed but its tool call is unusable, and there is no budget to redo it.
+    // Stop with whatever is banked
+    if (truncatedUnaffordable) {
+      findings = findings ?? [];
       break;
     }
     rounds += 1;
@@ -368,6 +406,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         });
         continue;
       }
+      if (windingDown) governor.interrupt(windDownReason ?? 'budget');
       findings = findings ?? [];
       break;
     }
@@ -378,9 +417,26 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       const submittedConfirm = submit.input?.confirmSuppressed;
       const submittedFindings = submit.input?.findings;
       const submittedDismissed = submit.input?.dismissed;
-      // The one sanctioned budget overrun: bounded to one round, asks only for work already done, and
-      // stashes findings first. Nothing else here may skip the ceiling — see the audit-gate tests.
-      if ((!Array.isArray(submittedAudit) || !Array.isArray(submittedConfirm)) && !auditRejected) {
+      const bankSubmission = () => {
+        if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
+        if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
+        if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
+        if (Array.isArray(submittedDismissed) && submittedDismissed.length) bankedDismissed = submittedDismissed;
+        // Same rule as the two bounce branches: an empty audit is still an audit the model reported.
+        if (Array.isArray(submittedAudit)) auditReported = true;
+      };
+      const stopUngated = (why) => {
+        if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: [gate-skipped] ${why} at $${governor.spentUsd().toFixed(2)} — no budget for the re-ask; stopping as interrupted.`);
+        governor.interrupt('budget');
+        bankSubmission();
+        findings = findings ?? [];
+      };
+      const needsAudit = (!Array.isArray(submittedAudit) || !Array.isArray(submittedConfirm)) && !auditRejected;
+      if (needsAudit && !canAffordBounce()) {
+        stopUngated('completeness record missing');
+        break;
+      }
+      if (needsAudit) {
         auditRejected = true;
         if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
         if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
@@ -420,7 +476,12 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         continue;
       }
       const hedges = findHedges(reasoningSoFar);
-      if (hedges.length && !hedgeRejected) {
+      const needsHedgeGate = hedges.length > 0 && !hedgeRejected;
+      if (needsHedgeGate && !canAffordBounce()) {
+        stopUngated(`${hedges.length} hand-wave(s) left ungated`);
+        break;
+      }
+      if (needsHedgeGate) {
         hedgeRejected = true;
         if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
         if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
@@ -480,8 +541,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       break;
     }
 
-    // Force the stop in case the model keeps trying to explore more files (or just loops) after the wind-down turn.
+    // Force the stop in case the model keeps trying to explore more files (or just loops) after the
+    // wind-down turn. It was asked to submit and did not, so this run genuinely did not finish.
     if (windingDown) {
+      governor.interrupt(windDownReason ?? 'budget');
       findings = findings ?? [];
       break;
     }
@@ -538,6 +601,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     costUsd: governor.spentUsd(),
     usedFallback: modelIdx > 0,
     interruptedReason: governor.interruptedReason,
+    windDownReason,
     rounds,
     toolBudgetExhausted,
     submitted,
