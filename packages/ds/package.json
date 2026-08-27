@@ -38,6 +38,7 @@
     "prebuild-storybook": "npm run typings",
     "build-storybook": "storybook build",
     "test:a11y": "test-storybook",
+    "pretest:e2e": "playwright install chromium",
     "test:e2e": "playwright test --config playwright.config.ts"
   },
   "peerDependencies": {

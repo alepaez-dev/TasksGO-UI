@@ -1,7 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": []
+    "types": [],
+    "incremental": false,
+    "composite": false
   },
   "exclude": [
     "node_modules",

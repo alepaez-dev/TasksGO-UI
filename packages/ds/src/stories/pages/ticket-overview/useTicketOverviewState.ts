@@ -28,8 +28,17 @@ import {
   type TaskDrawerSelectors,
   initialForm,
 } from '../tasks/shared';
+import type {
+  NewScenarioDraft,
+  NewScenarioStatus,
+} from '../../../components/AddScenarioDialog';
 import { toStageValue } from '../../../utils/toStageValue';
-import { ticket, type DevData } from './shared';
+import {
+  countFailedScenarios,
+  ticket,
+  type ChecklistItem,
+  type DevData,
+} from './shared';
 import { serializeTicketBody } from './serializeTicketBody';
 
 const DEV_SCRATCHPAD_SEED: readonly ScratchpadLine[] = [
@@ -51,6 +60,33 @@ const DEV_SCRATCHPAD_SEED: readonly ScratchpadLine[] = [
 ];
 
 const BRANCH_COPIED_FLASH_MS = 2000;
+
+const EMPTY_SCENARIO_DRAFT: NewScenarioDraft = {
+  name: '',
+  status: 'pending',
+  description: '',
+  expected: '',
+  actual: '',
+};
+
+const SCENARIO_META: Record<NewScenarioStatus, ChecklistItem['meta']> = {
+  passed: 'Verified',
+  failed: 'Failed',
+  pending: 'Not verified',
+};
+
+// lossy on purpose: ChecklistItem has no home for description/expected/actual
+// until the QA tab lands and scenarios become TestScenarioCard-shaped
+// TODO: change this when QA tab story lands.
+function toChecklistItem(draft: NewScenarioDraft, id: string): ChecklistItem {
+  return {
+    id,
+    status: draft.status,
+    label: draft.name.trim(),
+    meta: SCENARIO_META[draft.status],
+    metaVariant: draft.status === 'failed' ? 'critical' : undefined,
+  };
+}
 
 function getAddStageMessage(
   draft: string,
@@ -145,6 +181,14 @@ export interface UseTicketOverviewState {
   closeTaskDrawer: () => void;
   taskDrawerTitle: string;
   taskSelectors: TaskDrawerSelectors;
+  qaScenarios: readonly ChecklistItem[];
+  qaFailedCount: number;
+  addScenarioOpen: boolean;
+  scenarioDraft: NewScenarioDraft;
+  setScenarioDraft: (draft: NewScenarioDraft) => void;
+  openAddScenario: () => void;
+  cancelAddScenario: () => void;
+  confirmAddScenario: (draft: NewScenarioDraft) => void;
 }
 
 export function useTicketOverviewState(
@@ -230,6 +274,27 @@ export function useTicketOverviewState(
   const taskDrawerTitle = viewingTask
     ? `Edit task · ${viewingTask.id}`
     : 'Edit task';
+
+  const [qaScenarios, setQaScenarios] = useState<readonly ChecklistItem[]>(
+    ticket.qaSummary.items,
+  );
+  const [addScenarioOpen, setAddScenarioOpen] = useState(false);
+  const [scenarioDraft, setScenarioDraft] =
+    useState<NewScenarioDraft>(EMPTY_SCENARIO_DRAFT);
+  const openAddScenario = () => {
+    setScenarioDraft(EMPTY_SCENARIO_DRAFT);
+    setAddScenarioOpen(true);
+  };
+  // resetting here would blank the fields during the close transition
+  const cancelAddScenario = () => setAddScenarioOpen(false);
+  const confirmAddScenario = (draft: NewScenarioDraft) => {
+    setQaScenarios((current) => [
+      ...current,
+      toChecklistItem(draft, `scenario-${current.length + 1}`),
+    ]);
+    setAddScenarioOpen(false);
+  };
+  const qaFailedCount = countFailedScenarios(qaScenarios);
 
   const branch = ticket.dev.repository.branch;
   const [branchCopied, setBranchCopied] = useState(false);
@@ -320,5 +385,13 @@ export function useTicketOverviewState(
     closeTaskDrawer,
     taskDrawerTitle,
     taskSelectors,
+    qaScenarios,
+    qaFailedCount,
+    addScenarioOpen,
+    scenarioDraft,
+    setScenarioDraft,
+    openAddScenario,
+    cancelAddScenario,
+    confirmAddScenario,
   };
 }

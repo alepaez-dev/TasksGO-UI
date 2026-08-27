@@ -14,7 +14,6 @@
   flex-direction: column;
   gap: var(--ds-space-scale-md);
   width: 100%;
-  max-width: 480px;
   padding: var(--ds-space-scale-lg);
   background-color: var(--ds-color-surface-primary);
   border-radius: var(--ds-radius-2xl);
@@ -24,6 +23,14 @@
   transition-property: opacity, transform;
   transition-duration: var(--ds-overlay-duration);
   transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.md {
+  max-width: 480px;
+}
+
+.lg {
+  max-width: 560px;
 }
 
 .panel.open {
@@ -64,6 +71,11 @@
   color: var(--ds-color-text-secondary);
 }
 
+.icon.accent {
+  background-color: var(--ds-color-surface-muted);
+  color: var(--ds-color-accent-primary);
+}
+
 .title {
   margin: 0;
   font-family: var(--ds-font-family-sans);
@@ -87,51 +99,6 @@
 .description strong {
   font-weight: var(--ds-font-weight-semibold);
   color: var(--ds-color-text-primary);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-scale-sm);
-}
-
-.label {
-  font-family: var(--ds-text-section-header-font-family);
-  font-size: var(--ds-text-section-header-font-size);
-  font-weight: var(--ds-text-section-header-font-weight);
-  letter-spacing: var(--ds-text-section-header-letter-spacing);
-  text-transform: var(--ds-text-section-header-text-transform);
-  color: var(--ds-color-text-secondary);
-}
-
-.required::after {
-  content: ' *';
-  color: var(--ds-color-status-critical);
-}
-
-.textarea {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 88px;
-  padding: var(--ds-space-scale-sm) var(--ds-space-scale-md);
-  border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-lg);
-  background-color: var(--ds-color-surface-primary);
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-family-sans);
-  font-size: var(--ds-text-card-body-font-size);
-  line-height: var(--ds-text-card-body-line-height);
-  resize: vertical;
-}
-
-.textarea::placeholder {
-  color: var(--ds-color-text-disabled);
-}
-
-.textarea:focus-visible {
-  outline: none;
-  border-color: var(--ds-color-accent-primary);
-  box-shadow: var(--ds-focus-ring);
 }
 
 .footer {

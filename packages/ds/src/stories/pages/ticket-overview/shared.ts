@@ -37,6 +37,10 @@ export interface ChecklistItem {
   metaVariant?: BadgeProps['variant'];
 }
 
+export function countFailedScenarios(items: readonly ChecklistItem[]): number {
+  return items.filter((item) => item.status === 'failed').length;
+}
+
 export interface StatusOption {
   value: string;
   label: string;
@@ -121,7 +125,6 @@ export interface TicketMeta {
   dev: DevData;
   qaSummary: {
     title: string;
-    failedCount: number;
     lastChecked: string;
     items: readonly ChecklistItem[];
   };
@@ -329,7 +332,6 @@ export const ticket: TicketMeta = {
   },
   qaSummary: {
     title: 'Scenarios Checklist',
-    failedCount: 1,
     lastChecked: 'Last checked 2h ago',
     items: [
       {

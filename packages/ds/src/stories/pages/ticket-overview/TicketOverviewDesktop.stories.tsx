@@ -26,6 +26,7 @@ import { StatusDot } from '../../../components/StatusDot';
 import { TaskEditDrawer } from '../../helpers/TaskEditDrawer';
 import { TicketId } from '../../../components/TicketId';
 import { PipelineHierarchyPanel } from '../../../components/PipelineHierarchyPanel';
+import { AddScenarioDialog } from '../../../components/AddScenarioDialog';
 import {
   SidebarWorkspaceHeader,
   SidebarStatusLabel,
@@ -130,6 +131,14 @@ function TicketOverviewRender() {
     closeTaskDrawer,
     taskDrawerTitle,
     taskSelectors,
+    qaScenarios,
+    qaFailedCount,
+    addScenarioOpen,
+    scenarioDraft,
+    setScenarioDraft,
+    openAddScenario,
+    cancelAddScenario,
+    confirmAddScenario,
   } = useTicketOverviewState();
   const activeProject = getProject(project);
   const activeAssignee = getPerson(assignee);
@@ -230,7 +239,7 @@ function TicketOverviewRender() {
               <Button variant="ghost" size="sm">
                 Comment
               </Button>
-              <Button variant="primary" size="sm">
+              <Button variant="primary" size="sm" onClick={openAddScenario}>
                 Add scenario
               </Button>
               <IconButton icon="link" size="sm" aria-label="Share ticket" />
@@ -337,7 +346,7 @@ function TicketOverviewRender() {
                               {ticket.qaSummary.title}
                             </span>
                             <Badge variant="critical">
-                              {ticket.qaSummary.failedCount} Failed
+                              {qaFailedCount} Failed
                             </Badge>
                             <span className={styles.qaCardMeta}>
                               {ticket.qaSummary.lastChecked}
@@ -345,7 +354,7 @@ function TicketOverviewRender() {
                           </span>
                         }
                       >
-                        {ticket.qaSummary.items.map((item) => (
+                        {qaScenarios.map((item) => (
                           <ChecklistRow
                             key={item.id}
                             status={item.status}
@@ -655,6 +664,14 @@ function TicketOverviewRender() {
         assigneeOptions={peopleOptions}
         priorityOptions={priorityOptions}
         ticketOptions={[{ value: ticket.id, label: title, prefix: ticket.id }]}
+      />
+
+      <AddScenarioDialog
+        open={addScenarioOpen}
+        value={scenarioDraft}
+        onValueChange={setScenarioDraft}
+        onCancel={cancelAddScenario}
+        onConfirm={confirmAddScenario}
       />
     </div>
   );

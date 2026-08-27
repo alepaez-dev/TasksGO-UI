@@ -223,9 +223,9 @@ export const TestScenarioCard = forwardRef<
     return (
       <div
         ref={ref}
+        {...rest}
         className={cn(styles.card, className)}
         data-status={status}
-        {...rest}
       >
         <div className={styles.header}>
           <button

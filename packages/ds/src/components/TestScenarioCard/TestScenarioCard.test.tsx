@@ -60,6 +60,15 @@ describe('TestScenarioCard', () => {
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });
 
+  it('keeps its own data-status when a spread tries to override it', () => {
+    const ref = createRef<HTMLDivElement>();
+    const override = { 'data-status': 'passed' };
+    render(
+      <TestScenarioCard {...base} {...override} status="failed" ref={ref} />,
+    );
+    expect(ref.current).toHaveAttribute('data-status', 'failed');
+  });
+
   it('emits onStatusChange from the status dropdown', async () => {
     const onStatusChange = vi.fn();
     render(
