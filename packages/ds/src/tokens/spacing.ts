@@ -137,6 +137,13 @@ export const spacing = {
   bottomTabBar: {
     height: '64px',
   },
+  // The mobile ticket tab bar. Must be at least the tabs' own rendered height
+  // (~34.8px at size="sm"); below that they overflow the bar, and no test
+  // catches it. Also feeds --ds-scratchpad-toolbar-offset, so the Dev toolbar
+  // sticks flush beneath it.
+  ticketTabsBar: {
+    height: '35px',
+  },
   bottomSheet: {
     maxHeight: '85vh',
     topRadius: '16px',

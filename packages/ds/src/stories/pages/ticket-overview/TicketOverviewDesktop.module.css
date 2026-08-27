@@ -129,7 +129,12 @@
 }
 
 .tabPanel {
-  padding: 0;
+  padding: var(--ds-space-scale-md) var(--ds-space-ticket-content-padding-x)
+    var(--ds-space-scale-sm);
+}
+
+.devScratchpad {
+  --ds-scratchpad-toolbar-inset: var(--ds-space-ticket-content-padding-x);
 }
 
 .rightRail {

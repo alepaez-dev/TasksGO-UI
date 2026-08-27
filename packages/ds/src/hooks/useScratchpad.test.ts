@@ -38,6 +38,28 @@ describe('useScratchpad', () => {
     expect(result.current.lines[1].text).toBe('');
   });
 
+  it('seeds a new line with the supplied initial text', () => {
+    const { result } = renderHook(() => useScratchpad(initial));
+    act(() => result.current.onAddLine('a', '[task]'));
+    expect(result.current.lines[1].text).toBe('[task]');
+    expect(result.current.lines[1].id).toBe(result.current.editingLineId);
+  });
+
+  it('inserts the seeded line into an empty list when afterId is null', () => {
+    const { result } = renderHook(() => useScratchpad([]));
+    act(() => result.current.onAddLine(null, '## '));
+    expect(result.current.lines).toHaveLength(1);
+    expect(result.current.lines[0].text).toBe('## ');
+  });
+
+  it('appends at the end when afterId is null and the list is not empty', () => {
+    const { result } = renderHook(() => useScratchpad(initial));
+    act(() => result.current.onAddLine(null, 'last one'));
+    const texts = result.current.lines.map((line) => line.text);
+    expect(texts[texts.length - 1]).toBe('last one');
+    expect(texts).toHaveLength(4);
+  });
+
   it('deletes the edited line and moves edit and focus to the previous one', () => {
     const { result } = renderHook(() => useScratchpad(initial));
     act(() => result.current.onLineStartEdit('b'));

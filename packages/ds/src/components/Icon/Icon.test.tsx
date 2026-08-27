@@ -55,4 +55,9 @@ describe('Icon', () => {
     const span = container.querySelector('span');
     expect(span).toHaveClass('custom');
   });
+
+  it('renders the bug_report icon', () => {
+    const { container } = render(<Icon name="bug_report" />);
+    expect(container.querySelector('svg')).toBeInTheDocument();
+  });
 });

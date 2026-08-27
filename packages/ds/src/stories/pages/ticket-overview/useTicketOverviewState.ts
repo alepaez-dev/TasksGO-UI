@@ -26,8 +26,20 @@ import { serializeTicketBody } from './serializeTicketBody';
 
 const DEV_SCRATCHPAD_SEED: readonly ScratchpadLine[] = [
   { id: 'sp-1', text: '## Debug notes' },
-  { id: 'sp-2', text: '[ ] Repro cold-start cache miss on `/gateway`' },
-  { id: 'sp-3', text: 'Follow-up: [task] add multi-value header support' },
+  {
+    id: 'sp-2',
+    text: '[ ] Repro: cold-start cache miss on `/gateway` when SNS invalidation fires mid-write',
+  },
+  {
+    id: 'sp-3',
+    text: '[ ] Verify **TTL** headers inherited from origin — see [caching RFC](https://example.com/rfc/caching)',
+  },
+  {
+    id: 'sp-4',
+    text: 'Refactor the [task] edge-caching header mutation to handle multi-value headers',
+  },
+  { id: 'sp-5', text: '[x] Initial research on *CloudFront* function limits' },
+  { id: 'sp-6', text: 'Debug: [qa] latency spikes in `us-west-2` staging' },
 ];
 
 const BRANCH_COPIED_FLASH_MS = 2000;
@@ -116,7 +128,9 @@ export interface UseTicketOverviewState {
   cancelAddStage: () => void;
 }
 
-export function useTicketOverviewState(): UseTicketOverviewState {
+export function useTicketOverviewState(
+  scratchpadSeed: readonly ScratchpadLine[] = DEV_SCRATCHPAD_SEED,
+): UseTicketOverviewState {
   const [project, setProject] = useState('eng-core');
   const projectSelector = useSelectorState();
   const [activeNav, setActiveNav] = useState('tickets');
@@ -173,7 +187,7 @@ export function useTicketOverviewState(): UseTicketOverviewState {
   const branch = ticket.dev.repository.branch;
   const [branchCopied, setBranchCopied] = useState(false);
   const [branchCopyTick, setBranchCopyTick] = useState(0);
-  const scratchpad = useScratchpad(DEV_SCRATCHPAD_SEED);
+  const scratchpad = useScratchpad(scratchpadSeed);
 
   const [devDetailsOpen, setDevDetailsOpen] = useState(false);
   useEffect(() => {

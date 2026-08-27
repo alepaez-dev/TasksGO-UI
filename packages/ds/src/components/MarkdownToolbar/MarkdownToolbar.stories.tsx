@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { MarkdownToolbar } from './MarkdownToolbar';
+import { SCRATCHPAD_TOOLBAR_GROUPS } from '../Scratchpad/Scratchpad';
 
 const meta = {
   title: 'Components/MarkdownToolbar',
@@ -8,9 +9,7 @@ const meta = {
   argTypes: {
     size: { control: 'inline-radio', options: ['sm', 'md'] },
     disabled: { control: 'boolean' },
-    variant: { control: 'inline-radio', options: ['inline', 'accessory'] },
     onAction: { control: false },
-    onDone: { control: false },
   },
   args: {
     onAction: () => {},
@@ -40,13 +39,16 @@ export const Disabled: Story = {
   args: { disabled: true },
 };
 
-export const Accessory: Story = {
-  args: { variant: 'accessory', onDone: () => {} },
+export const Grouped: Story = {
+  args: {
+    groups: SCRATCHPAD_TOOLBAR_GROUPS,
+    hint: 'Markdown supported',
+  },
   parameters: {
     docs: {
       description: {
         story:
-          'Keyboard-docked variant: portals to the bottom of the viewport with a trailing Done button. It tracks `visualViewport`, so it rides above the on-screen keyboard when one is open and rests at the viewport bottom otherwise (as shown here, with no keyboard).',
+          'The grouping the Scratchpad uses: text formatting, then block and insert actions, then the token pills, with a divider between each group and a trailing hint. On narrow screens the pill labels and the hint collapse to leave the icons, and the dividers drop once the row can no longer keep everything on one line.',
       },
     },
   },

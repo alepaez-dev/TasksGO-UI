@@ -1,6 +1,6 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Scratchpad, type ScratchpadLine } from './Scratchpad';
 import { useScratchpad } from '../../hooks/useScratchpad';
 
@@ -10,28 +10,6 @@ const lines: readonly ScratchpadLine[] = [
   { id: 't2', text: '[x] Initial research' },
   { id: 'x1', text: 'Refactor header logic' },
 ];
-
-function openKeyboard() {
-  Object.defineProperty(window, 'visualViewport', {
-    value: {
-      height: 400,
-      offsetTop: 0,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-    },
-    configurable: true,
-    writable: true,
-  });
-  window.innerHeight = 800;
-}
-
-afterEach(() => {
-  Object.defineProperty(window, 'visualViewport', {
-    value: undefined,
-    configurable: true,
-    writable: true,
-  });
-});
 
 describe('Scratchpad', () => {
   it('renders line content as markdown (raw markers stripped)', () => {
@@ -669,18 +647,14 @@ describe('Scratchpad — formatting toolbar', () => {
     return <Scratchpad aria-label="Notes" formattingToolbar {...controls} />;
   }
 
-  it('shows the accessory toolbar only while a line is editing', () => {
-    openKeyboard();
+  it('shows the toolbar at rest, before any line is edited', () => {
     render(<Harness />);
-    expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Edit note' }));
     expect(
       screen.getByRole('toolbar', { name: 'Formatting' }),
     ).toBeInTheDocument();
   });
 
   it('applies a toolbar action to the active line', () => {
-    openKeyboard();
     render(<Harness />);
     fireEvent.click(screen.getByRole('button', { name: 'Edit note' }));
     const textarea = screen.getByRole('textbox', {
@@ -691,14 +665,68 @@ describe('Scratchpad — formatting toolbar', () => {
     expect(textarea.value).toBe('**bold**note one');
   });
 
-  it('stops editing when Done is pressed', () => {
-    openKeyboard();
+  it('adds a line seeded by the action when nothing is being edited', () => {
     render(<Harness />);
-    fireEvent.click(screen.getByRole('button', { name: 'Edit note' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add task' }));
+    expect(screen.getByRole('textbox', { name: 'Edit note' })).toHaveValue(
+      '[task]',
+    );
+  });
+
+  it('selects the placeholder on a line added from the resting state', () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: 'Bold' }));
+    const textarea = screen.getByRole('textbox', {
+      name: 'Edit note',
+    }) as HTMLTextAreaElement;
+    // Typing must replace the placeholder, as it does when editing a line.
+    expect(textarea.value).toBe('**bold**');
     expect(
-      screen.queryByRole('textbox', { name: 'Edit note' }),
-    ).not.toBeInTheDocument();
+      textarea.value.slice(textarea.selectionStart, textarea.selectionEnd),
+    ).toBe('bold');
+  });
+
+  it('leaves the caret at the end when the action has no placeholder', () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add task' }));
+    const textarea = screen.getByRole('textbox', {
+      name: 'Edit note',
+    }) as HTMLTextAreaElement;
+    expect(textarea.selectionStart).toBe('[task]'.length);
+    expect(textarea.selectionEnd).toBe('[task]'.length);
+  });
+
+  it('disables the toolbar when it cannot act', () => {
+    render(
+      <Scratchpad
+        aria-label="Notes"
+        formattingToolbar
+        lines={[{ id: 'a', text: 'note one' }]}
+        onLineTextChange={() => {}}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Bold' })).toBeDisabled();
+  });
+
+  it('renders the toolbar above the header when asked', () => {
+    render(
+      <Scratchpad
+        aria-label="Notes"
+        title="Scratchpad"
+        formattingToolbar
+        toolbarPosition="above-header"
+        lines={[{ id: 'a', text: 'note one' }]}
+        onLineTextChange={() => {}}
+      />,
+    );
+    const group = screen.getByRole('group', { name: 'Notes' });
+    const toolbar = screen.getByRole('toolbar', { name: 'Formatting' });
+    const header = screen.getByText('Scratchpad');
+    const children = Array.from(group.children);
+    expect(children.indexOf(toolbar)).toBeLessThan(
+      children.findIndex((child) => child.contains(header)),
+    );
+    expect(group).toContainElement(toolbar);
   });
 });
 

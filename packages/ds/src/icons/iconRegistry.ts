@@ -3,6 +3,7 @@ import { AddIcon } from './add';
 import { AttachFileIcon } from './attachFile';
 import { AttachmentIcon } from './attachment';
 import { AutoAwesomeIcon } from './autoAwesome';
+import { BugReportIcon } from './bugReport';
 import { CallMergeIcon } from './callMerge';
 import { CancelIcon } from './cancel';
 import { CheckIcon } from './check';
@@ -49,6 +50,7 @@ export const iconRegistry = {
   attach_file: AttachFileIcon,
   attachment: AttachmentIcon,
   auto_awesome: AutoAwesomeIcon,
+  bug_report: BugReportIcon,
   call_merge: CallMergeIcon,
   cancel: CancelIcon,
   check: CheckIcon,

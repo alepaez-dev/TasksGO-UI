@@ -1,41 +1,85 @@
-import {
-  forwardRef,
-  type ForwardedRef,
-  type HTMLAttributes,
-  type ReactNode,
-} from 'react';
-import { createPortal } from 'react-dom';
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
 import { IconButton } from '../IconButton';
-import { Button } from '../Button';
+import { Icon } from '../Icon';
 import type { IconName } from '../../icons';
-import { useRovingToolbar } from '../../hooks/useRovingToolbar';
-import { useKeyboardInset } from '../../hooks/useKeyboardInset';
+import {
+  useRovingToolbar,
+  type RovingToolbarItemProps,
+} from '../../hooks/useRovingToolbar';
 import type { MarkdownAction } from '../../utils/markdown/applyMarkdownAction';
 import { cn } from '../../utils/cn';
 import styles from './MarkdownToolbar.module.css';
 
 export type MarkdownToolbarAction = MarkdownAction;
 
-interface ToolbarItem {
+interface ToolbarItemBase {
   action: MarkdownAction;
   icon: IconName;
   label: string;
 }
 
+type ToolbarItem =
+  | (ToolbarItemBase & { appearance: 'icon' })
+  | (ToolbarItemBase & { appearance: 'pill'; iconClass: string });
+
 const ITEMS: readonly ToolbarItem[] = [
-  { action: 'heading', icon: 'heading', label: 'Heading' },
-  { action: 'bold', icon: 'format_bold', label: 'Bold' },
-  { action: 'italic', icon: 'format_italic', label: 'Italic' },
-  { action: 'list', icon: 'format_list_bulleted', label: 'Bulleted list' },
-  { action: 'quote', icon: 'format_quote', label: 'Quote' },
-  { action: 'code', icon: 'code', label: 'Code' },
-  { action: 'link', icon: 'link', label: 'Link' },
-  { action: 'image', icon: 'image', label: 'Image' },
-  { action: 'checkbox', icon: 'task_alt', label: 'Checklist item' },
+  { action: 'heading', icon: 'heading', label: 'Heading', appearance: 'icon' },
+  { action: 'bold', icon: 'format_bold', label: 'Bold', appearance: 'icon' },
+  {
+    action: 'italic',
+    icon: 'format_italic',
+    label: 'Italic',
+    appearance: 'icon',
+  },
+  {
+    action: 'list',
+    icon: 'format_list_bulleted',
+    label: 'Bulleted list',
+    appearance: 'icon',
+  },
+  { action: 'quote', icon: 'format_quote', label: 'Quote', appearance: 'icon' },
+  { action: 'code', icon: 'code', label: 'Code', appearance: 'icon' },
+  { action: 'link', icon: 'link', label: 'Link', appearance: 'icon' },
+  { action: 'image', icon: 'image', label: 'Image', appearance: 'icon' },
+  {
+    action: 'checkbox',
+    icon: 'task_alt',
+    label: 'Checklist item',
+    appearance: 'icon',
+  },
+  {
+    action: 'task',
+    icon: 'task_alt',
+    label: 'Add task',
+    appearance: 'pill',
+    iconClass: styles.taskIconTint,
+  },
+  {
+    action: 'qa',
+    icon: 'bug_report',
+    label: 'Add QA scenario',
+    appearance: 'pill',
+    iconClass: styles.qaIconTint,
+  },
+];
+
+export type MarkdownToolbarGroup = readonly MarkdownAction[];
+
+const DEFAULT_GROUPS: readonly MarkdownToolbarGroup[] = [
+  [
+    'heading',
+    'bold',
+    'italic',
+    'list',
+    'quote',
+    'code',
+    'link',
+    'image',
+    'checkbox',
+  ],
 ];
 
 type MarkdownToolbarSize = 'sm' | 'md';
-type MarkdownToolbarVariant = 'inline' | 'accessory';
 
 export interface MarkdownToolbarProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
@@ -44,41 +88,50 @@ export interface MarkdownToolbarProps extends Omit<
   onAction: (action: MarkdownToolbarAction) => void;
   disabled?: boolean;
   size?: MarkdownToolbarSize;
-  variant?: MarkdownToolbarVariant;
-  onDone?: () => void;
-  actions?: readonly MarkdownAction[];
+  groups?: readonly MarkdownToolbarGroup[];
+  hint?: ReactNode;
   'aria-label'?: string;
 }
 
-interface AccessoryShellProps extends HTMLAttributes<HTMLDivElement> {
-  ariaLabel: string;
-  toolbarRef?: ForwardedRef<HTMLDivElement>;
-  children: ReactNode;
+interface ToolbarItemButtonProps {
+  item: ToolbarItem;
+  size: MarkdownToolbarSize;
+  disabled: boolean;
+  onAction: (action: MarkdownToolbarAction) => void;
+  itemProps: RovingToolbarItemProps;
 }
 
-function AccessoryShell({
-  ariaLabel,
-  toolbarRef,
-  className,
-  children,
-  ...rest
-}: AccessoryShellProps) {
-  const { viewportBottom } = useKeyboardInset();
-  if (typeof document === 'undefined') return null;
-  return createPortal(
-    <div
-      ref={toolbarRef}
-      role="toolbar"
-      aria-label={ariaLabel}
-      aria-orientation="horizontal"
-      className={cn(styles.accessory, className)}
-      style={{ transform: `translateY(calc(${viewportBottom}px - 100%))` }}
-      onPointerDown={(e) => e.preventDefault()}
-      {...rest}
-    >
-      {children}
-    </div>,
-    document.body,
+function ToolbarItemButton({
+  item,
+  size,
+  disabled,
+  onAction,
+  itemProps,
+}: ToolbarItemButtonProps) {
+  if (item.appearance === 'pill') {
+    return (
+      <button
+        type="button"
+        className={styles.pill}
+        aria-label={item.label}
+        disabled={disabled}
+        onClick={() => onAction(item.action)}
+        {...itemProps}
+      >
+        <Icon name={item.icon} size={size} className={item.iconClass} />
+        <span className={styles.pillLabel}>{item.label}</span>
+      </button>
+    );
+  }
+  return (
+    <IconButton
+      icon={item.icon}
+      size={size}
+      aria-label={item.label}
+      disabled={disabled}
+      onClick={() => onAction(item.action)}
+      {...itemProps}
+    />
   );
 }
 
@@ -88,57 +141,48 @@ export const MarkdownToolbar = forwardRef<HTMLDivElement, MarkdownToolbarProps>(
       onAction,
       disabled = false,
       size = 'sm',
-      variant = 'inline',
-      onDone,
-      actions,
+      groups,
+      hint,
       'aria-label': ariaLabel = 'Formatting',
       className,
       ...rest
     },
     ref,
   ) => {
-    const items = actions
-      ? actions.flatMap(
-          (action) => ITEMS.find((item) => item.action === action) ?? [],
-        )
-      : ITEMS;
+    let nextIndex = 0;
+    const resolvedGroups = (groups ?? DEFAULT_GROUPS).map((group) =>
+      group.flatMap((action) => {
+        const item = ITEMS.find((candidate) => candidate.action === action);
+        return item ? [{ ...item, index: nextIndex++ }] : [];
+      }),
+    );
 
-    const { getItemProps } = useRovingToolbar(items.map(() => ({ disabled })));
+    const { getItemProps } = useRovingToolbar(
+      resolvedGroups.flat().map(() => ({ disabled })),
+    );
 
-    const buttons = items.map((item, index) => (
-      <IconButton
-        key={item.action}
-        icon={item.icon}
-        size={size}
-        aria-label={item.label}
-        disabled={disabled}
-        onClick={() => onAction(item.action)}
-        {...getItemProps(index)}
-      />
-    ));
-
-    if (variant === 'accessory') {
-      return (
-        <AccessoryShell
-          ariaLabel={ariaLabel}
-          toolbarRef={ref}
-          className={className}
-          {...rest}
-        >
-          <div className={styles.accessoryScroll}>{buttons}</div>
-          {onDone && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className={styles.done}
-              onClick={onDone}
-            >
-              Done
-            </Button>
-          )}
-        </AccessoryShell>
-      );
-    }
+    const content = resolvedGroups.flatMap((group, groupIndex) => {
+      const nodes = group.map((item) => (
+        <ToolbarItemButton
+          key={item.action}
+          item={item}
+          size={size}
+          disabled={disabled}
+          onAction={onAction}
+          itemProps={getItemProps(item.index)}
+        />
+      ));
+      if (groupIndex === resolvedGroups.length - 1) return nodes;
+      return [
+        ...nodes,
+        <span
+          key={`sep-${groupIndex}`}
+          data-separator=""
+          aria-hidden="true"
+          className={styles.separator}
+        />,
+      ];
+    });
 
     return (
       <div
@@ -147,9 +191,13 @@ export const MarkdownToolbar = forwardRef<HTMLDivElement, MarkdownToolbarProps>(
         aria-label={ariaLabel}
         aria-orientation="horizontal"
         className={cn(styles.toolbar, className)}
+        onPointerDown={(e) => e.preventDefault()}
         {...rest}
       >
-        {buttons}
+        <div data-toolbar-row="" className={styles.row}>
+          {content}
+        </div>
+        {hint && <span className={styles.hint}>{hint}</span>}
       </div>
     );
   },

@@ -18,6 +18,14 @@ async function openDetails(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: /Details/ }).click();
 }
 
+async function tabBarBottom(page: import('@playwright/test').Page) {
+  return page.getByRole('tablist').evaluate((el) => {
+    const bar = el.parentElement;
+    if (!bar) throw new Error('Expected the tablist to sit inside the bar');
+    return bar.getBoundingClientRect().bottom;
+  });
+}
+
 test.describe('Ticket mobile — Dev tab scratchpad', () => {
   test.beforeEach(async ({ page }) => {
     await loadStory(page);
@@ -49,24 +57,22 @@ test.describe('Ticket mobile — Dev tab scratchpad', () => {
     await expect(addScenario).toBeVisible();
   });
 
-  test('editing a line swaps the tab bar for the formatting toolbar', async ({
+  test('the toolbar and tab bar both stay put while a line is edited', async ({
     page,
   }) => {
     await openDevTab(page);
     const nav = page.getByRole('navigation', { name: 'Main navigation' });
+    const toolbar = page.getByRole('toolbar', { name: 'Formatting' });
     await expect(nav).toBeVisible();
+    await expect(toolbar).toBeVisible();
 
     await page
       .getByRole('button', { name: /^Edit / })
       .first()
       .click();
 
-    const toolbar = page.getByRole('toolbar', { name: 'Formatting' });
+    // The toolbar is persistent, so nothing has to move aside for it.
     await expect(toolbar).toBeVisible();
-    await expect(nav).toHaveCount(0);
-
-    await page.getByRole('button', { name: 'Done' }).click();
-    await expect(toolbar).toHaveCount(0);
     await expect(nav).toBeVisible();
   });
 });
@@ -213,5 +219,156 @@ test.describe('Ticket mobile — Dev details sheet', () => {
     await expect(
       page.getByRole('heading', { name: 'Dev', exact: true }),
     ).toBeVisible();
+  });
+});
+
+test.describe('Ticket mobile — scratchpad toolbar', () => {
+  // 8 formatting actions plus the 2 token pills.
+  const TOOLBAR_BUTTON_COUNT = 10;
+
+  test.beforeEach(async ({ page }) => {
+    await loadStory(page);
+    await openDevTab(page);
+  });
+
+  test('adds a qa token line when nothing is being edited', async ({
+    page,
+  }) => {
+    const toolbar = page.getByRole('toolbar', { name: 'Formatting' });
+    await expect(toolbar).toBeVisible();
+
+    await page.getByRole('button', { name: 'Add QA scenario' }).click();
+    await expect(page.getByRole('textbox', { name: 'Edit note' })).toHaveValue(
+      '[qa]',
+    );
+  });
+
+  test('sits flush beneath the tab bar at rest', async ({ page }) => {
+    const toolbar = page.getByRole('toolbar', { name: 'Formatting' });
+    await expect(toolbar).toBeVisible();
+
+    const barBottom = await tabBarBottom(page);
+    const toolbarBox = await toolbar.boundingBox();
+    if (!toolbarBox) {
+      throw new Error('Expected the toolbar to be laid out');
+    }
+    expect(Math.abs(toolbarBox.y - barBottom)).toBeLessThan(2);
+  });
+
+  test('wraps so every button is reachable without scrolling the row', async ({
+    page,
+  }) => {
+    const toolbar = page.getByRole('toolbar', { name: 'Formatting' });
+    await expect(toolbar).toBeVisible();
+
+    const buttons = toolbar.getByRole('button');
+    await expect(buttons).toHaveCount(TOOLBAR_BUTTON_COUNT);
+
+    // Every button sits inside the row's own box — nothing is parked off-screen
+    // behind a scroll the user gets no scrollbar to discover.
+    for (let i = 0; i < TOOLBAR_BUTTON_COUNT; i += 1) {
+      await expect(buttons.nth(i)).toBeInViewport();
+    }
+    const overflow = await toolbar.evaluate((el) => {
+      const row = el.querySelector<HTMLElement>('[data-toolbar-row]');
+      if (!row)
+        throw new Error('Expected the toolbar to render its button row');
+      return row.scrollWidth - row.clientWidth;
+    });
+    expect(overflow).toBe(0);
+  });
+
+  test('collapses pill labels to icons on a narrow screen', async ({
+    page,
+  }) => {
+    const addTask = page.getByRole('button', { name: 'Add task' });
+    await expect(addTask).toBeVisible();
+    // The visible label collapses, but the accessible name survives it.
+    await expect(addTask.getByText('Add task', { exact: true })).toBeHidden();
+    await expect(page.getByText('Markdown supported')).toBeHidden();
+  });
+});
+
+test.describe('Ticket mobile — scratchpad toolbar with long notes', () => {
+  // The six-line default page cannot scroll far enough for any sticky element
+  // to reach its threshold, so sticky behaviour is only observable here.
+  const LONG_STORY_ID = 'pages-ticket--mobile-long-notes';
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto(storyUrl(LONG_STORY_ID));
+    await page
+      .getByRole('heading', { name: 'Description' })
+      .waitFor({ state: 'visible' });
+    await openDevTab(page);
+  });
+
+  test('holds its place under the tab bar while the notes scroll away', async ({
+    page,
+  }) => {
+    const toolbar = page.getByRole('toolbar', { name: 'Formatting' });
+    const firstNote = page.getByText('Repro: cold-start cache miss');
+    await expect(toolbar).toBeVisible();
+
+    const noteBefore = await firstNote.boundingBox();
+    await toolbar.hover();
+    await page.mouse.wheel(0, 600);
+
+    await expect(async () => {
+      const noteAfter = await firstNote.boundingBox();
+      if (!noteBefore || !noteAfter) {
+        throw new Error('Expected the first note to be laid out');
+      }
+      // Past the tab bar's own sticky threshold, so both are truly pinned.
+      expect(noteAfter.y).toBeLessThan(noteBefore.y - 250);
+    }).toPass();
+
+    await expect(toolbar).toBeInViewport();
+    const barBottom = await tabBarBottom(page);
+    const toolbarBox = await toolbar.boundingBox();
+    if (!toolbarBox) {
+      throw new Error('Expected the toolbar to be laid out');
+    }
+    // Measured against the bar's own bottom edge: the tablist sits inside the
+    // bar, so comparing to it would miss the bar growing past the offset.
+    expect(Math.abs(toolbarBox.y - barBottom)).toBeLessThan(2);
+  });
+});
+
+test.describe('Ticket mobile — toolbar dividers', () => {
+  test.beforeEach(async ({ page }) => {
+    await loadStory(page);
+    await openDevTab(page);
+  });
+
+  test('drops dividers on the phone, where the button row wraps', async ({
+    page,
+  }) => {
+    const toolbar = page.getByRole('toolbar', { name: 'Formatting' });
+    await expect(toolbar).toBeVisible();
+
+    const layout = await toolbar.evaluate((el) => {
+      const row = el.querySelector<HTMLElement>('[data-toolbar-row]');
+      if (!row)
+        throw new Error('Expected the toolbar to render its button row');
+      const visible = [...row.children].filter(
+        (child) => child.getBoundingClientRect().width > 0,
+      );
+      const lines = new Set(
+        visible.map((child) => {
+          const box = child.getBoundingClientRect();
+          return Math.round((box.top + box.bottom) / 2 / 10);
+        }),
+      );
+      return {
+        lines: lines.size,
+        dividers: visible.filter((child) =>
+          child.hasAttribute('data-separator'),
+        ).length,
+      };
+    });
+
+    // The row genuinely wraps here — otherwise this would prove nothing.
+    expect(layout.lines).toBeGreaterThan(1);
+    expect(layout.dividers).toBe(0);
   });
 });
