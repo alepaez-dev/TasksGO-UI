@@ -235,6 +235,13 @@ test.describe('Ticket — View Task opens the edit drawer', () => {
       'Add multi-value header support to edge cache',
     );
 
+    const lingering = await page.evaluate(
+      () =>
+        document.querySelectorAll('[role="dialog"][aria-label^="Linked task"]')
+          .length,
+    );
+    expect(lingering).toBe(0);
+
     await page.getByRole('button', { name: 'Cancel' }).click();
     await expect(drawer).toHaveCount(0);
     // useFocusTrap restores focus on close; assert it because it is inherited.

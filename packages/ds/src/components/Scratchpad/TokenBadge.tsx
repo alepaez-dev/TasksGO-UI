@@ -55,7 +55,7 @@ export function TokenBadge({
   const viewTask = onViewTask
     ? (task: ScratchpadTaskRef) => {
         ref.current?.focus();
-        onBadgeOpenChange?.(null);
+        onBadgeOpenChange?.(null, true);
         onViewTask(task);
       }
     : undefined;

@@ -644,8 +644,8 @@ describe('Scratchpad', () => {
       fireEvent(link, event);
       // A plain click stays in-app rather than following the href.
       expect(event.defaultPrevented).toBe(true);
-      // The card closes first so only one surface is open at a time.
-      expect(onBadgeOpenChange).toHaveBeenCalledWith(null);
+      // The card closes first so only one surface is open at a time
+      expect(onBadgeOpenChange).toHaveBeenCalledWith(null, true);
       expect(onViewTask).toHaveBeenCalledWith(taskBadgeInfo);
     });
 
