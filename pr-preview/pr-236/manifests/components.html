@@ -8447,13 +8447,13 @@ title: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  533 | }
-  534 |
-&gt; 535 | const meta: Meta = {
+  534 | }
+  535 |
+&gt; 536 | const meta: Meta = {
       | ^
-  536 |   title: &#39;Pages/Tasks&#39;,
-  537 |   parameters: {
-  538 |     layout: &#39;fullscreen&#39;,
+  537 |   title: &#39;Pages/Tasks&#39;,
+  538 |   parameters: {
+  539 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/tasks/TasksDesktop.stories.tsx:
 import { useState, useMemo } from &#39;react&#39;;
@@ -8600,6 +8600,7 @@ function TasksPageRender({
     setForm(initialForm);
     setAssigneeQuery(&#39;&#39;);
     setTicketQuery(&#39;&#39;);
+    selectors.assignee.onOpenChange(false);
   }
 
   function handleTaskClick(task: TaskItem) {
@@ -10707,13 +10708,13 @@ scenarioTitle: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  533 | }
-  534 |
-&gt; 535 | const meta: Meta = {
+  534 | }
+  535 |
+&gt; 536 | const meta: Meta = {
       | ^
-  536 |   title: &#39;Pages/Tasks&#39;,
-  537 |   parameters: {
-  538 |     layout: &#39;fullscreen&#39;,
+  537 |   title: &#39;Pages/Tasks&#39;,
+  538 |   parameters: {
+  539 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/tasks/TasksDesktop.stories.tsx:
 import { useState, useMemo } from &#39;react&#39;;
@@ -10860,6 +10861,7 @@ function TasksPageRender({
     setForm(initialForm);
     setAssigneeQuery(&#39;&#39;);
     setTicketQuery(&#39;&#39;);
+    selectors.assignee.onOpenChange(false);
   }
 
   function handleTaskClick(task: TaskItem) {
