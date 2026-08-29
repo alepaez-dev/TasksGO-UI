@@ -142,6 +142,7 @@ function TasksPageRender({
     setForm(initialForm);
     setAssigneeQuery('');
     setTicketQuery('');
+    selectors.assignee.onOpenChange(false);
   }
 
   function handleTaskClick(task: TaskItem) {
