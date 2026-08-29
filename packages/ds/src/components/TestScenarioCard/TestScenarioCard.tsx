@@ -23,6 +23,12 @@ import styles from './TestScenarioCard.module.css';
 
 export type TestScenarioStatus = 'passed' | 'failed' | 'pending' | 'waived';
 
+export type TestScenarioCardPosition =
+  | 'standalone'
+  | 'first'
+  | 'middle'
+  | 'last';
+
 export type TestScenarioSection =
   | 'title'
   | 'waiveReason'
@@ -40,6 +46,7 @@ export interface TestScenarioCardProps extends Omit<
   caseId: string;
   title: string;
   status: TestScenarioStatus;
+  position?: TestScenarioCardPosition;
   byline: string;
   assigneeInitial: string;
   assigneeLabel: string;
@@ -125,6 +132,7 @@ export const TestScenarioCard = forwardRef<
       caseId,
       title,
       status,
+      position = 'standalone',
       byline,
       assigneeInitial,
       assigneeLabel,
@@ -176,11 +184,25 @@ export const TestScenarioCard = forwardRef<
       evidenceLimit != null && evidence.length >= evidenceLimit;
     const bodyRef = useRef<HTMLDivElement>(null);
     const statusSelectRef = useRef<HTMLDivElement>(null);
+    const actionsRef = useRef<HTMLDivElement>(null);
     const closeStatusSelect = useCallback(
       () => onStatusSelectOpenChange?.(false),
       [onStatusSelectOpenChange],
     );
     useClickOutside(statusSelectRef, closeStatusSelect, statusSelectOpen);
+
+    const applyStatus = (next: TestScenarioStatus) => {
+      onStatusChange?.(next);
+      requestAnimationFrame(() => {
+        const action =
+          actionsRef.current?.querySelector<HTMLButtonElement>('button');
+        if (action) action.focus();
+        else
+          statusSelectRef.current
+            ?.querySelector<HTMLButtonElement>('button')
+            ?.focus();
+      });
+    };
 
     const isEditing = (key: TestScenarioSection) =>
       editingSections.includes(key);
@@ -195,6 +217,7 @@ export const TestScenarioCard = forwardRef<
         {...rest}
         className={cn(styles.card, className)}
         data-status={status}
+        data-position={position}
       >
         <div className={styles.header}>
           <button
@@ -249,7 +272,10 @@ export const TestScenarioCard = forwardRef<
 
           <Selector
             ref={statusSelectRef}
-            className={styles.statusSelect}
+            className={cn(
+              styles.statusSelect,
+              statusSelectOpen && styles.statusSelectOpen,
+            )}
             showChevron={false}
             options={STATUS_OPTIONS}
             value={status}
@@ -263,6 +289,7 @@ export const TestScenarioCard = forwardRef<
             dropdownAlign="end"
             renderTriggerLabel={() => (
               <Badge variant={STATUS_BADGE[status]}>
+                <span className={cn(styles.pillDot, styles[status])} />
                 {STATUS_LABEL[status]}
                 <Icon
                   name="expand_more"
@@ -287,7 +314,7 @@ export const TestScenarioCard = forwardRef<
 
           <Icon
             name="expand_more"
-            size="md"
+            size="sm"
             className={cn(
               controls.chevron,
               styles.headerChevron,
@@ -298,120 +325,131 @@ export const TestScenarioCard = forwardRef<
 
         {open && (
           <div ref={bodyRef} id={bodyId} className={styles.body} tabIndex={-1}>
-            {status === 'waived' && (waiveReason || onWaiveReasonChange) && (
-              <EditableSection
-                title="Waive Reason"
-                value={waiveReason ?? ''}
-                editing={isEditing('waiveReason')}
-                onEditingChange={(next) =>
-                  setSectionEditing('waiveReason', next)
-                }
-                onChange={onWaiveReasonChange}
-                tone="warning"
-                addLabel="Add reason"
-              />
-            )}
-
-            <EditableSection
-              title="Description"
-              value={description}
-              editing={isEditing('description')}
-              onEditingChange={(next) => setSectionEditing('description', next)}
-              onChange={onDescriptionChange}
-            />
-
-            <StepsSection
-              steps={steps}
-              onStepsChange={onStepsChange}
-              editing={isEditing('steps')}
-              onEditingChange={(next) => setSectionEditing('steps', next)}
-              expanded={stepsExpanded}
-              onExpandedChange={onStepsExpandedChange}
-            />
-
-            <EditableSection
-              title="Expected Result"
-              value={expected}
-              editing={isEditing('expected')}
-              onEditingChange={(next) => setSectionEditing('expected', next)}
-              onChange={onExpectedChange}
-              tone="positive"
-            />
-
-            {(actual || onActualChange) && (
-              <EditableSection
-                title="Actual Result"
-                value={actual ?? ''}
-                editing={isEditing('actual')}
-                onEditingChange={(next) => setSectionEditing('actual', next)}
-                onChange={onActualChange}
-                tone={actualTone}
-                addLabel="Add actual result"
-              />
-            )}
-
-            {(hasEvidence || onAddEvidence) && (
-              <section className={styles.section}>
-                <div className={styles.evidenceHeader}>
-                  <SectionHeader headingLevel={3}>
-                    {`Evidence (${evidence.length})`}
-                  </SectionHeader>
-                  {evidenceLimit != null && (
-                    <span
-                      className={cn(
-                        styles.evidenceCount,
-                        atEvidenceLimit && styles.evidenceCountFull,
-                      )}
-                    >
-                      {evidence.length}/{evidenceLimit}
-                    </span>
-                  )}
-                </div>
-                <EvidenceInput
-                  items={evidence}
-                  onAddFiles={onAddEvidence}
-                  onRemove={onRemoveEvidence}
-                  limitLabel={evidenceLimit}
-                  accept={evidenceAccept}
-                  addDisabled={addEvidenceDisabled}
-                  previewCount={EVIDENCE_PREVIEW_COUNT}
-                  expanded={evidenceExpanded}
-                  onExpandedChange={onEvidenceExpandedChange}
-                  onFocusFallback={() => bodyRef.current?.focus()}
+            <div className={styles.bodyInner}>
+              {status === 'waived' && (waiveReason || onWaiveReasonChange) && (
+                <EditableSection
+                  title="Waive Reason"
+                  value={waiveReason ?? ''}
+                  editing={isEditing('waiveReason')}
+                  onEditingChange={(next) =>
+                    setSectionEditing('waiveReason', next)
+                  }
+                  onChange={onWaiveReasonChange}
+                  tone="warning"
+                  addLabel="Add reason"
                 />
-              </section>
-            )}
+              )}
 
-            <div
-              className={styles.actions}
-              role="group"
-              aria-label="Set status"
-            >
-              <span className={styles.actionsLabel}>Set Status</span>
-              <button
-                type="button"
-                className={cn(styles.action, styles.actionPass)}
-                onClick={() => onStatusChange?.('passed')}
+              <EditableSection
+                title="Description"
+                value={description}
+                editing={isEditing('description')}
+                onEditingChange={(next) =>
+                  setSectionEditing('description', next)
+                }
+                onChange={onDescriptionChange}
+              />
+
+              <StepsSection
+                steps={steps}
+                onStepsChange={onStepsChange}
+                editing={isEditing('steps')}
+                onEditingChange={(next) => setSectionEditing('steps', next)}
+                expanded={stepsExpanded}
+                onExpandedChange={onStepsExpandedChange}
+              />
+
+              <EditableSection
+                title="Expected Result"
+                value={expected}
+                editing={isEditing('expected')}
+                onEditingChange={(next) => setSectionEditing('expected', next)}
+                onChange={onExpectedChange}
+                tone="positive"
+              />
+
+              {(actual || onActualChange) && (
+                <EditableSection
+                  title="Actual Result"
+                  value={actual ?? ''}
+                  editing={isEditing('actual')}
+                  onEditingChange={(next) => setSectionEditing('actual', next)}
+                  onChange={onActualChange}
+                  tone={actualTone}
+                  addLabel="Add actual result"
+                />
+              )}
+
+              {(hasEvidence || onAddEvidence) && (
+                <section className={styles.section}>
+                  <div className={styles.evidenceHeader}>
+                    <SectionHeader headingLevel={3}>
+                      {`Evidence (${evidence.length})`}
+                    </SectionHeader>
+                    {evidenceLimit != null && (
+                      <span
+                        className={cn(
+                          styles.evidenceCount,
+                          atEvidenceLimit && styles.evidenceCountFull,
+                        )}
+                      >
+                        {evidence.length}/{evidenceLimit}
+                      </span>
+                    )}
+                  </div>
+                  <EvidenceInput
+                    items={evidence}
+                    onAddFiles={onAddEvidence}
+                    onRemove={onRemoveEvidence}
+                    limitLabel={evidenceLimit}
+                    accept={evidenceAccept}
+                    addDisabled={addEvidenceDisabled}
+                    previewCount={EVIDENCE_PREVIEW_COUNT}
+                    expanded={evidenceExpanded}
+                    onExpandedChange={onEvidenceExpandedChange}
+                    onFocusFallback={() => bodyRef.current?.focus()}
+                  />
+                </section>
+              )}
+
+              <div
+                className={styles.actions}
+                role="group"
+                aria-label="Set status"
+                ref={actionsRef}
               >
-                <Icon name="check" size="sm" />
-                Mark as Passed
-              </button>
-              <button
-                type="button"
-                className={cn(styles.action, styles.actionFail)}
-                onClick={() => onStatusChange?.('failed')}
-              >
-                <Icon name="close" size="sm" />
-                Mark as Failed
-              </button>
-              <button
-                type="button"
-                className={cn(styles.action, styles.actionWaive)}
-                onClick={() => onStatusChange?.('waived')}
-              >
-                <span className={styles.waiveIcon} aria-hidden="true" />
-                Waive
-              </button>
+                <span className={styles.actionsLabel}>Set Status</span>
+                {status !== 'passed' && (
+                  <button
+                    type="button"
+                    className={cn(styles.action, styles.actionPass)}
+                    onClick={() => applyStatus('passed')}
+                  >
+                    <Icon name="check" size="sm" />
+                    Mark as Passed
+                  </button>
+                )}
+                {status !== 'failed' && (
+                  <button
+                    type="button"
+                    className={cn(styles.action, styles.actionFail)}
+                    onClick={() => applyStatus('failed')}
+                  >
+                    <Icon name="close" size="sm" />
+                    Mark as Failed
+                  </button>
+                )}
+                {status !== 'waived' && (
+                  <button
+                    type="button"
+                    className={cn(styles.action, styles.actionWaive)}
+                    onClick={() => applyStatus('waived')}
+                  >
+                    <span className={styles.waiveIcon} aria-hidden="true" />
+                    Waive
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

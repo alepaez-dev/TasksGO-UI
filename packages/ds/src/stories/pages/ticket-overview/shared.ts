@@ -5,6 +5,10 @@ import type { BadgeProps } from '../../../components/Badge';
 import type { TicketTitleBlockBadge } from '../../../components/TicketTitleBlock';
 import type { ProjectPickerProject } from '../../../components/ProjectPicker';
 import type { ScratchpadTaskRef } from '../../../components/Scratchpad';
+import type {
+  TestScenarioStatus,
+  TestScenarioEvidence,
+} from '../../../components/TestScenarioCard';
 import type { IconName } from '../../../icons';
 import type { PersonOption } from '../tasks/shared';
 
@@ -108,6 +112,48 @@ export interface DevData {
   };
 }
 
+export type QaPipelineStatus = 'passing' | 'pending' | 'unstable' | 'failing';
+
+export interface QaPipeline {
+  label: string;
+  status: QaPipelineStatus;
+}
+
+export type QaScenarioByline =
+  | { action: string; person?: never; when?: never }
+  | { action: string; person: string; when: string };
+
+export interface QaScenario {
+  id: string;
+  title: string;
+  status: TestScenarioStatus;
+  byline: QaScenarioByline;
+  assigneeInitial: string;
+  assigneeLabel: string;
+  assigneeColor?: string;
+  description: string;
+  steps?: readonly string[];
+  evidence?: readonly TestScenarioEvidence[];
+  expected: string;
+  actual?: string;
+  waiveReason?: string;
+}
+
+export interface QaEnvironment {
+  value: string;
+  label: string;
+  health: 'stable' | 'unstable' | 'degraded';
+  reviewStatus: string;
+  lastDeployment: string;
+  pipeline: QaPipeline;
+}
+
+export interface QaTabData {
+  environments: readonly QaEnvironment[];
+  activeEnvironment: string;
+  scenarios: readonly QaScenario[];
+}
+
 export interface TicketMeta {
   id: string;
   title: string;
@@ -126,7 +172,6 @@ export interface TicketMeta {
   qaSummary: {
     title: string;
     lastChecked: string;
-    items: readonly ChecklistItem[];
   };
   pipeline: {
     title: string;
@@ -136,6 +181,7 @@ export interface TicketMeta {
     initialActiveStage: string;
     stages: readonly PipelineHierarchyStage[];
   };
+  qa: QaTabData;
   footer: {
     ticketIdLabel: string;
     lastEdited: string;
@@ -333,33 +379,6 @@ export const ticket: TicketMeta = {
   qaSummary: {
     title: 'Scenarios Checklist',
     lastChecked: 'Last checked 2h ago',
-    items: [
-      {
-        id: 'cache-hit-ratio',
-        status: 'passed',
-        label: 'Cache hit ratio check on US-East-1 staging',
-        meta: 'Verified by JD',
-      },
-      {
-        id: 'invalidation-latency',
-        status: 'failed',
-        label: 'Invalidation latency under 200ms',
-        meta: 'Failed',
-        metaVariant: 'critical',
-      },
-      {
-        id: 'browser-ttl',
-        status: 'pending',
-        label: 'Browser-side TTL override persistence',
-        meta: 'Not verified',
-      },
-      {
-        id: 'waf-integration',
-        status: 'passed',
-        label: 'WAF integration compatibility',
-        meta: 'Verified by JD',
-      },
-    ],
   },
   pipeline: {
     title: 'Pipeline Hierarchy',
@@ -372,6 +391,122 @@ export const ticket: TicketMeta = {
       { value: 'qa2', label: 'QA2', status: 'in-progress' },
       { value: 'staging', label: 'Staging', status: 'idle' },
       { value: 'prod', label: 'Prod', status: 'idle' },
+    ],
+  },
+  qa: {
+    activeEnvironment: 'qa-01',
+    environments: [
+      {
+        value: 'qa-01',
+        label: 'QA-01',
+        health: 'unstable',
+        reviewStatus: 'In review',
+        lastDeployment: '24 mins ago',
+        pipeline: { label: 'Unstable', status: 'unstable' },
+      },
+      {
+        value: 'qa-02',
+        label: 'QA-02',
+        health: 'stable',
+        reviewStatus: 'Reviewed',
+        lastDeployment: '1h ago',
+        pipeline: { label: 'Stable', status: 'passing' },
+      },
+      {
+        value: 'staging',
+        label: 'STAGING',
+        health: 'unstable',
+        reviewStatus: 'Pending check',
+        lastDeployment: '3h ago',
+        pipeline: { label: 'Pending', status: 'pending' },
+      },
+      {
+        value: 'production',
+        label: 'PRODUCTION',
+        health: 'stable',
+        reviewStatus: 'Reviewed',
+        lastDeployment: '2d ago',
+        pipeline: { label: 'Healthy', status: 'passing' },
+      },
+    ],
+    scenarios: [
+      {
+        id: 'TC-402',
+        title: 'Verify Cache Hit on /v1/assets',
+        status: 'passed',
+        byline: { action: 'Verified by', person: 'Sarah K.', when: '2h ago' },
+        assigneeInitial: 'SK',
+        assigneeLabel: 'Sarah K.',
+        assigneeColor: 'var(--ds-color-avatar-tone-profile-steel)',
+        description:
+          'A second request for the same asset within the TTL window is served from the edge cache.',
+        expected: 'Response carries `X-Cache: HIT` and TTFB drops below 40ms.',
+      },
+      {
+        id: 'TC-418',
+        title: 'Rate Limit Edge Case',
+        status: 'failed',
+        byline: { action: 'Failed by', person: 'Mike R.', when: '3d ago' },
+        assigneeInitial: 'MR',
+        assigneeLabel: 'Mike R.',
+        assigneeColor: 'var(--ds-color-avatar-tone-profile-tan)',
+        description:
+          'Requests exceeding the burst threshold on `/v1/assets` should return 429.',
+        steps: [
+          'Deploy recent build to `QA-01` environment',
+          'Fire 500 rps against `/v1/assets/hot` for 30s',
+          'Inspect response headers once burst limit is crossed',
+        ],
+        evidence: [
+          { label: 'rate_429.png', kind: 'image' },
+          { label: 'gateway.log', kind: 'file' },
+        ],
+        expected: 'Gateway returns `429 Too Many Requests` with `Retry-After`.',
+        actual:
+          'Stale cached body returned with `200 OK` for ~1.4s after TTL expiry.',
+      },
+      {
+        id: 'TC-431',
+        title: 'Browser-side TTL override persistence',
+        status: 'pending',
+        byline: { action: 'Not run yet' },
+        assigneeInitial: 'JD',
+        assigneeLabel: 'Jordan D.',
+        assigneeColor: 'var(--ds-color-avatar-tone-profile-sage)',
+        description:
+          'Client TTL override should persist across reloads within the max-age window.',
+        expected:
+          'Override survives a hard reload and is reflected in `Cache-Control`.',
+        actual: 'Not run yet.',
+      },
+      {
+        id: 'TC-409',
+        title: 'WebSocket Connection Persistence',
+        status: 'waived',
+        byline: { action: 'Waived by', person: 'Ale P.', when: '1d ago' },
+        assigneeInitial: 'AP',
+        assigneeLabel: 'Ale P.',
+        assigneeColor: 'var(--ds-color-avatar-tone-profile-plum)',
+        description:
+          'Ensure WebSocket connections reconnect after a network interruption of < 500ms.',
+        waiveReason:
+          'Dev confirmed out of scope for this ticket; tracked separately under `ENG-2871`.',
+        expected:
+          'Connection recovers within 2 seconds without session state loss.',
+        actual: 'Not run — scenario waived before execution.',
+      },
+      {
+        id: 'TC-405',
+        title: 'Cache Invalidation via SNS Topic',
+        status: 'passed',
+        byline: { action: 'Verified by', person: 'Mike R.', when: '4h ago' },
+        assigneeInitial: 'MR',
+        assigneeLabel: 'Mike R.',
+        assigneeColor: 'var(--ds-color-avatar-tone-profile-tan)',
+        description:
+          'An SNS publish purges the matching edge cache keys within 5 seconds.',
+        expected: 'Subsequent request is a `MISS` then repopulates.',
+      },
     ],
   },
   footer: {
