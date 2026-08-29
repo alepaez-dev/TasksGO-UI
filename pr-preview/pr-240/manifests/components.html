@@ -9735,13 +9735,13 @@ waiveReason?: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  663 | }
-  664 |
-&gt; 665 | const meta: Meta = {
+  661 | }
+  662 |
+&gt; 663 | const meta: Meta = {
       | ^
-  666 |   title: &#39;Pages/Ticket&#39;,
-  667 |   parameters: {
-  668 |     layout: &#39;fullscreen&#39;,
+  664 |   title: &#39;Pages/Ticket&#39;,
+  665 |   parameters: {
+  666 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef } from &#39;react&#39;;
@@ -10400,9 +10400,7 @@ function TicketOverviewRender() {
         selectors={taskSelectors}
         assigneeOptions={peopleOptions}
         priorityOptions={priorityOptions}
-        ticketOptions={[
-          { value: ticket.id, label: ticket.title, prefix: ticket.id },
-        ]}
+        ticketOptions={[{ value: ticket.id, label: title, prefix: ticket.id }]}
       /&gt;
     &lt;/div&gt;
   );
@@ -11592,13 +11590,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  663 | }
-  664 |
-&gt; 665 | const meta: Meta = {
+  661 | }
+  662 |
+&gt; 663 | const meta: Meta = {
       | ^
-  666 |   title: &#39;Pages/Ticket&#39;,
-  667 |   parameters: {
-  668 |     layout: &#39;fullscreen&#39;,
+  664 |   title: &#39;Pages/Ticket&#39;,
+  665 |   parameters: {
+  666 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef } from &#39;react&#39;;
@@ -12257,9 +12255,7 @@ function TicketOverviewRender() {
         selectors={taskSelectors}
         assigneeOptions={peopleOptions}
         priorityOptions={priorityOptions}
-        ticketOptions={[
-          { value: ticket.id, label: ticket.title, prefix: ticket.id },
-        ]}
+        ticketOptions={[{ value: ticket.id, label: title, prefix: ticket.id }]}
       /&gt;
     &lt;/div&gt;
   );
