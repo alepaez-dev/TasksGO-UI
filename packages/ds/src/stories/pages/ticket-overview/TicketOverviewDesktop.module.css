@@ -16,6 +16,11 @@
 .body {
   --ds-space-ticket-content-padding-x: var(--ds-space-scale-lg);
   --ds-space-layout-right-rail-width: 360px;
+  --ticket-hero-gradient: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--ds-color-accent-subtle) 15%, transparent) 0%,
+    transparent 50%
+  );
   flex: 1;
   display: grid;
   grid-template-columns: 1fr var(--ds-space-layout-right-rail-width);
@@ -30,11 +35,8 @@
   grid-row: 1;
   padding: var(--ds-space-layout-content-padding-y)
     var(--ds-space-ticket-content-padding-x) var(--ds-space-scale-lg);
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--ds-color-accent-subtle) 15%, transparent) 0%,
-    transparent 50%
-  );
+  background-color: var(--ds-color-surface-primary);
+  background-image: var(--ticket-hero-gradient);
 }
 
 .tabCard {
@@ -43,7 +45,6 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border-top: 1px solid var(--ds-color-border-default);
   background: var(--ds-color-surface-primary);
   overflow: hidden;
 }
@@ -51,6 +52,8 @@
 .tabsBar {
   flex-shrink: 0;
   padding: var(--ds-space-scale-sm) var(--ds-space-ticket-content-padding-x) 0;
+  background-color: var(--ds-color-surface-primary);
+  background-image: var(--ticket-hero-gradient);
   border-bottom: 1px solid var(--ds-color-border-default);
 }
 
