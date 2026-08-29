@@ -216,7 +216,10 @@ export function useTicketOverviewState(
     setViewingTask(task);
   }, []);
 
-  const closeTaskDrawer = useCallback(() => setViewingTask(null), []);
+  const closeTaskDrawer = useCallback(() => {
+    taskSelectors.assignee.onOpenChange(false);
+    setViewingTask(null);
+  }, [taskSelectors]);
 
   const taskDrawerTitle = viewingTask
     ? `Edit task · ${viewingTask.id}`

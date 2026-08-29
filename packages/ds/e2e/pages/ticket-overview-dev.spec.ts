@@ -249,6 +249,75 @@ test.describe('Ticket — View Task opens the edit drawer', () => {
   });
 });
 
+test.describe('Ticket — task drawer selector state', () => {
+  test('reopening with the pointer never restores a dropdown left open', async ({
+    page,
+  }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+    const chip = page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first();
+    await chip.hover();
+    await page.getByRole('link', { name: 'View Task' }).click();
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+
+    await drawer.getByRole('button', { name: 'Select priority' }).click();
+    await expect(drawer.getByRole('listbox')).toBeVisible();
+
+    // Two tabs move focus out of the dropdown while it stays open; one is not
+    // enough, and the Selector would swallow the Escape below. Escape is also
+    // the only dismissal that fires no mousedown, which is what the group's
+    // outside-click handler listens for.
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Escape');
+    await expect(drawer).toHaveCount(0);
+
+    await chip.hover();
+    await page.getByRole('link', { name: 'View Task' }).click();
+    await expect(page.getByRole('dialog', { name: /Edit task/ })).toBeVisible();
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+  });
+
+  // The pointer case above is cleared by the group's outside-mousedown
+  // handler. A keyboard-only user never fires one, so this covers the other
+  // half: the drawer must reset the group when it closes.
+  test('reopening with the keyboard never restores a dropdown left open', async ({
+    page,
+  }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+    const chip = page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first();
+    const openByKeyboard = async () => {
+      await chip.focus();
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Tab');
+      await page.keyboard.press('Enter');
+    };
+
+    await openByKeyboard();
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+
+    await drawer.getByRole('button', { name: 'Select priority' }).click();
+    await expect(drawer.getByRole('listbox')).toBeVisible();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Escape');
+    await expect(drawer).toHaveCount(0);
+
+    await openByKeyboard();
+    await expect(page.getByRole('dialog', { name: /Edit task/ })).toBeVisible();
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+  });
+});
+
 test.describe('Ticket — truncated selector labels', () => {
   test('only the cut-off value advertises a hover title', async ({ page }) => {
     await page.goto(storyUrl(STORY_ID));
