@@ -5,19 +5,31 @@ import styles from './DialogField.module.css';
 export type DialogFieldControl = 'input' | 'textarea';
 
 export type DialogFieldLabelProps =
-  | { as?: 'label'; htmlFor: string; required?: boolean; children: ReactNode }
-  | { as: 'legend'; required?: boolean; children: ReactNode };
+  | {
+      as?: 'label';
+      htmlFor: string;
+      required?: boolean;
+      hint?: string;
+      children: ReactNode;
+    }
+  | { as: 'legend'; required?: boolean; hint?: string; children: ReactNode };
 
 export function DialogFieldLabel(props: DialogFieldLabelProps) {
-  const { required = false, children } = props;
+  const { required = false, hint, children } = props;
   const className = cn(styles.label, required && styles.required);
+  const body = (
+    <>
+      {children}
+      {hint && <span className={styles.hint}>{hint}</span>}
+    </>
+  );
 
   if (props.as === 'legend') {
-    return <legend className={className}>{children}</legend>;
+    return <legend className={className}>{body}</legend>;
   }
   return (
     <label htmlFor={props.htmlFor} className={className}>
-      {children}
+      {body}
     </label>
   );
 }

@@ -5,6 +5,6 @@ export {
 export {
   getMissingScenarioFields,
   type NewScenarioDraft,
-  type NewScenarioField,
+  type NewScenarioTextField,
   type NewScenarioStatus,
 } from './scenarioDraft';

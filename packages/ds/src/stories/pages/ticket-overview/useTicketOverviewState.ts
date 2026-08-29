@@ -67,6 +67,8 @@ const EMPTY_SCENARIO_DRAFT: NewScenarioDraft = {
   description: '',
   expected: '',
   actual: '',
+  steps: [],
+  evidence: [],
 };
 
 const SCENARIO_META: Record<NewScenarioStatus, ChecklistItem['meta']> = {

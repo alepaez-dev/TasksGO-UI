@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { AddScenarioDialog } from './AddScenarioDialog';
+import styles from './AddScenarioDialog.stories.module.css';
 import type { NewScenarioDraft } from './scenarioDraft';
 
 const meta: Meta<typeof AddScenarioDialog> = {
@@ -22,6 +23,8 @@ const EMPTY: NewScenarioDraft = {
   description: '',
   expected: '',
   actual: '',
+  steps: [],
+  evidence: [],
 };
 
 const FILLED: NewScenarioDraft = {
@@ -30,11 +33,23 @@ const FILLED: NewScenarioDraft = {
   description: 'Edge cache should serve a warm asset on the second request.',
   expected: 'Response carries X-Cache: HIT within 200ms.',
   actual: '',
+  steps: [],
+  evidence: [],
 };
 
-function Controlled({ initial = EMPTY }: { initial?: NewScenarioDraft }) {
+// the DS applies no rule of its own; this is the consuming app's policy
+const BLOCKED_EVIDENCE = /\.(dmg|exe|msi|bat|sh|pkg)$/i;
+
+function Controlled({
+  initial = EMPTY,
+  isEvidenceAllowed,
+}: {
+  initial?: NewScenarioDraft;
+  isEvidenceAllowed?: (file: File) => boolean;
+}) {
   const [open, setOpen] = useState(true);
   const [draft, setDraft] = useState(initial);
+  const [notice, setNotice] = useState('');
   return (
     <>
       <button type="button" onClick={() => setOpen(true)}>
@@ -46,7 +61,22 @@ function Controlled({ initial = EMPTY }: { initial?: NewScenarioDraft }) {
         onValueChange={setDraft}
         onCancel={() => setOpen(false)}
         onConfirm={() => setOpen(false)}
+        isEvidenceAllowed={isEvidenceAllowed}
+        onEvidenceRejected={(files, reason) =>
+          setNotice(
+            reason === 'limit'
+              ? `${files.length} file(s) over the limit were not added.`
+              : `Not an allowed file type: ${files
+                  .map((f) => f.name)
+                  .join(', ')}`,
+          )
+        }
       />
+      {notice && (
+        <p role="status" className={styles.notice}>
+          {notice}
+        </p>
+      )}
     </>
   );
 }
@@ -67,6 +97,15 @@ export const ReadyToSubmit: Story = {
   render: () => (
     <Controlled
       initial={{ ...FILLED, actual: 'Response carried X-Cache: MISS twice.' }}
+    />
+  ),
+};
+
+export const ConsumerBlocksExecutables: Story = {
+  name: 'Consumer blocks executables',
+  render: () => (
+    <Controlled
+      isEvidenceAllowed={(file) => !BLOCKED_EVIDENCE.test(file.name)}
     />
   ),
 };

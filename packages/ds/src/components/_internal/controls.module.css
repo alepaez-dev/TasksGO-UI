@@ -1,0 +1,60 @@
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--ds-color-text-secondary);
+  border-radius: var(--ds-radius-sm);
+}
+
+.removeButton:hover {
+  color: var(--ds-color-text-primary);
+}
+
+.removeButton:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  gap: var(--ds-space-scale-xs);
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  border: 1px dashed var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background: none;
+  cursor: pointer;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-card-body-font-size);
+  font-weight: var(--ds-font-weight-medium);
+}
+
+.addButton:hover {
+  border-color: var(--ds-color-accent-primary);
+  background-color: var(--ds-color-surface-hover);
+}
+
+.addButton:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--ds-color-text-secondary);
+  transition-property: transform;
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}

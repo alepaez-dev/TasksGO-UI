@@ -10,6 +10,8 @@ const filled: NewScenarioDraft = {
   description: 'Edge cache serves a warm asset on the second request.',
   expected: 'Response carries X-Cache: HIT',
   actual: '',
+  steps: [],
+  evidence: [],
 };
 
 describe('getMissingScenarioFields', () => {
@@ -18,7 +20,14 @@ describe('getMissingScenarioFields', () => {
   });
 
   it('requires name, description and expected on every status', () => {
-    const empty = { name: '', description: '', expected: '', actual: '' };
+    const empty = {
+      name: '',
+      description: '',
+      expected: '',
+      actual: '',
+      steps: [],
+      evidence: [],
+    };
     expect(getMissingScenarioFields({ ...empty, status: 'passed' })).toEqual([
       'name',
       'description',
@@ -51,5 +60,15 @@ describe('getMissingScenarioFields', () => {
     expect(getMissingScenarioFields({ ...filled, name: '   ' })).toEqual([
       'name',
     ]);
+  });
+
+  it('ignores steps and evidence, which are always optional', () => {
+    expect(
+      getMissingScenarioFields({
+        ...filled,
+        steps: ['', '   '],
+        evidence: [],
+      }),
+    ).toEqual([]);
   });
 });

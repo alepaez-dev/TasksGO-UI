@@ -2,7 +2,6 @@ import {
   forwardRef,
   useCallback,
   useRef,
-  type ChangeEvent,
   type HTMLAttributes,
   type ReactNode,
 } from 'react';
@@ -10,7 +9,6 @@ import { useClickOutside } from '../../hooks/useClickOutside';
 import { Avatar } from '../Avatar';
 import { Badge, type BadgeProps } from '../Badge';
 import { Icon } from '../Icon';
-import { RefLabel } from '../RefLabel';
 import { SectionHeader } from '../SectionHeader';
 import { Selector } from '../Selector';
 import { TicketId } from '../TicketId';
@@ -18,6 +16,9 @@ import { cn } from '../../utils/cn';
 import { EditableTitle } from '../EditableTitle';
 import { EditableSection } from './EditableSection';
 import { StepsSection } from './StepsSection';
+import { EvidenceInput } from '../_internal/EvidenceInput';
+import { type EvidenceItem } from '../../types/evidence';
+import controls from '../_internal/controls.module.css';
 import styles from './TestScenarioCard.module.css';
 
 export type TestScenarioStatus = 'passed' | 'failed' | 'pending' | 'waived';
@@ -30,10 +31,7 @@ export type TestScenarioSection =
   | 'expected'
   | 'actual';
 
-export interface TestScenarioEvidence {
-  label: string;
-  kind: 'image' | 'file';
-}
+export type TestScenarioEvidence = EvidenceItem;
 
 export interface TestScenarioCardProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
@@ -171,19 +169,11 @@ export const TestScenarioCard = forwardRef<
     const bodyId = `${caseId}-body`;
     const actualTone = status === 'failed' ? 'critical' : 'neutral';
     const hasEvidence = evidence.length > 0;
-    const canToggleEvidence = evidence.length > EVIDENCE_PREVIEW_COUNT;
-    const visibleEvidence = evidenceExpanded
-      ? evidence
-      : evidence.slice(0, EVIDENCE_PREVIEW_COUNT);
-    const hiddenEvidenceCount = evidence.length - EVIDENCE_PREVIEW_COUNT;
     // maxEvidence is display-only — the consumer owns the array and the Add control
     const evidenceLimit =
       maxEvidence != null ? Math.max(0, maxEvidence) : undefined;
     const atEvidenceLimit =
       evidenceLimit != null && evidence.length >= evidenceLimit;
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const evidenceRef = useRef<HTMLDivElement>(null);
-    const addEvidenceRef = useRef<HTMLButtonElement>(null);
     const bodyRef = useRef<HTMLDivElement>(null);
     const statusSelectRef = useRef<HTMLDivElement>(null);
     const closeStatusSelect = useCallback(
@@ -191,27 +181,6 @@ export const TestScenarioCard = forwardRef<
       [onStatusSelectOpenChange],
     );
     useClickOutside(statusSelectRef, closeStatusSelect, statusSelectOpen);
-
-    const removeEvidenceAt = (index: number) => {
-      const target = index > 0 ? index - 1 : 0;
-      onRemoveEvidence?.(index);
-      requestAnimationFrame(() => {
-        const buttons =
-          evidenceRef.current?.querySelectorAll<HTMLButtonElement>(
-            '[data-evidence-remove]',
-          );
-        const el = buttons?.[target];
-        if (el) el.focus();
-        else if (addEvidenceRef.current) addEvidenceRef.current.focus();
-        else bodyRef.current?.focus();
-      });
-    };
-
-    const handleEvidenceFiles = (event: ChangeEvent<HTMLInputElement>) => {
-      const files = event.target.files;
-      if (files && files.length > 0) onAddEvidence?.(Array.from(files));
-      event.target.value = '';
-    };
 
     const isEditing = (key: TestScenarioSection) =>
       editingSections.includes(key);
@@ -320,9 +289,9 @@ export const TestScenarioCard = forwardRef<
             name="expand_more"
             size="md"
             className={cn(
-              styles.chevron,
+              controls.chevron,
               styles.headerChevron,
-              open && styles.chevronOpen,
+              open && controls.chevronOpen,
             )}
           />
         </div>
@@ -398,77 +367,18 @@ export const TestScenarioCard = forwardRef<
                     </span>
                   )}
                 </div>
-                <div ref={evidenceRef} className={styles.evidence}>
-                  {visibleEvidence.map((item, index) => (
-                    <span key={index} className={styles.evidenceChip}>
-                      <RefLabel
-                        variant={item.kind === 'image' ? 'attachment' : 'doc'}
-                        icon={item.kind === 'image' ? 'image' : 'description'}
-                      >
-                        {item.label}
-                      </RefLabel>
-                      {onRemoveEvidence && (
-                        <button
-                          type="button"
-                          className={styles.removeButton}
-                          aria-label={`Remove ${item.label}`}
-                          data-evidence-remove=""
-                          onClick={() => removeEvidenceAt(index)}
-                        >
-                          <Icon name="close" size="xs" />
-                        </button>
-                      )}
-                    </span>
-                  ))}
-                  {canToggleEvidence && (
-                    <button
-                      type="button"
-                      className={styles.evidenceMore}
-                      aria-expanded={evidenceExpanded}
-                      onClick={() =>
-                        onEvidenceExpandedChange?.(!evidenceExpanded)
-                      }
-                    >
-                      <Icon
-                        name="expand_more"
-                        size="xs"
-                        className={cn(
-                          styles.chevron,
-                          evidenceExpanded && styles.chevronOpen,
-                        )}
-                      />
-                      {evidenceExpanded
-                        ? 'Show less'
-                        : `+${hiddenEvidenceCount} more`}
-                    </button>
-                  )}
-                  {onAddEvidence && (
-                    <>
-                      <button
-                        ref={addEvidenceRef}
-                        type="button"
-                        className={styles.addEvidence}
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={addEvidenceDisabled}
-                      >
-                        <Icon name="file_upload" size="xs" />
-                        {addEvidenceDisabled && atEvidenceLimit
-                          ? 'Limit reached'
-                          : 'Add evidence'}
-                      </button>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept={evidenceAccept}
-                        multiple
-                        className={styles.addEvidenceInput}
-                        onChange={handleEvidenceFiles}
-                        aria-hidden="true"
-                        tabIndex={-1}
-                      />
-                    </>
-                  )}
-                </div>
+                <EvidenceInput
+                  items={evidence}
+                  onAddFiles={onAddEvidence}
+                  onRemove={onRemoveEvidence}
+                  limitLabel={evidenceLimit}
+                  accept={evidenceAccept}
+                  addDisabled={addEvidenceDisabled}
+                  previewCount={EVIDENCE_PREVIEW_COUNT}
+                  expanded={evidenceExpanded}
+                  onExpandedChange={onEvidenceExpandedChange}
+                  onFocusFallback={() => bodyRef.current?.focus()}
+                />
               </section>
             )}
 

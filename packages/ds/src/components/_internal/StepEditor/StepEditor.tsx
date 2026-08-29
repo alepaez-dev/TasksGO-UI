@@ -1,7 +1,9 @@
 import { useRef, type KeyboardEvent, type ReactNode } from 'react';
-import { Icon } from '../Icon';
-import { useAutoGrowTextarea } from '../../hooks/useAutoGrowTextarea';
-import styles from './TestScenarioCard.module.css';
+import { Icon } from '../../Icon';
+import { cn } from '../../../utils/cn';
+import { useAutoGrowTextarea } from '../../../hooks/useAutoGrowTextarea';
+import controls from '../controls.module.css';
+import styles from './StepEditor.module.css';
 
 interface StepEditorRowProps {
   index: number;
@@ -62,7 +64,7 @@ function StepEditorRow({
       />
       <button
         type="button"
-        className={styles.removeButton}
+        className={controls.removeButton}
         aria-label={`Remove step ${index + 1}`}
         onClick={onRemove}
       >
@@ -128,10 +130,10 @@ export function StepEditor({
       ))}
       <button
         type="button"
-        className={styles.addStep}
+        className={cn(controls.addButton, styles.addStepSpacing)}
         onClick={() => onStepsChange([...steps, ''])}
       >
-        <Icon name="add" size="xs" />
+        <Icon name="add" size="sm" />
         Add step
       </button>
     </div>

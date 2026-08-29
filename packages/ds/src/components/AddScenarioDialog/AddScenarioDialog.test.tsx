@@ -11,6 +11,8 @@ const empty: NewScenarioDraft = {
   description: '',
   expected: '',
   actual: '',
+  steps: [],
+  evidence: [],
 };
 
 const filled: NewScenarioDraft = {
@@ -19,6 +21,8 @@ const filled: NewScenarioDraft = {
   description: 'Edge cache serves a warm asset on the second request.',
   expected: 'Response carries X-Cache: HIT',
   actual: '',
+  steps: [],
+  evidence: [],
 };
 
 const base = {
@@ -183,6 +187,235 @@ describe('AddScenarioDialog', () => {
     expect(
       screen.queryByRole('button', { name: 'Do it' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('groups the optional sections so their controls are labelled by them', () => {
+    render(
+      <AddScenarioDialog {...base} open value={{ ...empty, steps: [''] }} />,
+    );
+    const steps = screen.getByRole('group', { name: /Steps to reproduce/ });
+    expect(steps).toContainElement(screen.getByLabelText('Step 1'));
+    expect(screen.getByRole('group', { name: /Evidence/ })).toContainElement(
+      screen.getByRole('button', { name: 'Add evidence' }),
+    );
+  });
+
+  it('marks steps and evidence as optional', () => {
+    render(<AddScenarioDialog {...base} open value={empty} />);
+    expect(screen.getByText('Steps to reproduce')).toHaveTextContent(
+      /optional/i,
+    );
+    expect(screen.getByText('Evidence')).toHaveTextContent(/up to 6/i);
+  });
+
+  it('appends an empty step to the draft from the add control', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={empty}
+        onValueChange={onValueChange}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Add step' }));
+    expect(onValueChange).toHaveBeenCalledWith({ ...empty, steps: [''] });
+  });
+
+  it('emits edited step text on the draft', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={{ ...empty, steps: [''] }}
+        onValueChange={onValueChange}
+      />,
+    );
+    await userEvent.type(screen.getByLabelText('Step 1'), 'D');
+    expect(onValueChange).toHaveBeenCalledWith({ ...empty, steps: ['D'] });
+  });
+
+  it('adds picked files to the draft evidence', () => {
+    const onValueChange = vi.fn();
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={empty}
+        onValueChange={onValueChange}
+      />,
+    );
+    // the dialog portals to <body>, so the render container does not hold it
+    const input = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+    const file = new File(['x'], 'shot.png', { type: 'image/png' });
+    fireEvent.change(input, { target: { files: [file] } });
+    expect(onValueChange).toHaveBeenCalledTimes(1);
+    expect(onValueChange.mock.calls[0][0].evidence[0].name).toBe('shot.png');
+  });
+
+  it('reports files dropped for exceeding the limit', () => {
+    const onValueChange = vi.fn();
+    const onEvidenceRejected = vi.fn();
+    const four = Array.from(
+      { length: 4 },
+      (_, i) => new File(['x'], `have-${i}.png`, { type: 'image/png' }),
+    );
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={{ ...empty, evidence: four }}
+        onValueChange={onValueChange}
+        onEvidenceRejected={onEvidenceRejected}
+      />,
+    );
+    const picked = Array.from(
+      { length: 5 },
+      (_, i) => new File(['x'], `new-${i}.png`, { type: 'image/png' }),
+    );
+    fireEvent.change(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: { files: picked },
+      },
+    );
+
+    const [files, reason] = onEvidenceRejected.mock.calls[0];
+    expect(reason).toBe('limit');
+    expect(files.map((f: File) => f.name)).toEqual([
+      'new-2.png',
+      'new-3.png',
+      'new-4.png',
+    ]);
+    expect(onValueChange.mock.calls[0][0].evidence).toHaveLength(6);
+  });
+
+  it('rejects files the consumer disallows and keeps the rest', () => {
+    const onValueChange = vi.fn();
+    const onEvidenceRejected = vi.fn();
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={empty}
+        onValueChange={onValueChange}
+        isEvidenceAllowed={(file) => !/\.(dmg|exe)$/i.test(file.name)}
+        onEvidenceRejected={onEvidenceRejected}
+      />,
+    );
+    fireEvent.change(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['x'], 'shot.png', { type: 'image/png' }),
+            new File(['x'], 'installer.dmg'),
+          ],
+        },
+      },
+    );
+
+    const [files, reason] = onEvidenceRejected.mock.calls[0];
+    expect(reason).toBe('filtered');
+    expect(files.map((f: File) => f.name)).toEqual(['installer.dmg']);
+    expect(
+      onValueChange.mock.calls[0][0].evidence.map((f: File) => f.name),
+    ).toEqual(['shot.png']);
+  });
+
+  it('allows every file type when the consumer sets no rule', () => {
+    const onValueChange = vi.fn();
+    const onEvidenceRejected = vi.fn();
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={empty}
+        onValueChange={onValueChange}
+        onEvidenceRejected={onEvidenceRejected}
+      />,
+    );
+    fireEvent.change(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: { files: [new File(['x'], 'installer.dmg')] },
+      },
+    );
+    expect(onEvidenceRejected).not.toHaveBeenCalled();
+    expect(onValueChange.mock.calls[0][0].evidence).toHaveLength(1);
+  });
+
+  it('disables the add control at the default limit of six', () => {
+    const six = Array.from(
+      { length: 6 },
+      (_, i) => new File(['x'], `shot-${i}.png`, { type: 'image/png' }),
+    );
+    render(
+      <AddScenarioDialog {...base} open value={{ ...empty, evidence: six }} />,
+    );
+    expect(
+      screen.getByRole('button', { name: /Limit reached/ }),
+    ).toBeDisabled();
+  });
+
+  it('leaves the evidence picker unrestricted by default and forwards evidenceAccept', () => {
+    const { rerender } = render(
+      <AddScenarioDialog {...base} open value={empty} />,
+    );
+    // file input is aria-hidden/tabIndex=-1 by design — no role query reaches it
+    const fileInput = () => document.querySelector('input[type="file"]');
+    expect(fileInput()).not.toBeNull();
+    expect(fileInput()).not.toHaveAttribute('accept');
+
+    rerender(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={empty}
+        evidenceAccept="image/*"
+      />,
+    );
+    expect(fileInput()).toHaveAttribute('accept', 'image/*');
+  });
+
+  it('honours a custom maxEvidence in the hint and the add control', () => {
+    const two = [
+      new File(['x'], 'a.png', { type: 'image/png' }),
+      new File(['x'], 'b.png', { type: 'image/png' }),
+    ];
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={{ ...empty, evidence: two }}
+        maxEvidence={2}
+      />,
+    );
+    expect(screen.getByText('Evidence')).toHaveTextContent(/up to 2/i);
+    expect(
+      screen.getByRole('button', { name: /Limit reached/ }),
+    ).toBeDisabled();
+  });
+
+  it('disables the evidence picker on request without claiming a limit', () => {
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={{ ...empty, evidence: [new File(['x'], 'a.png')] }}
+        addEvidenceDisabled
+      />,
+    );
+    // below the limit, so the label must not claim one
+    expect(screen.getByRole('button', { name: 'Add evidence' })).toBeDisabled();
+  });
+
+  it('keeps steps and evidence out of the required-field gate', () => {
+    render(<AddScenarioDialog {...base} open value={filled} />);
+    expect(submit()).toBeEnabled();
   });
 
   it('forwards ref to the dialog panel', () => {

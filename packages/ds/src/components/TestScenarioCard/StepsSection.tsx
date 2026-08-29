@@ -4,7 +4,8 @@ import { Icon } from '../Icon';
 import { SectionHeader } from '../SectionHeader';
 import { StepList } from '../StepList';
 import { cn } from '../../utils/cn';
-import { StepEditor } from './StepEditor';
+import { StepEditor } from '../_internal/StepEditor';
+import controls from '../_internal/controls.module.css';
 import styles from './TestScenarioCard.module.css';
 
 const STEPS_PREVIEW_COUNT = 3;
@@ -53,7 +54,7 @@ export function StepsSection({
             <Icon
               name="expand_more"
               size="xs"
-              className={cn(styles.chevron, expanded && styles.chevronOpen)}
+              className={cn(controls.chevron, expanded && controls.chevronOpen)}
             />
             {expanded ? 'Show less' : `Show ${hiddenCount} more`}
           </button>
@@ -65,7 +66,7 @@ export function StepsSection({
       <button
         ref={addButtonRef}
         type="button"
-        className={styles.addStep}
+        className={controls.addButton}
         onClick={() => {
           onStepsChange(['']);
           onEditingChange(true);
@@ -74,7 +75,7 @@ export function StepsSection({
           });
         }}
       >
-        <Icon name="add" size="xs" />
+        <Icon name="add" size="sm" />
         Add step
       </button>
     );
