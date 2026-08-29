@@ -43,10 +43,8 @@ export function useScratchpad(
     (id: string | null, manageFocus = false) => {
       if (badgeCloseTimer.current) clearTimeout(badgeCloseTimer.current);
       if (id === null) {
-        // Only a hover-opened badge needs the close delay (the pointer crossing
-        // the gap to its popover card). Click-opened ones — a chip tap or the
-        // bottom sheet — close immediately so dismiss/scroll-lock isn't lagged.
-        if (openBadge?.manageFocus === false) {
+        const deliberate = manageFocus || openBadge?.manageFocus === true;
+        if (!deliberate) {
           badgeCloseTimer.current = setTimeout(
             () => setOpenBadge(null),
             BADGE_CLOSE_DELAY,

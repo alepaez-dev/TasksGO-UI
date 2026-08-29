@@ -54,6 +54,32 @@ test.describe('Tasks page — drawer lifecycle', () => {
     await expect(dialog).not.toBeVisible();
   });
 
+  test('reopening never restores a dropdown left open', async ({ page }) => {
+    const openDrawer = async () => {
+      await page.getByRole('button', { name: /new task/i }).click();
+      await expect(
+        page.getByRole('dialog', { name: 'New task' }),
+      ).toBeVisible();
+    };
+    await openDrawer();
+    const drawer = page.getByRole('dialog', { name: 'New task' });
+
+    await drawer.getByRole('button', { name: 'Select priority' }).click();
+    await expect(drawer.getByRole('listbox')).toBeVisible();
+
+    // Tab out of the dropdown while it stays open — inside it the Selector
+    // would swallow the Escape below. Escape is also the only dismissal that
+    // fires no mousedown, which is what the group's outside handler needs.
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Escape');
+    await expect(drawer).not.toBeVisible();
+
+    await openDrawer();
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+  });
+
   test('close button remains clickable after scrolling drawer content', async ({
     page,
   }) => {

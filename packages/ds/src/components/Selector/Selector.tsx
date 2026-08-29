@@ -13,6 +13,7 @@ import {
   type OptionListAction as SelectorAction,
   type OptionListOptions as SelectorOptions,
 } from '../OptionList';
+import { useIsTruncated } from '../../hooks/useIsTruncated';
 import { cn } from '../../utils/cn';
 import styles from './Selector.module.css';
 
@@ -67,6 +68,7 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
     const hasIcons = options.some((o) => o.icon !== undefined);
     const hasPrefixes = options.some((o) => o.prefix !== undefined);
     const isInline = variant === 'inline';
+    const [labelRef, isLabelTruncated] = useIsTruncated<HTMLSpanElement>();
 
     const handleDropdownMount = useCallback((el: HTMLDivElement | null) => {
       if (!el) return;
@@ -95,14 +97,22 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
       }
     };
 
+    function defaultTriggerLabel(option: SelectorOption) {
+      return hasPrefixes && option.prefix
+        ? `${option.prefix} \u00b7 ${option.label}`
+        : option.label;
+    }
+
     function renderTriggerLabel() {
       if (!selected) return placeholder;
       if (renderTriggerLabelProp) return renderTriggerLabelProp(selected);
-      if (hasPrefixes && selected.prefix) {
-        return `${selected.prefix} \u00b7 ${selected.label}`;
-      }
-      return selected.label;
+      return defaultTriggerLabel(selected);
     }
+
+    const triggerTitle =
+      selected && !renderTriggerLabelProp && isLabelTruncated
+        ? defaultTriggerLabel(selected)
+        : undefined;
 
     return (
       <div ref={ref} className={cn(styles.selector, className)} {...rest}>
@@ -133,7 +143,9 @@ export const Selector = forwardRef<HTMLDivElement, SelectorProps>(
               }
             />
           )}
-          <span className={styles.label}>{renderTriggerLabel()}</span>
+          <span ref={labelRef} className={styles.label} title={triggerTitle}>
+            {renderTriggerLabel()}
+          </span>
           {showChevron && (
             <Icon
               name={isInline ? 'expand_more' : 'unfold_more'}

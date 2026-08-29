@@ -21,9 +21,6 @@ export interface UseScratchpadEditingResult {
   readonly canApply: boolean;
 }
 
-// Applies a markdown toolbar action to the line currently being edited, or to a
-// new line when none is. The transient selection buffer + layout effect live
-// here (a hook) rather than in the stateless Scratchpad component.
 export function useScratchpadEditing({
   editingLineId,
   onLineTextChange,
@@ -44,9 +41,6 @@ export function useScratchpadEditing({
     }
   });
 
-  // A newly added row autofocuses itself and parks the caret at the end. React
-  // runs child effects before parent ones, so this passive effect — owned by
-  // Scratchpad — lands after that and gets the final say on the selection.
   useEffect(() => {
     const selection = pendingNewLineSelection.current;
     const el = activeTextareaRef.current;
@@ -57,9 +51,6 @@ export function useScratchpadEditing({
     }
   });
 
-  // Each path is gated on what it actually calls: seeding a line needs only
-  // onAddLine, so requiring onLineTextChange there would disable the toolbar
-  // for an append-only consumer.
   const canEdit = editingLineId != null && onLineTextChange !== undefined;
   const canSeedNewLine = onAddLine !== undefined;
   const canApply = canEdit || canSeedNewLine;

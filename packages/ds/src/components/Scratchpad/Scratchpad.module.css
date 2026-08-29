@@ -448,7 +448,12 @@ button.checkbox:focus-visible {
 
 .viewTask {
   flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
   font-weight: var(--ds-font-weight-medium);
+  cursor: pointer;
   color: var(--ds-color-accent-primary);
   text-decoration: none;
 }

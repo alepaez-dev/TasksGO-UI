@@ -6,6 +6,7 @@ import type { TicketTitleBlockBadge } from '../../../components/TicketTitleBlock
 import type { ProjectPickerProject } from '../../../components/ProjectPicker';
 import type { ScratchpadTaskRef } from '../../../components/Scratchpad';
 import type { IconName } from '../../../icons';
+import type { PersonOption } from '../tasks/shared';
 
 export const devScratchpadTask: ScratchpadTaskRef = {
   id: 'TSK-217',
@@ -47,12 +48,7 @@ export interface PriorityOption {
   label: string;
 }
 
-export interface PersonOption {
-  value: string;
-  label: string;
-  initial: string;
-  color: string;
-}
+export type { PersonOption };
 
 export const PR_BADGE = {
   open: 'progress',

@@ -9,6 +9,7 @@
 .left {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   gap: var(--ds-space-scale-sm);
   color: var(--ds-color-text-secondary);
 }
@@ -27,6 +28,7 @@
 .value {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: var(--ds-space-scale-sm);
   font-size: var(--ds-text-property-row-value-font-size);
   font-family: var(--ds-text-property-row-value-font-family);

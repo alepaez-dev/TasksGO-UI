@@ -55,6 +55,7 @@ export interface ScratchpadProps extends Omit<
   openBadgeId?: string | null;
   openBadgeManagesFocus?: boolean;
   onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) => void;
+  onViewTask?: (task: ScratchpadTaskRef) => void;
   taskCardPresentation?: 'popover' | 'sheet';
 }
 
@@ -96,6 +97,7 @@ interface ScratchpadRowProps {
   openBadgeId?: string | null;
   openBadgeManagesFocus?: boolean;
   onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) => void;
+  onViewTask?: (task: ScratchpadTaskRef) => void;
   taskCardPresentation?: 'popover' | 'sheet';
 }
 
@@ -121,6 +123,7 @@ function ScratchpadRow({
   openBadgeId,
   openBadgeManagesFocus,
   onBadgeOpenChange,
+  onViewTask,
   taskCardPresentation,
 }: ScratchpadRowProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -237,6 +240,7 @@ function ScratchpadRow({
           openBadgeId={openBadgeId}
           openBadgeManagesFocus={openBadgeManagesFocus}
           onBadgeOpenChange={onBadgeOpenChange}
+          onViewTask={onViewTask}
           taskCardPresentation={taskCardPresentation}
         />
       </>
@@ -329,6 +333,7 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
       openBadgeId,
       openBadgeManagesFocus,
       onBadgeOpenChange,
+      onViewTask,
       taskCardPresentation = 'popover',
       className,
       ...rest
@@ -425,6 +430,7 @@ export const Scratchpad = forwardRef<HTMLDivElement, ScratchpadProps>(
               openBadgeId={openBadgeId}
               openBadgeManagesFocus={openBadgeManagesFocus}
               onBadgeOpenChange={onBadgeOpenChange}
+              onViewTask={onViewTask}
               taskCardPresentation={taskCardPresentation}
             />
           ))}

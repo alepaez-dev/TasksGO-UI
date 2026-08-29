@@ -211,3 +211,171 @@ test.describe('Ticket — toolbar dividers', () => {
     expect(dividers).toBeGreaterThan(0);
   });
 });
+
+test.describe('Ticket — View Task opens the edit drawer', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+  });
+
+  test('opens the drawer for the hovered task and restores focus on close', async ({
+    page,
+  }) => {
+    const chip = page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first();
+    await chip.hover();
+
+    await page.getByRole('link', { name: 'View Task' }).click();
+
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByLabel('Task title')).toHaveValue(
+      'Add multi-value header support to edge cache',
+    );
+
+    const lingering = await page.evaluate(
+      () =>
+        document.querySelectorAll('[role="dialog"][aria-label^="Linked task"]')
+          .length,
+    );
+    expect(lingering).toBe(0);
+
+    await page.getByRole('button', { name: 'Cancel' }).click();
+    await expect(drawer).toHaveCount(0);
+    // useFocusTrap restores focus on close; assert it because it is inherited.
+    await expect(chip).toBeFocused();
+  });
+});
+
+test.describe('Ticket — task drawer selector state', () => {
+  test('reopening with the pointer never restores a dropdown left open', async ({
+    page,
+  }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+    const chip = page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first();
+    await chip.hover();
+    await page.getByRole('link', { name: 'View Task' }).click();
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+
+    await drawer.getByRole('button', { name: 'Select priority' }).click();
+    await expect(drawer.getByRole('listbox')).toBeVisible();
+
+    // Two tabs move focus out of the dropdown while it stays open; one is not
+    // enough, and the Selector would swallow the Escape below. Escape is also
+    // the only dismissal that fires no mousedown, which is what the group's
+    // outside-click handler listens for.
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Escape');
+    await expect(drawer).toHaveCount(0);
+
+    await chip.hover();
+    await page.getByRole('link', { name: 'View Task' }).click();
+    await expect(page.getByRole('dialog', { name: /Edit task/ })).toBeVisible();
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+  });
+
+  // The pointer case above is cleared by the group's outside-mousedown
+  // handler. A keyboard-only user never fires one, so this covers the other
+  // half: the drawer must reset the group when it closes.
+  test('reopening with the keyboard never restores a dropdown left open', async ({
+    page,
+  }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+    const chip = page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first();
+    const openByKeyboard = async () => {
+      await chip.focus();
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Tab');
+      await page.keyboard.press('Enter');
+    };
+
+    await openByKeyboard();
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+
+    await drawer.getByRole('button', { name: 'Select priority' }).click();
+    await expect(drawer.getByRole('listbox')).toBeVisible();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Escape');
+    await expect(drawer).toHaveCount(0);
+
+    await openByKeyboard();
+    await expect(page.getByRole('dialog', { name: /Edit task/ })).toBeVisible();
+    await expect(page.getByRole('listbox')).toHaveCount(0);
+  });
+});
+
+test.describe('Ticket — truncated selector labels', () => {
+  test('only the cut-off value advertises a hover title', async ({ page }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+    await page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first()
+      .hover();
+    await page.getByRole('link', { name: 'View Task' }).click();
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+
+    const titles = await drawer.evaluate((d) => {
+      const read = (label: string) => {
+        const btn = d.querySelector(`button[aria-label="${label}"]`);
+        const span = btn?.querySelector('span');
+        if (!(span instanceof HTMLElement)) return null;
+        return {
+          title: span.getAttribute('title'),
+          overflowPx: span.scrollWidth - span.clientWidth,
+        };
+      };
+      return {
+        ticket: read('Linked ticket'),
+        priority: read('Select priority'),
+      };
+    });
+
+    // The long ticket label is cut off, so it earns a tooltip; "Medium" fits,
+    // so it must not get one.
+    expect(titles.ticket?.overflowPx).toBeGreaterThan(1);
+    expect(titles.ticket?.title).toContain('Implement dynamic edge-caching');
+    expect(titles.priority?.overflowPx).toBeLessThanOrEqual(1);
+    expect(titles.priority?.title).toBeNull();
+  });
+
+  test('a multi-word property label is never the one that wraps', async ({
+    page,
+  }) => {
+    await page.goto(storyUrl(STORY_ID));
+    await page.getByRole('tab', { name: 'Dev' }).click();
+    await page
+      .getByRole('tabpanel', { name: 'Dev' })
+      .getByRole('button', { name: /^Linked task/ })
+      .first()
+      .hover();
+    await page.getByRole('link', { name: 'View Task' }).click();
+    const drawer = page.getByRole('dialog', { name: /Edit task/ });
+    await expect(drawer).toBeVisible();
+
+    // "Linked Ticket" sits beside the only value long enough to compete for
+    // width, so it is the row that wraps if the label absorbs any shrink.
+    const label = drawer.getByText('Linked Ticket', { exact: true });
+    const lines = await label.evaluate((el) => {
+      const lineHeight = parseFloat(getComputedStyle(el).lineHeight || '17');
+      return Math.round(el.getBoundingClientRect().height / lineHeight);
+    });
+    expect(lines).toBe(1);
+  });
+});

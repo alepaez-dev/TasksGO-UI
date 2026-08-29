@@ -19,7 +19,15 @@ import {
   useScratchpad,
   type UseScratchpadControls,
 } from '../../../hooks/useScratchpad';
-import type { ScratchpadLine } from '../../../components/Scratchpad';
+import type {
+  ScratchpadLine,
+  ScratchpadTaskRef,
+} from '../../../components/Scratchpad';
+import {
+  type DrawerFormState,
+  type TaskDrawerSelectors,
+  initialForm,
+} from '../tasks/shared';
 import { toStageValue } from '../../../utils/toStageValue';
 import { ticket, type DevData } from './shared';
 import { serializeTicketBody } from './serializeTicketBody';
@@ -126,6 +134,13 @@ export interface UseTicketOverviewState {
   setAddStageDraft: (value: string) => void;
   confirmAddStage: (label: string) => void;
   cancelAddStage: () => void;
+  viewingTask: ScratchpadTaskRef | null;
+  taskForm: DrawerFormState;
+  setTaskForm: Dispatch<SetStateAction<DrawerFormState>>;
+  openTaskDrawer: (task: ScratchpadTaskRef) => void;
+  closeTaskDrawer: () => void;
+  taskDrawerTitle: string;
+  taskSelectors: TaskDrawerSelectors;
 }
 
 export function useTicketOverviewState(
@@ -183,6 +198,32 @@ export function useTicketOverviewState(
     setAddingStage(false);
     setAddStageDraft('');
   };
+
+  const [viewingTask, setViewingTask] = useState<ScratchpadTaskRef | null>(
+    null,
+  );
+  const [taskForm, setTaskForm] = useState<DrawerFormState>(initialForm);
+  const taskSelectors = useSelectorGroup('assignee', 'priority', 'ticket');
+
+  const openTaskDrawer = useCallback((task: ScratchpadTaskRef) => {
+    setTaskForm({
+      title: task.title,
+      description: task.description ?? '',
+      assignee: ticket.metadata.assigneeValue,
+      priority: 'medium',
+      linkedTicket: ticket.id,
+    });
+    setViewingTask(task);
+  }, []);
+
+  const closeTaskDrawer = useCallback(() => {
+    taskSelectors.assignee.onOpenChange(false);
+    setViewingTask(null);
+  }, [taskSelectors]);
+
+  const taskDrawerTitle = viewingTask
+    ? `Edit task · ${viewingTask.id}`
+    : 'Edit task';
 
   const branch = ticket.dev.repository.branch;
   const [branchCopied, setBranchCopied] = useState(false);
@@ -262,5 +303,12 @@ export function useTicketOverviewState(
     setAddStageDraft,
     confirmAddStage,
     cancelAddStage,
+    viewingTask,
+    taskForm,
+    setTaskForm,
+    openTaskDrawer,
+    closeTaskDrawer,
+    taskDrawerTitle,
+    taskSelectors,
   };
 }

@@ -21,6 +21,7 @@ import { NavItem } from '../../../components/NavItem';
 import { BottomSheet } from '../../../components/BottomSheet';
 import { PropertyRow } from '../../../components/PropertyRow';
 import { RefLink } from '../../../components/RefLink';
+import { TaskEditDrawer } from '../../helpers/TaskEditDrawer';
 import {
   Scratchpad,
   type ScratchpadLine,
@@ -127,6 +128,13 @@ function TicketOverviewMobileRender({
     branchCopied,
     copyBranch,
     scratchpad,
+    viewingTask,
+    taskForm,
+    setTaskForm,
+    openTaskDrawer,
+    closeTaskDrawer,
+    taskDrawerTitle,
+    taskSelectors,
   } = useTicketOverviewState(scratchpadSeed);
   const activeProject = getProject('eng-core');
   const activeAssignee = getPerson(assignee);
@@ -411,6 +419,7 @@ function TicketOverviewMobileRender({
                     openBadgeId={scratchpad.openBadgeId}
                     openBadgeManagesFocus={scratchpad.openBadgeManagesFocus}
                     onBadgeOpenChange={scratchpad.onBadgeOpenChange}
+                    onViewTask={openTaskDrawer}
                   />
                 ) : (
                   'Nothing here yet.'
@@ -932,6 +941,20 @@ function TicketOverviewMobileRender({
           aria-label="Priorities"
         />
       </BottomSheet>
+
+      <TaskEditDrawer
+        open={viewingTask !== null}
+        title={taskDrawerTitle}
+        onClose={closeTaskDrawer}
+        form={taskForm}
+        setForm={setTaskForm}
+        selectors={taskSelectors}
+        assigneeOptions={peopleOptions}
+        priorityOptions={priorityOptions}
+        ticketOptions={[
+          { value: ticket.id, label: ticket.title, prefix: ticket.id },
+        ]}
+      />
     </div>
   );
 }
@@ -952,8 +975,6 @@ export const Mobile: Story = {
   render: () => <TicketOverviewMobileRender />,
 };
 
-// Enough notes to scroll the page well past the sticky threshold, which the
-// six-line default never reaches.
 const LONG_SCRATCHPAD_SEED: readonly ScratchpadLine[] = [
   { id: 'long-1', text: '## Debug notes' },
   {
