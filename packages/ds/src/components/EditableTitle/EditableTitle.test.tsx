@@ -1,8 +1,8 @@
-import { createRef } from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { createRef, useState } from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import { EditableTitle } from './EditableTitle';
+import { EditableTitle, type EditableTitleProps } from './EditableTitle';
 
 const base = {
   value: 'Rate Limit Edge Case',
@@ -10,6 +10,20 @@ const base = {
   onEditingChange: () => {},
   onChange: () => {},
 };
+
+function Controlled(props: Partial<EditableTitleProps>) {
+  const [value, setValue] = useState(base.value);
+  const [editing, setEditing] = useState(props.editing ?? false);
+  return (
+    <EditableTitle
+      {...props}
+      value={value}
+      editing={editing}
+      onEditingChange={setEditing}
+      onChange={setValue}
+    />
+  );
+}
 
 describe('EditableTitle', () => {
   it('renders the read element per `as` with the value', () => {
@@ -134,6 +148,24 @@ describe('EditableTitle', () => {
     fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
     expect(onEditingChange).toHaveBeenCalledWith(false);
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('returns focus to the title after committing with Enter', async () => {
+    render(<Controlled clickToEdit editing />);
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Rate Limit Edge Case' }),
+      ).toHaveFocus(),
+    );
+  });
+
+  it('returns focus to the toggle when the read title is not focusable', async () => {
+    render(<Controlled editButton="always" editing />);
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus(),
+    );
   });
 
   it('does not exit or revert on Escape (live-edit model, matches EditableSection)', () => {

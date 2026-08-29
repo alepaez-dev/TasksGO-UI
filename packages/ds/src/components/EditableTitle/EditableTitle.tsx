@@ -57,6 +57,8 @@ export const EditableTitle = forwardRef<HTMLDivElement, EditableTitleProps>(
     ref,
   ): ReactNode => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const toggleRef = useRef<HTMLButtonElement>(null);
+    const readButtonRef = useRef<HTMLButtonElement>(null);
     // '' while closed so the dep changes on re-entry — the remounted textarea must re-measure.
     useAutoGrowTextarea(textareaRef, editing ? value : '');
 
@@ -74,6 +76,9 @@ export const EditableTitle = forwardRef<HTMLDivElement, EditableTitleProps>(
       if (event.key === 'Enter') {
         event.preventDefault();
         onEditingChange(false);
+        requestAnimationFrame(() => {
+          (readButtonRef.current ?? toggleRef.current)?.focus();
+        });
       }
     };
 
@@ -108,6 +113,7 @@ export const EditableTitle = forwardRef<HTMLDivElement, EditableTitleProps>(
           <ReadTag className={cn(styles.text, titleClassName)}>
             {clickToEdit ? (
               <button
+                ref={readButtonRef}
                 type="button"
                 className={styles.textButton}
                 aria-label={value || placeholder ? undefined : ariaLabel}
@@ -122,6 +128,7 @@ export const EditableTitle = forwardRef<HTMLDivElement, EditableTitleProps>(
         )}
         {editButton !== 'none' && (
           <EditToggle
+            ref={toggleRef}
             className={cn(
               !editing && editButton === 'hover' && styles.toggleHidden,
               !editing && toggleClassName,

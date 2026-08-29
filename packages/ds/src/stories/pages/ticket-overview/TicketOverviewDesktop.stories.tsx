@@ -654,9 +654,7 @@ function TicketOverviewRender() {
         selectors={taskSelectors}
         assigneeOptions={peopleOptions}
         priorityOptions={priorityOptions}
-        ticketOptions={[
-          { value: ticket.id, label: ticket.title, prefix: ticket.id },
-        ]}
+        ticketOptions={[{ value: ticket.id, label: title, prefix: ticket.id }]}
       />
     </div>
   );
