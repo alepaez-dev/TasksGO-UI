@@ -8,6 +8,14 @@ import {
   ticket,
 } from './shared';
 
+const DRAFT = {
+  name: 'Purge honours cache tags',
+  status: 'passed' as const,
+  description: 'Tag purge clears matching keys.',
+  expected: 'Tagged keys evict at once.',
+  actual: '',
+};
+
 describe('useTicketOverviewState — task drawer', () => {
   it('starts closed', () => {
     const { result } = renderHook(() => useTicketOverviewState());
@@ -56,5 +64,55 @@ describe('useTicketOverviewState — task drawer', () => {
     // The e2e unmount assertions locate the drawer by /Edit task/. If this name
     // blanks on close they stop waiting for unmount and pass vacuously.
     expect(result.current.taskDrawerTitle).toMatch(/Edit task/);
+  });
+});
+
+describe('useTicketOverviewState — add scenario', () => {
+  it('keeps the draft intact while the dialog closes', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+
+    act(() => result.current.openAddScenario());
+    act(() => result.current.setScenarioDraft(DRAFT));
+    act(() => result.current.cancelAddScenario());
+
+    expect(result.current.addScenarioOpen).toBe(false);
+    expect(result.current.scenarioDraft).toEqual(DRAFT);
+  });
+
+  it('keeps the submitted draft intact while the dialog closes', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+
+    act(() => result.current.openAddScenario());
+    act(() => result.current.setScenarioDraft(DRAFT));
+    act(() => result.current.confirmAddScenario(DRAFT));
+
+    expect(result.current.addScenarioOpen).toBe(false);
+    expect(result.current.scenarioDraft).toEqual(DRAFT);
+  });
+
+  it('resets the draft when the dialog is opened again', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+
+    act(() => result.current.openAddScenario());
+    act(() => result.current.setScenarioDraft(DRAFT));
+    act(() => result.current.cancelAddScenario());
+    act(() => result.current.openAddScenario());
+
+    expect(result.current.scenarioDraft.name).toBe('');
+    expect(result.current.scenarioDraft.status).toBe('pending');
+  });
+
+  it('appends a confirmed scenario and recounts failures', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    const before = result.current.qaScenarios.length;
+
+    act(() =>
+      result.current.confirmAddScenario({ ...DRAFT, status: 'failed' }),
+    );
+
+    const added = result.current.qaScenarios[before];
+    expect(result.current.qaScenarios).toHaveLength(before + 1);
+    expect(added.label).toBe(DRAFT.name);
+    expect(result.current.qaFailedCount).toBe(2);
   });
 });

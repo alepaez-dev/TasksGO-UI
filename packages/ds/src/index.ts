@@ -197,6 +197,7 @@ export {
   type TestScenarioSection,
 } from './components/TestScenarioCard';
 export { EditToggle, type EditToggleProps } from './components/EditToggle';
+export type { DialogLifecycleProps } from './types/dialog';
 export {
   ConfirmDialog,
   type ConfirmDialogProps,
@@ -211,6 +212,14 @@ export {
   ReopenPendingDialog,
   type ReopenPendingDialogProps,
 } from './components/ReopenPendingDialog';
+export {
+  AddScenarioDialog,
+  type AddScenarioDialogProps,
+  getMissingScenarioFields,
+  type NewScenarioDraft,
+  type NewScenarioField,
+  type NewScenarioStatus,
+} from './components/AddScenarioDialog';
 export {
   RecentTaskList,
   type RecentTaskListProps,

@@ -139,6 +139,8 @@ function TicketOverviewMobileRender({
     closeTaskDrawer,
     taskDrawerTitle,
     taskSelectors,
+    qaScenarios,
+    qaFailedCount,
   } = useTicketOverviewState(scratchpadSeed);
   const activeProject = getProject('eng-core');
   const activeAssignee = getPerson(assignee);
@@ -364,16 +366,14 @@ function TicketOverviewMobileRender({
                     <span className={styles.qaCardTitle}>
                       {ticket.qaSummary.title}
                     </span>
-                    <Badge variant="critical">
-                      {ticket.qaSummary.failedCount} Failed
-                    </Badge>
+                    <Badge variant="critical">{qaFailedCount} Failed</Badge>
                     <span className={styles.qaCardMeta}>
                       {ticket.qaSummary.lastChecked}
                     </span>
                   </span>
                 }
               >
-                {ticket.qaSummary.items.map((item) => (
+                {qaScenarios.map((item) => (
                   <ChecklistRow
                     key={item.id}
                     status={item.status}

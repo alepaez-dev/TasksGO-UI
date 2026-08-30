@@ -126,6 +126,26 @@ describe('ConfirmDialog', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
+  it('ignores a spread confirmDisabled that would defeat the required field', () => {
+    const override = { confirmDisabled: false };
+    render(
+      <ConfirmDialog
+        {...base}
+        {...override}
+        open
+        field={{
+          label: 'Actual Result',
+          value: '',
+          onChange: () => {},
+          required: true,
+        }}
+      />,
+    );
+    expect(
+      screen.getByRole('button', { name: 'Re-open as pending' }),
+    ).toBeDisabled();
+  });
+
   it('forwards ref to the dialog panel', () => {
     const ref = createRef<HTMLDivElement>();
     render(<ConfirmDialog {...base} open ref={ref} />);

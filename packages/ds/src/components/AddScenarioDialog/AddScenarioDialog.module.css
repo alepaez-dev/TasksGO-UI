@@ -1,0 +1,110 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-md);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ds-space-scale-md);
+}
+
+@media (max-width: 520px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statusGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-sm);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.statusOptions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--ds-space-scale-sm);
+}
+
+.statusOption {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-sm) var(--ds-space-scale-md);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-lg);
+  background-color: var(--ds-color-surface-primary);
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-card-body-font-size);
+  line-height: var(--ds-text-card-body-line-height);
+  cursor: pointer;
+}
+
+.statusOption:hover {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.statusSelected {
+  border-color: var(--ds-color-accent-primary);
+  box-shadow: var(--ds-focus-ring);
+}
+
+.statusInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.statusOption:has(.statusInput:focus-visible) {
+  outline: var(--ds-focus-ring-width) solid var(--ds-color-accent-primary);
+  outline-offset: 2px;
+}
+
+.statusDot {
+  width: var(--ds-space-status-dot-size);
+  height: var(--ds-space-status-dot-size);
+  border-radius: var(--ds-radius-full);
+  flex-shrink: 0;
+}
+
+.passed {
+  background-color: var(--ds-color-status-active);
+}
+
+.failed {
+  background-color: var(--ds-color-status-critical);
+}
+
+.pending {
+  background-color: var(--ds-color-text-disabled);
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  margin: 0;
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-metadata-font-size);
+  line-height: var(--ds-text-metadata-line-height);
+  color: var(--ds-color-text-secondary);
+}
+
+.hintIcon {
+  flex-shrink: 0;
+  color: var(--ds-color-status-high);
+}
