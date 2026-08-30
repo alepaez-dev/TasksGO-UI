@@ -35,6 +35,8 @@
 .stepBody {
   flex: 1;
   min-width: 0;
+  /* preserve the author's newlines (markdown would otherwise collapse them) */
+  white-space: pre-line;
 }
 
 .dividers {

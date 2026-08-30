@@ -35,6 +35,8 @@ function StepEditorRow({
       const start = textarea?.selectionStart ?? value.length;
       const end = textarea?.selectionEnd ?? value.length;
       onChange(`${value.slice(0, start)}\n${value.slice(end)}`);
+      // rAF: the controlled value round-trips through the parent; restore the
+      // caret after React re-commits it (a controlled update resets it to the end).
       requestAnimationFrame(() => {
         const el = textareaRef.current;
         if (el) el.selectionStart = el.selectionEnd = start + 1;
@@ -84,6 +86,8 @@ export function StepEditor({
   const removeAt = (index: number) => {
     const target = index > 0 ? index - 1 : 0;
     onStepsChange(steps.filter((_, i) => i !== index));
+    // rAF: rows re-render after the parent commits; then focus the previous step
+    // (or the Add step button if none remain) so keyboard flow continues.
     requestAnimationFrame(() => {
       const areas = editorRef.current?.querySelectorAll('textarea');
       const el = areas?.[target];
@@ -112,6 +116,8 @@ export function StepEditor({
               '',
               ...steps.slice(index + 1),
             ]);
+            // rAF: the new row's textarea only exists after React commits the
+            // inserted step; query by position since that row has no ref yet.
             requestAnimationFrame(() => {
               const areas = editorRef.current?.querySelectorAll('textarea');
               areas?.[index + 1]?.focus();

@@ -1,11 +1,11 @@
-import { forwardRef, type HTMLAttributes } from 'react';
+import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { Icon } from '../Icon';
 import { cn } from '../../utils/cn';
 import styles from './EditToggle.module.css';
 
 export interface EditToggleProps extends Omit<
-  HTMLAttributes<HTMLButtonElement>,
-  'onChange'
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'onChange' | 'type'
 > {
   editing: boolean;
   onEditingChange: (editing: boolean) => void;
@@ -28,6 +28,7 @@ export const EditToggle = forwardRef<HTMLButtonElement, EditToggleProps>(
   ) => (
     <button
       ref={ref}
+      {...rest}
       type="button"
       className={cn(
         styles.toggle,
@@ -39,7 +40,6 @@ export const EditToggle = forwardRef<HTMLButtonElement, EditToggleProps>(
         onClick?.(event);
         onEditingChange(!editing);
       }}
-      {...rest}
     >
       <Icon name={editing ? 'check' : 'edit'} size="xs" />
       {editing ? doneLabel : editLabel}

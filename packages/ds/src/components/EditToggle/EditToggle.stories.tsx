@@ -19,3 +19,9 @@ export const Default: Story = { render: () => <Controlled /> };
 export const Editing: Story = {
   render: () => <EditToggle editing onEditingChange={() => {}} />,
 };
+
+export const Disabled: Story = {
+  render: () => (
+    <EditToggle editing={false} onEditingChange={() => {}} disabled />
+  ),
+};

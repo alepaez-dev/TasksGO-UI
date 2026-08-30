@@ -15,6 +15,7 @@ import { SectionHeader } from '../SectionHeader';
 import { Selector } from '../Selector';
 import { TicketId } from '../TicketId';
 import { cn } from '../../utils/cn';
+import { EditableTitle } from '../EditableTitle';
 import { EditableSection } from './EditableSection';
 import { StepsSection } from './StepsSection';
 import styles from './TestScenarioCard.module.css';
@@ -22,6 +23,7 @@ import styles from './TestScenarioCard.module.css';
 export type TestScenarioStatus = 'passed' | 'failed' | 'pending' | 'waived';
 
 export type TestScenarioSection =
+  | 'title'
   | 'waiveReason'
   | 'description'
   | 'steps'
@@ -62,6 +64,7 @@ export interface TestScenarioCardProps extends Omit<
 
   editingSections?: readonly TestScenarioSection[];
   onEditingSectionsChange?: (sections: readonly TestScenarioSection[]) => void;
+  onTitleChange?: (value: string) => void;
   onWaiveReasonChange?: (value: string) => void;
   onDescriptionChange?: (value: string) => void;
   onExpectedChange?: (value: string) => void;
@@ -146,6 +149,7 @@ export const TestScenarioCard = forwardRef<
 
       editingSections = [],
       onEditingSectionsChange,
+      onTitleChange,
       onWaiveReasonChange,
       onDescriptionChange,
       onExpectedChange,
@@ -243,7 +247,21 @@ export const TestScenarioCard = forwardRef<
           <span className={styles.srOnly}>{STATUS_LABEL[status]}:</span>
 
           <span className={styles.titleBlock}>
-            <span className={styles.title}>{title}</span>
+            {onTitleChange ? (
+              <EditableTitle
+                as="span"
+                titleClassName={styles.title}
+                editButton="always"
+                toggleClassName={styles.titleEdit}
+                aria-label="Scenario title"
+                value={title}
+                editing={isEditing('title')}
+                onEditingChange={(next) => setSectionEditing('title', next)}
+                onChange={onTitleChange}
+              />
+            ) : (
+              <span className={styles.title}>{title}</span>
+            )}
             <span className={styles.byline}>
               <TicketId>{caseId}</TicketId>
               <span className={styles.bylineSep} aria-hidden="true" />

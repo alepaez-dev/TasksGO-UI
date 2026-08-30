@@ -1,6 +1,7 @@
 import { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi } from 'vitest';
 import { TicketTitleBlock } from './TicketTitleBlock';
 
 describe('TicketTitleBlock', () => {
@@ -78,5 +79,41 @@ describe('TicketTitleBlock', () => {
   it('spreads additional HTML attributes', () => {
     render(<TicketTitleBlock title="Edge caching" data-testid="block" />);
     expect(screen.getByTestId('block')).toBeInTheDocument();
+  });
+
+  it('shows no Edit button when title editing is not wired', () => {
+    render(<TicketTitleBlock title="Edge caching" />);
+    expect(
+      screen.queryByRole('button', { name: 'Edit' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('enters edit mode and emits title changes when wired', async () => {
+    const onTitleChange = vi.fn();
+    const onTitleEditingChange = vi.fn();
+    const { rerender } = render(
+      <TicketTitleBlock
+        title="Old"
+        onTitleChange={onTitleChange}
+        titleEditing={false}
+        onTitleEditingChange={onTitleEditingChange}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    expect(onTitleEditingChange).toHaveBeenCalledWith(true);
+
+    rerender(
+      <TicketTitleBlock
+        title="Old"
+        onTitleChange={onTitleChange}
+        titleEditing
+        onTitleEditingChange={onTitleEditingChange}
+      />,
+    );
+    await userEvent.type(
+      screen.getByRole('textbox', { name: 'Ticket title' }),
+      'X',
+    );
+    expect(onTitleChange).toHaveBeenCalledWith('OldX');
   });
 });

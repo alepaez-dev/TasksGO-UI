@@ -92,6 +92,10 @@ function TicketOverviewMobileRender({
     setBody,
     bodyEditing,
     setBodyEditing,
+    title,
+    setTitle,
+    titleEditing,
+    setTitleEditing,
     assignee,
     setAssignee,
     assigneeSelector: {
@@ -245,7 +249,7 @@ function TicketOverviewMobileRender({
             {condensed ? (
               <span className={styles.headerCondensedTitle}>
                 <span className={styles.condensedId}>{ticket.id}</span>
-                <span className={styles.condensedName}>{ticket.title}</span>
+                <span className={styles.condensedName}>{title}</span>
               </span>
             ) : (
               <span className={headerLayoutStyles.pageTitle}>Tickets</span>
@@ -265,7 +269,13 @@ function TicketOverviewMobileRender({
           <Breadcrumb segments={ticket.breadcrumb} />
 
           <div className={styles.titleBlock} ref={titleRef}>
-            <TicketTitleBlock title={ticket.title} badges={ticket.badges} />
+            <TicketTitleBlock
+              title={title}
+              badges={ticket.badges}
+              onTitleChange={setTitle}
+              titleEditing={titleEditing}
+              onTitleEditingChange={setTitleEditing}
+            />
             <div className={styles.identityRow}>
               <AvatarGroup aria-label="Assignee and reporter">
                 <Avatar
@@ -951,9 +961,7 @@ function TicketOverviewMobileRender({
         selectors={taskSelectors}
         assigneeOptions={peopleOptions}
         priorityOptions={priorityOptions}
-        ticketOptions={[
-          { value: ticket.id, label: ticket.title, prefix: ticket.id },
-        ]}
+        ticketOptions={[{ value: ticket.id, label: title, prefix: ticket.id }]}
       />
     </div>
   );

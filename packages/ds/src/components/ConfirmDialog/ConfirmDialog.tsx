@@ -24,7 +24,7 @@ export interface ConfirmDialogField {
 
 export interface ConfirmDialogProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
-  'onChange' | 'title'
+  'onChange' | 'title' | 'role'
 > {
   open: boolean;
   icon: ReactNode;
@@ -112,13 +112,13 @@ export const ConfirmDialog = forwardRef<HTMLDivElement, ConfirmDialogProps>(
           <div className={styles.positioner}>
             <div
               ref={setRefs}
+              {...rest}
               id={id}
               role="dialog"
               aria-modal="true"
               aria-labelledby={titleId}
               aria-describedby={descId}
               className={cn(styles.panel, visible && styles.open, className)}
-              {...rest}
             >
               <div className={styles.header}>
                 <div className={styles.titleRow}>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { TicketTitleBlock } from './TicketTitleBlock';
 import { Avatar } from '../Avatar';
@@ -93,4 +94,28 @@ export const WithAvatarGroup: Story = {
       </AvatarGroup>
     ),
   },
+};
+
+function EditableExample() {
+  const [title, setTitle] = useState(ticketTitle);
+  const [editing, setEditing] = useState(false);
+  return (
+    <TicketTitleBlock
+      title={title}
+      badges={[
+        { label: 'In Progress', variant: 'progress' },
+        { label: 'High Prio', variant: 'high' },
+      ]}
+      avatar={
+        <Avatar initial="AP" aria-label="Ale P." variant="profile" size="sm" />
+      }
+      onTitleChange={setTitle}
+      titleEditing={editing}
+      onTitleEditingChange={setEditing}
+    />
+  );
+}
+
+export const Editable: Story = {
+  render: () => <EditableExample />,
 };
