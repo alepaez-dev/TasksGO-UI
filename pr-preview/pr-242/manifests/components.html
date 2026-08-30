@@ -5116,7 +5116,7 @@ wordCount: number</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> MarkdownToolbar</h2>
       <div class="badges">
-        <label for="c-30-components-markdowntoolbar-props" class="badge ok as-toggle">7 prop types</label>
+        <label for="c-30-components-markdowntoolbar-props" class="badge ok as-toggle">6 prop types</label>
         <label for="c-30-components-markdowntoolbar-info" class="badge info as-toggle">1 info</label>
         <label for="c-30-components-markdowntoolbar-stories" class="badge ok as-toggle">4 stories</label>
         
@@ -5150,23 +5150,21 @@ wordCount: number</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">7 prop types</span>
+              <span class="badge ok">6 prop types</span>
             </div>
             <pre><code>Component: src/components/MarkdownToolbar/MarkdownToolbar.tsx::MarkdownToolbar</code></pre>
             <pre><code>Props:</code></pre>
-            <pre><code>actions?: unknown
-
-aria-label?: string = &#39;Formatting&#39;
+            <pre><code>aria-label?: string = &#39;Formatting&#39;
 
 disabled?: boolean = false
 
+groups?: unknown
+
+hint?: ReactNode
+
 onAction: (action: MarkdownToolbarAction) =&gt; void
 
-onDone?: () =&gt; void
-
-size?: &#39;sm&#39; | &#39;md&#39; = &#39;sm&#39;
-
-variant?: &#39;inline&#39; | &#39;accessory&#39; = &#39;inline&#39;</code></pre>
+size?: &#39;sm&#39; | &#39;md&#39; = &#39;sm&#39;</code></pre>
           </div>
         </div>
     
@@ -5211,17 +5209,17 @@ variant?: &#39;inline&#39; | &#39;accessory&#39; = &#39;inline&#39;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
-                <span class="ex-name">Accessory</span>
+                <span class="ex-name">Grouped</span>
                 <span class="badge ok">story ok</span>
               </div>
               
               
-              <pre><code>const Accessory = () =&gt; &lt;MarkdownToolbar
+              <pre><code>const Grouped = () =&gt; &lt;MarkdownToolbar
     onAction={() =&gt; {}}
     size=&quot;sm&quot;
     disabled={false}
-    variant=&quot;accessory&quot;
-    onDone={() =&gt; {}} /&gt;;</code></pre>
+    groups={SCRATCHPAD_TOOLBAR_GROUPS}
+    hint=&quot;Markdown supported&quot; /&gt;;</code></pre>
             </div>
         </div>
     
@@ -6888,7 +6886,7 @@ scenarioTitle: string</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Scratchpad</h2>
       <div class="badges">
-        <label for="c-43-components-scratchpad-props" class="badge ok as-toggle">22 prop types</label>
+        <label for="c-43-components-scratchpad-props" class="badge ok as-toggle">24 prop types</label>
         <label for="c-43-components-scratchpad-info" class="badge info as-toggle">1 info</label>
         <label for="c-43-components-scratchpad-stories" class="badge ok as-toggle">6 stories</label>
         
@@ -6922,7 +6920,7 @@ scenarioTitle: string</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">22 prop types</span>
+              <span class="badge ok">24 prop types</span>
             </div>
             <pre><code>Component: src/components/Scratchpad/Scratchpad.tsx::Scratchpad</code></pre>
             <pre><code>Props:</code></pre>
@@ -6940,7 +6938,7 @@ highlightBadges?: boolean = false
 
 lines: unknown
 
-onAddLine?: (afterId: string) =&gt; void
+onAddLine?: (afterId: string | null, initialText?: string) =&gt; void
 
 onBadgeOpenChange?: (id: string | null, manageFocus?: boolean) =&gt; void
 
@@ -6956,6 +6954,8 @@ onLineToggle?: (id: string) =&gt; void
 
 onReorder?: (next: readonly ScratchpadLine[]) =&gt; void
 
+onViewTask?: (task: ScratchpadTaskRef) =&gt; void
+
 openBadgeId?: string | null
 
 openBadgeManagesFocus?: boolean
@@ -6968,7 +6968,9 @@ taskBadgeInfo?: ScratchpadTaskRef
 
 taskCardPresentation?: &#39;popover&#39; | &#39;sheet&#39; = &#39;popover&#39;
 
-title?: ReactNode</code></pre>
+title?: ReactNode
+
+toolbarPosition?: &#39;above-header&#39; | &#39;below-header&#39; = &#39;below-header&#39;</code></pre>
           </div>
         </div>
     
@@ -8745,13 +8747,13 @@ title: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  574 | }
-  575 |
-&gt; 576 | const meta: Meta = {
+  534 | }
+  535 |
+&gt; 536 | const meta: Meta = {
       | ^
-  577 |   title: &#39;Pages/Tasks&#39;,
-  578 |   parameters: {
-  579 |     layout: &#39;fullscreen&#39;,
+  537 |   title: &#39;Pages/Tasks&#39;,
+  538 |   parameters: {
+  539 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/tasks/TasksDesktop.stories.tsx:
 import { useState, useMemo } from &#39;react&#39;;
@@ -8776,12 +8778,8 @@ import { Icon } from &#39;../../../components/Icon&#39;;
 import { Footer } from &#39;../../../components/Footer&#39;;
 import { TaskSection } from &#39;../../../components/TaskSection&#39;;
 import { TaskRow } from &#39;../../../components/TaskRow&#39;;
-import { Drawer } from &#39;../../../components/Drawer&#39;;
-import {
-  TaskDrawer,
-  TaskDrawerField,
-  TaskDrawerSection,
-} from &#39;../../../components/TaskDrawer&#39;;
+import { TaskFormDrawer } from &#39;../../helpers/TaskFormDrawer&#39;;
+import { TaskDrawerSection } from &#39;../../../components/TaskDrawer&#39;;
 import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
 import { RecentTaskList } from &#39;../../../components/RecentTaskList&#39;;
 import {
@@ -8902,6 +8900,7 @@ function TasksPageRender({
     setForm(initialForm);
     setAssigneeQuery(&#39;&#39;);
     setTicketQuery(&#39;&#39;);
+    selectors.assignee.onOpenChange(false);
   }
 
   function handleTaskClick(task: TaskItem) {
@@ -9150,181 +9149,144 @@ function TasksPageRender({
         &lt;Footer left={&lt;span&gt;Task Sync: Active&lt;/span&gt;} /&gt;
       &lt;/div&gt;
 
-      &lt;Drawer
+      &lt;TaskFormDrawer
         open={drawerOpen}
+        title={drawerTitle}
         onClose={handleDrawerClose}
-        side=&quot;right&quot;
-        aria-label={drawerTitle}
+        form={form}
+        setForm={setForm}
+        submitLabel={drawerSubmitLabel}
       &gt;
-        &lt;TaskDrawer
-          title={drawerTitle}
-          onCancel={handleDrawerClose}
-          onSubmit={handleDrawerClose}
-          submitLabel={drawerSubmitLabel}
-        &gt;
-          &lt;TaskDrawerField label=&quot;Task Title&quot;&gt;
-            &lt;input
-              type=&quot;text&quot;
-              value={form.title}
-              onChange={(e) =&gt;
-                setForm((f) =&gt; ({ ...f, title: e.target.value }))
+        &lt;TaskDrawerSection label=&quot;Properties&quot;&gt;
+          &lt;PropertyRow icon=&quot;person&quot; label=&quot;Assignee&quot;&gt;
+            &lt;Selector
+              ref={assigneeRef}
+              options={
+                assigneeQuery
+                  ? assigneeOptions.filter((m) =&gt;
+                      m.label
+                        .toLowerCase()
+                        .includes(assigneeQuery.toLowerCase()),
+                    )
+                  : assigneeOptions
               }
-              placeholder=&quot;Describe the task...&quot;
-              aria-label=&quot;Task title&quot;
-            /&gt;
-          &lt;/TaskDrawerField&gt;
-
-          &lt;TaskDrawerField
-            label=&quot;Description&quot;
-            action={
-              &lt;Button variant=&quot;ai&quot; size=&quot;sm&quot;&gt;
-                &lt;Icon name=&quot;auto_awesome&quot; size=&quot;sm&quot; /&gt;
-                Generate with AI
-              &lt;/Button&gt;
-            }
-          &gt;
-            &lt;textarea
-              value={form.description}
-              onChange={(e) =&gt;
-                setForm((f) =&gt; ({ ...f, description: e.target.value }))
+              value={form.assignee}
+              onValueChange={(v) =&gt; {
+                setForm((f) =&gt; ({ ...f, assignee: v }));
+                setAssigneeQuery(&#39;&#39;);
+              }}
+              open={assigneeOpen}
+              onOpenChange={onAssigneeChange}
+              dropdownAlign=&quot;end&quot;
+              variant=&quot;inline&quot;
+              aria-label=&quot;Select assignee&quot;
+              header={
+                &lt;SearchInput
+                  value={assigneeQuery}
+                  onChange={(e) =&gt; setAssigneeQuery(e.target.value)}
+                  placeholder=&quot;Search members...&quot;
+                  size=&quot;sm&quot;
+                /&gt;
               }
-              placeholder=&quot;Add details...&quot;
-              rows={4}
-              aria-label=&quot;Description&quot;
+              emptyState=&quot;No members found&quot;
+              triggerPrefix={(() =&gt; {
+                const selected = assigneeOptions.find(
+                  (m) =&gt; m.value === form.assignee,
+                );
+                return (
+                  &lt;Avatar
+                    variant=&quot;profile&quot;
+                    initial={selected?.initial ?? &#39;?&#39;}
+                    aria-label={selected?.label ?? &#39;No assignee&#39;}
+                    style={
+                      selected?.color
+                        ? { backgroundColor: selected.color }
+                        : undefined
+                    }
+                  /&gt;
+                );
+              })()}
+              renderTriggerLabel={(opt) =&gt; opt.label}
+              renderOptionIndicator={(opt) =&gt; {
+                const member = assigneeOptions.find(
+                  (m) =&gt; m.value === opt.value,
+                );
+                return member ? (
+                  &lt;Avatar
+                    variant=&quot;profile&quot;
+                    size=&quot;sm&quot;
+                    initial={member.initial}
+                    aria-label={member.label}
+                    style={{ backgroundColor: member.color }}
+                  /&gt;
+                ) : null;
+              }}
             /&gt;
-          &lt;/TaskDrawerField&gt;
+          &lt;/PropertyRow&gt;
 
-          &lt;TaskDrawerSection label=&quot;Properties&quot;&gt;
-            &lt;PropertyRow icon=&quot;person&quot; label=&quot;Assignee&quot;&gt;
-              &lt;Selector
-                ref={assigneeRef}
-                options={
-                  assigneeQuery
-                    ? assigneeOptions.filter((m) =&gt;
-                        m.label
+          &lt;PropertyRow icon=&quot;signal_cellular_alt&quot; label=&quot;Priority&quot;&gt;
+            &lt;Selector
+              ref={priorityRef}
+              options={priorityOptions}
+              value={form.priority}
+              onValueChange={(v) =&gt; setForm((f) =&gt; ({ ...f, priority: v }))}
+              open={priorityOpen}
+              onOpenChange={onPriorityChange}
+              dropdownAlign=&quot;end&quot;
+              variant=&quot;inline&quot;
+              aria-label=&quot;Select priority&quot;
+            /&gt;
+          &lt;/PropertyRow&gt;
+
+          &lt;PropertyRow icon=&quot;confirmation_number&quot; label=&quot;Linked Ticket&quot;&gt;
+            &lt;Selector
+              ref={ticketRef}
+              options={
+                ticketQuery
+                  ? ticketOptions.filter(
+                      (t) =&gt;
+                        t.label
                           .toLowerCase()
-                          .includes(assigneeQuery.toLowerCase()),
-                      )
-                    : assigneeOptions
-                }
-                value={form.assignee}
-                onValueChange={(v) =&gt; {
-                  setForm((f) =&gt; ({ ...f, assignee: v }));
-                  setAssigneeQuery(&#39;&#39;);
-                }}
-                open={assigneeOpen}
-                onOpenChange={onAssigneeChange}
-                dropdownAlign=&quot;end&quot;
-                variant=&quot;inline&quot;
-                aria-label=&quot;Select assignee&quot;
-                header={
-                  &lt;SearchInput
-                    value={assigneeQuery}
-                    onChange={(e) =&gt; setAssigneeQuery(e.target.value)}
-                    placeholder=&quot;Search members...&quot;
-                    size=&quot;sm&quot;
-                  /&gt;
-                }
-                emptyState=&quot;No members found&quot;
-                triggerPrefix={(() =&gt; {
-                  const selected = assigneeOptions.find(
-                    (m) =&gt; m.value === form.assignee,
-                  );
-                  return (
-                    &lt;Avatar
-                      variant=&quot;profile&quot;
-                      initial={selected?.initial ?? &#39;?&#39;}
-                      aria-label={selected?.label ?? &#39;No assignee&#39;}
-                      style={
-                        selected?.color
-                          ? { backgroundColor: selected.color }
-                          : undefined
-                      }
-                    /&gt;
-                  );
-                })()}
-                renderTriggerLabel={(opt) =&gt; opt.label}
-                renderOptionIndicator={(opt) =&gt; {
-                  const member = assigneeOptions.find(
-                    (m) =&gt; m.value === opt.value,
-                  );
-                  return member ? (
-                    &lt;Avatar
-                      variant=&quot;profile&quot;
-                      size=&quot;sm&quot;
-                      initial={member.initial}
-                      aria-label={member.label}
-                      style={{ backgroundColor: member.color }}
-                    /&gt;
-                  ) : null;
-                }}
-              /&gt;
-            &lt;/PropertyRow&gt;
+                          .includes(ticketQuery.toLowerCase()) ||
+                        (t.prefix ?? &#39;&#39;)
+                          .toLowerCase()
+                          .includes(ticketQuery.toLowerCase()),
+                    )
+                  : ticketOptions
+              }
+              value={form.linkedTicket}
+              onValueChange={(v) =&gt; {
+                setForm((f) =&gt; ({ ...f, linkedTicket: v }));
+                setTicketQuery(&#39;&#39;);
+              }}
+              open={ticketOpen}
+              onOpenChange={onTicketChange}
+              placeholder=&quot;Search ticket...&quot;
+              header={
+                &lt;SearchInput
+                  value={ticketQuery}
+                  onChange={(e) =&gt; setTicketQuery(e.target.value)}
+                  placeholder=&quot;Search tickets...&quot;
+                  size=&quot;sm&quot;
+                /&gt;
+              }
+              variant=&quot;inline&quot;
+              dropdownAlign=&quot;end&quot;
+              action={{
+                label: &#39;Create new ticket&#39;,
+                icon: &#39;add&#39;,
+                onClick: () =&gt; {},
+              }}
+              emptyState=&quot;No results found&quot;
+              aria-label=&quot;Linked ticket&quot;
+            /&gt;
+          &lt;/PropertyRow&gt;
+        &lt;/TaskDrawerSection&gt;
 
-            &lt;PropertyRow icon=&quot;signal_cellular_alt&quot; label=&quot;Priority&quot;&gt;
-              &lt;Selector
-                ref={priorityRef}
-                options={priorityOptions}
-                value={form.priority}
-                onValueChange={(v) =&gt; setForm((f) =&gt; ({ ...f, priority: v }))}
-                open={priorityOpen}
-                onOpenChange={onPriorityChange}
-                dropdownAlign=&quot;end&quot;
-                variant=&quot;inline&quot;
-                aria-label=&quot;Select priority&quot;
-              /&gt;
-            &lt;/PropertyRow&gt;
-
-            &lt;PropertyRow icon=&quot;confirmation_number&quot; label=&quot;Linked Ticket&quot;&gt;
-              &lt;Selector
-                ref={ticketRef}
-                options={
-                  ticketQuery
-                    ? ticketOptions.filter(
-                        (t) =&gt;
-                          t.label
-                            .toLowerCase()
-                            .includes(ticketQuery.toLowerCase()) ||
-                          (t.prefix ?? &#39;&#39;)
-                            .toLowerCase()
-                            .includes(ticketQuery.toLowerCase()),
-                      )
-                    : ticketOptions
-                }
-                value={form.linkedTicket}
-                onValueChange={(v) =&gt; {
-                  setForm((f) =&gt; ({ ...f, linkedTicket: v }));
-                  setTicketQuery(&#39;&#39;);
-                }}
-                open={ticketOpen}
-                onOpenChange={onTicketChange}
-                placeholder=&quot;Search ticket...&quot;
-                header={
-                  &lt;SearchInput
-                    value={ticketQuery}
-                    onChange={(e) =&gt; setTicketQuery(e.target.value)}
-                    placeholder=&quot;Search tickets...&quot;
-                    size=&quot;sm&quot;
-                  /&gt;
-                }
-                variant=&quot;inline&quot;
-                dropdownAlign=&quot;end&quot;
-                action={{
-                  label: &#39;Create new ticket&#39;,
-                  icon: &#39;add&#39;,
-                  onClick: () =&gt; {},
-                }}
-                emptyState=&quot;No results found&quot;
-                aria-label=&quot;Linked ticket&quot;
-              /&gt;
-            &lt;/PropertyRow&gt;
-          &lt;/TaskDrawerSection&gt;
-
-          &lt;TaskDrawerSection label=&quot;Recent Tasks&quot;&gt;
-            &lt;RecentTaskList items={recentTasks} /&gt;
-          &lt;/TaskDrawerSection&gt;
-        &lt;/TaskDrawer&gt;
-      &lt;/Drawer&gt;
+        &lt;TaskDrawerSection label=&quot;Recent Tasks&quot;&gt;
+          &lt;RecentTaskList items={recentTasks} /&gt;
+        &lt;/TaskDrawerSection&gt;
+      &lt;/TaskFormDrawer&gt;
     &lt;/div&gt;
   );
 }
@@ -9386,7 +9348,6 @@ export const EmptyState: Story = {
     Avatar,
     Breadcrumb,
     Button,
-    Drawer,
     Footer,
     Header,
     Icon,
@@ -9400,9 +9361,8 @@ export const EmptyState: Story = {
     Sidebar,
     SidebarStatusLabel,
     SidebarWorkspaceHeader,
-    TaskDrawer,
-    TaskDrawerField,
     TaskDrawerSection,
+    TaskFormDrawer,
     TaskRow,
     TaskSection,
 } from "@all3hp/tasksgo-ui";</code></pre>
@@ -9903,13 +9863,13 @@ waiveReason?: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  644 | }
-  645 |
-&gt; 646 | const meta: Meta = {
+  678 | }
+  679 |
+&gt; 680 | const meta: Meta = {
       | ^
-  647 |   title: &#39;Pages/Ticket&#39;,
-  648 |   parameters: {
-  649 |     layout: &#39;fullscreen&#39;,
+  681 |   title: &#39;Pages/Ticket&#39;,
+  682 |   parameters: {
+  683 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef } from &#39;react&#39;;
@@ -9936,6 +9896,8 @@ import { CollapsibleCard } from &#39;../../../components/CollapsibleCard&#39;;
 import { ChecklistRow } from &#39;../../../components/ChecklistRow&#39;;
 import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
 import { Scratchpad } from &#39;../../../components/Scratchpad&#39;;
+import { StatusDot } from &#39;../../../components/StatusDot&#39;;
+import { TaskEditDrawer } from &#39;../../helpers/TaskEditDrawer&#39;;
 import { TicketId } from &#39;../../../components/TicketId&#39;;
 import { PipelineHierarchyPanel } from &#39;../../../components/PipelineHierarchyPanel&#39;;
 import { AddScenarioDialog } from &#39;../../../components/AddScenarioDialog&#39;;
@@ -10036,6 +9998,13 @@ function TicketOverviewRender() {
     setAddStageDraft,
     confirmAddStage,
     cancelAddStage,
+    viewingTask,
+    taskForm,
+    setTaskForm,
+    openTaskDrawer,
+    closeTaskDrawer,
+    taskDrawerTitle,
+    taskSelectors,
     qaScenarios,
     qaFailedCount,
     addScenarioOpen,
@@ -10305,12 +10274,25 @@ function TicketOverviewRender() {
                   &gt;
                     {tabValue === &#39;dev&#39; ? (
                       &lt;Scratchpad
+                        className={styles.devScratchpad}
                         aria-label=&quot;Dev scratchpad&quot;
                         title=&quot;Scratchpad / Private Notes&quot;
-                        status=&quot;Auto-saving…&quot;
+                        status={
+                          &lt;&gt;
+                            {/* Decorative */}
+                            &lt;StatusDot
+                              variant=&quot;active&quot;
+                              label=&quot;Saved&quot;
+                              aria-hidden=&quot;true&quot;
+                            /&gt;
+                            Auto-saved · 2m ago
+                          &lt;/&gt;
+                        }
                         placeholder=&quot;Click to add more context…&quot;
                         highlightBadges
+                        formattingToolbar
                         taskBadgeInfo={devScratchpadTask}
+                        onViewTask={openTaskDrawer}
                         lines={scratchpad.lines}
                         onReorder={scratchpad.onReorder}
                         onLineTextChange={scratchpad.onLineTextChange}
@@ -10546,6 +10528,18 @@ function TicketOverviewRender() {
         /&gt;
       &lt;/div&gt;
 
+      &lt;TaskEditDrawer
+        open={viewingTask !== null}
+        title={taskDrawerTitle}
+        onClose={closeTaskDrawer}
+        form={taskForm}
+        setForm={setTaskForm}
+        selectors={taskSelectors}
+        assigneeOptions={peopleOptions}
+        priorityOptions={priorityOptions}
+        ticketOptions={[{ value: ticket.id, label: title, prefix: ticket.id }]}
+      /&gt;
+
       &lt;AddScenarioDialog
         open={addScenarioOpen}
         value={scenarioDraft}
@@ -10631,7 +10625,9 @@ export const Default: Story = {
     Sidebar,
     SidebarStatusLabel,
     SidebarWorkspaceHeader,
+    StatusDot,
     Tabs,
+    TaskEditDrawer,
     TicketId,
     TicketTitleBlock,
 } from "@all3hp/tasksgo-ui";</code></pre>
@@ -11049,13 +11045,13 @@ scenarioTitle: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  574 | }
-  575 |
-&gt; 576 | const meta: Meta = {
+  534 | }
+  535 |
+&gt; 536 | const meta: Meta = {
       | ^
-  577 |   title: &#39;Pages/Tasks&#39;,
-  578 |   parameters: {
-  579 |     layout: &#39;fullscreen&#39;,
+  537 |   title: &#39;Pages/Tasks&#39;,
+  538 |   parameters: {
+  539 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/tasks/TasksDesktop.stories.tsx:
 import { useState, useMemo } from &#39;react&#39;;
@@ -11080,12 +11076,8 @@ import { Icon } from &#39;../../../components/Icon&#39;;
 import { Footer } from &#39;../../../components/Footer&#39;;
 import { TaskSection } from &#39;../../../components/TaskSection&#39;;
 import { TaskRow } from &#39;../../../components/TaskRow&#39;;
-import { Drawer } from &#39;../../../components/Drawer&#39;;
-import {
-  TaskDrawer,
-  TaskDrawerField,
-  TaskDrawerSection,
-} from &#39;../../../components/TaskDrawer&#39;;
+import { TaskFormDrawer } from &#39;../../helpers/TaskFormDrawer&#39;;
+import { TaskDrawerSection } from &#39;../../../components/TaskDrawer&#39;;
 import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
 import { RecentTaskList } from &#39;../../../components/RecentTaskList&#39;;
 import {
@@ -11206,6 +11198,7 @@ function TasksPageRender({
     setForm(initialForm);
     setAssigneeQuery(&#39;&#39;);
     setTicketQuery(&#39;&#39;);
+    selectors.assignee.onOpenChange(false);
   }
 
   function handleTaskClick(task: TaskItem) {
@@ -11454,181 +11447,144 @@ function TasksPageRender({
         &lt;Footer left={&lt;span&gt;Task Sync: Active&lt;/span&gt;} /&gt;
       &lt;/div&gt;
 
-      &lt;Drawer
+      &lt;TaskFormDrawer
         open={drawerOpen}
+        title={drawerTitle}
         onClose={handleDrawerClose}
-        side=&quot;right&quot;
-        aria-label={drawerTitle}
+        form={form}
+        setForm={setForm}
+        submitLabel={drawerSubmitLabel}
       &gt;
-        &lt;TaskDrawer
-          title={drawerTitle}
-          onCancel={handleDrawerClose}
-          onSubmit={handleDrawerClose}
-          submitLabel={drawerSubmitLabel}
-        &gt;
-          &lt;TaskDrawerField label=&quot;Task Title&quot;&gt;
-            &lt;input
-              type=&quot;text&quot;
-              value={form.title}
-              onChange={(e) =&gt;
-                setForm((f) =&gt; ({ ...f, title: e.target.value }))
+        &lt;TaskDrawerSection label=&quot;Properties&quot;&gt;
+          &lt;PropertyRow icon=&quot;person&quot; label=&quot;Assignee&quot;&gt;
+            &lt;Selector
+              ref={assigneeRef}
+              options={
+                assigneeQuery
+                  ? assigneeOptions.filter((m) =&gt;
+                      m.label
+                        .toLowerCase()
+                        .includes(assigneeQuery.toLowerCase()),
+                    )
+                  : assigneeOptions
               }
-              placeholder=&quot;Describe the task...&quot;
-              aria-label=&quot;Task title&quot;
-            /&gt;
-          &lt;/TaskDrawerField&gt;
-
-          &lt;TaskDrawerField
-            label=&quot;Description&quot;
-            action={
-              &lt;Button variant=&quot;ai&quot; size=&quot;sm&quot;&gt;
-                &lt;Icon name=&quot;auto_awesome&quot; size=&quot;sm&quot; /&gt;
-                Generate with AI
-              &lt;/Button&gt;
-            }
-          &gt;
-            &lt;textarea
-              value={form.description}
-              onChange={(e) =&gt;
-                setForm((f) =&gt; ({ ...f, description: e.target.value }))
+              value={form.assignee}
+              onValueChange={(v) =&gt; {
+                setForm((f) =&gt; ({ ...f, assignee: v }));
+                setAssigneeQuery(&#39;&#39;);
+              }}
+              open={assigneeOpen}
+              onOpenChange={onAssigneeChange}
+              dropdownAlign=&quot;end&quot;
+              variant=&quot;inline&quot;
+              aria-label=&quot;Select assignee&quot;
+              header={
+                &lt;SearchInput
+                  value={assigneeQuery}
+                  onChange={(e) =&gt; setAssigneeQuery(e.target.value)}
+                  placeholder=&quot;Search members...&quot;
+                  size=&quot;sm&quot;
+                /&gt;
               }
-              placeholder=&quot;Add details...&quot;
-              rows={4}
-              aria-label=&quot;Description&quot;
+              emptyState=&quot;No members found&quot;
+              triggerPrefix={(() =&gt; {
+                const selected = assigneeOptions.find(
+                  (m) =&gt; m.value === form.assignee,
+                );
+                return (
+                  &lt;Avatar
+                    variant=&quot;profile&quot;
+                    initial={selected?.initial ?? &#39;?&#39;}
+                    aria-label={selected?.label ?? &#39;No assignee&#39;}
+                    style={
+                      selected?.color
+                        ? { backgroundColor: selected.color }
+                        : undefined
+                    }
+                  /&gt;
+                );
+              })()}
+              renderTriggerLabel={(opt) =&gt; opt.label}
+              renderOptionIndicator={(opt) =&gt; {
+                const member = assigneeOptions.find(
+                  (m) =&gt; m.value === opt.value,
+                );
+                return member ? (
+                  &lt;Avatar
+                    variant=&quot;profile&quot;
+                    size=&quot;sm&quot;
+                    initial={member.initial}
+                    aria-label={member.label}
+                    style={{ backgroundColor: member.color }}
+                  /&gt;
+                ) : null;
+              }}
             /&gt;
-          &lt;/TaskDrawerField&gt;
+          &lt;/PropertyRow&gt;
 
-          &lt;TaskDrawerSection label=&quot;Properties&quot;&gt;
-            &lt;PropertyRow icon=&quot;person&quot; label=&quot;Assignee&quot;&gt;
-              &lt;Selector
-                ref={assigneeRef}
-                options={
-                  assigneeQuery
-                    ? assigneeOptions.filter((m) =&gt;
-                        m.label
+          &lt;PropertyRow icon=&quot;signal_cellular_alt&quot; label=&quot;Priority&quot;&gt;
+            &lt;Selector
+              ref={priorityRef}
+              options={priorityOptions}
+              value={form.priority}
+              onValueChange={(v) =&gt; setForm((f) =&gt; ({ ...f, priority: v }))}
+              open={priorityOpen}
+              onOpenChange={onPriorityChange}
+              dropdownAlign=&quot;end&quot;
+              variant=&quot;inline&quot;
+              aria-label=&quot;Select priority&quot;
+            /&gt;
+          &lt;/PropertyRow&gt;
+
+          &lt;PropertyRow icon=&quot;confirmation_number&quot; label=&quot;Linked Ticket&quot;&gt;
+            &lt;Selector
+              ref={ticketRef}
+              options={
+                ticketQuery
+                  ? ticketOptions.filter(
+                      (t) =&gt;
+                        t.label
                           .toLowerCase()
-                          .includes(assigneeQuery.toLowerCase()),
-                      )
-                    : assigneeOptions
-                }
-                value={form.assignee}
-                onValueChange={(v) =&gt; {
-                  setForm((f) =&gt; ({ ...f, assignee: v }));
-                  setAssigneeQuery(&#39;&#39;);
-                }}
-                open={assigneeOpen}
-                onOpenChange={onAssigneeChange}
-                dropdownAlign=&quot;end&quot;
-                variant=&quot;inline&quot;
-                aria-label=&quot;Select assignee&quot;
-                header={
-                  &lt;SearchInput
-                    value={assigneeQuery}
-                    onChange={(e) =&gt; setAssigneeQuery(e.target.value)}
-                    placeholder=&quot;Search members...&quot;
-                    size=&quot;sm&quot;
-                  /&gt;
-                }
-                emptyState=&quot;No members found&quot;
-                triggerPrefix={(() =&gt; {
-                  const selected = assigneeOptions.find(
-                    (m) =&gt; m.value === form.assignee,
-                  );
-                  return (
-                    &lt;Avatar
-                      variant=&quot;profile&quot;
-                      initial={selected?.initial ?? &#39;?&#39;}
-                      aria-label={selected?.label ?? &#39;No assignee&#39;}
-                      style={
-                        selected?.color
-                          ? { backgroundColor: selected.color }
-                          : undefined
-                      }
-                    /&gt;
-                  );
-                })()}
-                renderTriggerLabel={(opt) =&gt; opt.label}
-                renderOptionIndicator={(opt) =&gt; {
-                  const member = assigneeOptions.find(
-                    (m) =&gt; m.value === opt.value,
-                  );
-                  return member ? (
-                    &lt;Avatar
-                      variant=&quot;profile&quot;
-                      size=&quot;sm&quot;
-                      initial={member.initial}
-                      aria-label={member.label}
-                      style={{ backgroundColor: member.color }}
-                    /&gt;
-                  ) : null;
-                }}
-              /&gt;
-            &lt;/PropertyRow&gt;
+                          .includes(ticketQuery.toLowerCase()) ||
+                        (t.prefix ?? &#39;&#39;)
+                          .toLowerCase()
+                          .includes(ticketQuery.toLowerCase()),
+                    )
+                  : ticketOptions
+              }
+              value={form.linkedTicket}
+              onValueChange={(v) =&gt; {
+                setForm((f) =&gt; ({ ...f, linkedTicket: v }));
+                setTicketQuery(&#39;&#39;);
+              }}
+              open={ticketOpen}
+              onOpenChange={onTicketChange}
+              placeholder=&quot;Search ticket...&quot;
+              header={
+                &lt;SearchInput
+                  value={ticketQuery}
+                  onChange={(e) =&gt; setTicketQuery(e.target.value)}
+                  placeholder=&quot;Search tickets...&quot;
+                  size=&quot;sm&quot;
+                /&gt;
+              }
+              variant=&quot;inline&quot;
+              dropdownAlign=&quot;end&quot;
+              action={{
+                label: &#39;Create new ticket&#39;,
+                icon: &#39;add&#39;,
+                onClick: () =&gt; {},
+              }}
+              emptyState=&quot;No results found&quot;
+              aria-label=&quot;Linked ticket&quot;
+            /&gt;
+          &lt;/PropertyRow&gt;
+        &lt;/TaskDrawerSection&gt;
 
-            &lt;PropertyRow icon=&quot;signal_cellular_alt&quot; label=&quot;Priority&quot;&gt;
-              &lt;Selector
-                ref={priorityRef}
-                options={priorityOptions}
-                value={form.priority}
-                onValueChange={(v) =&gt; setForm((f) =&gt; ({ ...f, priority: v }))}
-                open={priorityOpen}
-                onOpenChange={onPriorityChange}
-                dropdownAlign=&quot;end&quot;
-                variant=&quot;inline&quot;
-                aria-label=&quot;Select priority&quot;
-              /&gt;
-            &lt;/PropertyRow&gt;
-
-            &lt;PropertyRow icon=&quot;confirmation_number&quot; label=&quot;Linked Ticket&quot;&gt;
-              &lt;Selector
-                ref={ticketRef}
-                options={
-                  ticketQuery
-                    ? ticketOptions.filter(
-                        (t) =&gt;
-                          t.label
-                            .toLowerCase()
-                            .includes(ticketQuery.toLowerCase()) ||
-                          (t.prefix ?? &#39;&#39;)
-                            .toLowerCase()
-                            .includes(ticketQuery.toLowerCase()),
-                      )
-                    : ticketOptions
-                }
-                value={form.linkedTicket}
-                onValueChange={(v) =&gt; {
-                  setForm((f) =&gt; ({ ...f, linkedTicket: v }));
-                  setTicketQuery(&#39;&#39;);
-                }}
-                open={ticketOpen}
-                onOpenChange={onTicketChange}
-                placeholder=&quot;Search ticket...&quot;
-                header={
-                  &lt;SearchInput
-                    value={ticketQuery}
-                    onChange={(e) =&gt; setTicketQuery(e.target.value)}
-                    placeholder=&quot;Search tickets...&quot;
-                    size=&quot;sm&quot;
-                  /&gt;
-                }
-                variant=&quot;inline&quot;
-                dropdownAlign=&quot;end&quot;
-                action={{
-                  label: &#39;Create new ticket&#39;,
-                  icon: &#39;add&#39;,
-                  onClick: () =&gt; {},
-                }}
-                emptyState=&quot;No results found&quot;
-                aria-label=&quot;Linked ticket&quot;
-              /&gt;
-            &lt;/PropertyRow&gt;
-          &lt;/TaskDrawerSection&gt;
-
-          &lt;TaskDrawerSection label=&quot;Recent Tasks&quot;&gt;
-            &lt;RecentTaskList items={recentTasks} /&gt;
-          &lt;/TaskDrawerSection&gt;
-        &lt;/TaskDrawer&gt;
-      &lt;/Drawer&gt;
+        &lt;TaskDrawerSection label=&quot;Recent Tasks&quot;&gt;
+          &lt;RecentTaskList items={recentTasks} /&gt;
+        &lt;/TaskDrawerSection&gt;
+      &lt;/TaskFormDrawer&gt;
     &lt;/div&gt;
   );
 }
@@ -11690,7 +11646,6 @@ export const EmptyState: Story = {
     Avatar,
     Breadcrumb,
     Button,
-    Drawer,
     Footer,
     Header,
     Icon,
@@ -11704,9 +11659,8 @@ export const EmptyState: Story = {
     Sidebar,
     SidebarStatusLabel,
     SidebarWorkspaceHeader,
-    TaskDrawer,
-    TaskDrawerField,
     TaskDrawerSection,
+    TaskFormDrawer,
     TaskRow,
     TaskSection,
 } from "@all3hp/tasksgo-ui";</code></pre>
@@ -11782,13 +11736,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  644 | }
-  645 |
-&gt; 646 | const meta: Meta = {
+  678 | }
+  679 |
+&gt; 680 | const meta: Meta = {
       | ^
-  647 |   title: &#39;Pages/Ticket&#39;,
-  648 |   parameters: {
-  649 |     layout: &#39;fullscreen&#39;,
+  681 |   title: &#39;Pages/Ticket&#39;,
+  682 |   parameters: {
+  683 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef } from &#39;react&#39;;
@@ -11815,6 +11769,8 @@ import { CollapsibleCard } from &#39;../../../components/CollapsibleCard&#39;;
 import { ChecklistRow } from &#39;../../../components/ChecklistRow&#39;;
 import { PropertyRow } from &#39;../../../components/PropertyRow&#39;;
 import { Scratchpad } from &#39;../../../components/Scratchpad&#39;;
+import { StatusDot } from &#39;../../../components/StatusDot&#39;;
+import { TaskEditDrawer } from &#39;../../helpers/TaskEditDrawer&#39;;
 import { TicketId } from &#39;../../../components/TicketId&#39;;
 import { PipelineHierarchyPanel } from &#39;../../../components/PipelineHierarchyPanel&#39;;
 import { AddScenarioDialog } from &#39;../../../components/AddScenarioDialog&#39;;
@@ -11915,6 +11871,13 @@ function TicketOverviewRender() {
     setAddStageDraft,
     confirmAddStage,
     cancelAddStage,
+    viewingTask,
+    taskForm,
+    setTaskForm,
+    openTaskDrawer,
+    closeTaskDrawer,
+    taskDrawerTitle,
+    taskSelectors,
     qaScenarios,
     qaFailedCount,
     addScenarioOpen,
@@ -12184,12 +12147,25 @@ function TicketOverviewRender() {
                   &gt;
                     {tabValue === &#39;dev&#39; ? (
                       &lt;Scratchpad
+                        className={styles.devScratchpad}
                         aria-label=&quot;Dev scratchpad&quot;
                         title=&quot;Scratchpad / Private Notes&quot;
-                        status=&quot;Auto-saving…&quot;
+                        status={
+                          &lt;&gt;
+                            {/* Decorative */}
+                            &lt;StatusDot
+                              variant=&quot;active&quot;
+                              label=&quot;Saved&quot;
+                              aria-hidden=&quot;true&quot;
+                            /&gt;
+                            Auto-saved · 2m ago
+                          &lt;/&gt;
+                        }
                         placeholder=&quot;Click to add more context…&quot;
                         highlightBadges
+                        formattingToolbar
                         taskBadgeInfo={devScratchpadTask}
+                        onViewTask={openTaskDrawer}
                         lines={scratchpad.lines}
                         onReorder={scratchpad.onReorder}
                         onLineTextChange={scratchpad.onLineTextChange}
@@ -12425,6 +12401,18 @@ function TicketOverviewRender() {
         /&gt;
       &lt;/div&gt;
 
+      &lt;TaskEditDrawer
+        open={viewingTask !== null}
+        title={taskDrawerTitle}
+        onClose={closeTaskDrawer}
+        form={taskForm}
+        setForm={setTaskForm}
+        selectors={taskSelectors}
+        assigneeOptions={peopleOptions}
+        priorityOptions={priorityOptions}
+        ticketOptions={[{ value: ticket.id, label: title, prefix: ticket.id }]}
+      /&gt;
+
       &lt;AddScenarioDialog
         open={addScenarioOpen}
         value={scenarioDraft}
@@ -12510,7 +12498,9 @@ export const Default: Story = {
     Sidebar,
     SidebarStatusLabel,
     SidebarWorkspaceHeader,
+    StatusDot,
     Tabs,
+    TaskEditDrawer,
     TicketId,
     TicketTitleBlock,
 } from "@all3hp/tasksgo-ui";</code></pre>

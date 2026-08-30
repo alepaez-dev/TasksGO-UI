@@ -1,0 +1,1 @@
+import{r as u}from"./iframe-XQFivrMG.js";function c(e,t,n=!0){u.useEffect(()=>{if(!n)return;const o=r=>{e.current&&!e.current.contains(r.target)&&t()};return document.addEventListener("mousedown",o),()=>document.removeEventListener("mousedown",o)},[e,t,n])}export{c as u};
