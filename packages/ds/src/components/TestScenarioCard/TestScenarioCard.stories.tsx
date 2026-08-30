@@ -117,7 +117,7 @@ function Controlled(props: TestScenarioCardProps) {
       />
       <WaiveScenarioDialog
         open={waiveOpen}
-        scenarioTitle={props.title}
+        scenarioTitle={title}
         reason={reasonDraft}
         onReasonChange={setReasonDraft}
         onCancel={() => setWaiveOpen(false)}
@@ -129,7 +129,7 @@ function Controlled(props: TestScenarioCardProps) {
       />
       <ReopenPendingDialog
         open={reopenOpen}
-        scenarioTitle={props.title}
+        scenarioTitle={title}
         actualResult={actualDraft}
         onActualResultChange={setActualDraft}
         actualResultPlaceholder={actual}
