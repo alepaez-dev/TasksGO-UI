@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/62 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">62/62 infos</a><span class="filter-pill ok" aria-disabled="true">277 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/62 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">62/62 infos</a><span class="filter-pill ok" aria-disabled="true">278 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -943,7 +943,7 @@ export const CustomLeading: Story = {
       <div class="badges">
         <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">15 prop types</label>
         <label for="c-1-components-addscenariodialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-1-components-addscenariodialog-stories" class="badge ok as-toggle">5 stories</label>
+        <label for="c-1-components-addscenariodialog-stories" class="badge ok as-toggle">6 stories</label>
         
       </div>
     </div>
@@ -1076,6 +1076,23 @@ value: NewScenarioDraft</code></pre>
               <pre><code>const ConsumerBlocksExecutables = () =&gt; (
   &lt;Controlled
     isEvidenceAllowed={(file) =&gt; !BLOCKED_EVIDENCE.test(file.name)}
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Evidence add disabled (upload in flight)</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const EvidenceAddDisabled = () =&gt; (
+  &lt;Controlled
+    addEvidenceDisabled
+    initial={{
+      ...EMPTY,
+      evidence: [new File([&#39;x&#39;], &#39;screenshot.png&#39;, { type: &#39;image/png&#39; })],
+    }}
   /&gt;
 );</code></pre>
             </div>
