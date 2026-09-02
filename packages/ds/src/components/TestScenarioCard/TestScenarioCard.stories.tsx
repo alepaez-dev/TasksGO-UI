@@ -9,6 +9,35 @@ import {
 } from './TestScenarioCard';
 import { WaiveScenarioDialog } from '../WaiveScenarioDialog';
 import { ReopenPendingDialog } from '../ReopenPendingDialog';
+import { FilePreviewOverlay } from '../FilePreviewOverlay';
+import {
+  CACHE_METRICS,
+  CACHE_NOTES,
+  EMPTY_ZIP,
+  SOCKET_LOG_SHOT,
+  svgShot,
+  TEXT_LIKE_EVIDENCE,
+  THREAD_DUMP,
+} from '../../stories/helpers/evidenceFixtures';
+
+const cleoShot = new URL('../../stories/assets/cleo.jpg', import.meta.url).href;
+
+const RATE_429_SHOT = svgShot('#7d3b3b', '429 Too Many Requests');
+
+const GATEWAY_LOG = [
+  '12:41:02 WARN  burst threshold crossed (512 rps)',
+  '12:41:02 ERROR stale body served for /v1/assets/hot',
+  '12:41:03 INFO  Retry-After header missing',
+].join('\n');
+
+const ALL_EVIDENCE: readonly TestScenarioEvidence[] = [
+  { label: 'socket_log.png', kind: 'image', url: SOCKET_LOG_SHOT },
+  { label: 'thread_dump.txt', kind: 'file', text: THREAD_DUMP },
+  { label: 'cleo.jpg', kind: 'image', url: cleoShot },
+  { label: 'cache_metrics.json', kind: 'file', text: CACHE_METRICS },
+  { label: 'notes.md', kind: 'file', text: CACHE_NOTES },
+  { label: 'trace.zip', kind: 'file', url: EMPTY_ZIP },
+];
 
 const meta: Meta<typeof TestScenarioCard> = {
   title: 'Components/TestScenarioCard',
@@ -58,24 +87,40 @@ function Controlled(props: TestScenarioCardProps) {
     setStatus(next);
   };
 
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
   const handleAddEvidence = (files: readonly File[]) => {
-    setEvidence((prev) => {
-      const next = [
-        ...prev,
-        ...files.map((file) => ({
+    void Promise.all(
+      files.map(async (file): Promise<TestScenarioEvidence> => {
+        const item: TestScenarioEvidence = {
           label: file.name,
-          kind: file.type.startsWith('image/')
-            ? ('image' as const)
-            : ('file' as const),
-        })),
-      ];
-      return props.maxEvidence != null
-        ? next.slice(0, props.maxEvidence)
-        : next;
+          kind: file.type.startsWith('image/') ? 'image' : 'file',
+          url: URL.createObjectURL(file),
+        };
+        if (
+          file.type.startsWith('text/') ||
+          TEXT_LIKE_EVIDENCE.test(file.name)
+        ) {
+          return { ...item, text: await file.text() };
+        }
+        return item;
+      }),
+    ).then((items) => {
+      const room =
+        props.maxEvidence != null
+          ? Math.max(0, props.maxEvidence - evidence.length)
+          : items.length;
+      items.slice(room).forEach((dropped) => {
+        if (dropped.url?.startsWith('blob:')) URL.revokeObjectURL(dropped.url);
+      });
+      const accepted = items.slice(0, room);
+      if (accepted.length > 0) setEvidence((prev) => [...prev, ...accepted]);
     });
   };
 
   const handleRemoveEvidence = (index: number) => {
+    const removed = evidence[index];
+    if (removed?.url?.startsWith('blob:')) URL.revokeObjectURL(removed.url);
     setEvidence((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -100,6 +145,7 @@ function Controlled(props: TestScenarioCardProps) {
         onEvidenceExpandedChange={setEvidenceExpanded}
         onAddEvidence={handleAddEvidence}
         onRemoveEvidence={handleRemoveEvidence}
+        onOpenEvidence={setPreviewIndex}
         maxEvidence={props.maxEvidence}
         addEvidenceDisabled={
           props.maxEvidence != null && evidence.length >= props.maxEvidence
@@ -140,6 +186,13 @@ function Controlled(props: TestScenarioCardProps) {
           setReopenOpen(false);
         }}
       />
+      <FilePreviewOverlay
+        files={evidence}
+        open={previewIndex != null}
+        activeIndex={previewIndex ?? 0}
+        onActiveIndexChange={setPreviewIndex}
+        onClose={() => setPreviewIndex(null)}
+      />
     </>
   );
 }
@@ -178,11 +231,36 @@ export const Failed: Story = {
         'Inspect response headers once burst limit is crossed',
       ]}
       evidence={[
-        { label: 'rate_429.png', kind: 'image' },
-        { label: 'gateway.log', kind: 'file' },
+        { label: 'rate_429.png', kind: 'image', url: RATE_429_SHOT },
+        { label: 'gateway.log', kind: 'file', text: GATEWAY_LOG },
       ]}
       expected="Gateway returns `429 Too Many Requests` with `Retry-After` and never serves a stale body."
       actual="Stale cached body returned with `200 OK` for ~1.4s after TTL expiry; no `Retry-After` header present."
+      open
+    />
+  ),
+};
+
+export const AllEvidenceTypes: Story = {
+  render: () => (
+    <Controlled
+      caseId="TC-409"
+      title="WebSocket Connection Persistence"
+      status="failed"
+      byline="Failed by Jordan D. · 5m ago"
+      assigneeInitial="JD"
+      assigneeLabel="Jordan D."
+      assigneeColor="var(--ds-color-avatar-tone-profile-sage)"
+      description="WebSocket connections automatically reconnect after a network interruption of < 500ms without dropping session context."
+      steps={[
+        'Deploy recent build to `QA-01` environment',
+        'Trigger concurrent updates via `/api/v1/sync` endpoint',
+        'Monitor cache TTL expiration logs in Datadog',
+      ]}
+      evidence={ALL_EVIDENCE}
+      maxEvidence={6}
+      expected="Connection re-established within 500ms with the original session context intact."
+      actual="Session context dropped on reconnect; client forced to re-authenticate."
       open
     />
   ),

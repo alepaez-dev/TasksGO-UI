@@ -224,6 +224,10 @@ export {
   type NewScenarioStatus,
 } from './components/AddScenarioDialog';
 export {
+  FilePreviewOverlay,
+  type FilePreviewOverlayProps,
+} from './components/FilePreviewOverlay';
+export {
   RecentTaskList,
   type RecentTaskListProps,
   type RecentTaskItem,

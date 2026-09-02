@@ -47,9 +47,10 @@ function buildBaseColorMap(): VarMap {
 
   for (const [group, values] of Object.entries(BASE_COLOR_GROUPS)) {
     for (const [name, value] of Object.entries(values)) {
-      if (!SKIP_CSS_KEYWORDS.has(value)) {
+      const key = normalize(value);
+      if (!SKIP_CSS_KEYWORDS.has(value) && !map.has(key)) {
         map.set(
-          normalize(value),
+          key,
           `var(--ds-color-${camelToKebab(group)}-${camelToKebab(name)})`,
         );
       }

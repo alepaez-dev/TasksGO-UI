@@ -11,6 +11,7 @@ import type { UseSelectorStateReturn } from '../../../hooks/useSelector';
 import type { TestScenarioSection } from '../../../components/TestScenarioCard';
 import { formatByline, healthDotVariant } from './qaViewModel';
 import type { QaEnvironment, QaScenario } from './shared';
+import { TEXT_LIKE_EVIDENCE } from '../../helpers/evidenceFixtures';
 import styles from './QaPanel.module.css';
 
 export interface QaPanelProps {
@@ -36,6 +37,7 @@ export interface QaPanelProps {
     id: string,
     sections: readonly TestScenarioSection[],
   ) => void;
+  onOpenEvidence: (scenarioId: string, index: number) => void;
 }
 
 function listPosition(index: number, total: number): TestScenarioCardPosition {
@@ -66,6 +68,7 @@ export function QaPanel({
   evidenceExpandedById,
   onEvidenceExpandedChange,
   onEditingSectionsChange,
+  onOpenEvidence,
 }: QaPanelProps) {
   const activeEnvIndex = environments.findIndex(
     (env) => env.value === activeEnvironment,
@@ -247,7 +250,7 @@ export function QaPanel({
                 onStepsChange={(steps) =>
                   onUpdateScenario(scenario.id, { steps })
                 }
-                onAddEvidence={(files) =>
+                onAddEvidence={(files) => {
                   onUpdateScenario(scenario.id, (prev) => ({
                     evidence: [
                       ...(prev.evidence ?? []),
@@ -256,17 +259,37 @@ export function QaPanel({
                         kind: file.type.startsWith('image/')
                           ? ('image' as const)
                           : ('file' as const),
+                        url: URL.createObjectURL(file),
                       })),
                     ],
-                  }))
-                }
-                onRemoveEvidence={(index) =>
+                  }));
+                  files.forEach((file) => {
+                    if (
+                      file.type.startsWith('text/') ||
+                      TEXT_LIKE_EVIDENCE.test(file.name)
+                    ) {
+                      void file.text().then((text) =>
+                        onUpdateScenario(scenario.id, (prev) => ({
+                          evidence: prev.evidence?.map((item) =>
+                            item.label === file.name ? { ...item, text } : item,
+                          ),
+                        })),
+                      );
+                    }
+                  });
+                }}
+                onRemoveEvidence={(index) => {
+                  const removed = scenario.evidence?.[index];
+                  if (removed?.url?.startsWith('blob:')) {
+                    URL.revokeObjectURL(removed.url);
+                  }
                   onUpdateScenario(scenario.id, (prev) => ({
                     evidence: (prev.evidence ?? []).filter(
                       (_, i) => i !== index,
                     ),
-                  }))
-                }
+                  }));
+                }}
+                onOpenEvidence={(index) => onOpenEvidence(scenario.id, index)}
               />
             ))}
           </div>

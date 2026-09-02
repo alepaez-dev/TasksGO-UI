@@ -17,11 +17,13 @@ import { ConfirmationNumberFilledIcon } from './confirmationNumberFilled';
 import { ContentCopyIcon } from './contentCopy';
 import { DescriptionIcon } from './description';
 import { DescriptionFilledIcon } from './descriptionFilled';
+import { DownloadIcon } from './download';
 import { DragIndicatorIcon } from './dragIndicator';
 import { EditIcon } from './edit';
 import { ExpandMoreIcon } from './expandMore';
 import { FileUploadIcon } from './fileUpload';
 import { FlagIcon } from './flag';
+import { FolderZipIcon } from './folderZip';
 import { ForkRightIcon } from './forkRight';
 import { FormatBoldIcon } from './formatBold';
 import { FormatItalicIcon } from './formatItalic';
@@ -65,11 +67,13 @@ export const iconRegistry = {
   content_copy: ContentCopyIcon,
   description: DescriptionIcon,
   description_filled: DescriptionFilledIcon,
+  download: DownloadIcon,
   drag_indicator: DragIndicatorIcon,
   edit: EditIcon,
   expand_more: ExpandMoreIcon,
   file_upload: FileUploadIcon,
   flag: FlagIcon,
+  folder_zip: FolderZipIcon,
   fork_right: ForkRightIcon,
   format_bold: FormatBoldIcon,
   format_italic: FormatItalicIcon,
