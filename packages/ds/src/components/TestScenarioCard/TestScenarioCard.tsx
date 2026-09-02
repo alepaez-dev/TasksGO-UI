@@ -79,6 +79,7 @@ export interface TestScenarioCardProps extends Omit<
   onStatusChange?: (status: TestScenarioStatus) => void;
   onAddEvidence?: (files: readonly File[]) => void;
   onRemoveEvidence?: (index: number) => void;
+  onOpenEvidence?: (index: number) => void;
   maxEvidence?: number;
   addEvidenceDisabled?: boolean;
   evidenceAccept?: string;
@@ -165,6 +166,7 @@ export const TestScenarioCard = forwardRef<
       onStatusChange,
       onAddEvidence,
       onRemoveEvidence,
+      onOpenEvidence,
       maxEvidence,
       addEvidenceDisabled = false,
       evidenceAccept,
@@ -401,6 +403,7 @@ export const TestScenarioCard = forwardRef<
                     items={evidence}
                     onAddFiles={onAddEvidence}
                     onRemove={onRemoveEvidence}
+                    onOpenItem={onOpenEvidence}
                     limitLabel={evidenceLimit}
                     accept={evidenceAccept}
                     addDisabled={addEvidenceDisabled}

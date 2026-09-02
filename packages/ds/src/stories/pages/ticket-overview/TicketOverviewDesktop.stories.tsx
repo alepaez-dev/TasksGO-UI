@@ -27,6 +27,7 @@ import { TaskEditDrawer } from '../../helpers/TaskEditDrawer';
 import { TicketId } from '../../../components/TicketId';
 import { PipelineHierarchyPanel } from '../../../components/PipelineHierarchyPanel';
 import { AddScenarioDialog } from '../../../components/AddScenarioDialog';
+import { FilePreviewOverlay } from '../../../components/FilePreviewOverlay';
 import {
   SidebarWorkspaceHeader,
   SidebarStatusLabel,
@@ -174,12 +175,20 @@ function TicketOverviewRender({
     envSelector,
     statusSelectScenarioId,
     setStatusSelectOpen,
+    evidencePreview,
+    openEvidencePreview,
+    closeEvidencePreview,
+    setEvidencePreviewIndex,
   } = useTicketOverviewState(undefined, initialActiveTab);
   const activeProject = getProject(project);
   const activeAssignee = getPerson(assignee);
   const activeReporter = getPerson(reporter);
   const activeStatus = getStatusOption(status);
   const activePriority = getPriorityOption(priority);
+  const previewScenario =
+    evidencePreview != null
+      ? qaScenarios.find((s) => s.id === evidencePreview.scenarioId)
+      : undefined;
 
   const { wordCount, isUploading, textareaRef, applyAction, insertImageFiles } =
     useMarkdownEditor({
@@ -484,6 +493,7 @@ function TicketOverviewRender({
                       onStatusSelectOpenChange={setStatusSelectOpen}
                       editingSectionsById={editingSectionsById}
                       onEditingSectionsChange={setScenarioEditingSections}
+                      onOpenEvidence={openEvidencePreview}
                     />
                   </TicketTabPanel>
                 )}
@@ -721,6 +731,19 @@ function TicketOverviewRender({
         onValueChange={setScenarioDraft}
         onCancel={cancelAddScenario}
         onConfirm={confirmAddScenario}
+      />
+
+      <FilePreviewOverlay
+        files={previewScenario?.evidence ?? []}
+        open={evidencePreview != null}
+        activeIndex={evidencePreview?.index ?? 0}
+        onActiveIndexChange={setEvidencePreviewIndex}
+        onClose={closeEvidencePreview}
+        downloadAllName={
+          previewScenario != null
+            ? `${previewScenario.id}-evidence.zip`
+            : 'evidence.zip'
+        }
       />
     </div>
   );

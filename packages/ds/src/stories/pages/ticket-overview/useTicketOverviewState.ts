@@ -30,6 +30,7 @@ import {
 } from '../tasks/shared';
 import type { NewScenarioDraft } from '../../../components/AddScenarioDialog';
 import { toStageValue } from '../../../utils/toStageValue';
+import { TEXT_LIKE_EVIDENCE } from '../../helpers/evidenceFixtures';
 import {
   countFailedScenarios,
   ticket,
@@ -91,6 +92,7 @@ function toQaScenario(draft: NewScenarioDraft, id: string): QaScenario {
       kind: file.type.startsWith('image/')
         ? ('image' as const)
         : ('file' as const),
+      url: URL.createObjectURL(file),
     })),
     expected: draft.expected.trim(),
     actual: draft.actual.trim() || undefined,
@@ -215,6 +217,10 @@ export interface UseTicketOverviewState {
   envSelector: UseSelectorStateReturn;
   statusSelectScenarioId: string | null;
   setStatusSelectOpen: (id: string, open: boolean) => void;
+  evidencePreview: { scenarioId: string; index: number } | null;
+  openEvidencePreview: (scenarioId: string, index: number) => void;
+  closeEvidencePreview: () => void;
+  setEvidencePreviewIndex: (index: number) => void;
 }
 
 export function useTicketOverviewState(
@@ -312,10 +318,27 @@ export function useTicketOverviewState(
   // resetting here would blank the fields during the close transition
   const cancelAddScenario = () => setAddScenarioOpen(false);
   const confirmAddScenario = (draft: NewScenarioDraft) => {
-    setQaScenarios((current) => [
-      ...current,
-      toQaScenario(draft, `scenario-${current.length + 1}`),
-    ]);
+    const id = `scenario-${qaScenarios.length + 1}`;
+    setQaScenarios((current) => [...current, toQaScenario(draft, id)]);
+    // read text-like files after commit so their inline preview works too
+    draft.evidence.forEach((file) => {
+      if (file.type.startsWith('text/') || TEXT_LIKE_EVIDENCE.test(file.name)) {
+        void file.text().then((text) =>
+          setQaScenarios((current) =>
+            current.map((scenario) =>
+              scenario.id === id
+                ? {
+                    ...scenario,
+                    evidence: scenario.evidence?.map((item) =>
+                      item.label === file.name ? { ...item, text } : item,
+                    ),
+                  }
+                : scenario,
+            ),
+          ),
+        );
+      }
+    });
     setAddScenarioOpen(false);
   };
 
@@ -399,6 +422,21 @@ export function useTicketOverviewState(
     setStatusSelectScenarioId(open ? id : null);
   }, []);
 
+  const [evidencePreview, setEvidencePreview] = useState<{
+    scenarioId: string;
+    index: number;
+  } | null>(null);
+  const openEvidencePreview = useCallback(
+    (scenarioId: string, index: number) => {
+      setEvidencePreview({ scenarioId, index });
+    },
+    [],
+  );
+  const closeEvidencePreview = useCallback(() => setEvidencePreview(null), []);
+  const setEvidencePreviewIndex = useCallback((index: number) => {
+    setEvidencePreview((prev) => (prev ? { ...prev, index } : prev));
+  }, []);
+
   return {
     project,
     setProject,
@@ -473,5 +511,9 @@ export function useTicketOverviewState(
     envSelector,
     statusSelectScenarioId,
     setStatusSelectOpen,
+    evidencePreview,
+    openEvidencePreview,
+    closeEvidencePreview,
+    setEvidencePreviewIndex,
   };
 }
