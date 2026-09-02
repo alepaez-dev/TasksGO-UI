@@ -43,13 +43,19 @@ const BLOCKED_EVIDENCE = /\.(dmg|exe|msi|bat|sh|pkg)$/i;
 function Controlled({
   initial = EMPTY,
   isEvidenceAllowed,
+  addEvidenceDisabled,
 }: {
   initial?: NewScenarioDraft;
   isEvidenceAllowed?: (file: File) => boolean;
+  addEvidenceDisabled?: boolean;
 }) {
   const [open, setOpen] = useState(true);
   const [draft, setDraft] = useState(initial);
   const [notice, setNotice] = useState('');
+  const close = () => {
+    setNotice('');
+    setOpen(false);
+  };
   return (
     <>
       <button type="button" onClick={() => setOpen(true)}>
@@ -58,10 +64,14 @@ function Controlled({
       <AddScenarioDialog
         open={open}
         value={draft}
-        onValueChange={setDraft}
-        onCancel={() => setOpen(false)}
-        onConfirm={() => setOpen(false)}
+        onValueChange={(next) => {
+          setNotice('');
+          setDraft(next);
+        }}
+        onCancel={close}
+        onConfirm={close}
         isEvidenceAllowed={isEvidenceAllowed}
+        addEvidenceDisabled={addEvidenceDisabled}
         onEvidenceRejected={(files, reason) =>
           setNotice(
             reason === 'limit'
@@ -106,6 +116,19 @@ export const ConsumerBlocksExecutables: Story = {
   render: () => (
     <Controlled
       isEvidenceAllowed={(file) => !BLOCKED_EVIDENCE.test(file.name)}
+    />
+  ),
+};
+
+export const EvidenceAddDisabled: Story = {
+  name: 'Evidence add disabled (upload in flight)',
+  render: () => (
+    <Controlled
+      addEvidenceDisabled
+      initial={{
+        ...EMPTY,
+        evidence: [new File(['x'], 'screenshot.png', { type: 'image/png' })],
+      }}
     />
   ),
 };

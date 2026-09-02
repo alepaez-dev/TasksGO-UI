@@ -1,4 +1,4 @@
-import { createRef } from 'react';
+import { createRef, useState } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
@@ -326,6 +326,26 @@ describe('AddScenarioDialog', () => {
     ).toEqual(['shot.png']);
   });
 
+  it('commits the draft before reporting what was rejected', () => {
+    const order: string[] = [];
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={empty}
+        onValueChange={() => order.push('value')}
+        isEvidenceAllowed={() => false}
+        onEvidenceRejected={() => order.push('rejected')}
+      />,
+    );
+    fireEvent.change(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      { target: { files: [new File(['x'], 'installer.dmg')] } },
+    );
+    // a consumer clearing a notice on change must not wipe this pick's message
+    expect(order).toEqual(['value', 'rejected']);
+  });
+
   it('allows every file type when the consumer sets no rule', () => {
     const onValueChange = vi.fn();
     const onEvidenceRejected = vi.fn();
@@ -346,6 +366,34 @@ describe('AddScenarioDialog', () => {
     );
     expect(onEvidenceRejected).not.toHaveBeenCalled();
     expect(onValueChange.mock.calls[0][0].evidence).toHaveLength(1);
+  });
+
+  it('keeps focus in the dialog when the last chip goes while Add is disabled', async () => {
+    function Harness() {
+      const [draft, setDraft] = useState<NewScenarioDraft>({
+        ...empty,
+        evidence: [new File(['x'], 'a.png', { type: 'image/png' })],
+      });
+      return (
+        <AddScenarioDialog
+          open
+          value={draft}
+          onValueChange={setDraft}
+          onCancel={() => {}}
+          onConfirm={() => {}}
+          addEvidenceDisabled
+        />
+      );
+    }
+    render(<Harness />);
+    await userEvent.click(screen.getByRole('button', { name: 'Remove a.png' }));
+    // the Add control stays disabled, so focus must not fall to <body>
+    await waitFor(() => {
+      expect(document.activeElement).not.toBe(document.body);
+      expect(screen.getByRole('dialog')).toContainElement(
+        document.activeElement as HTMLElement,
+      );
+    });
   });
 
   it('disables the add control at the default limit of six', () => {

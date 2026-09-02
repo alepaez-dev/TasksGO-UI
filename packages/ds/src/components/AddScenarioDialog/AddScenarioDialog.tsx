@@ -1,4 +1,4 @@
-import { forwardRef, useId } from 'react';
+import { forwardRef, useId, useRef } from 'react';
 import { DialogShell } from '../_internal/DialogShell';
 import { DialogField, DialogFieldLabel } from '../_internal/DialogField';
 import { StepEditor } from '../_internal/StepEditor';
@@ -58,6 +58,7 @@ export const AddScenarioDialog = forwardRef<
 
     const actualRequired = isScenarioFieldRequired('actual', value.status);
     const evidenceLimit = Math.max(0, maxEvidence);
+    const evidenceSectionRef = useRef<HTMLFieldSetElement>(null);
 
     function changeHandlerFor(field: NewScenarioTextField) {
       return (next: string) => onValueChange({ ...value, [field]: next });
@@ -140,7 +141,11 @@ export const AddScenarioDialog = forwardRef<
             />
           </fieldset>
 
-          <fieldset className={styles.optionalSection}>
+          <fieldset
+            ref={evidenceSectionRef}
+            tabIndex={-1}
+            className={styles.optionalSection}
+          >
             <DialogFieldLabel
               as="legend"
               hint={`optional · up to ${evidenceLimit}`}
@@ -162,18 +167,19 @@ export const AddScenarioDialog = forwardRef<
                   ? files.filter((file) => isEvidenceAllowed(file))
                   : files;
                 const filtered = files.filter((f) => !allowed.includes(f));
-                if (filtered.length > 0) {
-                  onEvidenceRejected?.(filtered, 'filtered');
-                }
                 const picked = [...value.evidence, ...allowed];
-                if (picked.length > evidenceLimit) {
-                  onEvidenceRejected?.(picked.slice(evidenceLimit), 'limit');
-                }
                 onValueChange({
                   ...value,
                   evidence: picked.slice(0, evidenceLimit),
                 });
+                if (filtered.length > 0) {
+                  onEvidenceRejected?.(filtered, 'filtered');
+                }
+                if (picked.length > evidenceLimit) {
+                  onEvidenceRejected?.(picked.slice(evidenceLimit), 'limit');
+                }
               }}
+              onFocusFallback={() => evidenceSectionRef.current?.focus()}
               onRemove={(index) =>
                 onValueChange({
                   ...value,

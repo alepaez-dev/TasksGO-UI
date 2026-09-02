@@ -54,7 +54,8 @@ export function EvidenceInput({
       );
       const el = buttons?.[target];
       if (el) el.focus();
-      else if (addRef.current) addRef.current.focus();
+      else if (addRef.current && !addRef.current.disabled)
+        addRef.current.focus();
       else onFocusFallback?.();
     });
   };
