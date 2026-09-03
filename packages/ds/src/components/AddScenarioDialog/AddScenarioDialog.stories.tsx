@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { AddScenarioDialog } from './AddScenarioDialog';
+import { FilePreviewOverlay } from '../FilePreviewOverlay';
+import type { EvidenceItem } from '../../types/evidence';
+import { TEXT_LIKE_EVIDENCE } from '../../stories/helpers/evidenceFixtures';
 import styles from './AddScenarioDialog.stories.module.css';
 import type { NewScenarioDraft } from './scenarioDraft';
 
@@ -56,6 +59,38 @@ function Controlled({
     setNotice('');
     setOpen(false);
   };
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [resolved, setResolved] = useState<readonly EvidenceItem[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const created: string[] = [];
+    void Promise.all(
+      draft.evidence.map(async (file): Promise<EvidenceItem> => {
+        const url = URL.createObjectURL(file);
+        created.push(url);
+        const item: EvidenceItem = {
+          label: file.name,
+          kind: file.type.startsWith('image/') ? 'image' : 'file',
+          url,
+        };
+        if (
+          file.type.startsWith('text/') ||
+          TEXT_LIKE_EVIDENCE.test(file.name)
+        ) {
+          return { ...item, text: await file.text() };
+        }
+        return item;
+      }),
+    ).then((items) => {
+      if (!cancelled) setResolved(items);
+    });
+    return () => {
+      cancelled = true;
+      created.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [draft.evidence]);
+
   return (
     <>
       <button type="button" onClick={() => setOpen(true)}>
@@ -72,6 +107,7 @@ function Controlled({
         onConfirm={close}
         isEvidenceAllowed={isEvidenceAllowed}
         addEvidenceDisabled={addEvidenceDisabled}
+        onOpenEvidence={setPreviewIndex}
         onEvidenceRejected={(rejected) => {
           const blocked = rejected
             .filter((r) => r.reason === 'filtered')
@@ -97,6 +133,13 @@ function Controlled({
             </p>
           ) : null
         }
+      />
+      <FilePreviewOverlay
+        files={resolved}
+        open={previewIndex != null}
+        activeIndex={previewIndex ?? 0}
+        onActiveIndexChange={setPreviewIndex}
+        onClose={() => setPreviewIndex(null)}
       />
     </>
   );

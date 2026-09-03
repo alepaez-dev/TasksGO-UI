@@ -5,6 +5,7 @@
 }
 
 .evidenceChip {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -14,6 +15,19 @@
   border: 1px solid var(--ds-color-border-default);
   border-radius: var(--ds-radius-md);
   background-color: var(--ds-color-surface-secondary);
+}
+
+.evidenceChipClickable {
+  cursor: pointer;
+}
+
+.evidenceChipClickable:hover {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.evidenceRemove {
+  position: relative;
+  z-index: 1;
 }
 
 .evidenceLabel {
@@ -27,12 +41,19 @@
   text-overflow: ellipsis;
 }
 
+.evidenceActions {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  /* shrink-wrap in the chip grid so the icon lines up with Add step */
+  justify-self: start;
+  min-width: 0;
+}
+
 .evidenceMore,
 .addEvidence {
   display: inline-flex;
   align-items: center;
-  /* shrink-wrap in the chip grid so the icon lines up with Add step */
-  justify-self: start;
   justify-content: flex-start;
   gap: var(--ds-space-scale-xs);
   padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
@@ -72,5 +93,36 @@
 .evidenceMore:focus-visible,
 .addEvidence:focus-visible {
   outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.evidenceOpen {
+  display: inline-flex;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--ds-radius-sm);
+}
+
+/* stretched hit area: the whole chip opens the preview; the remove button
+   sits above it via .evidenceRemove */
+.evidenceOpen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--ds-radius-md);
+}
+
+.evidenceOpen:hover {
+  text-decoration: underline;
+}
+
+.evidenceOpen:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+}
+
+.evidenceOpen:focus-visible::after {
   box-shadow: var(--ds-focus-ring);
 }

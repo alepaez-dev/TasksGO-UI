@@ -1012,4 +1012,35 @@ describe('TestScenarioCard', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Edit' }));
     expect(onEditingSectionsChange).toHaveBeenCalledWith(['title']);
   });
+
+  it('reports evidence chip clicks when onOpenEvidence is provided', async () => {
+    const onOpenEvidence = vi.fn();
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        evidence={[
+          { label: 'rate_429.png', kind: 'image' },
+          { label: 'gateway.log', kind: 'file' },
+        ]}
+        onOpenEvidence={onOpenEvidence}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'gateway.log' }));
+    expect(onOpenEvidence).toHaveBeenCalledWith(1);
+  });
+
+  it('renders evidence labels as plain text without onOpenEvidence', () => {
+    render(
+      <TestScenarioCard
+        {...base}
+        open
+        evidence={[{ label: 'rate_429.png', kind: 'image' }]}
+      />,
+    );
+    expect(screen.getByText('rate_429.png')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'rate_429.png' }),
+    ).not.toBeInTheDocument();
+  });
 });

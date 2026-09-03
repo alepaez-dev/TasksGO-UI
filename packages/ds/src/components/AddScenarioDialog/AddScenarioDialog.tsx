@@ -37,6 +37,7 @@ export interface AddScenarioDialogProps extends DialogLifecycleProps {
    * stays within the aria-modal subtree, where assistive tech can reach it.
    */
   evidenceMessage?: ReactNode;
+  onOpenEvidence?: (index: number) => void;
 }
 
 export const AddScenarioDialog = forwardRef<
@@ -54,6 +55,7 @@ export const AddScenarioDialog = forwardRef<
       isEvidenceAllowed,
       onEvidenceRejected,
       evidenceMessage,
+      onOpenEvidence,
       ...rest
     },
     ref,
@@ -168,6 +170,7 @@ export const AddScenarioDialog = forwardRef<
               }))}
               limitLabel={evidenceLimit}
               accept={evidenceAccept}
+              onOpenItem={onOpenEvidence}
               addDisabled={
                 addEvidenceDisabled || value.evidence.length >= evidenceLimit
               }
