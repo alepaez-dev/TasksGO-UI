@@ -91,11 +91,9 @@ function Controlled({
           );
         }}
         evidenceMessage={
-          notice ? (
-            <p role="status" className={styles.notice}>
-              {notice}
-            </p>
-          ) : null
+          <p role="status" className={styles.notice}>
+            {notice}
+          </p>
         }
       />
     </>

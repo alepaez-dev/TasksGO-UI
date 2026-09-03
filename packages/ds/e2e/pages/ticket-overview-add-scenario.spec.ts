@@ -119,6 +119,20 @@ test.describe('Ticket Overview page — add test scenario', () => {
     await expect(page.getByText('2 Failed')).toBeVisible();
   });
 
+  test('label and hint are separated in the accessible name', async ({
+    page,
+  }) => {
+    const dialog = await openDialog(page);
+    // jsdom's name computation inserts a separator the browser does not,
+    // so only a real browser can catch the words being glued together
+    await expect(
+      dialog.getByRole('group', { name: 'Steps to reproduce optional' }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole('group', { name: 'Evidence optional · up to 6' }),
+    ).toBeVisible();
+  });
+
   test('cancelling discards the draft', async ({ page }) => {
     await openDialog(page);
     await page.getByLabel('Scenario name').fill('Discarded scenario');

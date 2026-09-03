@@ -48,7 +48,6 @@
 }
 
 .hint {
-  margin-inline-start: var(--ds-space-scale-xs);
   color: var(--ds-color-text-secondary);
   font-weight: var(--ds-font-weight-regular);
   text-transform: none;

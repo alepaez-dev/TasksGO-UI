@@ -20,7 +20,7 @@ export function DialogFieldLabel(props: DialogFieldLabelProps) {
   const body = (
     <>
       {children}
-      {hint && <span className={styles.hint}>{hint}</span>}
+      {hint && <span className={styles.hint}>{` ${hint}`}</span>}
     </>
   );
 
