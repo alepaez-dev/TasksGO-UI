@@ -1,6 +1,7 @@
 export {
   AddScenarioDialog,
   type AddScenarioDialogProps,
+  type RejectedEvidence,
 } from './AddScenarioDialog';
 export {
   getMissingScenarioFields,

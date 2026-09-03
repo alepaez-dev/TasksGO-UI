@@ -216,6 +216,7 @@ export {
 export {
   AddScenarioDialog,
   type AddScenarioDialogProps,
+  type RejectedEvidence,
   getMissingScenarioFields,
   type NewScenarioDraft,
   type NewScenarioTextField,

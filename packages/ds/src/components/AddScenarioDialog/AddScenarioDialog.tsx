@@ -1,4 +1,4 @@
-import { forwardRef, useId, useRef } from 'react';
+import { forwardRef, useId, useRef, type ReactNode } from 'react';
 import { DialogShell } from '../_internal/DialogShell';
 import { DialogField, DialogFieldLabel } from '../_internal/DialogField';
 import { StepEditor } from '../_internal/StepEditor';
@@ -15,6 +15,11 @@ import {
 import styles from './AddScenarioDialog.module.css';
 
 const FAILED_HINT = 'Actual result is required for failed scenarios.';
+
+export interface RejectedEvidence {
+  file: File;
+  reason: 'limit' | 'filtered';
+}
 const DEFAULT_MAX_EVIDENCE = 6;
 
 export interface AddScenarioDialogProps extends DialogLifecycleProps {
@@ -25,10 +30,13 @@ export interface AddScenarioDialogProps extends DialogLifecycleProps {
   addEvidenceDisabled?: boolean;
   evidenceAccept?: string;
   isEvidenceAllowed?: (file: File) => boolean;
-  onEvidenceRejected?: (
-    files: readonly File[],
-    reason: 'limit' | 'filtered',
-  ) => void;
+  /** Everything dropped by one pick, reported once so nothing is masked. */
+  onEvidenceRejected?: (rejected: readonly RejectedEvidence[]) => void;
+  /**
+   * Consumer feedback about the evidence pick. Rendered inside the dialog so it
+   * stays within the aria-modal subtree, where assistive tech can reach it.
+   */
+  evidenceMessage?: ReactNode;
 }
 
 export const AddScenarioDialog = forwardRef<
@@ -45,6 +53,7 @@ export const AddScenarioDialog = forwardRef<
       evidenceAccept,
       isEvidenceAllowed,
       onEvidenceRejected,
+      evidenceMessage,
       ...rest
     },
     ref,
@@ -172,12 +181,17 @@ export const AddScenarioDialog = forwardRef<
                   ...value,
                   evidence: picked.slice(0, evidenceLimit),
                 });
-                if (filtered.length > 0) {
-                  onEvidenceRejected?.(filtered, 'filtered');
-                }
-                if (picked.length > evidenceLimit) {
-                  onEvidenceRejected?.(picked.slice(evidenceLimit), 'limit');
-                }
+                const rejected: RejectedEvidence[] = [
+                  ...filtered.map((file) => ({
+                    file,
+                    reason: 'filtered' as const,
+                  })),
+                  ...picked.slice(evidenceLimit).map((file) => ({
+                    file,
+                    reason: 'limit' as const,
+                  })),
+                ];
+                if (rejected.length > 0) onEvidenceRejected?.(rejected);
               }}
               onFocusFallback={() => evidenceSectionRef.current?.focus()}
               onRemove={(index) =>
@@ -187,6 +201,7 @@ export const AddScenarioDialog = forwardRef<
                 })
               }
             />
+            {evidenceMessage}
           </fieldset>
         </div>
       </DialogShell>

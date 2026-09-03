@@ -283,12 +283,16 @@ describe('AddScenarioDialog', () => {
       },
     );
 
-    const [files, reason] = onEvidenceRejected.mock.calls[0];
-    expect(reason).toBe('limit');
-    expect(files.map((f: File) => f.name)).toEqual([
-      'new-2.png',
-      'new-3.png',
-      'new-4.png',
+    const [rejected] = onEvidenceRejected.mock.calls[0];
+    expect(
+      rejected.map((r: { file: File; reason: string }) => [
+        r.file.name,
+        r.reason,
+      ]),
+    ).toEqual([
+      ['new-2.png', 'limit'],
+      ['new-3.png', 'limit'],
+      ['new-4.png', 'limit'],
     ]);
     expect(onValueChange.mock.calls[0][0].evidence).toHaveLength(6);
   });
@@ -318,9 +322,13 @@ describe('AddScenarioDialog', () => {
       },
     );
 
-    const [files, reason] = onEvidenceRejected.mock.calls[0];
-    expect(reason).toBe('filtered');
-    expect(files.map((f: File) => f.name)).toEqual(['installer.dmg']);
+    const [rejected] = onEvidenceRejected.mock.calls[0];
+    expect(
+      rejected.map((r: { file: File; reason: string }) => [
+        r.file.name,
+        r.reason,
+      ]),
+    ).toEqual([['installer.dmg', 'filtered']]);
     expect(
       onValueChange.mock.calls[0][0].evidence.map((f: File) => f.name),
     ).toEqual(['shot.png']);
@@ -344,6 +352,60 @@ describe('AddScenarioDialog', () => {
     );
     // a consumer clearing a notice on change must not wipe this pick's message
     expect(order).toEqual(['value', 'rejected']);
+  });
+
+  it('reports every dropped file in one call when a pick trips both rules', () => {
+    const onEvidenceRejected = vi.fn();
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={empty}
+        maxEvidence={2}
+        isEvidenceAllowed={(file) => !/\.dmg$/i.test(file.name)}
+        onEvidenceRejected={onEvidenceRejected}
+      />,
+    );
+    fireEvent.change(
+      document.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['x'], 'installer.dmg'),
+            new File(['x'], 'a.png', { type: 'image/png' }),
+            new File(['x'], 'b.png', { type: 'image/png' }),
+            new File(['x'], 'c.png', { type: 'image/png' }),
+          ],
+        },
+      },
+    );
+    // one call, so neither reason can overwrite the other
+    expect(onEvidenceRejected).toHaveBeenCalledTimes(1);
+    expect(
+      onEvidenceRejected.mock.calls[0][0].map(
+        (r: { file: File; reason: string }) => [r.file.name, r.reason],
+      ),
+    ).toEqual([
+      ['installer.dmg', 'filtered'],
+      ['c.png', 'limit'],
+    ]);
+  });
+
+  it('renders the evidence message inside the modal subtree', () => {
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={empty}
+        evidenceMessage={<p role="status">installer.dmg was blocked</p>}
+      />,
+    );
+    // aria-modal hides everything outside the panel, so AT only reaches it here
+    const live = screen.getByRole('status');
+    expect(screen.getByRole('dialog')).toContainElement(live);
+    expect(screen.getByRole('group', { name: /Evidence/ })).toContainElement(
+      live,
+    );
   });
 
   it('allows every file type when the consumer sets no rule', () => {

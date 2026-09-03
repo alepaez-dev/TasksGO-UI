@@ -1,9 +1,7 @@
 .notice {
-  position: fixed;
-  inset-block-start: var(--ds-space-scale-md);
-  inset-inline-start: 50%;
-  transform: translateX(-50%);
-  z-index: calc(var(--ds-z-modal) + 1);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-scale-sm);
   margin: 0;
   padding: var(--ds-space-scale-sm) var(--ds-space-scale-md);
   border-radius: var(--ds-radius-md);
@@ -11,4 +9,5 @@
   color: var(--ds-color-surface-primary);
   font-family: var(--ds-font-family-sans);
   font-size: var(--ds-text-metadata-font-size);
+  line-height: var(--ds-text-metadata-line-height);
 }

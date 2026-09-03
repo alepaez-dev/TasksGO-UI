@@ -72,21 +72,32 @@ function Controlled({
         onConfirm={close}
         isEvidenceAllowed={isEvidenceAllowed}
         addEvidenceDisabled={addEvidenceDisabled}
-        onEvidenceRejected={(files, reason) =>
+        onEvidenceRejected={(rejected) => {
+          const blocked = rejected
+            .filter((r) => r.reason === 'filtered')
+            .map((r) => r.file.name);
+          const overLimit = rejected.filter((r) => r.reason === 'limit').length;
           setNotice(
-            reason === 'limit'
-              ? `${files.length} file(s) over the limit were not added.`
-              : `Not an allowed file type: ${files
-                  .map((f) => f.name)
-                  .join(', ')}`,
-          )
+            [
+              blocked.length
+                ? `Not an allowed file type: ${blocked.join(', ')}`
+                : '',
+              overLimit
+                ? `${overLimit} file(s) over the limit were not added.`
+                : '',
+            ]
+              .filter(Boolean)
+              .join(' · '),
+          );
+        }}
+        evidenceMessage={
+          notice ? (
+            <p role="status" className={styles.notice}>
+              {notice}
+            </p>
+          ) : null
         }
       />
-      {notice && (
-        <p role="status" className={styles.notice}>
-          {notice}
-        </p>
-      )}
     </>
   );
 }
