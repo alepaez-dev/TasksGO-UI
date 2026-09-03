@@ -941,7 +941,7 @@ export const CustomLeading: Story = {
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> AddScenarioDialog</h2>
       <div class="badges">
-        <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">15 prop types</label>
+        <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">16 prop types</label>
         <label for="c-1-components-addscenariodialog-info" class="badge info as-toggle">1 info</label>
         <label for="c-1-components-addscenariodialog-stories" class="badge ok as-toggle">6 stories</label>
         
@@ -975,7 +975,7 @@ export const CustomLeading: Story = {
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">15 prop types</span>
+              <span class="badge ok">16 prop types</span>
             </div>
             <pre><code>Component: src/components/AddScenarioDialog/AddScenarioDialog.tsx::AddScenarioDialog</code></pre>
             <pre><code>Props:</code></pre>
@@ -986,6 +986,12 @@ cancelLabel?: string
 duration?: keyof typeof transitionDurations
 
 evidenceAccept?: string
+
+/**
+ * Consumer feedback about the evidence pick. Rendered inside the dialog so it
+ * stays within the aria-modal subtree, where assistive tech can reach it.
+ */
+evidenceMessage?: ReactNode
 
 forceMount?: boolean
 
@@ -999,10 +1005,10 @@ onClosed?: () =&gt; void
 
 onConfirm: (value: NewScenarioDraft) =&gt; void
 
-onEvidenceRejected?: (
-  files: readonly File[],
-  reason: &#39;limit&#39; | &#39;filtered&#39;,
-) =&gt; void
+/**
+ * Everything dropped by one pick, reported once so nothing is masked.
+ */
+onEvidenceRejected?: (rejected: readonly RejectedEvidence[]) =&gt; void
 
 onOpened?: () =&gt; void
 
