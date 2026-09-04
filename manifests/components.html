@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/62 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">62/62 infos</a><span class="filter-pill ok" aria-disabled="true">276 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/62 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">62/62 infos</a><span class="filter-pill ok" aria-disabled="true">278 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -941,9 +941,9 @@ export const CustomLeading: Story = {
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> AddScenarioDialog</h2>
       <div class="badges">
-        <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">10 prop types</label>
+        <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">16 prop types</label>
         <label for="c-1-components-addscenariodialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-1-components-addscenariodialog-stories" class="badge ok as-toggle">4 stories</label>
+        <label for="c-1-components-addscenariodialog-stories" class="badge ok as-toggle">6 stories</label>
         
       </div>
     </div>
@@ -975,21 +975,40 @@ export const CustomLeading: Story = {
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">10 prop types</span>
+              <span class="badge ok">16 prop types</span>
             </div>
             <pre><code>Component: src/components/AddScenarioDialog/AddScenarioDialog.tsx::AddScenarioDialog</code></pre>
             <pre><code>Props:</code></pre>
-            <pre><code>cancelLabel?: string
+            <pre><code>addEvidenceDisabled?: boolean = false
+
+cancelLabel?: string
 
 duration?: keyof typeof transitionDurations
 
+evidenceAccept?: string
+
+/**
+ * Consumer feedback about the evidence pick. Rendered inside the dialog so it
+ * stays within the aria-modal subtree, where assistive tech can reach it.
+ */
+evidenceMessage?: ReactNode
+
 forceMount?: boolean
+
+isEvidenceAllowed?: (file: File) =&gt; boolean
+
+maxEvidence?: number = 6
 
 onCancel: () =&gt; void
 
 onClosed?: () =&gt; void
 
 onConfirm: (value: NewScenarioDraft) =&gt; void
+
+/**
+ * Everything dropped by one pick, reported once so nothing is masked.
+ */
+onEvidenceRejected?: (rejected: readonly RejectedEvidence[]) =&gt; void
 
 onOpened?: () =&gt; void
 
@@ -1050,6 +1069,36 @@ value: NewScenarioDraft</code></pre>
               <pre><code>const ReadyToSubmit = () =&gt; (
   &lt;Controlled
     initial={{ ...FILLED, actual: &#39;Response carried X-Cache: MISS twice.&#39; }}
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Consumer blocks executables</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const ConsumerBlocksExecutables = () =&gt; (
+  &lt;Controlled
+    isEvidenceAllowed={(file) =&gt; !BLOCKED_EVIDENCE.test(file.name)}
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Evidence add disabled (upload in flight)</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const EvidenceAddDisabled = () =&gt; (
+  &lt;Controlled
+    addEvidenceDisabled
+    initial={{
+      ...EMPTY,
+      evidence: [new File([&#39;x&#39;], &#39;screenshot.png&#39;, { type: &#39;image/png&#39; })],
+    }}
   /&gt;
 );</code></pre>
             </div>
