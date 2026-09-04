@@ -1,0 +1,68 @@
+.stepEditor {
+  display: flex;
+  flex-direction: column;
+  margin-inline: calc(-1 * var(--ds-space-scale-sm));
+}
+
+.stepRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-scale-sm);
+  padding: calc(var(--ds-space-scale-sm) + var(--ds-space-scale-xs))
+    var(--ds-space-scale-sm);
+  border: 1px solid transparent;
+  border-radius: var(--ds-radius-md);
+}
+
+.stepRow + .stepRow {
+  border-top-color: var(--ds-color-border-default);
+}
+
+@media (hover: hover) {
+  .stepRow:hover {
+    background-color: var(--ds-color-surface-hover);
+  }
+}
+
+.stepRow:focus-within {
+  border-color: var(--ds-color-accent-primary);
+  box-shadow: var(--ds-focus-ring);
+}
+
+.stepNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--ds-space-step-list-marker-size);
+  height: var(--ds-space-step-list-marker-size);
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-color-surface-muted);
+  font-family: var(--ds-text-metadata-font-family);
+  font-size: var(--ds-text-metadata-font-size);
+  color: var(--ds-color-text-secondary);
+}
+
+.stepInput {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-card-body-font-size);
+  line-height: var(--ds-text-card-body-line-height);
+  resize: none;
+  overflow: hidden;
+}
+
+.stepInput:focus-visible {
+  outline: none;
+}
+
+.addStepSpacing {
+  margin-top: var(--ds-space-scale-md);
+  margin-inline-start: var(--ds-space-scale-sm);
+}

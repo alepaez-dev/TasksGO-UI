@@ -1,0 +1,76 @@
+.evidence {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--ds-space-scale-sm);
+}
+
+.evidenceChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-scale-xs);
+  min-width: 0;
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background-color: var(--ds-color-surface-secondary);
+}
+
+.evidenceLabel {
+  /* refLabel is inline-flex, so it can only shrink; the text child clips */
+  min-width: 0;
+}
+
+.evidenceLabelText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.evidenceMore,
+.addEvidence {
+  display: inline-flex;
+  align-items: center;
+  /* shrink-wrap in the chip grid so the icon lines up with Add step */
+  justify-self: start;
+  justify-content: flex-start;
+  gap: var(--ds-space-scale-xs);
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background: none;
+  cursor: pointer;
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-card-body-font-size);
+  font-weight: var(--ds-font-weight-medium);
+  transition-property: background-color;
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.evidenceMore:hover {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.addEvidence:hover:not(:disabled) {
+  border-style: dashed;
+  border-color: var(--ds-color-accent-primary);
+  background-color: var(--ds-color-surface-hover);
+}
+
+.addEvidence:disabled {
+  cursor: not-allowed;
+  color: var(--ds-color-text-disabled);
+  background-color: var(--ds-color-surface-secondary);
+}
+
+.addEvidenceInput {
+  display: none;
+}
+
+.evidenceMore:focus-visible,
+.addEvidence:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}

@@ -1,0 +1,18 @@
+/* always rendered so the screen reader is already watching it; :not(:empty)
+   keeps it invisible and zero-height until there is something to say */
+.notice {
+  margin: 0;
+}
+
+.notice:not(:empty) {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-sm) var(--ds-space-scale-md);
+  border-radius: var(--ds-radius-md);
+  background-color: var(--ds-color-status-critical);
+  color: var(--ds-color-surface-primary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-metadata-font-size);
+  line-height: var(--ds-text-metadata-line-height);
+}

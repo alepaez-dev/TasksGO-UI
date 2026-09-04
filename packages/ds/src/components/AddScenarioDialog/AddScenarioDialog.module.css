@@ -1,7 +1,26 @@
+.optionalSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-sm);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  /* fieldset defaults to min-inline-size: min-content; keep the shrink
+     behaviour of the div this replaced */
+  min-inline-size: 0;
+}
+
 .body {
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-scale-md);
+}
+
+.actualColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-sm);
+  min-width: 0;
 }
 
 .row {
@@ -95,7 +114,7 @@
 
 .hint {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--ds-space-scale-sm);
   margin: 0;
   font-family: var(--ds-font-family-sans);

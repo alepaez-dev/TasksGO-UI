@@ -5,6 +5,7 @@ import { Icon } from '../Icon';
 import { Markdown } from '../Markdown';
 import { SectionHeader } from '../SectionHeader';
 import { cn } from '../../utils/cn';
+import controls from '../_internal/controls.module.css';
 import styles from './TestScenarioCard.module.css';
 
 export type SectionTone = 'warning' | 'positive' | 'critical' | 'neutral';
@@ -90,13 +91,13 @@ export function EditableSection({
         <button
           ref={addButtonRef}
           type="button"
-          className={styles.addStep}
+          className={controls.addButton}
           onClick={() => {
             onEditingChange(true);
             requestAnimationFrame(() => textareaRef.current?.focus());
           }}
         >
-          <Icon name="add" size="xs" />
+          <Icon name="add" size="sm" />
           {addLabel}
         </button>
       ) : null}

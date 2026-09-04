@@ -198,6 +198,7 @@ export {
 } from './components/TestScenarioCard';
 export { EditToggle, type EditToggleProps } from './components/EditToggle';
 export type { DialogLifecycleProps } from './types/dialog';
+export type { EvidenceItem } from './types/evidence';
 export {
   ConfirmDialog,
   type ConfirmDialogProps,
@@ -215,9 +216,10 @@ export {
 export {
   AddScenarioDialog,
   type AddScenarioDialogProps,
+  type RejectedEvidence,
   getMissingScenarioFields,
   type NewScenarioDraft,
-  type NewScenarioField,
+  type NewScenarioTextField,
   type NewScenarioStatus,
 } from './components/AddScenarioDialog';
 export {

@@ -8,18 +8,28 @@ export interface NewScenarioDraft {
   readonly description: string;
   readonly expected: string;
   readonly actual: string;
+  readonly steps: readonly string[];
+  /**
+   * Raw picks from the file input. The consumer owns upload and must validate
+   * type, size and content server-side — the 6-file cap is a UX affordance,
+   * not a security boundary.
+   */
+  readonly evidence: readonly File[];
 }
 
-export type NewScenarioField = Exclude<keyof NewScenarioDraft, 'status'>;
+export type NewScenarioTextField = Exclude<
+  keyof NewScenarioDraft,
+  'status' | 'steps' | 'evidence'
+>;
 
-const ALWAYS_REQUIRED: readonly NewScenarioField[] = [
+const ALWAYS_REQUIRED: readonly NewScenarioTextField[] = [
   'name',
   'description',
   'expected',
 ];
 
 export function isScenarioFieldRequired(
-  field: NewScenarioField,
+  field: NewScenarioTextField,
   status: NewScenarioStatus,
 ): boolean {
   if (field === 'actual') return status === 'failed';
@@ -28,7 +38,7 @@ export function isScenarioFieldRequired(
 
 export function getMissingScenarioFields(
   draft: NewScenarioDraft,
-): readonly NewScenarioField[] {
+): readonly NewScenarioTextField[] {
   return [...ALWAYS_REQUIRED, 'actual' as const].filter(
     (field) =>
       isScenarioFieldRequired(field, draft.status) &&

@@ -347,6 +347,33 @@ describe('TestScenarioCard', () => {
     expect(screen.getByRole('button', { name: 'Add evidence' })).toBeDisabled();
   });
 
+  it('keeps focus in the card when the last chip goes while Add is disabled', async () => {
+    function Harness() {
+      const [evidence, setEvidence] = useState([
+        { label: 'a.png', kind: 'image' as const },
+      ]);
+      return (
+        <TestScenarioCard
+          {...base}
+          status="failed"
+          open
+          evidence={evidence}
+          onAddEvidence={() => {}}
+          addEvidenceDisabled
+          onRemoveEvidence={(index) =>
+            setEvidence((prev) => prev.filter((_, i) => i !== index))
+          }
+        />
+      );
+    }
+    const { container } = render(<Harness />);
+    await userEvent.click(screen.getByRole('button', { name: 'Remove a.png' }));
+    await waitFor(() => {
+      expect(document.activeElement).not.toBe(document.body);
+      expect(container.querySelector('[id$="-body"]')).toHaveFocus();
+    });
+  });
+
   it('keeps Add enabled and shows progress below the limit', () => {
     render(
       <TestScenarioCard

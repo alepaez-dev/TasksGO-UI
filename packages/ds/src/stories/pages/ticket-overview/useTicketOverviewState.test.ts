@@ -14,6 +14,8 @@ const DRAFT = {
   description: 'Tag purge clears matching keys.',
   expected: 'Tagged keys evict at once.',
   actual: '',
+  steps: [],
+  evidence: [],
 };
 
 describe('useTicketOverviewState — task drawer', () => {

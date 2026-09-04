@@ -46,3 +46,10 @@
   min-height: 88px;
   resize: vertical;
 }
+
+.hint {
+  color: var(--ds-color-text-secondary);
+  font-weight: var(--ds-font-weight-regular);
+  text-transform: none;
+  letter-spacing: normal;
+}
