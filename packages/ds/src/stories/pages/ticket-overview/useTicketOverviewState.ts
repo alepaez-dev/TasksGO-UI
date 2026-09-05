@@ -28,17 +28,17 @@ import {
   type TaskDrawerSelectors,
   initialForm,
 } from '../tasks/shared';
-import type {
-  NewScenarioDraft,
-  NewScenarioStatus,
-} from '../../../components/AddScenarioDialog';
+import type { NewScenarioDraft } from '../../../components/AddScenarioDialog';
 import { toStageValue } from '../../../utils/toStageValue';
 import {
   countFailedScenarios,
   ticket,
   type ChecklistItem,
   type DevData,
+  type QaScenario,
 } from './shared';
+import type { TestScenarioSection } from '../../../components/TestScenarioCard';
+import { toChecklistItems } from './qaViewModel';
 import { serializeTicketBody } from './serializeTicketBody';
 
 const DEV_SCRATCHPAD_SEED: readonly ScratchpadLine[] = [
@@ -71,22 +71,29 @@ const EMPTY_SCENARIO_DRAFT: NewScenarioDraft = {
   evidence: [],
 };
 
-const SCENARIO_META: Record<NewScenarioStatus, ChecklistItem['meta']> = {
-  passed: 'Verified',
-  failed: 'Failed',
-  pending: 'Not verified',
-};
+const NEW_SCENARIO_AUTHOR = {
+  assigneeInitial: 'AP',
+  assigneeLabel: 'Ale P.',
+  assigneeColor: 'var(--ds-color-avatar-tone-profile-plum)',
+} as const;
 
-// lossy on purpose: ChecklistItem has no home for description/expected/actual
-// until the QA tab lands and scenarios become TestScenarioCard-shaped
-// TODO: change this when QA tab story lands.
-function toChecklistItem(draft: NewScenarioDraft, id: string): ChecklistItem {
+function toQaScenario(draft: NewScenarioDraft, id: string): QaScenario {
   return {
     id,
+    title: draft.name.trim(),
     status: draft.status,
-    label: draft.name.trim(),
-    meta: SCENARIO_META[draft.status],
-    metaVariant: draft.status === 'failed' ? 'critical' : undefined,
+    byline: { action: 'Added just now' },
+    ...NEW_SCENARIO_AUTHOR,
+    description: draft.description.trim(),
+    steps: draft.steps,
+    evidence: draft.evidence.map((file) => ({
+      label: file.name,
+      kind: file.type.startsWith('image/')
+        ? ('image' as const)
+        : ('file' as const),
+    })),
+    expected: draft.expected.trim(),
+    actual: draft.actual.trim() || undefined,
   };
 }
 
@@ -176,6 +183,8 @@ export interface UseTicketOverviewState {
   setAddStageDraft: (value: string) => void;
   confirmAddStage: (label: string) => void;
   cancelAddStage: () => void;
+  qaScenarios: readonly QaScenario[];
+  qaChecklist: readonly ChecklistItem[];
   viewingTask: ScratchpadTaskRef | null;
   taskForm: DrawerFormState;
   setTaskForm: Dispatch<SetStateAction<DrawerFormState>>;
@@ -183,7 +192,6 @@ export interface UseTicketOverviewState {
   closeTaskDrawer: () => void;
   taskDrawerTitle: string;
   taskSelectors: TaskDrawerSelectors;
-  qaScenarios: readonly ChecklistItem[];
   qaFailedCount: number;
   addScenarioOpen: boolean;
   scenarioDraft: NewScenarioDraft;
@@ -191,15 +199,32 @@ export interface UseTicketOverviewState {
   openAddScenario: () => void;
   cancelAddScenario: () => void;
   confirmAddScenario: (draft: NewScenarioDraft) => void;
+  updateScenario: (
+    id: string,
+    patch: Partial<QaScenario> | ((prev: QaScenario) => Partial<QaScenario>),
+  ) => void;
+  editingSectionsById: Record<string, readonly TestScenarioSection[]>;
+  setScenarioEditingSections: (
+    id: string,
+    sections: readonly TestScenarioSection[],
+  ) => void;
+  expandedScenarioId: string | null;
+  toggleScenario: (id: string) => void;
+  activeEnvironment: string;
+  setActiveEnvironment: (value: string) => void;
+  envSelector: UseSelectorStateReturn;
+  statusSelectScenarioId: string | null;
+  setStatusSelectOpen: (id: string, open: boolean) => void;
 }
 
 export function useTicketOverviewState(
   scratchpadSeed: readonly ScratchpadLine[] = DEV_SCRATCHPAD_SEED,
+  initialActiveTab = 'overview',
 ): UseTicketOverviewState {
   const [project, setProject] = useState('eng-core');
   const projectSelector = useSelectorState();
   const [activeNav, setActiveNav] = useState('tickets');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(initialActiveTab);
   const [bodyEditing, setBodyEditing] = useState(false);
   const [body, setBody] = useState(() => serializeTicketBody(ticket));
   const [title, setTitle] = useState(ticket.title);
@@ -277,9 +302,6 @@ export function useTicketOverviewState(
     ? `Edit task · ${viewingTask.id}`
     : 'Edit task';
 
-  const [qaScenarios, setQaScenarios] = useState<readonly ChecklistItem[]>(
-    ticket.qaSummary.items,
-  );
   const [addScenarioOpen, setAddScenarioOpen] = useState(false);
   const [scenarioDraft, setScenarioDraft] =
     useState<NewScenarioDraft>(EMPTY_SCENARIO_DRAFT);
@@ -292,11 +314,10 @@ export function useTicketOverviewState(
   const confirmAddScenario = (draft: NewScenarioDraft) => {
     setQaScenarios((current) => [
       ...current,
-      toChecklistItem(draft, `scenario-${current.length + 1}`),
+      toQaScenario(draft, `scenario-${current.length + 1}`),
     ]);
     setAddScenarioOpen(false);
   };
-  const qaFailedCount = countFailedScenarios(qaScenarios);
 
   const branch = ticket.dev.repository.branch;
   const [branchCopied, setBranchCopied] = useState(false);
@@ -331,6 +352,52 @@ export function useTicketOverviewState(
     );
     return () => clearTimeout(timer);
   }, [branchCopied, branchCopyTick]);
+
+  const [qaScenarios, setQaScenarios] = useState<readonly QaScenario[]>(
+    ticket.qa.scenarios,
+  );
+  const qaChecklist = toChecklistItems(qaScenarios);
+  const qaFailedCount = countFailedScenarios(qaChecklist);
+  const updateScenario = useCallback(
+    (
+      id: string,
+      patch: Partial<QaScenario> | ((prev: QaScenario) => Partial<QaScenario>),
+    ) => {
+      setQaScenarios((prev) =>
+        prev.map((s) =>
+          s.id === id
+            ? { ...s, ...(typeof patch === 'function' ? patch(s) : patch) }
+            : s,
+        ),
+      );
+    },
+    [],
+  );
+  const [editingSectionsById, setEditingSectionsById] = useState<
+    Record<string, readonly TestScenarioSection[]>
+  >({});
+  const setScenarioEditingSections = useCallback(
+    (id: string, sections: readonly TestScenarioSection[]) => {
+      setEditingSectionsById((prev) => ({ ...prev, [id]: sections }));
+    },
+    [],
+  );
+  const [expandedScenarioId, setExpandedScenarioId] = useState<string | null>(
+    null,
+  );
+  const toggleScenario = useCallback((id: string) => {
+    setExpandedScenarioId((prev) => (prev === id ? null : id));
+  }, []);
+  const [activeEnvironment, setActiveEnvironment] = useState(
+    ticket.qa.activeEnvironment,
+  );
+  const envSelector = useSelectorState();
+  const [statusSelectScenarioId, setStatusSelectScenarioId] = useState<
+    string | null
+  >(null);
+  const setStatusSelectOpen = useCallback((id: string, open: boolean) => {
+    setStatusSelectScenarioId(open ? id : null);
+  }, []);
 
   return {
     project,
@@ -380,6 +447,8 @@ export function useTicketOverviewState(
     setAddStageDraft,
     confirmAddStage,
     cancelAddStage,
+    qaScenarios,
+    qaChecklist,
     viewingTask,
     taskForm,
     setTaskForm,
@@ -387,7 +456,6 @@ export function useTicketOverviewState(
     closeTaskDrawer,
     taskDrawerTitle,
     taskSelectors,
-    qaScenarios,
     qaFailedCount,
     addScenarioOpen,
     scenarioDraft,
@@ -395,5 +463,15 @@ export function useTicketOverviewState(
     openAddScenario,
     cancelAddScenario,
     confirmAddScenario,
+    updateScenario,
+    editingSectionsById,
+    setScenarioEditingSections,
+    expandedScenarioId,
+    toggleScenario,
+    activeEnvironment,
+    setActiveEnvironment,
+    envSelector,
+    statusSelectScenarioId,
+    setStatusSelectOpen,
   };
 }

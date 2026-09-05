@@ -111,12 +111,6 @@
   gap: var(--ds-space-layout-section-gap);
 }
 
-.overviewPanel[hidden],
-.devPanel[hidden],
-.tabPanelEmpty[hidden] {
-  display: none;
-}
-
 .devPanel {
   display: flex;
   flex-direction: column;

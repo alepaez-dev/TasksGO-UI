@@ -1,0 +1,6 @@
+import { createIcon } from './createIcon';
+
+export const ScienceIcon = createIcon(
+  'M200-120q-51 0-72.5-45.5T138-250l202-310v-210h-40q-17 0-28.5-11.5T260-820q0-17 11.5-28.5T300-860h360q17 0 28.5 11.5T700-820q0 17-11.5 28.5T660-780h-40v210l202 310q29 45 7.5 90T760-120H200Zm120-140h320L520-546v-234h-80v234L320-260Zm-120 60h560-560Z',
+  'ScienceIcon',
+);
