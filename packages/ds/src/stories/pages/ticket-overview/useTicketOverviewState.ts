@@ -403,6 +403,7 @@ export function useTicketOverviewState(
     if (activeTab === 'qa') return;
     setEnvSelectorOpen(false);
     setStatusSelectScenarioId(null);
+    setEditingSectionsById({});
   }, [activeTab, setEnvSelectorOpen]);
 
   return {
