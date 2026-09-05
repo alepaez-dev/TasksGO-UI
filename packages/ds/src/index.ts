@@ -198,7 +198,7 @@ export {
   type TestScenarioSection,
 } from './components/TestScenarioCard';
 export { EditToggle, type EditToggleProps } from './components/EditToggle';
-export type { DialogLifecycleProps } from './types/dialog';
+export type { DialogLifecycleProps, DialogPresentation } from './types/dialog';
 export type { EvidenceItem } from './types/evidence';
 export {
   ConfirmDialog,

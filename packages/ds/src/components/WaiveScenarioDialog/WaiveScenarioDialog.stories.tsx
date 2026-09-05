@@ -4,6 +4,7 @@ import {
   WaiveScenarioDialog,
   type WaiveScenarioDialogProps,
 } from './WaiveScenarioDialog';
+import { mobileSheetStory } from '../../../.storybook/decorators';
 
 const meta: Meta<typeof WaiveScenarioDialog> = {
   title: 'Components/WaiveScenarioDialog',
@@ -46,4 +47,9 @@ export const Prefilled: Story = {
   render: () => (
     <Controlled initialReason="Dev confirmed out of scope for this ticket; tracked separately under ENG-2871." />
   ),
+};
+
+export const Sheet: Story = {
+  ...mobileSheetStory,
+  render: () => <Controlled presentation="sheet" />,
 };

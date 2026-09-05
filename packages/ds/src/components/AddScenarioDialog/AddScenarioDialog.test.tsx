@@ -567,4 +567,46 @@ describe('AddScenarioDialog', () => {
       screen.queryByRole('button', { name: 'shot.png' }),
     ).not.toBeInTheDocument();
   });
+
+  describe('sheet presentation', () => {
+    it('focuses the scenario name field when opened', () => {
+      render(
+        <AddScenarioDialog {...base} open presentation="sheet" value={empty} />,
+      );
+      expect(screen.getByLabelText(/Scenario name/)).toHaveFocus();
+    });
+
+    it('calls onCancel when dragged down past the dismiss threshold', () => {
+      const onCancel = vi.fn();
+      render(
+        <AddScenarioDialog
+          {...base}
+          open
+          presentation="sheet"
+          value={empty}
+          onCancel={onCancel}
+        />,
+      );
+      const dialog = screen.getByRole('dialog');
+      fireEvent.touchStart(dialog, { touches: [{ clientY: 100 }] });
+      fireEvent.touchMove(dialog, { touches: [{ clientY: 250 }] });
+      fireEvent.touchEnd(dialog);
+      expect(onCancel).toHaveBeenCalledTimes(1);
+    });
+
+    it('submits a valid draft', async () => {
+      const onConfirm = vi.fn();
+      render(
+        <AddScenarioDialog
+          {...base}
+          open
+          presentation="sheet"
+          value={filled}
+          onConfirm={onConfirm}
+        />,
+      );
+      await userEvent.click(submit());
+      expect(onConfirm).toHaveBeenCalledWith(filled);
+    });
+  });
 });

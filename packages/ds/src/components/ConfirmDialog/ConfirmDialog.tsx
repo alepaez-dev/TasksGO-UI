@@ -1,7 +1,10 @@
 import { forwardRef, useId, type ReactNode } from 'react';
 import { DialogShell } from '../_internal/DialogShell';
 import { DialogField } from '../_internal/DialogField';
-import { type DialogLifecycleProps } from '../../types/dialog';
+import {
+  type DialogLifecycleProps,
+  type DialogPresentation,
+} from '../../types/dialog';
 
 // assignability to DialogShell's tone is checked where it is spread through
 type ConfirmDialogTone = 'neutral' | 'warning';
@@ -15,11 +18,14 @@ export interface ConfirmDialogField {
 }
 
 export interface ConfirmDialogProps extends DialogLifecycleProps {
+  /** Dialog presentation only — sheets render no icon badge. */
   icon: ReactNode;
+  /** Dialog presentation only. */
   iconTone?: ConfirmDialogTone;
   title: string;
   description: ReactNode;
   field?: ConfirmDialogField;
+  presentation?: DialogPresentation;
   confirmLabel: string;
   onConfirm: () => void;
 }
