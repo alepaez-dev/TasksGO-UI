@@ -12,6 +12,7 @@ import { ChevronLeftIcon } from './chevronLeft';
 import { ChevronRightIcon } from './chevronRight';
 import { CloseIcon } from './close';
 import { CodeIcon } from './code';
+import { CommentFilledIcon } from './commentFilled';
 import { ConfirmationNumberIcon } from './confirmationNumber';
 import { ConfirmationNumberFilledIcon } from './confirmationNumberFilled';
 import { ContentCopyIcon } from './contentCopy';
@@ -35,9 +36,11 @@ import { ImageIcon } from './image';
 import { LinkIcon } from './link';
 import { LockIcon } from './lock';
 import { MenuIcon } from './menu';
+import { MoodIcon } from './mood';
 import { MoreHorizIcon } from './moreHoriz';
 import { OpenInNewIcon } from './openInNew';
 import { PersonIcon } from './person';
+import { ReplyIcon } from './reply';
 import { ScheduleIcon } from './schedule';
 import { ScienceIcon } from './science';
 import { SearchIcon } from './search';
@@ -62,6 +65,7 @@ export const iconRegistry = {
   chevron_right: ChevronRightIcon,
   close: CloseIcon,
   code: CodeIcon,
+  comment_filled: CommentFilledIcon,
   confirmation_number: ConfirmationNumberIcon,
   confirmation_number_filled: ConfirmationNumberFilledIcon,
   content_copy: ContentCopyIcon,
@@ -85,9 +89,11 @@ export const iconRegistry = {
   link: LinkIcon,
   lock: LockIcon,
   menu: MenuIcon,
+  mood: MoodIcon,
   more_horiz: MoreHorizIcon,
   open_in_new: OpenInNewIcon,
   person: PersonIcon,
+  reply: ReplyIcon,
   schedule: ScheduleIcon,
   science: ScienceIcon,
   search: SearchIcon,
