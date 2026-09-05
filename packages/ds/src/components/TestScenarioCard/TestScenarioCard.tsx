@@ -192,8 +192,12 @@ export const TestScenarioCard = forwardRef<
     useClickOutside(statusSelectRef, closeStatusSelect, statusSelectOpen);
 
     const applyStatus = (next: TestScenarioStatus) => {
+      const activated = document.activeElement;
       onStatusChange?.(next);
       requestAnimationFrame(() => {
+        if (activated instanceof HTMLElement && document.contains(activated)) {
+          return;
+        }
         const action =
           actionsRef.current?.querySelector<HTMLButtonElement>('button');
         if (action) action.focus();

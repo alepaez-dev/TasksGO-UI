@@ -398,6 +398,12 @@ export function useTicketOverviewState(
   const setStatusSelectOpen = useCallback((id: string, open: boolean) => {
     setStatusSelectScenarioId(open ? id : null);
   }, []);
+  const setEnvSelectorOpen = envSelector.onOpenChange;
+  useEffect(() => {
+    if (activeTab === 'qa') return;
+    setEnvSelectorOpen(false);
+    setStatusSelectScenarioId(null);
+  }, [activeTab, setEnvSelectorOpen]);
 
   return {
     project,
