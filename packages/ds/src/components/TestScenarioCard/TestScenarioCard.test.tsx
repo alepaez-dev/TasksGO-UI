@@ -2,7 +2,11 @@ import { createRef, useState } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
-import { TestScenarioCard, type TestScenarioSection } from './TestScenarioCard';
+import {
+  TestScenarioCard,
+  type TestScenarioSection,
+  type TestScenarioStatus,
+} from './TestScenarioCard';
 
 const base = {
   caseId: 'TC-402',
@@ -109,9 +113,54 @@ describe('TestScenarioCard', () => {
       />,
     );
     await userEvent.click(
-      screen.getByRole('button', { name: 'Mark as Passed' }),
+      screen.getByRole('button', { name: 'Mark as Failed' }),
     );
     expect(onStatusSelectOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('hides the matching Set-Status action and keeps focus on a survivor after activation', async () => {
+    function Controlled() {
+      const [status, setStatus] = useState<TestScenarioStatus>('pending');
+      return (
+        <TestScenarioCard
+          {...base}
+          status={status}
+          open
+          onStatusChange={setStatus}
+        />
+      );
+    }
+    render(<Controlled />);
+    // pending has no matching CTA — all three actions show
+    expect(
+      screen.getByRole('button', { name: 'Mark as Passed' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Mark as Failed' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Waive' })).toBeInTheDocument();
+
+    // activating an action unmounts it — focus must move to a survivor, not <body>
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Mark as Passed' }),
+    );
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', { name: 'Mark as Passed' }),
+      ).not.toBeInTheDocument();
+      expect(document.body).not.toHaveFocus();
+      expect(document.activeElement).toBe(
+        screen.getByRole('button', { name: 'Mark as Failed' }),
+      );
+    });
+
+    // and the now-current status hides the Waive action once waived
+    await userEvent.click(screen.getByRole('button', { name: 'Waive' }));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Waive' }),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it('emits onStatusChange from the Mark as Failed action', async () => {

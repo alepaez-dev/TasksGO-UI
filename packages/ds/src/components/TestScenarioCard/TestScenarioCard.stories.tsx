@@ -256,6 +256,56 @@ export const Collapsed: Story = {
   ),
 };
 
+export const ConnectedList: Story = {
+  render: () => (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        border: '1px solid var(--ds-color-border-default)',
+        borderRadius: 'var(--ds-radius-xl)',
+        backgroundColor: 'var(--ds-color-surface-primary)',
+      }}
+    >
+      <Controlled
+        position="first"
+        caseId="TC-402"
+        title="Verify Cache Hit on /v1/assets"
+        status="passed"
+        byline="Verified by Sarah K. · 2h ago"
+        assigneeInitial="SK"
+        assigneeLabel="Sarah K."
+        description="A second request within the TTL window is served from the edge cache."
+        expected="Response carries `X-Cache: HIT`."
+      />
+      <Controlled
+        position="middle"
+        caseId="TC-418"
+        title="Rate Limit Edge Case"
+        status="failed"
+        byline="Failed by Mike R. · 3d ago"
+        assigneeInitial="MR"
+        assigneeLabel="Mike R."
+        description="Requests exceeding the burst threshold should return 429."
+        expected="Gateway returns `429 Too Many Requests`."
+        actual="Stale cached body returned with `200 OK`."
+        open
+      />
+      <Controlled
+        position="last"
+        caseId="TC-431"
+        title="Browser-side TTL override persistence"
+        status="pending"
+        byline="Not run yet"
+        assigneeInitial="JD"
+        assigneeLabel="Jordan D."
+        description="Client TTL override should persist across reloads."
+        expected="Override survives a hard reload."
+      />
+    </div>
+  ),
+};
+
 export const Editing: Story = {
   render: () => (
     <Controlled

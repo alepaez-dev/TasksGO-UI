@@ -114,7 +114,7 @@ describe('useTicketOverviewState — add scenario', () => {
 
     const added = result.current.qaScenarios[before];
     expect(result.current.qaScenarios).toHaveLength(before + 1);
-    expect(added.label).toBe(DRAFT.name);
+    expect(added.title).toBe(DRAFT.name);
     expect(result.current.qaFailedCount).toBe(2);
   });
 });

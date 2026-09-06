@@ -27,7 +27,7 @@ test.describe('Ticket Overview page — tab navigation', () => {
     ).toBeVisible();
   });
 
-  test('clicking another tab switches selection and renders placeholder', async ({
+  test('clicking another tab switches selection and renders its panel', async ({
     page,
   }) => {
     const qaTab = page.getByRole('tab', { name: 'QA' });
@@ -38,7 +38,7 @@ test.describe('Ticket Overview page — tab navigation', () => {
       'false',
     );
     await expect(page.getByRole('tabpanel', { name: 'QA' })).toContainText(
-      'Nothing here yet.',
+      'Test Scenarios',
     );
     await expect(
       page.getByRole('heading', { name: 'Description' }),
@@ -94,17 +94,16 @@ test.describe('Ticket Overview page — overview content', () => {
   test('QA Summary shows scenarios checklist with 1 Failed', async ({
     page,
   }) => {
+    const overview = page.getByRole('tabpanel', { name: 'Overview' });
     await expect(
       page.getByRole('heading', { name: 'QA Summary' }),
     ).toBeVisible();
-    await expect(page.getByText('Scenarios Checklist')).toBeVisible();
-    await expect(page.getByText('1 Failed')).toBeVisible();
+    await expect(overview.getByText('Scenarios Checklist')).toBeVisible();
+    await expect(overview.getByText('1 Failed')).toBeVisible();
     await expect(
-      page.getByText('Cache hit ratio check on US-East-1 staging'),
+      overview.getByText('Verify Cache Hit on /v1/assets'),
     ).toBeVisible();
-    await expect(
-      page.getByText('Invalidation latency under 200ms'),
-    ).toBeVisible();
+    await expect(overview.getByText('Rate Limit Edge Case')).toBeVisible();
   });
 });
 

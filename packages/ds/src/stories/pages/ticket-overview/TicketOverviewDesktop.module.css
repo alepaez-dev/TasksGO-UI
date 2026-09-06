@@ -74,11 +74,6 @@
   gap: var(--ds-space-layout-section-gap);
 }
 
-.overviewPanel[hidden],
-.tabPanelEmpty[hidden] {
-  display: none;
-}
-
 .section {
   display: flex;
   flex-direction: column;
@@ -138,6 +133,13 @@
 
 .devScratchpad {
   --ds-scratchpad-toolbar-inset: var(--ds-space-ticket-content-padding-x);
+}
+
+.qaPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-scale-lg);
+  padding: var(--ds-space-scale-sm) var(--ds-space-scale-md);
 }
 
 .rightRail {

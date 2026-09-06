@@ -66,7 +66,9 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
               role="tab"
               id={idPrefix ? getTabId(idPrefix, item.value) : undefined}
               aria-controls={
-                idPrefix ? getTabPanelId(idPrefix, item.value) : undefined
+                idPrefix && selected
+                  ? getTabPanelId(idPrefix, item.value)
+                  : undefined
               }
               className={cn(
                 styles.tab,

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { countFailedScenarios, ticket, type ChecklistItem } from './shared';
+import { toChecklistItems } from './qaViewModel';
 
 const item = (status: ChecklistItem['status'], id: string): ChecklistItem => ({
   id,
@@ -31,6 +32,7 @@ describe('countFailedScenarios', () => {
   });
 
   it('matches the seeded ticket data the pages render', () => {
-    expect(countFailedScenarios(ticket.qaSummary.items)).toBe(1);
+    // the checklist is now a projection of the QA-tab scenarios
+    expect(countFailedScenarios(toChecklistItems(ticket.qa.scenarios))).toBe(1);
   });
 });

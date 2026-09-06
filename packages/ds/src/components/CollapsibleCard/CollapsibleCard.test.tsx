@@ -1,6 +1,6 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { CollapsibleCard } from './CollapsibleCard';
 
 describe('CollapsibleCard', () => {
@@ -26,6 +26,39 @@ describe('CollapsibleCard', () => {
       </CollapsibleCard>,
     );
     expect(screen.getByRole('group')).toHaveAttribute('open');
+  });
+
+  it('respects a controlled open prop', () => {
+    const { rerender } = render(
+      <CollapsibleCard header="Scenarios" open={false}>
+        Body
+      </CollapsibleCard>,
+    );
+    expect(screen.getByRole('group')).not.toHaveAttribute('open');
+    rerender(
+      <CollapsibleCard header="Scenarios" open>
+        Body
+      </CollapsibleCard>,
+    );
+    expect(screen.getByRole('group')).toHaveAttribute('open');
+  });
+
+  it('reports toggles through onOpenChange', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <CollapsibleCard
+        header="Scenarios"
+        open={false}
+        onOpenChange={onOpenChange}
+      >
+        Body
+      </CollapsibleCard>,
+    );
+    // jsdom flips `open` on click but never dispatches the native toggle event
+    const details = screen.getByRole('group');
+    fireEvent.click(screen.getByText('Scenarios'));
+    fireEvent(details, new Event('toggle', { bubbles: false }));
+    expect(onOpenChange).toHaveBeenCalledWith(true);
   });
 
   it('toggles open when the summary is clicked', () => {

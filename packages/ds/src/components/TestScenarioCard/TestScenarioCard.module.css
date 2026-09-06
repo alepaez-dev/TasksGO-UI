@@ -4,6 +4,26 @@
   background-color: var(--ds-color-surface-primary);
 }
 
+.card[data-position='first'],
+.card[data-position='middle'],
+.card[data-position='last'] {
+  border: none;
+  border-radius: 0;
+}
+
+.card[data-position='middle'],
+.card[data-position='last'] {
+  border-top: 1px solid var(--ds-color-border-default);
+}
+
+.card[data-position='first'] {
+  border-radius: var(--ds-radius-xl) var(--ds-radius-xl) 0 0;
+}
+
+.card[data-position='last'] {
+  border-radius: 0 0 var(--ds-radius-xl) var(--ds-radius-xl);
+}
+
 .header {
   position: relative;
   display: flex;
@@ -20,6 +40,19 @@
 
 .header:last-child {
   border-radius: var(--ds-radius-xl);
+}
+
+.card[data-position='middle'] .header,
+.card[data-position='last'] .header {
+  border-radius: 0;
+}
+
+.card[data-position='first'] .header:last-child {
+  border-radius: var(--ds-radius-xl) var(--ds-radius-xl) 0 0;
+}
+
+.card[data-position='last'] .header:last-child {
+  border-radius: 0 0 var(--ds-radius-xl) var(--ds-radius-xl);
 }
 
 .header:hover {
@@ -136,6 +169,11 @@
   position: relative;
   z-index: 2;
   flex-shrink: 0;
+  min-width: 5.5rem;
+}
+
+.statusSelectOpen {
+  z-index: var(--ds-z-dropdown);
 }
 
 .pillCaret {
@@ -151,16 +189,62 @@
   flex-shrink: 0;
 }
 
+.pillDot {
+  width: var(--ds-space-status-dot-size);
+  height: var(--ds-space-status-dot-size);
+  border-radius: var(--ds-radius-full);
+  flex-shrink: 0;
+  margin-right: var(--ds-space-scale-xs);
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--ds-color-text-secondary);
+  transition-property: transform;
+  transition-duration: var(--ds-transition-duration);
+  transition-timing-function: var(--ds-transition-timing-function);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
 .body {
+  display: grid;
+  grid-template-rows: 1fr;
+  border-top: 1px solid var(--ds-color-border-default);
+  animation: scenarioBodyExpand var(--ds-transition-duration)
+    var(--ds-transition-timing-function);
+}
+
+.bodyInner {
   display: flex;
   flex-direction: column;
   gap: var(--ds-space-scale-lg);
+  min-height: 0;
+  overflow: hidden;
   padding: var(--ds-space-scale-md)
     calc(
       var(--ds-space-scale-md) + var(--ds-space-checklist-row-badge-size) +
         var(--ds-space-scale-sm)
     );
-  border-top: 1px solid var(--ds-color-border-default);
+}
+
+@keyframes scenarioBodyExpand {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body {
+    animation: none;
+  }
 }
 
 .section {
