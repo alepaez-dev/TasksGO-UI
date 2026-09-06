@@ -260,6 +260,121 @@ describe('OptionList', () => {
     expect(screen.getByText('Stable')).toBeInTheDocument();
   });
 
+  it('renders a per-option description under the label', () => {
+    render(
+      <OptionList
+        options={[
+          {
+            value: 'passed',
+            label: 'Passed',
+            description: 'Scenario verified as working',
+          },
+          { value: 'failed', label: 'Failed' },
+        ]}
+        value="failed"
+        onSelect={vi.fn()}
+        aria-label="Statuses"
+      />,
+    );
+    expect(
+      screen.getByText('Scenario verified as working'),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the option name as the label and exposes the description separately', () => {
+    render(
+      <OptionList
+        options={[
+          {
+            value: 'waived',
+            label: 'Waived',
+            description: 'Skip — requires an explanation',
+          },
+        ]}
+        onSelect={vi.fn()}
+        aria-label="Statuses"
+      />,
+    );
+    const option = screen.getByRole('option');
+    expect(option).toHaveAccessibleName('Waived');
+    expect(option).toHaveAccessibleDescription(
+      'Skip — requires an explanation',
+    );
+  });
+
+  it('gives each option its own description, not a shared one', () => {
+    render(
+      <OptionList
+        options={[
+          { value: 'passed', label: 'Passed', description: 'Verified' },
+          { value: 'failed', label: 'Failed', description: 'Defect observed' },
+        ]}
+        onSelect={vi.fn()}
+        aria-label="Statuses"
+      />,
+    );
+    const [passed, failed] = screen.getAllByRole('option');
+    expect(passed).toHaveAccessibleDescription('Verified');
+    expect(failed).toHaveAccessibleDescription('Defect observed');
+  });
+
+  it('leaves an option without a description undescribed', () => {
+    render(
+      <OptionList options={options} onSelect={vi.fn()} aria-label="Options" />,
+    );
+    expect(screen.getAllByRole('option')[0]).toHaveAccessibleDescription('');
+  });
+
+  it('treats an empty description as no description', () => {
+    render(
+      <OptionList
+        options={[
+          { value: 'a', label: 'Alpha', description: '' },
+          { value: 'b', label: 'Beta' },
+        ]}
+        onSelect={vi.fn()}
+        aria-label="Options"
+      />,
+    );
+    const [empty, plain] = screen.getAllByRole('option');
+    expect(empty).not.toHaveAttribute('aria-describedby');
+    expect(empty.className).toBe(plain.className);
+  });
+
+  it('keeps the prefix in the option name', () => {
+    render(
+      <OptionList
+        options={[{ value: 'T-42', label: 'Edge caching', prefix: 'T-42' }]}
+        onSelect={vi.fn()}
+        aria-label="Tickets"
+      />,
+    );
+    expect(screen.getByRole('option')).toHaveAccessibleName(
+      'T-42 Edge caching',
+    );
+  });
+
+  it('names every option by its label, even with a text-bearing indicator', () => {
+    render(
+      <OptionList
+        options={[
+          { value: 'passed', label: 'Passed', description: 'Verified' },
+          { value: 'failed', label: 'Failed' },
+          { value: 'qa-02', label: 'QA-02', meta: 'Stable' },
+        ]}
+        onSelect={vi.fn()}
+        renderOptionIndicator={(option) => (
+          <span role="img" aria-label={option.label} />
+        )}
+        aria-label="Statuses"
+      />,
+    );
+    const names = screen
+      .getAllByRole('option')
+      .map((option) => option.getAttribute('aria-label'));
+    expect(names).toEqual(['Passed', 'Failed', 'QA-02']);
+  });
+
   it('forwards ref to the root element', () => {
     const ref = createRef<HTMLDivElement>();
     render(

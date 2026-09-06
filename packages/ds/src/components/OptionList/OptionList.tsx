@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  useId,
   type CSSProperties,
   type HTMLAttributes,
   type KeyboardEvent,
@@ -10,7 +11,12 @@ import type { IconName } from '../../icons';
 import { cn } from '../../utils/cn';
 import styles from './OptionList.module.css';
 
-type OptionBase = Readonly<{ value: string; label: string; meta?: ReactNode }>;
+type OptionBase = Readonly<{
+  value: string;
+  label: string;
+  description?: string;
+  meta?: ReactNode;
+}>;
 type DotOption = OptionBase & {
   icon?: never;
   iconColor?: never;
@@ -117,6 +123,7 @@ export const OptionList = forwardRef<HTMLDivElement, OptionListProps>(
     const renderIndicator =
       renderOptionIndicator ??
       ((option: OptionListOption) => defaultOptionIndicator(option, value));
+    const descriptionIdPrefix = useId();
 
     const handleOptionKeyDown =
       (optionValue: string) => (e: KeyboardEvent<HTMLDivElement>) => {
@@ -149,23 +156,43 @@ export const OptionList = forwardRef<HTMLDivElement, OptionListProps>(
           className={styles.options}
           aria-label={ariaLabel}
         >
-          {options.map((option) => {
+          {options.map((option, index) => {
             const isSelected = option.value === value;
+            const descriptionId = option.description
+              ? `${descriptionIdPrefix}-${index}-desc`
+              : undefined;
             return (
               <div
                 key={option.value}
                 role="option"
                 tabIndex={0}
                 aria-selected={isSelected}
+                aria-label={
+                  option.prefix == null
+                    ? option.label
+                    : `${option.prefix} ${option.label}`
+                }
+                aria-describedby={descriptionId}
                 className={cn(
                   styles.option,
                   isSelected && styles.optionSelected,
+                  descriptionId != null && styles.optionWithDescription,
                 )}
                 onClick={() => onSelect(option.value)}
                 onKeyDown={handleOptionKeyDown(option.value)}
               >
                 {renderIndicator(option)}
-                <span className={styles.optionLabel}>{option.label}</span>
+                <span className={styles.optionText}>
+                  <span className={styles.optionLabel}>{option.label}</span>
+                  {descriptionId != null && (
+                    <span
+                      id={descriptionId}
+                      className={styles.optionDescription}
+                    >
+                      {option.description}
+                    </span>
+                  )}
+                </span>
                 {option.meta != null && !isSelected && (
                   <span className={styles.optionMeta}>{option.meta}</span>
                 )}
