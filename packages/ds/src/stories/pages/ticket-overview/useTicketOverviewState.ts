@@ -193,6 +193,8 @@ export interface UseTicketOverviewState {
   taskDrawerTitle: string;
   taskSelectors: TaskDrawerSelectors;
   qaFailedCount: number;
+  qaSummaryOpen: boolean;
+  setQaSummaryOpen: (open: boolean) => void;
   addScenarioOpen: boolean;
   scenarioDraft: NewScenarioDraft;
   setScenarioDraft: (draft: NewScenarioDraft) => void;
@@ -204,6 +206,10 @@ export interface UseTicketOverviewState {
     patch: Partial<QaScenario> | ((prev: QaScenario) => Partial<QaScenario>),
   ) => void;
   editingSectionsById: Record<string, readonly TestScenarioSection[]>;
+  stepsExpandedById: Record<string, boolean>;
+  setStepsExpanded: (id: string, expanded: boolean) => void;
+  evidenceExpandedById: Record<string, boolean>;
+  setEvidenceExpanded: (id: string, expanded: boolean) => void;
   setScenarioEditingSections: (
     id: string,
     sections: readonly TestScenarioSection[],
@@ -357,6 +363,7 @@ export function useTicketOverviewState(
     ticket.qa.scenarios,
   );
   const qaChecklist = toChecklistItems(qaScenarios);
+  const [qaSummaryOpen, setQaSummaryOpen] = useState(true);
   const qaFailedCount = countFailedScenarios(qaChecklist);
   const updateScenario = useCallback(
     (
@@ -382,6 +389,18 @@ export function useTicketOverviewState(
     },
     [],
   );
+  const [stepsExpandedById, setStepsExpandedById] = useState<
+    Record<string, boolean>
+  >({});
+  const setStepsExpanded = useCallback((id: string, expanded: boolean) => {
+    setStepsExpandedById((prev) => ({ ...prev, [id]: expanded }));
+  }, []);
+  const [evidenceExpandedById, setEvidenceExpandedById] = useState<
+    Record<string, boolean>
+  >({});
+  const setEvidenceExpanded = useCallback((id: string, expanded: boolean) => {
+    setEvidenceExpandedById((prev) => ({ ...prev, [id]: expanded }));
+  }, []);
   const [expandedScenarioId, setExpandedScenarioId] = useState<string | null>(
     null,
   );
@@ -404,6 +423,8 @@ export function useTicketOverviewState(
     setEnvSelectorOpen(false);
     setStatusSelectScenarioId(null);
     setEditingSectionsById({});
+    setStepsExpandedById({});
+    setEvidenceExpandedById({});
   }, [activeTab, setEnvSelectorOpen]);
 
   return {
@@ -464,6 +485,8 @@ export function useTicketOverviewState(
     taskDrawerTitle,
     taskSelectors,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
     addScenarioOpen,
     scenarioDraft,
     setScenarioDraft,
@@ -473,6 +496,10 @@ export function useTicketOverviewState(
     updateScenario,
     editingSectionsById,
     setScenarioEditingSections,
+    stepsExpandedById,
+    setStepsExpanded,
+    evidenceExpandedById,
+    setEvidenceExpanded,
     expandedScenarioId,
     toggleScenario,
     activeEnvironment,

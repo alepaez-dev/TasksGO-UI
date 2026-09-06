@@ -158,6 +158,8 @@ function TicketOverviewRender({
     taskDrawerTitle,
     taskSelectors,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
     addScenarioOpen,
     scenarioDraft,
     setScenarioDraft,
@@ -166,6 +168,10 @@ function TicketOverviewRender({
     confirmAddScenario,
     updateScenario,
     editingSectionsById,
+    stepsExpandedById,
+    setStepsExpanded,
+    evidenceExpandedById,
+    setEvidenceExpanded,
     setScenarioEditingSections,
     expandedScenarioId,
     toggleScenario,
@@ -372,7 +378,8 @@ function TicketOverviewRender({
                           </span>
                         </div>
                         <CollapsibleCard
-                          defaultOpen
+                          open={qaSummaryOpen}
+                          onOpenChange={setQaSummaryOpen}
                           header={
                             <span className={styles.qaCardHeader}>
                               <span className={styles.qaCardTitle}>
@@ -483,6 +490,10 @@ function TicketOverviewRender({
                       statusSelectScenarioId={statusSelectScenarioId}
                       onStatusSelectOpenChange={setStatusSelectOpen}
                       editingSectionsById={editingSectionsById}
+                      stepsExpandedById={stepsExpandedById}
+                      onStepsExpandedChange={setStepsExpanded}
+                      evidenceExpandedById={evidenceExpandedById}
+                      onEvidenceExpandedChange={setEvidenceExpanded}
                       onEditingSectionsChange={setScenarioEditingSections}
                     />
                   </TicketTabPanel>

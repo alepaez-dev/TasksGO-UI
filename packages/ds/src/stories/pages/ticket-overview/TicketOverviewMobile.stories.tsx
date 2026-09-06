@@ -143,6 +143,8 @@ function TicketOverviewMobileRender({
     taskSelectors,
     qaChecklist,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
   } = useTicketOverviewState(scratchpadSeed, initialActiveTab);
   const activeProject = getProject('eng-core');
   const activeAssignee = getPerson(assignee);
@@ -362,7 +364,8 @@ function TicketOverviewMobileRender({
                   </span>
                 </div>
                 <CollapsibleCard
-                  defaultOpen
+                  open={qaSummaryOpen}
+                  onOpenChange={setQaSummaryOpen}
                   header={
                     <span className={styles.qaCardHeader}>
                       <span className={styles.qaCardTitle}>

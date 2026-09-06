@@ -28,6 +28,10 @@ export interface QaPanelProps {
   statusSelectScenarioId: string | null;
   onStatusSelectOpenChange: (id: string, open: boolean) => void;
   editingSectionsById: Record<string, readonly TestScenarioSection[]>;
+  stepsExpandedById: Record<string, boolean>;
+  onStepsExpandedChange: (id: string, expanded: boolean) => void;
+  evidenceExpandedById: Record<string, boolean>;
+  onEvidenceExpandedChange: (id: string, expanded: boolean) => void;
   onEditingSectionsChange: (
     id: string,
     sections: readonly TestScenarioSection[],
@@ -57,6 +61,10 @@ export function QaPanel({
   statusSelectScenarioId,
   onStatusSelectOpenChange,
   editingSectionsById,
+  stepsExpandedById,
+  onStepsExpandedChange,
+  evidenceExpandedById,
+  onEvidenceExpandedChange,
   onEditingSectionsChange,
 }: QaPanelProps) {
   const activeEnvIndex = environments.findIndex(
@@ -206,6 +214,14 @@ export function QaPanel({
                   onUpdateScenario(scenario.id, { status: next })
                 }
                 editingSections={editingSectionsById[scenario.id] ?? []}
+                stepsExpanded={stepsExpandedById[scenario.id] ?? false}
+                onStepsExpandedChange={(expanded) =>
+                  onStepsExpandedChange(scenario.id, expanded)
+                }
+                evidenceExpanded={evidenceExpandedById[scenario.id] ?? false}
+                onEvidenceExpandedChange={(expanded) =>
+                  onEvidenceExpandedChange(scenario.id, expanded)
+                }
                 onEditingSectionsChange={(sections) =>
                   onEditingSectionsChange(scenario.id, sections)
                 }
