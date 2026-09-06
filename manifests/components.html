@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/62 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">62/62 infos</a><span class="filter-pill ok" aria-disabled="true">278 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/62 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">62/62 infos</a><span class="filter-pill ok" aria-disabled="true">280 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -2760,7 +2760,7 @@ status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> CollapsibleCard</h2>
       <div class="badges">
-        <label for="c-13-components-collapsiblecard-props" class="badge ok as-toggle">3 prop types</label>
+        <label for="c-13-components-collapsiblecard-props" class="badge ok as-toggle">5 prop types</label>
         <label for="c-13-components-collapsiblecard-info" class="badge info as-toggle">1 info</label>
         <label for="c-13-components-collapsiblecard-stories" class="badge ok as-toggle">6 stories</label>
         
@@ -2794,13 +2794,17 @@ status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">3 prop types</span>
+              <span class="badge ok">5 prop types</span>
             </div>
             <pre><code>Component: src/components/CollapsibleCard/CollapsibleCard.tsx::CollapsibleCard</code></pre>
             <pre><code>Props:</code></pre>
             <pre><code>defaultOpen?: boolean
 
 header: ReactNode
+
+onOpenChange?: (open: boolean) =&gt; void
+
+open?: boolean
 
 variant?: &#39;default&#39; | &#39;subtle&#39; = &#39;default&#39;</code></pre>
           </div>
@@ -9575,9 +9579,9 @@ trailing?: ReactNode</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> TestScenarioCard</h2>
       <div class="badges">
-        <label for="c-57-components-testscenariocard-props" class="badge ok as-toggle">35 prop types</label>
+        <label for="c-57-components-testscenariocard-props" class="badge ok as-toggle">36 prop types</label>
         <label for="c-57-components-testscenariocard-info" class="badge info as-toggle">1 info</label>
-        <label for="c-57-components-testscenariocard-stories" class="badge ok as-toggle">6 stories</label>
+        <label for="c-57-components-testscenariocard-stories" class="badge ok as-toggle">7 stories</label>
         
       </div>
     </div>
@@ -9609,7 +9613,7 @@ trailing?: ReactNode</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">35 prop types</span>
+              <span class="badge ok">36 prop types</span>
             </div>
             <pre><code>Component: src/components/TestScenarioCard/TestScenarioCard.tsx::TestScenarioCard</code></pre>
             <pre><code>Props:</code></pre>
@@ -9670,6 +9674,11 @@ onTitleChange?: (value: string) =&gt; void
 onWaiveReasonChange?: (value: string) =&gt; void
 
 open?: boolean = false
+
+position?: | &#39;standalone&#39;
+| &#39;first&#39;
+| &#39;middle&#39;
+| &#39;last&#39; = &#39;standalone&#39;
 
 status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39; | &#39;waived&#39;
 
@@ -9836,6 +9845,61 @@ waiveReason?: string</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
+                <span class="ex-name">Connected List</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const ConnectedList = () =&gt; (
+  &lt;div
+    style={{
+      display: &#39;flex&#39;,
+      flexDirection: &#39;column&#39;,
+      border: &#39;1px solid var(--ds-color-border-default)&#39;,
+      borderRadius: &#39;var(--ds-radius-xl)&#39;,
+      backgroundColor: &#39;var(--ds-color-surface-primary)&#39;,
+    }}
+  &gt;
+    &lt;Controlled
+      position=&quot;first&quot;
+      caseId=&quot;TC-402&quot;
+      title=&quot;Verify Cache Hit on /v1/assets&quot;
+      status=&quot;passed&quot;
+      byline=&quot;Verified by Sarah K. · 2h ago&quot;
+      assigneeInitial=&quot;SK&quot;
+      assigneeLabel=&quot;Sarah K.&quot;
+      description=&quot;A second request within the TTL window is served from the edge cache.&quot;
+      expected=&quot;Response carries `X-Cache: HIT`.&quot;
+    /&gt;
+    &lt;Controlled
+      position=&quot;middle&quot;
+      caseId=&quot;TC-418&quot;
+      title=&quot;Rate Limit Edge Case&quot;
+      status=&quot;failed&quot;
+      byline=&quot;Failed by Mike R. · 3d ago&quot;
+      assigneeInitial=&quot;MR&quot;
+      assigneeLabel=&quot;Mike R.&quot;
+      description=&quot;Requests exceeding the burst threshold should return 429.&quot;
+      expected=&quot;Gateway returns `429 Too Many Requests`.&quot;
+      actual=&quot;Stale cached body returned with `200 OK`.&quot;
+      open
+    /&gt;
+    &lt;Controlled
+      position=&quot;last&quot;
+      caseId=&quot;TC-431&quot;
+      title=&quot;Browser-side TTL override persistence&quot;
+      status=&quot;pending&quot;
+      byline=&quot;Not run yet&quot;
+      assigneeInitial=&quot;JD&quot;
+      assigneeLabel=&quot;Jordan D.&quot;
+      description=&quot;Client TTL override should persist across reloads.&quot;
+      expected=&quot;Override survives a hard reload.&quot;
+    /&gt;
+  &lt;/div&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
                 <span class="ex-name">Editing</span>
                 <span class="badge ok">story ok</span>
               </div>
@@ -9888,7 +9952,7 @@ waiveReason?: string</code></pre>
       <div class="badges">
         <label for="c-58-pages-ticket-err" class="badge err as-toggle">prop type error</label>
         <label for="c-58-pages-ticket-info" class="badge info as-toggle">1 info</label>
-        <label for="c-58-pages-ticket-stories" class="badge ok as-toggle">1 story</label>
+        <label for="c-58-pages-ticket-stories" class="badge ok as-toggle">2 stories</label>
         
       </div>
     </div>
@@ -9912,16 +9976,16 @@ waiveReason?: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  678 | }
-  679 |
-&gt; 680 | const meta: Meta = {
+  738 | }
+  739 |
+&gt; 740 | const meta: Meta = {
       | ^
-  681 |   title: &#39;Pages/Ticket&#39;,
-  682 |   parameters: {
-  683 |     layout: &#39;fullscreen&#39;,
+  741 |   title: &#39;Pages/Ticket&#39;,
+  742 |   parameters: {
+  743 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
-import { useEffect, useRef } from &#39;react&#39;;
+import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
 import { desktopViewports } from &#39;../../../../.storybook/preview&#39;;
 import { Sidebar } from &#39;../../../components/Sidebar&#39;;
@@ -9958,6 +10022,7 @@ import {
 import { useMarkdownEditor } from &#39;../../../hooks/useMarkdownEditor&#39;;
 import { useTicketOverviewState } from &#39;./useTicketOverviewState&#39;;
 import { DevDetailsPanel } from &#39;./DevDetailsPanel&#39;;
+import { QaPanel } from &#39;./QaPanel&#39;;
 import { DevDetailsCard } from &#39;./DevDetailsCard&#39;;
 import {
   devScratchpadTask,
@@ -9979,7 +10044,30 @@ const TAB_ID_PREFIX = &#39;ticket-overview&#39;;
 
 const uploadImage = (file: File) =&gt; Promise.resolve(URL.createObjectURL(file));
 
-function TicketOverviewRender() {
+function TicketTabPanel({
+  value,
+  className,
+  children,
+}: {
+  value: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    &lt;div
+      role=&quot;tabpanel&quot;
+      id={getTabPanelId(TAB_ID_PREFIX, value)}
+      aria-labelledby={getTabId(TAB_ID_PREFIX, value)}
+      className={className}
+    &gt;
+      {children}
+    &lt;/div&gt;
+  );
+}
+
+function TicketOverviewRender({
+  initialActiveTab = &#39;overview&#39;,
+}: { initialActiveTab?: string } = {}) {
   const {
     project,
     setProject,
@@ -10047,22 +10135,39 @@ function TicketOverviewRender() {
     setAddStageDraft,
     confirmAddStage,
     cancelAddStage,
+    qaScenarios,
+    qaChecklist,
     viewingTask,
     taskForm,
     setTaskForm,
-    openTaskDrawer,
     closeTaskDrawer,
+    openTaskDrawer,
     taskDrawerTitle,
     taskSelectors,
-    qaScenarios,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
     addScenarioOpen,
     scenarioDraft,
     setScenarioDraft,
     openAddScenario,
     cancelAddScenario,
     confirmAddScenario,
-  } = useTicketOverviewState();
+    updateScenario,
+    editingSectionsById,
+    stepsExpandedById,
+    setStepsExpanded,
+    evidenceExpandedById,
+    setEvidenceExpanded,
+    setScenarioEditingSections,
+    expandedScenarioId,
+    toggleScenario,
+    activeEnvironment,
+    setActiveEnvironment,
+    envSelector,
+    statusSelectScenarioId,
+    setStatusSelectOpen,
+  } = useTicketOverviewState(undefined, initialActiveTab);
   const activeProject = getProject(project);
   const activeAssignee = getPerson(assignee);
   const activeReporter = getPerson(reporter);
@@ -10220,147 +10325,166 @@ function TicketOverviewRender() {
 
             &lt;div className={styles.scrollArea}&gt;
               &lt;div className={styles.content}&gt;
-                &lt;div
-                  role=&quot;tabpanel&quot;
-                  id={getTabPanelId(TAB_ID_PREFIX, &#39;overview&#39;)}
-                  aria-labelledby={getTabId(TAB_ID_PREFIX, &#39;overview&#39;)}
-                  className={styles.overviewPanel}
-                  hidden={activeTab !== &#39;overview&#39;}
-                &gt;
-                  &lt;div className={styles.bodyCard}&gt;
-                    &lt;EditableMarkdown
-                      className={styles.bodyEditable}
-                      editing={bodyEditing}
-                      value={body}
-                      onChange={setBody}
-                      onRequestEdit={() =&gt; {
-                        bodySnapshot.current = body;
-                        setBodyEditing(true);
-                      }}
-                      onCancel={() =&gt; {
-                        setBody(bodySnapshot.current);
-                        setBodyEditing(false);
-                      }}
-                      onSave={() =&gt; setBodyEditing(false)}
-                      textareaRef={textareaRef}
-                      editButtonRef={editButtonRef}
-                      onAction={applyAction}
-                      wordCount={wordCount}
-                      isUploading={isUploading}
-                      onInsertImageFiles={insertImageFiles}
-                      editLabel=&quot;Edit ticket template&quot;
-                    /&gt;
-
-                    &lt;section className={styles.section}&gt;
-                      &lt;div className={styles.qaHeader}&gt;
-                        &lt;SectionHeader headingLevel={2}&gt;
-                          QA Summary
-                        &lt;/SectionHeader&gt;
-                        &lt;span className={styles.autoGenerated}&gt;
-                          &lt;Icon name=&quot;lock&quot; size=&quot;sm&quot; /&gt;
-                          auto-generated
-                        &lt;/span&gt;
-                      &lt;/div&gt;
-                      &lt;CollapsibleCard
-                        defaultOpen
-                        header={
-                          &lt;span className={styles.qaCardHeader}&gt;
-                            &lt;span className={styles.qaCardTitle}&gt;
-                              {ticket.qaSummary.title}
-                            &lt;/span&gt;
-                            &lt;Badge variant=&quot;critical&quot;&gt;
-                              {qaFailedCount} Failed
-                            &lt;/Badge&gt;
-                            &lt;span className={styles.qaCardMeta}&gt;
-                              {ticket.qaSummary.lastChecked}
-                            &lt;/span&gt;
-                          &lt;/span&gt;
-                        }
-                      &gt;
-                        {qaScenarios.map((item) =&gt; (
-                          &lt;ChecklistRow
-                            key={item.id}
-                            status={item.status}
-                            label={item.label}
-                            onClick={() =&gt; {}}
-                            meta={
-                              item.metaVariant ? (
-                                &lt;Badge variant={item.metaVariant}&gt;
-                                  {item.meta}
-                                &lt;/Badge&gt;
-                              ) : (
-                                item.meta
-                              )
-                            }
-                          /&gt;
-                        ))}
-                      &lt;/CollapsibleCard&gt;
-                      &lt;Button
-                        variant=&quot;ghost&quot;
-                        size=&quot;sm&quot;
-                        className={styles.createScenario}
-                        onClick={() =&gt; setActiveTab(&#39;qa&#39;)}
-                      &gt;
-                        &lt;Icon name=&quot;add&quot; size=&quot;sm&quot; /&gt;
-                        Create scenario
-                      &lt;/Button&gt;
-                    &lt;/section&gt;
-                  &lt;/div&gt;
-                &lt;/div&gt;
-
-                {([&#39;dev&#39;, &#39;qa&#39;, &#39;activity&#39;] as const).map((tabValue) =&gt; (
-                  &lt;div
-                    key={tabValue}
-                    role=&quot;tabpanel&quot;
-                    id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
-                    aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
-                    className={
-                      tabValue === &#39;dev&#39;
-                        ? styles.tabPanel
-                        : styles.tabPanelEmpty
-                    }
-                    hidden={activeTab !== tabValue}
+                {activeTab === &#39;overview&#39; &amp;&amp; (
+                  &lt;TicketTabPanel
+                    value=&quot;overview&quot;
+                    className={styles.overviewPanel}
                   &gt;
-                    {tabValue === &#39;dev&#39; ? (
-                      &lt;Scratchpad
-                        className={styles.devScratchpad}
-                        aria-label=&quot;Dev scratchpad&quot;
-                        title=&quot;Scratchpad / Private Notes&quot;
-                        status={
-                          &lt;&gt;
-                            {/* Decorative */}
-                            &lt;StatusDot
-                              variant=&quot;active&quot;
-                              label=&quot;Saved&quot;
-                              aria-hidden=&quot;true&quot;
-                            /&gt;
-                            Auto-saved · 2m ago
-                          &lt;/&gt;
-                        }
-                        placeholder=&quot;Click to add more context…&quot;
-                        highlightBadges
-                        formattingToolbar
-                        taskBadgeInfo={devScratchpadTask}
-                        onViewTask={openTaskDrawer}
-                        lines={scratchpad.lines}
-                        onReorder={scratchpad.onReorder}
-                        onLineTextChange={scratchpad.onLineTextChange}
-                        onLineToggle={scratchpad.onLineToggle}
-                        onLineDelete={scratchpad.onLineDelete}
-                        onAddLine={scratchpad.onAddLine}
-                        autoFocusLineId={scratchpad.autoFocusLineId}
-                        editingLineId={scratchpad.editingLineId}
-                        onLineStartEdit={scratchpad.onLineStartEdit}
-                        onLineStopEdit={scratchpad.onLineStopEdit}
-                        openBadgeId={scratchpad.openBadgeId}
-                        openBadgeManagesFocus={scratchpad.openBadgeManagesFocus}
-                        onBadgeOpenChange={scratchpad.onBadgeOpenChange}
+                    &lt;div className={styles.bodyCard}&gt;
+                      &lt;EditableMarkdown
+                        className={styles.bodyEditable}
+                        editing={bodyEditing}
+                        value={body}
+                        onChange={setBody}
+                        onRequestEdit={() =&gt; {
+                          bodySnapshot.current = body;
+                          setBodyEditing(true);
+                        }}
+                        onCancel={() =&gt; {
+                          setBody(bodySnapshot.current);
+                          setBodyEditing(false);
+                        }}
+                        onSave={() =&gt; setBodyEditing(false)}
+                        textareaRef={textareaRef}
+                        editButtonRef={editButtonRef}
+                        onAction={applyAction}
+                        wordCount={wordCount}
+                        isUploading={isUploading}
+                        onInsertImageFiles={insertImageFiles}
+                        editLabel=&quot;Edit ticket template&quot;
                       /&gt;
-                    ) : (
-                      &#39;Nothing here yet.&#39;
-                    )}
-                  &lt;/div&gt;
-                ))}
+
+                      &lt;section className={styles.section}&gt;
+                        &lt;div className={styles.qaHeader}&gt;
+                          &lt;SectionHeader headingLevel={2}&gt;
+                            QA Summary
+                          &lt;/SectionHeader&gt;
+                          &lt;span className={styles.autoGenerated}&gt;
+                            &lt;Icon name=&quot;lock&quot; size=&quot;sm&quot; /&gt;
+                            auto-generated
+                          &lt;/span&gt;
+                        &lt;/div&gt;
+                        &lt;CollapsibleCard
+                          open={qaSummaryOpen}
+                          onOpenChange={setQaSummaryOpen}
+                          header={
+                            &lt;span className={styles.qaCardHeader}&gt;
+                              &lt;span className={styles.qaCardTitle}&gt;
+                                {ticket.qaSummary.title}
+                              &lt;/span&gt;
+                              {qaFailedCount &gt; 0 &amp;&amp; (
+                                &lt;Badge variant=&quot;critical&quot;&gt;
+                                  {qaFailedCount} Failed
+                                &lt;/Badge&gt;
+                              )}
+                              &lt;span className={styles.qaCardMeta}&gt;
+                                {ticket.qaSummary.lastChecked}
+                              &lt;/span&gt;
+                            &lt;/span&gt;
+                          }
+                        &gt;
+                          {qaChecklist.map((item) =&gt; (
+                            &lt;ChecklistRow
+                              key={item.id}
+                              status={item.status}
+                              label={item.label}
+                              onClick={() =&gt; {}}
+                              meta={
+                                item.metaVariant ? (
+                                  &lt;Badge variant={item.metaVariant}&gt;
+                                    {item.meta}
+                                  &lt;/Badge&gt;
+                                ) : (
+                                  item.meta
+                                )
+                              }
+                            /&gt;
+                          ))}
+                        &lt;/CollapsibleCard&gt;
+                        &lt;Button
+                          variant=&quot;ghost&quot;
+                          size=&quot;sm&quot;
+                          className={styles.createScenario}
+                          onClick={() =&gt; setActiveTab(&#39;qa&#39;)}
+                        &gt;
+                          &lt;Icon name=&quot;add&quot; size=&quot;sm&quot; /&gt;
+                          Create scenario
+                        &lt;/Button&gt;
+                      &lt;/section&gt;
+                    &lt;/div&gt;
+                  &lt;/TicketTabPanel&gt;
+                )}
+
+                {activeTab === &#39;dev&#39; &amp;&amp; (
+                  &lt;TicketTabPanel value=&quot;dev&quot; className={styles.tabPanel}&gt;
+                    &lt;Scratchpad
+                      className={styles.devScratchpad}
+                      aria-label=&quot;Dev scratchpad&quot;
+                      title=&quot;Scratchpad / Private Notes&quot;
+                      status={
+                        &lt;&gt;
+                          {/* Decorative */}
+                          &lt;StatusDot
+                            variant=&quot;active&quot;
+                            label=&quot;Saved&quot;
+                            aria-hidden=&quot;true&quot;
+                          /&gt;
+                          Auto-saved · 2m ago
+                        &lt;/&gt;
+                      }
+                      placeholder=&quot;Click to add more context…&quot;
+                      highlightBadges
+                      formattingToolbar
+                      taskBadgeInfo={devScratchpadTask}
+                      onViewTask={openTaskDrawer}
+                      lines={scratchpad.lines}
+                      onReorder={scratchpad.onReorder}
+                      onLineTextChange={scratchpad.onLineTextChange}
+                      onLineToggle={scratchpad.onLineToggle}
+                      onLineDelete={scratchpad.onLineDelete}
+                      onAddLine={scratchpad.onAddLine}
+                      autoFocusLineId={scratchpad.autoFocusLineId}
+                      editingLineId={scratchpad.editingLineId}
+                      onLineStartEdit={scratchpad.onLineStartEdit}
+                      onLineStopEdit={scratchpad.onLineStopEdit}
+                      openBadgeId={scratchpad.openBadgeId}
+                      openBadgeManagesFocus={scratchpad.openBadgeManagesFocus}
+                      onBadgeOpenChange={scratchpad.onBadgeOpenChange}
+                    /&gt;
+                  &lt;/TicketTabPanel&gt;
+                )}
+
+                {activeTab === &#39;activity&#39; &amp;&amp; (
+                  &lt;TicketTabPanel
+                    value=&quot;activity&quot;
+                    className={styles.tabPanelEmpty}
+                  &gt;
+                    Nothing here yet.
+                  &lt;/TicketTabPanel&gt;
+                )}
+
+                {activeTab === &#39;qa&#39; &amp;&amp; (
+                  &lt;TicketTabPanel value=&quot;qa&quot; className={styles.qaPanel}&gt;
+                    &lt;QaPanel
+                      environments={ticket.qa.environments}
+                      activeEnvironment={activeEnvironment}
+                      onEnvironmentChange={setActiveEnvironment}
+                      envSelector={envSelector}
+                      scenarios={qaScenarios}
+                      onUpdateScenario={updateScenario}
+                      expandedScenarioId={expandedScenarioId}
+                      onToggleScenario={toggleScenario}
+                      statusSelectScenarioId={statusSelectScenarioId}
+                      onStatusSelectOpenChange={setStatusSelectOpen}
+                      editingSectionsById={editingSectionsById}
+                      stepsExpandedById={stepsExpandedById}
+                      onStepsExpandedChange={setStepsExpanded}
+                      evidenceExpandedById={evidenceExpandedById}
+                      onEvidenceExpandedChange={setEvidenceExpanded}
+                      onEditingSectionsChange={setScenarioEditingSections}
+                    /&gt;
+                  &lt;/TicketTabPanel&gt;
+                )}
               &lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
@@ -10627,6 +10751,10 @@ type Story = StoryObj;
 export const Default: Story = {
   render: () =&gt; &lt;TicketOverviewRender /&gt;,
 };
+
+export const Qa: Story = {
+  render: () =&gt; &lt;TicketOverviewRender initialActiveTab=&quot;qa&quot; /&gt;,
+};
 </code></pre></div>
     </div>
         </div>
@@ -10668,6 +10796,7 @@ export const Default: Story = {
     NavItem,
     PipelineHierarchyPanel,
     PropertyRow,
+    QaPanel,
     Scratchpad,
     SectionHeader,
     Selector,
@@ -10691,6 +10820,15 @@ export const Default: Story = {
               
               
               <pre><code>const Default = () =&gt; &lt;TicketOverviewRender /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Qa</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Qa = () =&gt; &lt;TicketOverviewRender initialActiveTab=&quot;qa&quot; /&gt;;</code></pre>
             </div>
         </div>
     
@@ -11761,7 +11899,7 @@ export const EmptyState: Story = {
       <div class="badges">
         <label for="c-error-1-pages-ticket-err" class="badge err as-toggle">prop type error</label>
         <label for="c-error-1-pages-ticket-info" class="badge info as-toggle">1 info</label>
-        <label for="c-error-1-pages-ticket-stories" class="badge ok as-toggle">1 story</label>
+        <label for="c-error-1-pages-ticket-stories" class="badge ok as-toggle">2 stories</label>
         
       </div>
     </div>
@@ -11785,16 +11923,16 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  678 | }
-  679 |
-&gt; 680 | const meta: Meta = {
+  738 | }
+  739 |
+&gt; 740 | const meta: Meta = {
       | ^
-  681 |   title: &#39;Pages/Ticket&#39;,
-  682 |   parameters: {
-  683 |     layout: &#39;fullscreen&#39;,
+  741 |   title: &#39;Pages/Ticket&#39;,
+  742 |   parameters: {
+  743 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
-import { useEffect, useRef } from &#39;react&#39;;
+import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
 import { desktopViewports } from &#39;../../../../.storybook/preview&#39;;
 import { Sidebar } from &#39;../../../components/Sidebar&#39;;
@@ -11831,6 +11969,7 @@ import {
 import { useMarkdownEditor } from &#39;../../../hooks/useMarkdownEditor&#39;;
 import { useTicketOverviewState } from &#39;./useTicketOverviewState&#39;;
 import { DevDetailsPanel } from &#39;./DevDetailsPanel&#39;;
+import { QaPanel } from &#39;./QaPanel&#39;;
 import { DevDetailsCard } from &#39;./DevDetailsCard&#39;;
 import {
   devScratchpadTask,
@@ -11852,7 +11991,30 @@ const TAB_ID_PREFIX = &#39;ticket-overview&#39;;
 
 const uploadImage = (file: File) =&gt; Promise.resolve(URL.createObjectURL(file));
 
-function TicketOverviewRender() {
+function TicketTabPanel({
+  value,
+  className,
+  children,
+}: {
+  value: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    &lt;div
+      role=&quot;tabpanel&quot;
+      id={getTabPanelId(TAB_ID_PREFIX, value)}
+      aria-labelledby={getTabId(TAB_ID_PREFIX, value)}
+      className={className}
+    &gt;
+      {children}
+    &lt;/div&gt;
+  );
+}
+
+function TicketOverviewRender({
+  initialActiveTab = &#39;overview&#39;,
+}: { initialActiveTab?: string } = {}) {
   const {
     project,
     setProject,
@@ -11920,22 +12082,39 @@ function TicketOverviewRender() {
     setAddStageDraft,
     confirmAddStage,
     cancelAddStage,
+    qaScenarios,
+    qaChecklist,
     viewingTask,
     taskForm,
     setTaskForm,
-    openTaskDrawer,
     closeTaskDrawer,
+    openTaskDrawer,
     taskDrawerTitle,
     taskSelectors,
-    qaScenarios,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
     addScenarioOpen,
     scenarioDraft,
     setScenarioDraft,
     openAddScenario,
     cancelAddScenario,
     confirmAddScenario,
-  } = useTicketOverviewState();
+    updateScenario,
+    editingSectionsById,
+    stepsExpandedById,
+    setStepsExpanded,
+    evidenceExpandedById,
+    setEvidenceExpanded,
+    setScenarioEditingSections,
+    expandedScenarioId,
+    toggleScenario,
+    activeEnvironment,
+    setActiveEnvironment,
+    envSelector,
+    statusSelectScenarioId,
+    setStatusSelectOpen,
+  } = useTicketOverviewState(undefined, initialActiveTab);
   const activeProject = getProject(project);
   const activeAssignee = getPerson(assignee);
   const activeReporter = getPerson(reporter);
@@ -12093,147 +12272,166 @@ function TicketOverviewRender() {
 
             &lt;div className={styles.scrollArea}&gt;
               &lt;div className={styles.content}&gt;
-                &lt;div
-                  role=&quot;tabpanel&quot;
-                  id={getTabPanelId(TAB_ID_PREFIX, &#39;overview&#39;)}
-                  aria-labelledby={getTabId(TAB_ID_PREFIX, &#39;overview&#39;)}
-                  className={styles.overviewPanel}
-                  hidden={activeTab !== &#39;overview&#39;}
-                &gt;
-                  &lt;div className={styles.bodyCard}&gt;
-                    &lt;EditableMarkdown
-                      className={styles.bodyEditable}
-                      editing={bodyEditing}
-                      value={body}
-                      onChange={setBody}
-                      onRequestEdit={() =&gt; {
-                        bodySnapshot.current = body;
-                        setBodyEditing(true);
-                      }}
-                      onCancel={() =&gt; {
-                        setBody(bodySnapshot.current);
-                        setBodyEditing(false);
-                      }}
-                      onSave={() =&gt; setBodyEditing(false)}
-                      textareaRef={textareaRef}
-                      editButtonRef={editButtonRef}
-                      onAction={applyAction}
-                      wordCount={wordCount}
-                      isUploading={isUploading}
-                      onInsertImageFiles={insertImageFiles}
-                      editLabel=&quot;Edit ticket template&quot;
-                    /&gt;
-
-                    &lt;section className={styles.section}&gt;
-                      &lt;div className={styles.qaHeader}&gt;
-                        &lt;SectionHeader headingLevel={2}&gt;
-                          QA Summary
-                        &lt;/SectionHeader&gt;
-                        &lt;span className={styles.autoGenerated}&gt;
-                          &lt;Icon name=&quot;lock&quot; size=&quot;sm&quot; /&gt;
-                          auto-generated
-                        &lt;/span&gt;
-                      &lt;/div&gt;
-                      &lt;CollapsibleCard
-                        defaultOpen
-                        header={
-                          &lt;span className={styles.qaCardHeader}&gt;
-                            &lt;span className={styles.qaCardTitle}&gt;
-                              {ticket.qaSummary.title}
-                            &lt;/span&gt;
-                            &lt;Badge variant=&quot;critical&quot;&gt;
-                              {qaFailedCount} Failed
-                            &lt;/Badge&gt;
-                            &lt;span className={styles.qaCardMeta}&gt;
-                              {ticket.qaSummary.lastChecked}
-                            &lt;/span&gt;
-                          &lt;/span&gt;
-                        }
-                      &gt;
-                        {qaScenarios.map((item) =&gt; (
-                          &lt;ChecklistRow
-                            key={item.id}
-                            status={item.status}
-                            label={item.label}
-                            onClick={() =&gt; {}}
-                            meta={
-                              item.metaVariant ? (
-                                &lt;Badge variant={item.metaVariant}&gt;
-                                  {item.meta}
-                                &lt;/Badge&gt;
-                              ) : (
-                                item.meta
-                              )
-                            }
-                          /&gt;
-                        ))}
-                      &lt;/CollapsibleCard&gt;
-                      &lt;Button
-                        variant=&quot;ghost&quot;
-                        size=&quot;sm&quot;
-                        className={styles.createScenario}
-                        onClick={() =&gt; setActiveTab(&#39;qa&#39;)}
-                      &gt;
-                        &lt;Icon name=&quot;add&quot; size=&quot;sm&quot; /&gt;
-                        Create scenario
-                      &lt;/Button&gt;
-                    &lt;/section&gt;
-                  &lt;/div&gt;
-                &lt;/div&gt;
-
-                {([&#39;dev&#39;, &#39;qa&#39;, &#39;activity&#39;] as const).map((tabValue) =&gt; (
-                  &lt;div
-                    key={tabValue}
-                    role=&quot;tabpanel&quot;
-                    id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
-                    aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
-                    className={
-                      tabValue === &#39;dev&#39;
-                        ? styles.tabPanel
-                        : styles.tabPanelEmpty
-                    }
-                    hidden={activeTab !== tabValue}
+                {activeTab === &#39;overview&#39; &amp;&amp; (
+                  &lt;TicketTabPanel
+                    value=&quot;overview&quot;
+                    className={styles.overviewPanel}
                   &gt;
-                    {tabValue === &#39;dev&#39; ? (
-                      &lt;Scratchpad
-                        className={styles.devScratchpad}
-                        aria-label=&quot;Dev scratchpad&quot;
-                        title=&quot;Scratchpad / Private Notes&quot;
-                        status={
-                          &lt;&gt;
-                            {/* Decorative */}
-                            &lt;StatusDot
-                              variant=&quot;active&quot;
-                              label=&quot;Saved&quot;
-                              aria-hidden=&quot;true&quot;
-                            /&gt;
-                            Auto-saved · 2m ago
-                          &lt;/&gt;
-                        }
-                        placeholder=&quot;Click to add more context…&quot;
-                        highlightBadges
-                        formattingToolbar
-                        taskBadgeInfo={devScratchpadTask}
-                        onViewTask={openTaskDrawer}
-                        lines={scratchpad.lines}
-                        onReorder={scratchpad.onReorder}
-                        onLineTextChange={scratchpad.onLineTextChange}
-                        onLineToggle={scratchpad.onLineToggle}
-                        onLineDelete={scratchpad.onLineDelete}
-                        onAddLine={scratchpad.onAddLine}
-                        autoFocusLineId={scratchpad.autoFocusLineId}
-                        editingLineId={scratchpad.editingLineId}
-                        onLineStartEdit={scratchpad.onLineStartEdit}
-                        onLineStopEdit={scratchpad.onLineStopEdit}
-                        openBadgeId={scratchpad.openBadgeId}
-                        openBadgeManagesFocus={scratchpad.openBadgeManagesFocus}
-                        onBadgeOpenChange={scratchpad.onBadgeOpenChange}
+                    &lt;div className={styles.bodyCard}&gt;
+                      &lt;EditableMarkdown
+                        className={styles.bodyEditable}
+                        editing={bodyEditing}
+                        value={body}
+                        onChange={setBody}
+                        onRequestEdit={() =&gt; {
+                          bodySnapshot.current = body;
+                          setBodyEditing(true);
+                        }}
+                        onCancel={() =&gt; {
+                          setBody(bodySnapshot.current);
+                          setBodyEditing(false);
+                        }}
+                        onSave={() =&gt; setBodyEditing(false)}
+                        textareaRef={textareaRef}
+                        editButtonRef={editButtonRef}
+                        onAction={applyAction}
+                        wordCount={wordCount}
+                        isUploading={isUploading}
+                        onInsertImageFiles={insertImageFiles}
+                        editLabel=&quot;Edit ticket template&quot;
                       /&gt;
-                    ) : (
-                      &#39;Nothing here yet.&#39;
-                    )}
-                  &lt;/div&gt;
-                ))}
+
+                      &lt;section className={styles.section}&gt;
+                        &lt;div className={styles.qaHeader}&gt;
+                          &lt;SectionHeader headingLevel={2}&gt;
+                            QA Summary
+                          &lt;/SectionHeader&gt;
+                          &lt;span className={styles.autoGenerated}&gt;
+                            &lt;Icon name=&quot;lock&quot; size=&quot;sm&quot; /&gt;
+                            auto-generated
+                          &lt;/span&gt;
+                        &lt;/div&gt;
+                        &lt;CollapsibleCard
+                          open={qaSummaryOpen}
+                          onOpenChange={setQaSummaryOpen}
+                          header={
+                            &lt;span className={styles.qaCardHeader}&gt;
+                              &lt;span className={styles.qaCardTitle}&gt;
+                                {ticket.qaSummary.title}
+                              &lt;/span&gt;
+                              {qaFailedCount &gt; 0 &amp;&amp; (
+                                &lt;Badge variant=&quot;critical&quot;&gt;
+                                  {qaFailedCount} Failed
+                                &lt;/Badge&gt;
+                              )}
+                              &lt;span className={styles.qaCardMeta}&gt;
+                                {ticket.qaSummary.lastChecked}
+                              &lt;/span&gt;
+                            &lt;/span&gt;
+                          }
+                        &gt;
+                          {qaChecklist.map((item) =&gt; (
+                            &lt;ChecklistRow
+                              key={item.id}
+                              status={item.status}
+                              label={item.label}
+                              onClick={() =&gt; {}}
+                              meta={
+                                item.metaVariant ? (
+                                  &lt;Badge variant={item.metaVariant}&gt;
+                                    {item.meta}
+                                  &lt;/Badge&gt;
+                                ) : (
+                                  item.meta
+                                )
+                              }
+                            /&gt;
+                          ))}
+                        &lt;/CollapsibleCard&gt;
+                        &lt;Button
+                          variant=&quot;ghost&quot;
+                          size=&quot;sm&quot;
+                          className={styles.createScenario}
+                          onClick={() =&gt; setActiveTab(&#39;qa&#39;)}
+                        &gt;
+                          &lt;Icon name=&quot;add&quot; size=&quot;sm&quot; /&gt;
+                          Create scenario
+                        &lt;/Button&gt;
+                      &lt;/section&gt;
+                    &lt;/div&gt;
+                  &lt;/TicketTabPanel&gt;
+                )}
+
+                {activeTab === &#39;dev&#39; &amp;&amp; (
+                  &lt;TicketTabPanel value=&quot;dev&quot; className={styles.tabPanel}&gt;
+                    &lt;Scratchpad
+                      className={styles.devScratchpad}
+                      aria-label=&quot;Dev scratchpad&quot;
+                      title=&quot;Scratchpad / Private Notes&quot;
+                      status={
+                        &lt;&gt;
+                          {/* Decorative */}
+                          &lt;StatusDot
+                            variant=&quot;active&quot;
+                            label=&quot;Saved&quot;
+                            aria-hidden=&quot;true&quot;
+                          /&gt;
+                          Auto-saved · 2m ago
+                        &lt;/&gt;
+                      }
+                      placeholder=&quot;Click to add more context…&quot;
+                      highlightBadges
+                      formattingToolbar
+                      taskBadgeInfo={devScratchpadTask}
+                      onViewTask={openTaskDrawer}
+                      lines={scratchpad.lines}
+                      onReorder={scratchpad.onReorder}
+                      onLineTextChange={scratchpad.onLineTextChange}
+                      onLineToggle={scratchpad.onLineToggle}
+                      onLineDelete={scratchpad.onLineDelete}
+                      onAddLine={scratchpad.onAddLine}
+                      autoFocusLineId={scratchpad.autoFocusLineId}
+                      editingLineId={scratchpad.editingLineId}
+                      onLineStartEdit={scratchpad.onLineStartEdit}
+                      onLineStopEdit={scratchpad.onLineStopEdit}
+                      openBadgeId={scratchpad.openBadgeId}
+                      openBadgeManagesFocus={scratchpad.openBadgeManagesFocus}
+                      onBadgeOpenChange={scratchpad.onBadgeOpenChange}
+                    /&gt;
+                  &lt;/TicketTabPanel&gt;
+                )}
+
+                {activeTab === &#39;activity&#39; &amp;&amp; (
+                  &lt;TicketTabPanel
+                    value=&quot;activity&quot;
+                    className={styles.tabPanelEmpty}
+                  &gt;
+                    Nothing here yet.
+                  &lt;/TicketTabPanel&gt;
+                )}
+
+                {activeTab === &#39;qa&#39; &amp;&amp; (
+                  &lt;TicketTabPanel value=&quot;qa&quot; className={styles.qaPanel}&gt;
+                    &lt;QaPanel
+                      environments={ticket.qa.environments}
+                      activeEnvironment={activeEnvironment}
+                      onEnvironmentChange={setActiveEnvironment}
+                      envSelector={envSelector}
+                      scenarios={qaScenarios}
+                      onUpdateScenario={updateScenario}
+                      expandedScenarioId={expandedScenarioId}
+                      onToggleScenario={toggleScenario}
+                      statusSelectScenarioId={statusSelectScenarioId}
+                      onStatusSelectOpenChange={setStatusSelectOpen}
+                      editingSectionsById={editingSectionsById}
+                      stepsExpandedById={stepsExpandedById}
+                      onStepsExpandedChange={setStepsExpanded}
+                      evidenceExpandedById={evidenceExpandedById}
+                      onEvidenceExpandedChange={setEvidenceExpanded}
+                      onEditingSectionsChange={setScenarioEditingSections}
+                    /&gt;
+                  &lt;/TicketTabPanel&gt;
+                )}
               &lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
@@ -12500,6 +12698,10 @@ type Story = StoryObj;
 export const Default: Story = {
   render: () =&gt; &lt;TicketOverviewRender /&gt;,
 };
+
+export const Qa: Story = {
+  render: () =&gt; &lt;TicketOverviewRender initialActiveTab=&quot;qa&quot; /&gt;,
+};
 </code></pre></div>
     </div>
         </div>
@@ -12541,6 +12743,7 @@ export const Default: Story = {
     NavItem,
     PipelineHierarchyPanel,
     PropertyRow,
+    QaPanel,
     Scratchpad,
     SectionHeader,
     Selector,
@@ -12564,6 +12767,15 @@ export const Default: Story = {
               
               
               <pre><code>const Default = () =&gt; &lt;TicketOverviewRender /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Qa</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Qa = () =&gt; &lt;TicketOverviewRender initialActiveTab=&quot;qa&quot; /&gt;;</code></pre>
             </div>
         </div>
     
