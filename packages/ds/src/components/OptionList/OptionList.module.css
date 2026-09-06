@@ -86,8 +86,25 @@
   white-space: nowrap;
 }
 
-.optionLabel {
+.optionText {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.optionWithDescription {
+  align-items: flex-start;
+}
+
+.optionDescription {
+  font-size: var(--ds-text-nav-label-sm-font-size);
+  font-family: var(--ds-text-nav-label-sm-font-family);
+  line-height: var(--ds-text-nav-label-sm-line-height);
+  color: var(--ds-color-text-secondary);
+}
+
+.optionLabel {
   font-size: var(--ds-text-nav-label-font-size);
   font-family: var(--ds-text-nav-label-font-family);
   font-weight: var(--ds-text-nav-label-font-weight);

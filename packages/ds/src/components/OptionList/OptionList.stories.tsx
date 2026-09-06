@@ -2,6 +2,47 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { OptionList } from './OptionList';
 import { SearchInput } from '../SearchInput';
+import { StatusDot } from '../StatusDot';
+
+const SCENARIO_STATUS_DOT = {
+  passed: 'active',
+  failed: 'critical',
+  pending: 'info',
+  waived: 'medium',
+} as const;
+
+type ScenarioStatus = keyof typeof SCENARIO_STATUS_DOT;
+
+const scenarioStatuses: readonly {
+  value: ScenarioStatus;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: 'passed',
+    label: 'Passed',
+    description: 'Scenario verified as working',
+  },
+  {
+    value: 'failed',
+    label: 'Failed',
+    description: 'Defect observed — record the actual result',
+  },
+  {
+    value: 'pending',
+    label: 'Pending',
+    description: 'Re-open — requires a fresh actual result',
+  },
+  {
+    value: 'waived',
+    label: 'Waived',
+    description: 'Skip — requires an explanation',
+  },
+];
+
+function isScenarioStatus(value: string): value is ScenarioStatus {
+  return value in SCENARIO_STATUS_DOT;
+}
 
 const people = [
   { value: 'alex', label: 'Alex H.' },
@@ -153,6 +194,28 @@ function WithMetaRender() {
   );
 }
 
+function WithDescriptionsRender() {
+  const [value, setValue] = useState('failed');
+  return (
+    <OptionList
+      options={scenarioStatuses}
+      value={value}
+      onSelect={setValue}
+      renderOptionIndicator={(option) => (
+        <StatusDot
+          variant={
+            isScenarioStatus(option.value)
+              ? SCENARIO_STATUS_DOT[option.value]
+              : 'info'
+          }
+          label={option.label}
+        />
+      )}
+      aria-label="Statuses"
+    />
+  );
+}
+
 export const Default: Story = { render: () => <DefaultRender /> };
 export const IconOptions: Story = { render: () => <IconOptionsRender /> };
 export const WithSearchHeader: Story = {
@@ -160,6 +223,9 @@ export const WithSearchHeader: Story = {
 };
 export const WithAction: Story = { render: () => <WithActionRender /> };
 export const WithMeta: Story = { render: () => <WithMetaRender /> };
+export const WithDescriptions: Story = {
+  render: () => <WithDescriptionsRender />,
+};
 
 export const EmptyState: Story = {
   render: () => (
