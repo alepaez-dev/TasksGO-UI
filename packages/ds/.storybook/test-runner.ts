@@ -18,6 +18,7 @@ function formatResults(results: Result[]): string {
 
 const config: TestRunnerConfig = {
   async preVisit(page, context) {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await injectAxe(page);
 
     const storyContext = await getStoryContext(page, context);

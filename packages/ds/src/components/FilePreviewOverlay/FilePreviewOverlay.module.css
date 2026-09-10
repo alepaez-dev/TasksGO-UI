@@ -16,6 +16,12 @@
   opacity: 1;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .viewer {
+    transition: none;
+  }
+}
+
 .topBar {
   display: flex;
   align-items: center;
