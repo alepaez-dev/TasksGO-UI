@@ -46,7 +46,7 @@ import styles from './TasksMobile.module.css';
 // Lift the FAB above the BottomTabBar; the default offset assumes no tab bar.
 const fabOffsetOverride = {
   '--ds-space-fab-bottom-offset':
-    'calc(var(--ds-space-bottom-tab-bar-height) + 24px)',
+    'var(--ds-space-fab-bottom-offset-above-tab-bar)',
 } as CSSProperties;
 
 type MoreMenuView = 'menu' | 'picker';

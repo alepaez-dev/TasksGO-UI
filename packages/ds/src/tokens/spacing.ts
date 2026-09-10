@@ -133,6 +133,10 @@ export const spacing = {
     size: '48px',
     rightOffset: '24px',
     bottomOffset: '24px',
+    extendedPaddingX: '20px',
+    extendedGap: '8px',
+    bottomOffsetAboveTabBar:
+      'calc(var(--ds-space-bottom-tab-bar-height) + env(safe-area-inset-bottom) + var(--ds-space-fab-bottom-offset))',
   },
   bottomTabBar: {
     height: '64px',
