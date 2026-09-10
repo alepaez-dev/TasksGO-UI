@@ -11,7 +11,15 @@ function formatResults(results: Result[]): string {
     .map(
       (r) =>
         `  - [${r.impact}] ${r.id}: ${r.description} (${r.nodes.length} node(s))\n` +
-        r.nodes.map((n) => `    HTML: ${n.html}`).join('\n'),
+        r.nodes
+          .map((n) => {
+            const reasons = [...n.any, ...n.all]
+              .map((check) => check.message)
+              .filter(Boolean)
+              .join('; ');
+            return `    HTML: ${n.html}\n    Why: ${reasons || 'no reason reported'}`;
+          })
+          .join('\n'),
     )
     .join('\n');
 }
