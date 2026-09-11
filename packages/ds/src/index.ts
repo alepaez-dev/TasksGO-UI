@@ -260,6 +260,41 @@ export {
   type MarkdownEditorStatus,
 } from './components/MarkdownEditor';
 
+export {
+  filterItems,
+  sortItems,
+  searchItems,
+  buildSearchIndex,
+  matchesQuery,
+  groupItems,
+  withDividers,
+  GROUP_GAP_MS,
+  GAP_DIVIDER_MS,
+  type ActivityActor,
+  type ActivityActorKind,
+  type ActivityAsk,
+  type ActivityComment,
+  type ActivityDayDivider,
+  type ActivityEvent,
+  type ActivityEventChange,
+  type ActivityFeedNode,
+  type ActivityGapDivider,
+  type ActivityGroup,
+  type ActivityItemNode,
+  type ActivityItem,
+  type ActivityNode,
+  type ActivityReaction,
+  type ActivityRef,
+  type ActivityRefType,
+  type ActivityRelativeDay,
+  type ActivityReply,
+  type ActivitySearchIndex,
+  type ActivitySegment,
+  type ActivitySortDirection,
+  type GroupItemsOptions,
+  type WithDividersOptions,
+} from './utils/activity';
+
 export { useClickOutside } from './hooks/useClickOutside';
 export {
   useMarkdownEditor,
