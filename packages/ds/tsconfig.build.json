@@ -12,6 +12,7 @@
     "**/*.test.ts",
     "**/*.stories.tsx",
     "**/*.stories.ts",
+    "**/testFixtures.*",
     "src/stories/**"
   ]
 }
