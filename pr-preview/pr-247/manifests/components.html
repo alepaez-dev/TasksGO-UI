@@ -10168,13 +10168,13 @@ waiveReason?: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  761 | }
-  762 |
-&gt; 763 | const meta: Meta = {
+  764 | }
+  765 |
+&gt; 766 | const meta: Meta = {
       | ^
-  764 |   title: &#39;Pages/Ticket&#39;,
-  765 |   parameters: {
-  766 |     layout: &#39;fullscreen&#39;,
+  767 |   title: &#39;Pages/Ticket&#39;,
+  768 |   parameters: {
+  769 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
@@ -10361,6 +10361,8 @@ function TicketOverviewRender({
     statusSelectScenarioId,
     setStatusSelectOpen,
     evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
     setEvidencePreviewIndex,
@@ -10925,10 +10927,11 @@ function TicketOverviewRender({
 
       &lt;FilePreviewOverlay
         files={previewScenario?.evidence ?? []}
-        open={evidencePreview != null}
+        open={evidencePreviewOpen}
         activeIndex={evidencePreview?.index ?? 0}
         onActiveIndexChange={setEvidencePreviewIndex}
         onClose={closeEvidencePreview}
+        onClosed={clearEvidencePreview}
         downloadAllName={
           previewScenario != null
             ? `${previewScenario.id}-evidence.zip`
@@ -12139,13 +12142,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  761 | }
-  762 |
-&gt; 763 | const meta: Meta = {
+  764 | }
+  765 |
+&gt; 766 | const meta: Meta = {
       | ^
-  764 |   title: &#39;Pages/Ticket&#39;,
-  765 |   parameters: {
-  766 |     layout: &#39;fullscreen&#39;,
+  767 |   title: &#39;Pages/Ticket&#39;,
+  768 |   parameters: {
+  769 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
@@ -12332,6 +12335,8 @@ function TicketOverviewRender({
     statusSelectScenarioId,
     setStatusSelectOpen,
     evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
     setEvidencePreviewIndex,
@@ -12896,10 +12901,11 @@ function TicketOverviewRender({
 
       &lt;FilePreviewOverlay
         files={previewScenario?.evidence ?? []}
-        open={evidencePreview != null}
+        open={evidencePreviewOpen}
         activeIndex={evidencePreview?.index ?? 0}
         onActiveIndexChange={setEvidencePreviewIndex}
         onClose={closeEvidencePreview}
+        onClosed={clearEvidencePreview}
         downloadAllName={
           previewScenario != null
             ? `${previewScenario.id}-evidence.zip`
