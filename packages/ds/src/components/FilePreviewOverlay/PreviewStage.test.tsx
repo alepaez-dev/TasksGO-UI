@@ -88,7 +88,7 @@ describe('PreviewStage', () => {
     render(<PreviewStage file={{ label: 'trace.zip', kind: 'file' }} />);
     expect(screen.getByText('trace.zip')).toBeInTheDocument();
     expect(
-      screen.getByText('No preview available for this file.'),
+      screen.getByText('No inline preview for this file. Download to open it.'),
     ).toBeInTheDocument();
   });
 
@@ -96,7 +96,7 @@ describe('PreviewStage', () => {
     render(<PreviewStage file={{ label: 'screen_02.png', kind: 'image' }} />);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(
-      screen.getByText('No preview available for this file.'),
+      screen.getByText('No inline preview for this file. Download to open it.'),
     ).toBeInTheDocument();
   });
 });

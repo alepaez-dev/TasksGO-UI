@@ -21,11 +21,11 @@ export const withDefaultViewport =
     return <Story />;
   };
 
-// spread into a story that presents as a bottom sheet on a phone viewport
-export const mobileSheetStory = {
+export const mobileViewportStory = {
   decorators: [withDefaultViewport('mobile')],
   parameters: {
     layout: 'fullscreen',
     viewport: { options: mobileViewportOptions },
   },
 };
+export const mobileSheetStory = mobileViewportStory;

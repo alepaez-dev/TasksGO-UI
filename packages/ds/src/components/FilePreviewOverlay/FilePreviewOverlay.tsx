@@ -7,11 +7,14 @@ import { createZip, type ZipFileInput } from '../../utils/createZip';
 import { evidenceIcon } from '../../utils/resolvePreview';
 import { isScriptScheme } from '../../utils/sanitizeHref';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { type TransitionDuration } from '../../tokens/interaction';
 import { type EvidenceItem } from '../../types/evidence';
 import { Filmstrip } from './Filmstrip';
 import { PreviewStage } from './PreviewStage';
 import styles from './FilePreviewOverlay.module.css';
+
+const STACKED_QUERY = '(max-width: 480px)';
 
 function downloadHref(file: EvidenceItem): string | undefined {
   if (file.url != null) {
@@ -86,6 +89,7 @@ export const FilePreviewOverlay = forwardRef<
     const panelRef = useRef<HTMLDivElement>(null);
     const closeRef = useRef<HTMLButtonElement>(null);
     useFocusTrap(panelRef, open, { autoFocus: false });
+    const stacked = useMediaQuery(STACKED_QUERY);
 
     function setRefs(node: HTMLDivElement | null) {
       panelRef.current = node;
@@ -140,6 +144,95 @@ export const FilePreviewOverlay = forwardRef<
       window.setTimeout(() => URL.revokeObjectURL(zipUrl), 1000);
     }
 
+    const identity = file != null && (
+      <span className={styles.fileIdentity}>
+        <Icon name={evidenceIcon(file)} size="sm" />
+        <span className={styles.fileName} title={file.label}>
+          {file.label}
+        </span>
+      </span>
+    );
+
+    const counter = file != null && (
+      <span className={styles.counter}>
+        {index + 1} / {files.length}
+      </span>
+    );
+
+    const downloadAllButton = downloadableCount > 1 && (
+      <button
+        type="button"
+        className={styles.downloadAll}
+        onClick={() => void handleDownloadAll()}
+      >
+        <Icon name="download" size="sm" />
+        Download all {downloadableCount} files
+      </button>
+    );
+
+    const downloadLink = file != null && href != null && (
+      <a
+        className={styles.download}
+        href={href}
+        download={file.label}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Icon name="download" size="sm" />
+        Download
+      </a>
+    );
+
+    const closeButton = (
+      <IconButton
+        ref={closeRef}
+        icon="close"
+        aria-label="Close preview"
+        className={styles.overlayControl}
+        onClick={onClose}
+      />
+    );
+
+    const stage = file != null && (
+      <div className={styles.stage}>
+        <div className={styles.stageCard}>
+          <PreviewStage file={file} />
+        </div>
+      </div>
+    );
+
+    const navPrev = file != null && (
+      <IconButton
+        icon="chevron_left"
+        aria-label="Previous file"
+        className={cn(styles.overlayControl, styles.nav, styles.navPrev)}
+        aria-disabled={index === 0 || undefined}
+        onClick={() => {
+          if (index > 0) onActiveIndexChange(index - 1);
+        }}
+      />
+    );
+
+    const navNext = file != null && (
+      <IconButton
+        icon="chevron_right"
+        aria-label="Next file"
+        className={cn(styles.overlayControl, styles.nav, styles.navNext)}
+        aria-disabled={index === lastIndex || undefined}
+        onClick={() => {
+          if (index < lastIndex) onActiveIndexChange(index + 1);
+        }}
+      />
+    );
+
+    const filmstrip = file != null && (
+      <Filmstrip
+        files={files}
+        activeIndex={index}
+        onSelect={onActiveIndexChange}
+      />
+    );
+
     return (
       <OverlayShell
         open={open}
@@ -160,92 +253,50 @@ export const FilePreviewOverlay = forwardRef<
                 ? `${file.label}, file ${index + 1} of ${files.length}`
                 : 'File preview'
             }
-            className={cn(styles.viewer, visible && styles.open, className)}
-          >
-            <div className={styles.topBar}>
-              {file != null && (
-                <span className={styles.fileInfo}>
-                  <Icon name={evidenceIcon(file)} size="sm" />
-                  <span className={styles.fileName}>{file.label}</span>
-                  <span className={styles.counter}>
-                    {index + 1} / {files.length}
-                  </span>
-                </span>
-              )}
-              <span className={styles.topActions}>
-                {downloadableCount > 1 && (
-                  <button
-                    type="button"
-                    className={styles.downloadAll}
-                    onClick={() => void handleDownloadAll()}
-                  >
-                    <Icon name="download" size="sm" />
-                    Download all
-                  </button>
-                )}
-                {file != null && href != null && (
-                  <a
-                    className={styles.download}
-                    href={href}
-                    download={file.label}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Icon name="download" size="sm" />
-                    Download
-                  </a>
-                )}
-                <IconButton
-                  ref={closeRef}
-                  icon="close"
-                  aria-label="Close preview"
-                  className={styles.overlayControl}
-                  onClick={onClose}
-                />
-              </span>
-            </div>
-
-            {file != null && (
-              <div className={styles.stage}>
-                <div className={styles.stageCard}>
-                  <PreviewStage file={file} />
-                </div>
-              </div>
+            className={cn(
+              styles.viewer,
+              stacked && styles.stackedViewer,
+              visible && styles.open,
+              className,
             )}
-
-            {file != null && (
+          >
+            {stacked ? (
               <>
-                <IconButton
-                  icon="chevron_left"
-                  aria-label="Previous file"
-                  className={cn(
-                    styles.overlayControl,
-                    styles.nav,
-                    styles.navPrev,
+                <div className={styles.topBar}>
+                  {identity}
+                  {closeButton}
+                </div>
+                {stage}
+                {filmstrip}
+                <div className={styles.navRow}>
+                  {navPrev}
+                  {downloadLink}
+                  {navNext}
+                </div>
+                <div className={styles.metaRow}>
+                  {counter}
+                  {downloadAllButton}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={styles.topBar}>
+                  {file != null && (
+                    <span className={styles.fileInfo}>
+                      {identity}
+                      {counter}
+                    </span>
                   )}
-                  aria-disabled={index === 0 || undefined}
-                  onClick={() => {
-                    if (index > 0) onActiveIndexChange(index - 1);
-                  }}
-                />
-                <IconButton
-                  icon="chevron_right"
-                  aria-label="Next file"
-                  className={cn(
-                    styles.overlayControl,
-                    styles.nav,
-                    styles.navNext,
-                  )}
-                  aria-disabled={index === lastIndex || undefined}
-                  onClick={() => {
-                    if (index < lastIndex) onActiveIndexChange(index + 1);
-                  }}
-                />
-                <Filmstrip
-                  files={files}
-                  activeIndex={index}
-                  onSelect={onActiveIndexChange}
-                />
+                  <span className={styles.topActions}>
+                    {downloadAllButton}
+                    {downloadLink}
+                    {closeButton}
+                  </span>
+                </div>
+                {stage}
+                {navPrev}
+                {navNext}
+                {filmstrip}
               </>
             )}
           </div>
