@@ -56,6 +56,15 @@ export const spacing = {
   checkbox: {
     size: '16px',
   },
+  timelineEvent: {
+    gutter: '36px',
+    contentIndent: '14px',
+    rowGap: '18px',
+    inlineGap: '7px',
+    markerSize: '9px',
+    markerOffset: '4px',
+    iconOffset: '3px',
+  },
   checklistRow: {
     badgeSize: '16px',
   },

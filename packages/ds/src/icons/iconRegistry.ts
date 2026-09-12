@@ -40,6 +40,7 @@ import { MoodIcon } from './mood';
 import { MoreHorizIcon } from './moreHoriz';
 import { OpenInNewIcon } from './openInNew';
 import { PersonIcon } from './person';
+import { PushPinFilledIcon } from './pushPinFilled';
 import { ReplyIcon } from './reply';
 import { ScheduleIcon } from './schedule';
 import { ScienceIcon } from './science';
@@ -93,6 +94,7 @@ export const iconRegistry = {
   more_horiz: MoreHorizIcon,
   open_in_new: OpenInNewIcon,
   person: PersonIcon,
+  push_pin_filled: PushPinFilledIcon,
   reply: ReplyIcon,
   schedule: ScheduleIcon,
   science: ScienceIcon,
