@@ -251,30 +251,33 @@ export function QaPanel({
                   onUpdateScenario(scenario.id, { steps })
                 }
                 onAddEvidence={(files) => {
-                  const start = scenario.evidence?.length ?? 0;
+                  const added = files.map((file) => ({
+                    file,
+                    item: {
+                      label: file.name,
+                      kind: file.type.startsWith('image/')
+                        ? ('image' as const)
+                        : ('file' as const),
+                      url: URL.createObjectURL(file),
+                    },
+                  }));
                   onUpdateScenario(scenario.id, (prev) => ({
                     evidence: [
                       ...(prev.evidence ?? []),
-                      ...files.map((file) => ({
-                        label: file.name,
-                        kind: file.type.startsWith('image/')
-                          ? ('image' as const)
-                          : ('file' as const),
-                        url: URL.createObjectURL(file),
-                      })),
+                      ...added.map((entry) => entry.item),
                     ],
                   }));
-                  files.forEach((file, fileIndex) => {
+                  added.forEach(({ file, item }) => {
                     if (
                       file.type.startsWith('text/') ||
                       TEXT_LIKE_EVIDENCE.test(file.name)
                     ) {
                       void file.text().then((text) =>
                         onUpdateScenario(scenario.id, (prev) => ({
-                          evidence: prev.evidence?.map((item, index) =>
-                            index === start + fileIndex
-                              ? { ...item, text }
-                              : item,
+                          evidence: prev.evidence?.map((existing) =>
+                            existing === item
+                              ? { ...existing, text }
+                              : existing,
                           ),
                         })),
                       );

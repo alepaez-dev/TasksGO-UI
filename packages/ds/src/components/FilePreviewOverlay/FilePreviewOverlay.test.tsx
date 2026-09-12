@@ -320,6 +320,26 @@ describe('FilePreviewOverlay', () => {
     expect(onActiveIndexChange).toHaveBeenCalledWith(4);
   });
 
+  it('yields arrow keys to the focused scrollable preview region', async () => {
+    const onActiveIndexChange = vi.fn();
+    render(
+      <FilePreviewOverlay
+        {...base}
+        open
+        activeIndex={1}
+        onActiveIndexChange={onActiveIndexChange}
+      />,
+    );
+
+    screen.getByRole('region', { name: 'thread_dump.txt' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(onActiveIndexChange).not.toHaveBeenCalled();
+
+    screen.getByRole('button', { name: 'Close preview' }).focus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(onActiveIndexChange).toHaveBeenCalledWith(2);
+  });
+
   it('renders one filmstrip tile per file and marks the active one', async () => {
     const onActiveIndexChange = vi.fn();
     render(

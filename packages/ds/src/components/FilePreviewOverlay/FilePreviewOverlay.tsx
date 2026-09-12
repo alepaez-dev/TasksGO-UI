@@ -101,6 +101,12 @@ export const FilePreviewOverlay = forwardRef<
       function handleKeyDown(e: KeyboardEvent) {
         if (e.defaultPrevented) return;
         if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        if (
+          e.target instanceof Element &&
+          e.target.closest('[role="region"]') != null
+        ) {
+          return;
+        }
         const next = index + (e.key === 'ArrowLeft' ? -1 : 1);
         if (next < 0 || next > lastIndex) return;
         e.preventDefault();

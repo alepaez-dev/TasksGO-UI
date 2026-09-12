@@ -78,7 +78,11 @@ const NEW_SCENARIO_AUTHOR = {
   assigneeColor: 'var(--ds-color-avatar-tone-profile-plum)',
 } as const;
 
-function toQaScenario(draft: NewScenarioDraft, id: string): QaScenario {
+function toQaScenario(
+  draft: NewScenarioDraft,
+  id: string,
+  evidence: QaScenario['evidence'],
+): QaScenario {
   return {
     id,
     title: draft.name.trim(),
@@ -87,13 +91,7 @@ function toQaScenario(draft: NewScenarioDraft, id: string): QaScenario {
     ...NEW_SCENARIO_AUTHOR,
     description: draft.description.trim(),
     steps: draft.steps,
-    evidence: draft.evidence.map((file) => ({
-      label: file.name,
-      kind: file.type.startsWith('image/')
-        ? ('image' as const)
-        : ('file' as const),
-      url: URL.createObjectURL(file),
-    })),
+    evidence,
     expected: draft.expected.trim(),
     actual: draft.actual.trim() || undefined,
   };
@@ -327,8 +325,25 @@ export function useTicketOverviewState(
   const cancelAddScenario = () => setAddScenarioOpen(false);
   const confirmAddScenario = (draft: NewScenarioDraft) => {
     const id = `scenario-${qaScenarios.length + 1}`;
-    setQaScenarios((current) => [...current, toQaScenario(draft, id)]);
-    draft.evidence.forEach((file, fileIndex) => {
+    const added = draft.evidence.map((file) => ({
+      file,
+      item: {
+        label: file.name,
+        kind: file.type.startsWith('image/')
+          ? ('image' as const)
+          : ('file' as const),
+        url: URL.createObjectURL(file),
+      },
+    }));
+    setQaScenarios((current) => [
+      ...current,
+      toQaScenario(
+        draft,
+        id,
+        added.map((entry) => entry.item),
+      ),
+    ]);
+    added.forEach(({ file, item }) => {
       if (file.type.startsWith('text/') || TEXT_LIKE_EVIDENCE.test(file.name)) {
         void file.text().then((text) =>
           setQaScenarios((current) =>
@@ -336,8 +351,8 @@ export function useTicketOverviewState(
               scenario.id === id
                 ? {
                     ...scenario,
-                    evidence: scenario.evidence?.map((item, index) =>
-                      index === fileIndex ? { ...item, text } : item,
+                    evidence: scenario.evidence?.map((existing) =>
+                      existing === item ? { ...existing, text } : existing,
                     ),
                   }
                 : scenario,

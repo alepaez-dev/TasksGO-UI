@@ -151,6 +151,55 @@ describe('useTicketOverviewState — evidence text back-fill', () => {
     const added = result.current.qaScenarios[before];
     expect(added.evidence?.[0]?.text).toBe('FIRST');
   });
+
+  it('drops pending text for a removed chip instead of mis-assigning it', async () => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: () => 'blob:evidence',
+    });
+    let resolveSlow: (text: string) => void = () => {};
+    const slow = new File(['AAA'], 'a.txt', { type: 'text/plain' });
+    Object.defineProperty(slow, 'text', {
+      value: () =>
+        new Promise<string>((resolve) => {
+          resolveSlow = resolve;
+        }),
+    });
+    const fast = new File(['BBB'], 'b.txt', { type: 'text/plain' });
+    Object.defineProperty(fast, 'text', {
+      value: () => Promise.resolve('BBB'),
+    });
+
+    const { result } = renderHook(() => useTicketOverviewState());
+    const before = result.current.qaScenarios.length;
+
+    act(() =>
+      result.current.confirmAddScenario({ ...DRAFT, evidence: [slow, fast] }),
+    );
+    const id = result.current.qaScenarios[before].id;
+    await waitFor(() =>
+      expect(result.current.qaScenarios[before].evidence?.[1]?.text).toBe(
+        'BBB',
+      ),
+    );
+
+    // remove a.txt while its read is still pending — positions shift
+    act(() =>
+      result.current.updateScenario(id, (prev) => ({
+        evidence: prev.evidence?.filter((_, i) => i !== 0),
+      })),
+    );
+    act(() => resolveSlow('AAA'));
+
+    await waitFor(() => {
+      const evidence = result.current.qaScenarios[before].evidence;
+      expect(evidence).toHaveLength(1);
+      expect(evidence?.[0]?.label).toBe('b.txt');
+      // the removed file's text must not land on the surviving chip
+      expect(evidence?.[0]?.text).toBe('BBB');
+    });
+  });
 });
 
 describe('useTicketOverviewState — evidence preview', () => {
