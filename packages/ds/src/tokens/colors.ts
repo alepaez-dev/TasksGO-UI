@@ -10,6 +10,7 @@ const text = {
   primary: '#1a1a1a',
   secondary: '#636363',
   disabled: '#a3a3a3',
+  inverse: '#ffffff',
 } as const;
 
 const border = {

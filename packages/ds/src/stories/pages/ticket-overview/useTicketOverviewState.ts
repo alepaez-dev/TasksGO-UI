@@ -30,6 +30,7 @@ import {
 } from '../tasks/shared';
 import type { NewScenarioDraft } from '../../../components/AddScenarioDialog';
 import { toStageValue } from '../../../utils/toStageValue';
+import { TEXT_LIKE_EVIDENCE } from '../../helpers/evidenceFixtures';
 import {
   countFailedScenarios,
   ticket,
@@ -77,7 +78,11 @@ const NEW_SCENARIO_AUTHOR = {
   assigneeColor: 'var(--ds-color-avatar-tone-profile-plum)',
 } as const;
 
-function toQaScenario(draft: NewScenarioDraft, id: string): QaScenario {
+function toQaScenario(
+  draft: NewScenarioDraft,
+  id: string,
+  evidence: QaScenario['evidence'],
+): QaScenario {
   return {
     id,
     title: draft.name.trim(),
@@ -86,12 +91,7 @@ function toQaScenario(draft: NewScenarioDraft, id: string): QaScenario {
     ...NEW_SCENARIO_AUTHOR,
     description: draft.description.trim(),
     steps: draft.steps,
-    evidence: draft.evidence.map((file) => ({
-      label: file.name,
-      kind: file.type.startsWith('image/')
-        ? ('image' as const)
-        : ('file' as const),
-    })),
+    evidence,
     expected: draft.expected.trim(),
     actual: draft.actual.trim() || undefined,
   };
@@ -221,6 +221,12 @@ export interface UseTicketOverviewState {
   envSelector: UseSelectorStateReturn;
   statusSelectScenarioId: string | null;
   setStatusSelectOpen: (id: string, open: boolean) => void;
+  evidencePreview: { scenarioId: string; index: number } | null;
+  evidencePreviewOpen: boolean;
+  clearEvidencePreview: () => void;
+  openEvidencePreview: (scenarioId: string, index: number) => void;
+  closeEvidencePreview: () => void;
+  setEvidencePreviewIndex: (index: number) => void;
 }
 
 export function useTicketOverviewState(
@@ -318,10 +324,43 @@ export function useTicketOverviewState(
   // resetting here would blank the fields during the close transition
   const cancelAddScenario = () => setAddScenarioOpen(false);
   const confirmAddScenario = (draft: NewScenarioDraft) => {
+    const id = `scenario-${qaScenarios.length + 1}`;
+    const added = draft.evidence.map((file) => ({
+      file,
+      item: {
+        label: file.name,
+        kind: file.type.startsWith('image/')
+          ? ('image' as const)
+          : ('file' as const),
+        url: URL.createObjectURL(file),
+      },
+    }));
     setQaScenarios((current) => [
       ...current,
-      toQaScenario(draft, `scenario-${current.length + 1}`),
+      toQaScenario(
+        draft,
+        id,
+        added.map((entry) => entry.item),
+      ),
     ]);
+    added.forEach(({ file, item }) => {
+      if (file.type.startsWith('text/') || TEXT_LIKE_EVIDENCE.test(file.name)) {
+        void file.text().then((text) =>
+          setQaScenarios((current) =>
+            current.map((scenario) =>
+              scenario.id === id
+                ? {
+                    ...scenario,
+                    evidence: scenario.evidence?.map((existing) =>
+                      existing === item ? { ...existing, text } : existing,
+                    ),
+                  }
+                : scenario,
+            ),
+          ),
+        );
+      }
+    });
     setAddScenarioOpen(false);
   };
 
@@ -427,6 +466,27 @@ export function useTicketOverviewState(
     setEvidenceExpandedById({});
   }, [activeTab, setEnvSelectorOpen]);
 
+  const [evidencePreview, setEvidencePreview] = useState<{
+    scenarioId: string;
+    index: number;
+  } | null>(null);
+  const [evidencePreviewOpen, setEvidencePreviewOpen] = useState(false);
+  const openEvidencePreview = useCallback(
+    (scenarioId: string, index: number) => {
+      setEvidencePreview({ scenarioId, index });
+      setEvidencePreviewOpen(true);
+    },
+    [],
+  );
+  const closeEvidencePreview = useCallback(
+    () => setEvidencePreviewOpen(false),
+    [],
+  );
+  const clearEvidencePreview = useCallback(() => setEvidencePreview(null), []);
+  const setEvidencePreviewIndex = useCallback((index: number) => {
+    setEvidencePreview((prev) => (prev ? { ...prev, index } : prev));
+  }, []);
+
   return {
     project,
     setProject,
@@ -507,5 +567,11 @@ export function useTicketOverviewState(
     envSelector,
     statusSelectScenarioId,
     setStatusSelectOpen,
+    evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
+    openEvidencePreview,
+    closeEvidencePreview,
+    setEvidencePreviewIndex,
   };
 }

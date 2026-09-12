@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useTicketOverviewState } from './useTicketOverviewState';
 import {
   devScratchpadTask,
@@ -116,5 +116,112 @@ describe('useTicketOverviewState — add scenario', () => {
     expect(result.current.qaScenarios).toHaveLength(before + 1);
     expect(added.title).toBe(DRAFT.name);
     expect(result.current.qaFailedCount).toBe(2);
+  });
+});
+
+describe('useTicketOverviewState — evidence text back-fill', () => {
+  it('keeps same-named files from clobbering each other', async () => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: () => 'blob:evidence',
+    });
+    const textFile = (content: string, name: string): File => {
+      const file = new File([content], name, { type: 'text/plain' });
+      Object.defineProperty(file, 'text', {
+        value: () => Promise.resolve(content),
+      });
+      return file;
+    };
+
+    const { result } = renderHook(() => useTicketOverviewState());
+    const before = result.current.qaScenarios.length;
+
+    act(() =>
+      result.current.confirmAddScenario({
+        ...DRAFT,
+        evidence: [textFile('FIRST', 'dup.txt'), textFile('SECOND', 'dup.txt')],
+      }),
+    );
+
+    await waitFor(() => {
+      const added = result.current.qaScenarios[before];
+      expect(added.evidence?.[1]?.text).toBe('SECOND');
+    });
+    const added = result.current.qaScenarios[before];
+    expect(added.evidence?.[0]?.text).toBe('FIRST');
+  });
+
+  it('drops pending text for a removed chip instead of mis-assigning it', async () => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: () => 'blob:evidence',
+    });
+    let resolveSlow: (text: string) => void = () => {};
+    const slow = new File(['AAA'], 'a.txt', { type: 'text/plain' });
+    Object.defineProperty(slow, 'text', {
+      value: () =>
+        new Promise<string>((resolve) => {
+          resolveSlow = resolve;
+        }),
+    });
+    const fast = new File(['BBB'], 'b.txt', { type: 'text/plain' });
+    Object.defineProperty(fast, 'text', {
+      value: () => Promise.resolve('BBB'),
+    });
+
+    const { result } = renderHook(() => useTicketOverviewState());
+    const before = result.current.qaScenarios.length;
+
+    act(() =>
+      result.current.confirmAddScenario({ ...DRAFT, evidence: [slow, fast] }),
+    );
+    const id = result.current.qaScenarios[before].id;
+    await waitFor(() =>
+      expect(result.current.qaScenarios[before].evidence?.[1]?.text).toBe(
+        'BBB',
+      ),
+    );
+
+    // remove a.txt while its read is still pending — positions shift
+    act(() =>
+      result.current.updateScenario(id, (prev) => ({
+        evidence: prev.evidence?.filter((_, i) => i !== 0),
+      })),
+    );
+    act(() => resolveSlow('AAA'));
+
+    await waitFor(() => {
+      const evidence = result.current.qaScenarios[before].evidence;
+      expect(evidence).toHaveLength(1);
+      expect(evidence?.[0]?.label).toBe('b.txt');
+      // the removed file's text must not land on the surviving chip
+      expect(evidence?.[0]?.text).toBe('BBB');
+    });
+  });
+});
+
+describe('useTicketOverviewState — evidence preview', () => {
+  it('keeps the preview target while the overlay fades out', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+
+    act(() => result.current.openEvidencePreview('TC-418', 1));
+    expect(result.current.evidencePreviewOpen).toBe(true);
+    expect(result.current.evidencePreview).toEqual({
+      scenarioId: 'TC-418',
+      index: 1,
+    });
+
+    act(() => result.current.closeEvidencePreview());
+    // closed, but the target survives so the content stays during the fade
+    expect(result.current.evidencePreviewOpen).toBe(false);
+    expect(result.current.evidencePreview).toEqual({
+      scenarioId: 'TC-418',
+      index: 1,
+    });
+
+    act(() => result.current.clearEvidencePreview());
+    expect(result.current.evidencePreview).toBeNull();
   });
 });

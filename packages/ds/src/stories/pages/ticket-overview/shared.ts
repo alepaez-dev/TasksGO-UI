@@ -11,6 +11,7 @@ import type {
 } from '../../../components/TestScenarioCard';
 import type { IconName } from '../../../icons';
 import type { PersonOption } from '../tasks/shared';
+import { CACHE_METRICS, svgShot } from '../../helpers/evidenceFixtures';
 
 export const devScratchpadTask: ScratchpadTaskRef = {
   id: 'TSK-217',
@@ -458,8 +459,21 @@ export const ticket: TicketMeta = {
           'Inspect response headers once burst limit is crossed',
         ],
         evidence: [
-          { label: 'rate_429.png', kind: 'image' },
-          { label: 'gateway.log', kind: 'file' },
+          {
+            label: 'rate_429.png',
+            kind: 'image',
+            url: svgShot('#7d3b3b', '429 Too Many Requests'),
+          },
+          {
+            label: 'gateway.log',
+            kind: 'file',
+            text: [
+              '12:41:02 WARN  burst threshold crossed (512 rps)',
+              '12:41:02 ERROR stale body served for /v1/assets/hot',
+              '12:41:03 INFO  Retry-After header missing',
+            ].join('\n'),
+          },
+          { label: 'cache_metrics.json', kind: 'file', text: CACHE_METRICS },
         ],
         expected: 'Gateway returns `429 Too Many Requests` with `Retry-After`.',
         actual:

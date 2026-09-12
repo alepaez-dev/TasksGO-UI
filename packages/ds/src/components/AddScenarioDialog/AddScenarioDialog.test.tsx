@@ -533,4 +533,38 @@ describe('AddScenarioDialog', () => {
     render(<AddScenarioDialog {...base} open value={empty} ref={ref} />);
     expect(ref.current).toHaveAttribute('role', 'dialog');
   });
+
+  it('reports evidence chip clicks when onOpenEvidence is provided', async () => {
+    const onOpenEvidence = vi.fn();
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={{
+          ...empty,
+          evidence: [new File(['x'], 'shot.png', { type: 'image/png' })],
+        }}
+        onOpenEvidence={onOpenEvidence}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'shot.png' }));
+    expect(onOpenEvidence).toHaveBeenCalledWith(0);
+  });
+
+  it('renders evidence labels as plain text without onOpenEvidence', () => {
+    render(
+      <AddScenarioDialog
+        {...base}
+        open
+        value={{
+          ...empty,
+          evidence: [new File(['x'], 'shot.png', { type: 'image/png' })],
+        }}
+      />,
+    );
+    expect(screen.getByText('shot.png')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'shot.png' }),
+    ).not.toBeInTheDocument();
+  });
 });

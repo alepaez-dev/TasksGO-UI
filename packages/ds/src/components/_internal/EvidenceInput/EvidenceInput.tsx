@@ -2,6 +2,7 @@ import { useRef, type ChangeEvent, type ReactNode } from 'react';
 import { Icon } from '../../Icon';
 import { RefLabel } from '../../RefLabel';
 import { cn } from '../../../utils/cn';
+import { evidenceIcon } from '../../../utils/resolvePreview';
 import { type EvidenceItem } from '../../../types/evidence';
 import controls from '../controls.module.css';
 import styles from './EvidenceInput.module.css';
@@ -10,6 +11,7 @@ export interface EvidenceInputProps {
   items: readonly EvidenceItem[];
   onAddFiles?: (files: readonly File[]) => void;
   onRemove?: (index: number) => void;
+  onOpenItem?: (index: number) => void;
   /** Slots for the `Limit reached` label. Display only — does not disable Add. */
   limitLabel?: number;
   accept?: string;
@@ -25,6 +27,7 @@ export function EvidenceInput({
   items,
   onAddFiles,
   onRemove,
+  onOpenItem,
   limitLabel,
   accept,
   addDisabled = false,
@@ -68,67 +71,95 @@ export function EvidenceInput({
 
   return (
     <div ref={listRef} className={styles.evidence}>
-      {visible.map((item, index) => (
-        <span key={index} className={styles.evidenceChip}>
+      {visible.map((item, index) => {
+        const refLabel = (
           <RefLabel
             className={styles.evidenceLabel}
             variant={item.kind === 'image' ? 'attachment' : 'doc'}
-            icon={item.kind === 'image' ? 'image' : 'description'}
+            icon={evidenceIcon(item)}
             title={item.label}
           >
             <span className={styles.evidenceLabelText}>{item.label}</span>
           </RefLabel>
-          {onRemove && (
+        );
+        return (
+          <span
+            key={index}
+            className={cn(
+              styles.evidenceChip,
+              onOpenItem && styles.evidenceChipClickable,
+            )}
+          >
+            {onOpenItem ? (
+              <button
+                type="button"
+                className={styles.evidenceOpen}
+                onClick={() => onOpenItem(index)}
+              >
+                {refLabel}
+              </button>
+            ) : (
+              refLabel
+            )}
+            {onRemove && (
+              <button
+                type="button"
+                className={cn(controls.removeButton, styles.evidenceRemove)}
+                aria-label={`Remove ${item.label}`}
+                data-evidence-remove=""
+                onClick={() => removeAt(index)}
+              >
+                <Icon name="close" size="xs" />
+              </button>
+            )}
+          </span>
+        );
+      })}
+      {(canToggle || onAddFiles) && (
+        <span className={styles.evidenceActions}>
+          {canToggle && (
             <button
               type="button"
-              className={controls.removeButton}
-              aria-label={`Remove ${item.label}`}
-              data-evidence-remove=""
-              onClick={() => removeAt(index)}
+              className={styles.evidenceMore}
+              aria-expanded={expanded}
+              onClick={() => onExpandedChange?.(!expanded)}
             >
-              <Icon name="close" size="xs" />
+              <Icon
+                name="expand_more"
+                size="xs"
+                className={cn(
+                  controls.chevron,
+                  expanded && controls.chevronOpen,
+                )}
+              />
+              {expanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
           )}
+          {onAddFiles && (
+            <>
+              <button
+                ref={addRef}
+                type="button"
+                className={styles.addEvidence}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={addDisabled}
+              >
+                <Icon name="file_upload" size="sm" />
+                {addDisabled && atLimit ? 'Limit reached' : 'Add evidence'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={accept}
+                multiple
+                className={styles.addEvidenceInput}
+                onChange={handleFiles}
+                tabIndex={-1}
+                aria-hidden="true"
+              />
+            </>
+          )}
         </span>
-      ))}
-      {canToggle && (
-        <button
-          type="button"
-          className={styles.evidenceMore}
-          aria-expanded={expanded}
-          onClick={() => onExpandedChange?.(!expanded)}
-        >
-          <Icon
-            name="expand_more"
-            size="xs"
-            className={cn(controls.chevron, expanded && controls.chevronOpen)}
-          />
-          {expanded ? 'Show less' : `+${hiddenCount} more`}
-        </button>
-      )}
-      {onAddFiles && (
-        <>
-          <button
-            ref={addRef}
-            type="button"
-            className={styles.addEvidence}
-            onClick={() => fileInputRef.current?.click()}
-            disabled={addDisabled}
-          >
-            <Icon name="file_upload" size="sm" />
-            {addDisabled && atLimit ? 'Limit reached' : 'Add evidence'}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={accept}
-            multiple
-            className={styles.addEvidenceInput}
-            onChange={handleFiles}
-            tabIndex={-1}
-            aria-hidden="true"
-          />
-        </>
       )}
     </div>
   );
