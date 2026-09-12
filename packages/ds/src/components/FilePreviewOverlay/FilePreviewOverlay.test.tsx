@@ -322,7 +322,7 @@ describe('FilePreviewOverlay', () => {
   it('shows the fallback card for files without content', () => {
     render(<FilePreviewOverlay {...base} open activeIndex={4} />);
     expect(
-      screen.getByText('No preview available for this file.'),
+      screen.getByText('No inline preview for this file. Download to open it.'),
     ).toBeInTheDocument();
   });
 

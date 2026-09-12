@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Icon } from '../Icon';
 import { cn } from '../../utils/cn';
 import { evidenceIcon, resolvePreview } from '../../utils/resolvePreview';
@@ -11,6 +12,15 @@ export interface FilmstripProps {
 }
 
 export function Filmstrip({ files, activeIndex, onSelect }: FilmstripProps) {
+  const activeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    activeRef.current?.scrollIntoView?.({
+      block: 'nearest',
+      inline: 'nearest',
+    });
+  }, [activeIndex]);
+
   return (
     <div className={styles.filmstrip} role="group" aria-label="All files">
       {files.map((file, index) => {
@@ -18,6 +28,7 @@ export function Filmstrip({ files, activeIndex, onSelect }: FilmstripProps) {
         return (
           <button
             key={`${file.label}-${index}`}
+            ref={index === activeIndex ? activeRef : undefined}
             type="button"
             className={cn(
               styles.filmstripItem,

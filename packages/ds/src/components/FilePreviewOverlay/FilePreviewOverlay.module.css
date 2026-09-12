@@ -32,6 +32,14 @@
   color: var(--ds-color-text-inverse);
 }
 
+.fileIdentity {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  min-width: 0;
+  color: var(--ds-color-text-inverse);
+}
+
 .fileName {
   font-family: var(--ds-font-family-mono);
   font-size: var(--ds-text-card-body-font-size);
@@ -44,6 +52,7 @@
 .counter {
   font-family: var(--ds-font-family-mono);
   font-size: var(--ds-text-metadata-font-size);
+  color: var(--ds-color-text-inverse);
   opacity: 0.65;
   flex-shrink: 0;
 }
@@ -253,4 +262,72 @@
   font-family: var(--ds-font-family-sans);
   font-size: var(--ds-text-metadata-font-size);
   color: var(--ds-color-text-secondary);
+}
+
+.stackedViewer {
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+  gap: var(--ds-space-scale-sm);
+  padding: var(--ds-space-scale-md);
+}
+
+.stackedViewer .topBar {
+  gap: var(--ds-space-scale-sm);
+}
+
+.stackedViewer .filmstrip {
+  justify-content: flex-start;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.stackedViewer .filmstrip::-webkit-scrollbar {
+  display: none;
+}
+
+.stackedViewer .filmstripItem {
+  flex-shrink: 0;
+}
+
+.navRow {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-scale-sm);
+  pointer-events: auto;
+}
+
+.navRow .nav {
+  position: static;
+  transform: none;
+  border-radius: var(--ds-radius-2xl);
+  flex-shrink: 0;
+}
+
+.navRow .download {
+  flex: 1;
+  justify-content: center;
+  padding: var(--ds-space-scale-sm) var(--ds-space-scale-md);
+  border-radius: var(--ds-radius-2xl);
+  background-color: var(--ds-color-surface-primary);
+  color: var(--ds-color-text-primary);
+}
+
+.navRow .download:hover {
+  background-color: var(--ds-color-surface-secondary);
+}
+
+.metaRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: var(--ds-space-scale-lg);
+  pointer-events: auto;
+}
+
+.metaRow .downloadAll {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0;
+  border: none;
 }
