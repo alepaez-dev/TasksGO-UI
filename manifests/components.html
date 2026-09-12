@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/63 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">63/63 infos</a><span class="filter-pill ok" aria-disabled="true">287 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/63 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">63/63 infos</a><span class="filter-pill ok" aria-disabled="true">292 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -941,9 +941,9 @@ export const CustomLeading: Story = {
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> AddScenarioDialog</h2>
       <div class="badges">
-        <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">17 prop types</label>
+        <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">18 prop types</label>
         <label for="c-1-components-addscenariodialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-1-components-addscenariodialog-stories" class="badge ok as-toggle">6 stories</label>
+        <label for="c-1-components-addscenariodialog-stories" class="badge ok as-toggle">7 stories</label>
         
       </div>
     </div>
@@ -975,7 +975,7 @@ export const CustomLeading: Story = {
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">17 prop types</span>
+              <span class="badge ok">18 prop types</span>
             </div>
             <pre><code>Component: src/components/AddScenarioDialog/AddScenarioDialog.tsx::AddScenarioDialog</code></pre>
             <pre><code>Props:</code></pre>
@@ -1017,6 +1017,8 @@ onOpenEvidence?: (index: number) =&gt; void
 onValueChange: (next: NewScenarioDraft) =&gt; void
 
 open: boolean
+
+presentation?: &#39;dialog&#39; | &#39;sheet&#39;
 
 value: NewScenarioDraft</code></pre>
           </div>
@@ -1073,6 +1075,15 @@ value: NewScenarioDraft</code></pre>
     initial={{ ...FILLED, actual: &#39;Response carried X-Cache: MISS twice.&#39; }}
   /&gt;
 );</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Sheet</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Sheet = () =&gt; &lt;Controlled presentation=&quot;sheet&quot; initial={FILLED} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -3047,9 +3058,9 @@ variant?: &#39;default&#39; | &#39;subtle&#39; = &#39;default&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> ConfirmDialog</h2>
       <div class="badges">
-        <label for="c-14-components-confirmdialog-props" class="badge ok as-toggle">14 prop types</label>
+        <label for="c-14-components-confirmdialog-props" class="badge ok as-toggle">15 prop types</label>
         <label for="c-14-components-confirmdialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-14-components-confirmdialog-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-14-components-confirmdialog-stories" class="badge ok as-toggle">5 stories</label>
         
       </div>
     </div>
@@ -3081,7 +3092,7 @@ variant?: &#39;default&#39; | &#39;subtle&#39; = &#39;default&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">14 prop types</span>
+              <span class="badge ok">15 prop types</span>
             </div>
             <pre><code>Component: src/components/ConfirmDialog/ConfirmDialog.tsx::ConfirmDialog</code></pre>
             <pre><code>Props:</code></pre>
@@ -3097,8 +3108,14 @@ field?: ConfirmDialogField
 
 forceMount?: boolean
 
+/**
+ * Dialog presentation only — sheets render no icon badge.
+ */
 icon: ReactNode
 
+/**
+ * Dialog presentation only.
+ */
 iconTone?: &#39;neutral&#39; | &#39;warning&#39;
 
 onCancel: () =&gt; void
@@ -3110,6 +3127,8 @@ onConfirm: () =&gt; void
 onOpened?: () =&gt; void
 
 open: boolean
+
+presentation?: &#39;dialog&#39; | &#39;sheet&#39;
 
 title: string</code></pre>
           </div>
@@ -3146,6 +3165,50 @@ title: string</code></pre>
               <pre><code>const WithRequiredField = () =&gt; (
   &lt;Controlled
     triggerLabel=&quot;Re-open as pending&quot;
+    fieldLabel=&quot;Actual Result&quot;
+    fieldRequired
+    fieldPlaceholder=&quot;Describe what actually happened&quot;
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Sheet</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Sheet = () =&gt; (
+  &lt;Controlled
+    triggerLabel=&quot;Re-open as pending&quot;
+    presentation=&quot;sheet&quot;
+    fieldLabel=&quot;Actual Result&quot;
+    fieldRequired
+    fieldPlaceholder=&quot;Describe what actually happened&quot;
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Overflowing (panel scrolls, stays in viewport)</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Overflowing = () =&gt; (
+  &lt;Controlled
+    triggerLabel=&quot;Re-open as pending&quot;
+    description={
+      &lt;&gt;
+        {LONG_DESCRIPTION.map((paragraph, index) =&gt; (
+          &lt;span key={index}&gt;
+            {paragraph}
+            &lt;br /&gt;
+            &lt;br /&gt;
+          &lt;/span&gt;
+        ))}
+      &lt;/&gt;
+    }
     fieldLabel=&quot;Actual Result&quot;
     fieldRequired
     fieldPlaceholder=&quot;Describe what actually happened&quot;
@@ -7011,7 +7074,7 @@ value: string</code></pre>
       <div class="badges">
         <label for="c-43-components-reopenpendingdialog-props" class="badge ok as-toggle">4 prop types</label>
         <label for="c-43-components-reopenpendingdialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-43-components-reopenpendingdialog-stories" class="badge ok as-toggle">1 story</label>
+        <label for="c-43-components-reopenpendingdialog-stories" class="badge ok as-toggle">2 stories</label>
         
       </div>
     </div>
@@ -7077,6 +7140,15 @@ scenarioTitle: string</code></pre>
               
               
               <pre><code>const Default = () =&gt; &lt;Controlled /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Sheet</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Sheet = () =&gt; &lt;Controlled presentation=&quot;sheet&quot; /&gt;;</code></pre>
             </div>
         </div>
     
@@ -11321,7 +11393,7 @@ titleEditing?: any = false</code></pre>
       <div class="badges">
         <label for="c-62-components-waivescenariodialog-props" class="badge ok as-toggle">4 prop types</label>
         <label for="c-62-components-waivescenariodialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-62-components-waivescenariodialog-stories" class="badge ok as-toggle">2 stories</label>
+        <label for="c-62-components-waivescenariodialog-stories" class="badge ok as-toggle">3 stories</label>
         
       </div>
     </div>
@@ -11398,6 +11470,15 @@ scenarioTitle: string</code></pre>
               <pre><code>const Prefilled = () =&gt; (
   &lt;Controlled initialReason=&quot;Dev confirmed out of scope for this ticket; tracked separately under ENG-2871.&quot; /&gt;
 );</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Sheet</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Sheet = () =&gt; &lt;Controlled presentation=&quot;sheet&quot; /&gt;;</code></pre>
             </div>
         </div>
     
