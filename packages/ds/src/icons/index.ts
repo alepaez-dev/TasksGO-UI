@@ -40,6 +40,7 @@ export { MoodIcon } from './mood';
 export { MoreHorizIcon } from './moreHoriz';
 export { OpenInNewIcon } from './openInNew';
 export { PersonIcon } from './person';
+export { PushPinFilledIcon } from './pushPinFilled';
 export { ReplyIcon } from './reply';
 export { ScheduleIcon } from './schedule';
 export { ScienceIcon } from './science';
