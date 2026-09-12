@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { ReopenPendingDialog } from './ReopenPendingDialog';
+import {
+  ReopenPendingDialog,
+  type ReopenPendingDialogProps,
+} from './ReopenPendingDialog';
+import { mobileSheetStory } from '../../../.storybook/decorators';
 
 const meta: Meta<typeof ReopenPendingDialog> = {
   title: 'Components/ReopenPendingDialog',
@@ -11,7 +15,7 @@ const meta: Meta<typeof ReopenPendingDialog> = {
 export default meta;
 type Story = StoryObj<typeof ReopenPendingDialog>;
 
-function Controlled() {
+function Controlled(props: Partial<ReopenPendingDialogProps>) {
   const [open, setOpen] = useState(false);
   const [actualResult, setActualResult] = useState('');
   return (
@@ -20,6 +24,7 @@ function Controlled() {
         Re-open as pending
       </button>
       <ReopenPendingDialog
+        {...props}
         open={open}
         scenarioTitle="WebSocket Connection Persistence"
         actualResult={actualResult}
@@ -34,4 +39,9 @@ function Controlled() {
 
 export const Default: Story = {
   render: () => <Controlled />,
+};
+
+export const Sheet: Story = {
+  ...mobileSheetStory,
+  render: () => <Controlled presentation="sheet" />,
 };

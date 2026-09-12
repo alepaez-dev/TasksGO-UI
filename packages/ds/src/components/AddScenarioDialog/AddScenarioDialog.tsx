@@ -3,7 +3,10 @@ import { DialogShell } from '../_internal/DialogShell';
 import { DialogField, DialogFieldLabel } from '../_internal/DialogField';
 import { StepEditor } from '../_internal/StepEditor';
 import { EvidenceInput } from '../_internal/EvidenceInput';
-import { type DialogLifecycleProps } from '../../types/dialog';
+import {
+  type DialogLifecycleProps,
+  type DialogPresentation,
+} from '../../types/dialog';
 import { Icon } from '../Icon';
 import { StatusChoice } from './StatusChoice';
 import {
@@ -26,6 +29,7 @@ export interface AddScenarioDialogProps extends DialogLifecycleProps {
   value: NewScenarioDraft;
   onValueChange: (next: NewScenarioDraft) => void;
   onConfirm: (value: NewScenarioDraft) => void;
+  presentation?: DialogPresentation;
   maxEvidence?: number;
   addEvidenceDisabled?: boolean;
   evidenceAccept?: string;

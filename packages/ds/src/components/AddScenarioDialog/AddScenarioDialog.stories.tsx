@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { AddScenarioDialog } from './AddScenarioDialog';
+import type { DialogPresentation } from '../../types/dialog';
+import { mobileSheetStory } from '../../../.storybook/decorators';
 import { FilePreviewOverlay } from '../FilePreviewOverlay';
 import type { EvidenceItem } from '../../types/evidence';
 import { TEXT_LIKE_EVIDENCE } from '../../stories/helpers/evidenceFixtures';
@@ -47,10 +49,12 @@ function Controlled({
   initial = EMPTY,
   isEvidenceAllowed,
   addEvidenceDisabled,
+  presentation,
 }: {
   initial?: NewScenarioDraft;
   isEvidenceAllowed?: (file: File) => boolean;
   addEvidenceDisabled?: boolean;
+  presentation?: DialogPresentation;
 }) {
   const [open, setOpen] = useState(true);
   const [draft, setDraft] = useState(initial);
@@ -103,6 +107,7 @@ function Controlled({
       </button>
       <AddScenarioDialog
         open={open}
+        presentation={presentation}
         value={draft}
         onValueChange={(next) => {
           setNotice('');
@@ -166,6 +171,11 @@ export const ReadyToSubmit: Story = {
       initial={{ ...FILLED, actual: 'Response carried X-Cache: MISS twice.' }}
     />
   ),
+};
+
+export const Sheet: Story = {
+  ...mobileSheetStory,
+  render: () => <Controlled presentation="sheet" initial={FILLED} />,
 };
 
 export const ConsumerBlocksExecutables: Story = {

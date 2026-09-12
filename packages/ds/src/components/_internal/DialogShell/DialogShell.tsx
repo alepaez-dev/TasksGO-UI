@@ -1,9 +1,14 @@
 import { forwardRef, useId, useRef, type ReactNode } from 'react';
 import { Button } from '../../Button';
+import { BottomSheet } from '../../BottomSheet';
+import { IconButton } from '../../IconButton';
 import { OverlayShell } from '../OverlayShell';
 import { cn } from '../../../utils/cn';
 import { useFocusTrap } from '../../../hooks/useFocusTrap';
-import { type DialogLifecycleProps } from '../../../types/dialog';
+import {
+  type DialogLifecycleProps,
+  type DialogPresentation,
+} from '../../../types/dialog';
 import styles from './DialogShell.module.css';
 
 export type DialogShellTone = 'neutral' | 'warning' | 'accent';
@@ -11,11 +16,15 @@ export type DialogShellTone = 'neutral' | 'warning' | 'accent';
 export type DialogShellSize = 'md' | 'lg';
 
 export interface DialogShellProps extends DialogLifecycleProps {
+  /** Dialog presentation only — sheets render no icon badge. */
   icon: ReactNode;
+  /** Dialog presentation only. */
   iconTone?: DialogShellTone;
   title: string;
   description: ReactNode;
+  /** Dialog presentation only — sheets are always full-width. */
   size?: DialogShellSize;
+  presentation?: DialogPresentation;
   confirmLabel: string;
   confirmDisabled?: boolean;
   onConfirm: () => void;
@@ -31,12 +40,13 @@ export const DialogShell = forwardRef<HTMLDivElement, DialogShellProps>(
       title,
       description,
       size = 'md',
+      presentation = 'dialog',
       confirmLabel,
       cancelLabel = 'Cancel',
       confirmDisabled = false,
       onCancel,
       onConfirm,
-      duration = 'normal',
+      duration,
       forceMount = false,
       onOpened,
       onClosed,
@@ -47,8 +57,10 @@ export const DialogShell = forwardRef<HTMLDivElement, DialogShellProps>(
     },
     ref,
   ) => {
+    const isSheet = presentation === 'sheet';
     const panelRef = useRef<HTMLDivElement>(null);
-    useFocusTrap(panelRef, open, { autoFocus: false });
+    // in sheet mode BottomSheet owns the trap on this same node
+    useFocusTrap(panelRef, open && !isSheet, { autoFocus: false });
     const generatedId = useId();
     const id = idProp ?? generatedId;
 
@@ -66,16 +78,71 @@ export const DialogShell = forwardRef<HTMLDivElement, DialogShellProps>(
         onOpened();
         return;
       }
-      panelRef.current
-        ?.querySelector<HTMLElement>('textarea, input, button')
-        ?.focus();
+      const panel = panelRef.current;
+      (
+        panel?.querySelector<HTMLElement>('textarea, input') ??
+        panel?.querySelector<HTMLElement>('button')
+      )?.focus();
+    }
+
+    const resolvedDuration = duration ?? (isSheet ? 'slow' : 'normal');
+
+    const footer = (
+      <div className={cn(styles.footer, isSheet && styles.sheetFooter)}>
+        <Button variant="secondary" onClick={onCancel}>
+          {cancelLabel}
+        </Button>
+        <Button
+          variant="primary"
+          disabled={confirmDisabled}
+          onClick={onConfirm}
+        >
+          {confirmLabel}
+        </Button>
+      </div>
+    );
+
+    if (isSheet) {
+      return (
+        <BottomSheet
+          ref={setRefs}
+          {...rest}
+          id={id}
+          open={open}
+          onClose={onCancel}
+          duration={resolvedDuration}
+          forceMount={forceMount}
+          onOpened={handleOpened}
+          onClosed={onClosed}
+          aria-labelledby={titleId}
+          aria-describedby={descId}
+          className={className}
+        >
+          <div className={styles.sheetHeader}>
+            <h2 id={titleId} className={styles.title}>
+              {title}
+            </h2>
+            <IconButton
+              icon="close"
+              size="sm"
+              aria-label="Close"
+              onClick={onCancel}
+            />
+          </div>
+          <p id={descId} className={styles.sheetDescription}>
+            {description}
+          </p>
+          {children}
+          {footer}
+        </BottomSheet>
+      );
     }
 
     return (
       <OverlayShell
         open={open}
         onClose={onCancel}
-        duration={duration}
+        duration={resolvedDuration}
         forceMount={forceMount}
         onOpened={handleOpened}
         onClosed={onClosed}
@@ -116,18 +183,7 @@ export const DialogShell = forwardRef<HTMLDivElement, DialogShellProps>(
 
               {children}
 
-              <div className={styles.footer}>
-                <Button variant="secondary" onClick={onCancel}>
-                  {cancelLabel}
-                </Button>
-                <Button
-                  variant="primary"
-                  disabled={confirmDisabled}
-                  onClick={onConfirm}
-                >
-                  {confirmLabel}
-                </Button>
-              </div>
+              {footer}
             </div>
           </div>
         )}
