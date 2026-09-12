@@ -38,7 +38,7 @@ export function PreviewStage({ file }: PreviewStageProps) {
       </span>
       <span className={styles.fallbackLabel}>{file.label}</span>
       <span className={styles.fallbackHint}>
-        No preview available for this file.
+        No inline preview for this file. Download to open it.
       </span>
     </div>
   );
