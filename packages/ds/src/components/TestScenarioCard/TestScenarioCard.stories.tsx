@@ -87,7 +87,12 @@ function Controlled(props: TestScenarioCardProps) {
     setStatus(next);
   };
 
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const openPreview = (index: number) => {
+    setPreviewIndex(index);
+    setPreviewOpen(true);
+  };
 
   const handleAddEvidence = (files: readonly File[]) => {
     void Promise.all(
@@ -145,7 +150,7 @@ function Controlled(props: TestScenarioCardProps) {
         onEvidenceExpandedChange={setEvidenceExpanded}
         onAddEvidence={handleAddEvidence}
         onRemoveEvidence={handleRemoveEvidence}
-        onOpenEvidence={setPreviewIndex}
+        onOpenEvidence={openPreview}
         maxEvidence={props.maxEvidence}
         addEvidenceDisabled={
           props.maxEvidence != null && evidence.length >= props.maxEvidence
@@ -188,10 +193,10 @@ function Controlled(props: TestScenarioCardProps) {
       />
       <FilePreviewOverlay
         files={evidence}
-        open={previewIndex != null}
-        activeIndex={previewIndex ?? 0}
+        open={previewOpen}
+        activeIndex={previewIndex}
         onActiveIndexChange={setPreviewIndex}
-        onClose={() => setPreviewIndex(null)}
+        onClose={() => setPreviewOpen(false)}
       />
     </>
   );

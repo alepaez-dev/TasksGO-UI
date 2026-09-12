@@ -251,6 +251,7 @@ export function QaPanel({
                   onUpdateScenario(scenario.id, { steps })
                 }
                 onAddEvidence={(files) => {
+                  const start = scenario.evidence?.length ?? 0;
                   onUpdateScenario(scenario.id, (prev) => ({
                     evidence: [
                       ...(prev.evidence ?? []),
@@ -263,15 +264,17 @@ export function QaPanel({
                       })),
                     ],
                   }));
-                  files.forEach((file) => {
+                  files.forEach((file, fileIndex) => {
                     if (
                       file.type.startsWith('text/') ||
                       TEXT_LIKE_EVIDENCE.test(file.name)
                     ) {
                       void file.text().then((text) =>
                         onUpdateScenario(scenario.id, (prev) => ({
-                          evidence: prev.evidence?.map((item) =>
-                            item.label === file.name ? { ...item, text } : item,
+                          evidence: prev.evidence?.map((item, index) =>
+                            index === start + fileIndex
+                              ? { ...item, text }
+                              : item,
                           ),
                         })),
                       );

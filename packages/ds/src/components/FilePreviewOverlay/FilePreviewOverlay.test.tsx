@@ -1,5 +1,11 @@
 import { createRef } from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { FilePreviewOverlay } from './FilePreviewOverlay';
@@ -212,6 +218,38 @@ describe('FilePreviewOverlay', () => {
     );
 
     await waitFor(() => expect(downloaded).toEqual(['TC-409-evidence.zip']));
+    clickSpy.mockRestore();
+  });
+
+  it('ignores repeat clicks while Download all is still building the zip', async () => {
+    const zipped: Blob[] = [];
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: vi.fn((blob: Blob) => {
+        zipped.push(blob);
+        return 'blob:zip';
+      }),
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      writable: true,
+      value: vi.fn(),
+    });
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
+
+    render(<FilePreviewOverlay {...base} open />);
+    const button = screen.getByRole('button', { name: /download all/i });
+    // two synchronous clicks: the second lands while the first zip builds
+    fireEvent.click(button);
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(button);
+
+    await waitFor(() => expect(zipped).toHaveLength(1));
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(button).not.toHaveAttribute('aria-disabled'));
     clickSpy.mockRestore();
   });
 

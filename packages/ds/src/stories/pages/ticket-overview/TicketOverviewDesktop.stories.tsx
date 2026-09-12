@@ -182,6 +182,8 @@ function TicketOverviewRender({
     statusSelectScenarioId,
     setStatusSelectOpen,
     evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
     setEvidencePreviewIndex,
@@ -746,10 +748,11 @@ function TicketOverviewRender({
 
       <FilePreviewOverlay
         files={previewScenario?.evidence ?? []}
-        open={evidencePreview != null}
+        open={evidencePreviewOpen}
         activeIndex={evidencePreview?.index ?? 0}
         onActiveIndexChange={setEvidencePreviewIndex}
         onClose={closeEvidencePreview}
+        onClosed={clearEvidencePreview}
         downloadAllName={
           previewScenario != null
             ? `${previewScenario.id}-evidence.zip`

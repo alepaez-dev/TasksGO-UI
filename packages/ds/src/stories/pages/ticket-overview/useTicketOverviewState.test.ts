@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useTicketOverviewState } from './useTicketOverviewState';
 import {
   devScratchpadTask,
@@ -116,5 +116,63 @@ describe('useTicketOverviewState — add scenario', () => {
     expect(result.current.qaScenarios).toHaveLength(before + 1);
     expect(added.title).toBe(DRAFT.name);
     expect(result.current.qaFailedCount).toBe(2);
+  });
+});
+
+describe('useTicketOverviewState — evidence text back-fill', () => {
+  it('keeps same-named files from clobbering each other', async () => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: () => 'blob:evidence',
+    });
+    const textFile = (content: string, name: string): File => {
+      const file = new File([content], name, { type: 'text/plain' });
+      Object.defineProperty(file, 'text', {
+        value: () => Promise.resolve(content),
+      });
+      return file;
+    };
+
+    const { result } = renderHook(() => useTicketOverviewState());
+    const before = result.current.qaScenarios.length;
+
+    act(() =>
+      result.current.confirmAddScenario({
+        ...DRAFT,
+        evidence: [textFile('FIRST', 'dup.txt'), textFile('SECOND', 'dup.txt')],
+      }),
+    );
+
+    await waitFor(() => {
+      const added = result.current.qaScenarios[before];
+      expect(added.evidence?.[1]?.text).toBe('SECOND');
+    });
+    const added = result.current.qaScenarios[before];
+    expect(added.evidence?.[0]?.text).toBe('FIRST');
+  });
+});
+
+describe('useTicketOverviewState — evidence preview', () => {
+  it('keeps the preview target while the overlay fades out', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+
+    act(() => result.current.openEvidencePreview('TC-418', 1));
+    expect(result.current.evidencePreviewOpen).toBe(true);
+    expect(result.current.evidencePreview).toEqual({
+      scenarioId: 'TC-418',
+      index: 1,
+    });
+
+    act(() => result.current.closeEvidencePreview());
+    // closed, but the target survives so the content stays during the fade
+    expect(result.current.evidencePreviewOpen).toBe(false);
+    expect(result.current.evidencePreview).toEqual({
+      scenarioId: 'TC-418',
+      index: 1,
+    });
+
+    act(() => result.current.clearEvidencePreview());
+    expect(result.current.evidencePreview).toBeNull();
   });
 });

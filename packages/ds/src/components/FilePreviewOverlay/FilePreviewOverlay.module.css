@@ -107,6 +107,11 @@
   background-color: var(--ds-color-button-primary-hover-bg);
 }
 
+.downloadAll[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .downloadAll:focus-visible {
   outline: var(--ds-focus-ring-width) solid transparent;
   box-shadow: var(--ds-focus-ring);

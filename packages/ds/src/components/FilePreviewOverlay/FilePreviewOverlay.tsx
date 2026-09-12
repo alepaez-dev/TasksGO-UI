@@ -125,19 +125,25 @@ export const FilePreviewOverlay = forwardRef<
       0,
     );
 
-    async function handleDownloadAll() {
-      const entries = await Promise.all(files.map(zipEntryFor));
-      const zipFiles = entries.filter((entry): entry is ZipFileInput =>
-        Boolean(entry),
-      );
-      if (zipFiles.length === 0) return;
-      const zipUrl = URL.createObjectURL(createZip(zipFiles));
-      const anchor = document.createElement('a');
-      anchor.href = zipUrl;
-      anchor.download = downloadAllName;
-      anchor.click();
-      // deferred: revoking synchronously can abort the still-starting download
-      window.setTimeout(() => URL.revokeObjectURL(zipUrl), 1000);
+    async function handleDownloadAll(button: HTMLButtonElement) {
+      if (button.getAttribute('aria-disabled') === 'true') return;
+      button.setAttribute('aria-disabled', 'true');
+      try {
+        const entries = await Promise.all(files.map(zipEntryFor));
+        const zipFiles = entries.filter((entry): entry is ZipFileInput =>
+          Boolean(entry),
+        );
+        if (zipFiles.length === 0) return;
+        const zipUrl = URL.createObjectURL(createZip(zipFiles));
+        const anchor = document.createElement('a');
+        anchor.href = zipUrl;
+        anchor.download = downloadAllName;
+        anchor.click();
+        // deferred: revoking synchronously can abort the still-starting download
+        window.setTimeout(() => URL.revokeObjectURL(zipUrl), 1000);
+      } finally {
+        button.removeAttribute('aria-disabled');
+      }
     }
 
     return (
@@ -177,7 +183,9 @@ export const FilePreviewOverlay = forwardRef<
                   <button
                     type="button"
                     className={styles.downloadAll}
-                    onClick={() => void handleDownloadAll()}
+                    onClick={(event) =>
+                      void handleDownloadAll(event.currentTarget)
+                    }
                   >
                     <Icon name="download" size="sm" />
                     Download all

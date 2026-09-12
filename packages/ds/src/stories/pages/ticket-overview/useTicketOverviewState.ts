@@ -224,6 +224,8 @@ export interface UseTicketOverviewState {
   statusSelectScenarioId: string | null;
   setStatusSelectOpen: (id: string, open: boolean) => void;
   evidencePreview: { scenarioId: string; index: number } | null;
+  evidencePreviewOpen: boolean;
+  clearEvidencePreview: () => void;
   openEvidencePreview: (scenarioId: string, index: number) => void;
   closeEvidencePreview: () => void;
   setEvidencePreviewIndex: (index: number) => void;
@@ -326,8 +328,7 @@ export function useTicketOverviewState(
   const confirmAddScenario = (draft: NewScenarioDraft) => {
     const id = `scenario-${qaScenarios.length + 1}`;
     setQaScenarios((current) => [...current, toQaScenario(draft, id)]);
-    // read text-like files after commit so their inline preview works too
-    draft.evidence.forEach((file) => {
+    draft.evidence.forEach((file, fileIndex) => {
       if (file.type.startsWith('text/') || TEXT_LIKE_EVIDENCE.test(file.name)) {
         void file.text().then((text) =>
           setQaScenarios((current) =>
@@ -335,8 +336,8 @@ export function useTicketOverviewState(
               scenario.id === id
                 ? {
                     ...scenario,
-                    evidence: scenario.evidence?.map((item) =>
-                      item.label === file.name ? { ...item, text } : item,
+                    evidence: scenario.evidence?.map((item, index) =>
+                      index === fileIndex ? { ...item, text } : item,
                     ),
                   }
                 : scenario,
@@ -454,13 +455,19 @@ export function useTicketOverviewState(
     scenarioId: string;
     index: number;
   } | null>(null);
+  const [evidencePreviewOpen, setEvidencePreviewOpen] = useState(false);
   const openEvidencePreview = useCallback(
     (scenarioId: string, index: number) => {
       setEvidencePreview({ scenarioId, index });
+      setEvidencePreviewOpen(true);
     },
     [],
   );
-  const closeEvidencePreview = useCallback(() => setEvidencePreview(null), []);
+  const closeEvidencePreview = useCallback(
+    () => setEvidencePreviewOpen(false),
+    [],
+  );
+  const clearEvidencePreview = useCallback(() => setEvidencePreview(null), []);
   const setEvidencePreviewIndex = useCallback((index: number) => {
     setEvidencePreview((prev) => (prev ? { ...prev, index } : prev));
   }, []);
@@ -546,6 +553,8 @@ export function useTicketOverviewState(
     statusSelectScenarioId,
     setStatusSelectOpen,
     evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
     setEvidencePreviewIndex,

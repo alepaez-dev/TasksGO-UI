@@ -59,7 +59,12 @@ function Controlled({
     setNotice('');
     setOpen(false);
   };
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const openPreview = (index: number) => {
+    setPreviewIndex(index);
+    setPreviewOpen(true);
+  };
   const [resolved, setResolved] = useState<readonly EvidenceItem[]>([]);
 
   useEffect(() => {
@@ -107,7 +112,7 @@ function Controlled({
         onConfirm={close}
         isEvidenceAllowed={isEvidenceAllowed}
         addEvidenceDisabled={addEvidenceDisabled}
-        onOpenEvidence={setPreviewIndex}
+        onOpenEvidence={openPreview}
         onEvidenceRejected={(rejected) => {
           const blocked = rejected
             .filter((r) => r.reason === 'filtered')
@@ -134,10 +139,10 @@ function Controlled({
       />
       <FilePreviewOverlay
         files={resolved}
-        open={previewIndex != null}
-        activeIndex={previewIndex ?? 0}
+        open={previewOpen}
+        activeIndex={previewIndex}
         onActiveIndexChange={setPreviewIndex}
-        onClose={() => setPreviewIndex(null)}
+        onClose={() => setPreviewOpen(false)}
       />
     </>
   );
