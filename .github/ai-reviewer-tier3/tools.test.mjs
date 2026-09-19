@@ -344,3 +344,40 @@ test('the negative is scoped to what was indexed — never a repo-wide claim', a
   assert.match(out.content, /reviewable source tree/, 'the claim must name its scope');
   assert.match(out.content, /node_modules/, 'and name the directories it did not index');
 });
+
+test('grepIgnoreExempt makes a generated token file searchable while the rest stay ignored', async () => {
+  const root = mkdtempSync(join(tmpdir(), 't3exempt-'));
+  mkdirSync(join(root, 'src', 'tokens'), { recursive: true });
+  writeFileSync(join(root, 'src', 'tokens', 'tokens.css'), ':root { --ds-space-ticket-tabs-bar-height: 35px; }\n');
+  writeFileSync(join(root, 'package-lock.json'), '{ "tabs-bar-height": true }\n');
+  const run = makeToolRunner({
+    root,
+    config: { ...cfg, ignore: ['**/tokens.css', '**/package-lock.json'], grepIgnoreExempt: ['**/tokens.css'] },
+  });
+  const r = await run('grep', { pattern: 'tabs-bar-height' });
+  assert.equal(r.isError, false);
+  assert.match(r.content, /tokens\.css:1:.*35px/, 'the exempted generated file must be searchable');
+  assert.doesNotMatch(r.content, /package-lock\.json:\d+:/, 'a non-exempt ignored file must stay unsearched');
+  assert.match(r.content, /1 ignore-listed file\(s\) NOT searched/, 'the remaining skip must be loud');
+  assert.match(r.content, /package-lock\.json/, 'and name the file so the model can read_file it');
+});
+
+test('grep does not claim a bare "(no matches)" when ignored candidates were skipped', async () => {
+  const root = mkdtempSync(join(tmpdir(), 't3ignloud-'));
+  mkdirSync(join(root, 'src'), { recursive: true });
+  writeFileSync(join(root, 'src', 'tokens.css'), ':root { --ds-x: 1px; }\n');
+  const run = makeToolRunner({ root, config: { ...cfg, ignore: ['**/tokens.css'] } });
+  const r = await run('grep', { pattern: '--ds-x' });
+  assert.equal(r.isError, false);
+  assert.match(r.content, /\(no matches\)/, 'nothing searchable matched');
+  assert.match(r.content, /ignore-listed file\(s\) NOT searched — read_file them directly/, 'the exclusion must be stated, not silent');
+  assert.match(r.content, /src\/tokens\.css/);
+});
+
+test('the tier-3 finding schema demands counter-evidence without licensing new tool calls', () => {
+  const submit = TOOL_DEFS.find((t) => t.name === 'submit_findings');
+  const items = submit.input_schema.properties.findings.items;
+  assert.ok(items.required.includes('counterEvidence'), 'filing must be weighed against something');
+  assert.match(items.properties.counterEvidence.description, /never a reason to make new tool calls/, 'the field must not induce extra rounds');
+  assert.match(items.properties.counterEvidence.description, /green CI check/, 'the CI oracle is the canonical example');
+});

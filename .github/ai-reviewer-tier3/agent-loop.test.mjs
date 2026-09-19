@@ -1320,3 +1320,42 @@ test('an ordinary prose-only give-up is still NOT a budget interrupt', async () 
   assert.equal(out.submitted, false);
   assert.equal(out.interruptedReason, null);
 });
+
+test('a hedge gate skipped for budget logs the hand-wave texts, and banked findings log their basis', async () => {
+  const tight = { ...config, costCeilingUsd: 1.0, terminalOutputTokens: 8000 };
+  const found = [
+    { file: 'a.ts', line: 1, severity: 'low', confidence: 'medium', category: 'frontend', title: 'bar overflow', body: 'b', suggestion: 's', confidenceBasis: 'a.ts:1 — the height math', counterEvidence: 'the e2e computes the same gap and is green' },
+  ];
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 30000 } },
+    {
+      content: [
+        { type: 'thinking', thinking: 'the spill is purely cosmetic so it can ship.' },
+        { type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: found, callSiteAudit: [], confirmSuppressed: [] } },
+      ],
+      usage: { input_tokens: 0, output_tokens: 8000 },
+    },
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config: tight, system: 'sys', userMessage: 'review', root, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.match(joined, /gate-skipped/, 'the skip itself must be logged');
+  assert.match(joined, /hand-wave \(ungated\) · "the spill is purely cosmetic so it can ship\."/, 'the skipped gate must log WHAT went ungated');
+  assert.deepEqual(out.findings, found, 'the banked findings are still published');
+  assert.match(joined, /low\/medium bar overflow/, 'banked findings must be logged like accepted ones');
+  assert.match(joined, /basis: a\.ts:1 — the height math/, 'including the confidence basis');
+  assert.match(joined, /against: the e2e computes the same gap and is green/, 'and the recorded counter-evidence');
+});
+
+test('the prioritize guidance no longer licenses skipping the read that settles a formed concern', () => {
+  const g = budgetGuidance(0.5);
+  assert.doesNotMatch(g, /avoid low-value exploration/, 'PR #234: this phrase beat "severity never decides WHETHER to check"');
+  assert.match(g, /FORMED/, 'formed concerns are called out explicitly');
+  assert.match(g, /whatever its severity/, 'the severity carve-out must be on the live channel');
+});
+
+test('the converge guidance demands settling every formed concern, not only high/critical ones', () => {
+  const g = budgetGuidance(0.8);
+  assert.doesNotMatch(g, /high\/critical/, 'PR #234: "confirm only high/critical" excused filing a low concern unverified');
+  assert.match(g, /settle every concern you have already formed/);
+});

@@ -66,6 +66,7 @@
   "verifyWindowLines": 40,
   "maxVerifyFileChars": 60000,
   "maxVerifyOutputTokens": 24000,
+  "grepIgnoreExempt": ["**/tokens.css", "**/typography.css"],
   "ignore": [
     "**/package-lock.json",
     "**/*.lock",

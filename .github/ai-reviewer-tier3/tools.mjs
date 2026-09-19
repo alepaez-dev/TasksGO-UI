@@ -41,8 +41,16 @@ const TIER3_FINDINGS = {
           'If you could NOT verify it, write `NOT VERIFIED: <what you could not check>` instead, and set `confidence` to `low`. ' +
           'Do not mix the two: a basis that cites a line means you checked it, so `confidence` must be `high`.',
       },
+      counterEvidence: {
+        type: 'string',
+        description:
+          'The strongest evidence AGAINST this finding that you ENCOUNTERED — a green CI check whose test asserts the ' +
+          'quantity your failure predicts, a comment stating the behaviour is intended, a caller that tolerates it — plus one ' +
+          'clause on why it does not clear the finding. This is a record of what you ALREADY saw; never a reason to make new ' +
+          'tool calls. Write `none found` only if nothing you read pushed back.',
+      },
     },
-    required: [...SHARED_ITEM.required, 'confidenceBasis'],
+    required: [...SHARED_ITEM.required, 'confidenceBasis', 'counterEvidence'],
   },
 };
 
@@ -248,6 +256,8 @@ export function makeToolRunner({ root, config }) {
   const maxMatches = config.maxGrepMatches ?? 200;
   const exts = config.toolExtensions ?? null;
   const ignore = config.ignore ?? [];
+  const grepExempt = config.grepIgnoreExempt ?? [];
+  const grepIgnore = ignore.filter((p) => !grepExempt.includes(p));
   const maxWalk = config.maxFilesWalked ?? MAX_FILES_WALKED;
 
   let realRootPromise;
@@ -399,11 +409,15 @@ export function makeToolRunner({ root, config }) {
     let total = 0;
     let skippedLarge = 0;
     const cappedFiles = [];
+    const skippedIgnored = [];
     for await (const full of walkFiles(root)) {
       const relPosix = relative(root, full).split(sep).join('/');
       if (exts && !exts.includes(extname(relPosix))) continue;
-      if (isIgnored(relPosix, ignore)) continue;
       if (globRe && !globRe.test(relPosix)) continue;
+      if (isIgnored(relPosix, grepIgnore)) {
+        skippedIgnored.push(relPosix); // a silent skip here reads as "no matches anywhere" — noted below
+        continue;
+      }
       let text;
       try {
         const st = await stat(full);
@@ -430,9 +444,16 @@ export function makeToolRunner({ root, config }) {
       }
       if (perFile > PER_FILE_MATCH_CAP) cappedFiles.push({ file: relPosix, count: perFile });
     }
-    if (total === 0 && skippedLarge === 0) return { content: '(no matches)', isError: false };
+    if (total === 0 && skippedLarge === 0 && skippedIgnored.length === 0) return { content: '(no matches)', isError: false };
     const notes = [];
     if (total > out.length) notes.push(`${total - out.length} more matches truncated`);
+    if (skippedIgnored.length) {
+      const shown = skippedIgnored.slice(0, 5).join(', ');
+      const more = skippedIgnored.length - 5;
+      notes.push(
+        `${skippedIgnored.length} ignore-listed file(s) NOT searched — read_file them directly if relevant: ${shown}${more > 0 ? `, +${more} more` : ''}`,
+      );
+    }
     if (cappedFiles.length) {
       const top = cappedFiles.sort((a, b) => b.count - a.count).slice(0, 10);
       const list = top.map((c) => `${c.file} (${c.count})`).join(', ');

@@ -33,6 +33,7 @@ import {
   mergeThreadComments,
   selectThreadsToVerify,
   extractWindow,
+  clampHunkTail,
   shouldPostVerifyReply,
   shouldResolveThread,
   orderThreadsForVerification,
@@ -1090,6 +1091,45 @@ check('a renderBlock hook replaces the body but never the commentable lines', ()
   const plain = buildDiffContext(files, cfg);
   assert.match(withHook.diffText, /REPLACED/);
   assert.deepEqual([...withHook.commentableByFile.get('a.ts')], [...plain.commentableByFile.get('a.ts')]);
+});
+
+
+check('clampHunkTail keeps the END of an oversized hunk — the flagged line, not the imports', () => {
+  const hunk = ['@@ -0,0 +1,140 @@', ...Array.from({ length: 75 }, (_, i) => `+line ${i + 1}`), '+onEditingChange(false);'].join('\n');
+  const clamped = clampHunkTail(hunk, 200);
+  assert.ok(clamped.length <= 200 + 120, 'stays near the cap (plus the truncation note)');
+  assert.match(clamped, /onEditingChange\(false\);$/, 'the flagged line at the hunk tail must survive');
+  assert.match(clamped, /hunk truncated — showing the last 200 chars/, 'the cut must be disclosed');
+  assert.doesNotMatch(clamped, /@@ -0,0/, 'the header is what gets sacrificed');
+});
+
+check('clampHunkTail leaves a small hunk untouched', () => {
+  assert.equal(clampHunkTail('@@ -1 +1 @@\n+x'), '@@ -1 +1 @@\n+x');
+  assert.equal(clampHunkTail(null), '');
+  assert.equal(clampHunkTail(undefined), '');
+});
+
+check('selectThreadsToVerify surfaces the reported-at commit from the root comment', () => {
+  const f = { fp: 'fp9', file: 'src/new.tsx', line: 76, title: 'focus drops to body' };
+  const threads = [
+    {
+      id: 'T_sha',
+      isResolved: false,
+      isOutdated: false,
+      viewerCanResolve: true,
+      comments: [{ ...botComment(`body\n${findingMarker(f)}`), originalCommitOid: 'ca87eafecd3d869a212355ce73321c726662c61e' }],
+    },
+    {
+      id: 'T_nosha',
+      isResolved: false,
+      isOutdated: false,
+      viewerCanResolve: true,
+      comments: [botComment(`body\n${findingMarker({ ...f, fp: 'fp10' })}`)],
+    },
+  ];
+  const picked = selectThreadsToVerify(threads, { botActor: BOT });
+  assert.equal(picked[0].reportedSha, 'ca87eafecd3d869a212355ce73321c726662c61e', 'the before-state commit must ride along');
+  assert.equal(picked[1].reportedSha, null, 'a missing originalCommit degrades to null, not undefined');
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);
