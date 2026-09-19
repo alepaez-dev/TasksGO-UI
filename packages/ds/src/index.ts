@@ -315,6 +315,9 @@ export {
   type UseDragToDismissHandlers,
   type UseDragToDismissReturn,
 } from './hooks/useDragToDismiss';
+export { useSwipe, type UseSwipeOptions } from './hooks/useSwipe';
+// exported so a consuming app can read the same breakpoint the components do
+export { useMediaQuery } from './hooks/useMediaQuery';
 export {
   useSelectorState,
   useSelectorGroup,
@@ -336,6 +339,7 @@ export {
   elevation,
   effects,
   iconography,
+  breakpoints,
   interaction,
   transitionDurations,
   zIndex,
@@ -349,6 +353,7 @@ export {
   type ElevationToken,
   type EffectToken,
   type IconSize,
+  type Breakpoint,
   type TransitionDuration,
   type ZIndexToken,
 } from './tokens';

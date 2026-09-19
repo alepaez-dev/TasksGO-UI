@@ -48,3 +48,13 @@
   outline: var(--ds-focus-ring-width) solid transparent;
   box-shadow: var(--ds-focus-ring);
 }
+.iconOnly {
+  justify-content: center;
+  gap: 0;
+  padding: var(--ds-space-scale-sm);
+}
+
+[data-stacked] .iconOnly {
+  min-width: var(--ds-space-touch-target);
+  min-height: var(--ds-space-touch-target);
+}

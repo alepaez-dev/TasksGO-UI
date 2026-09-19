@@ -25,6 +25,7 @@ export interface EditableSectionProps {
   onChange?: (value: string) => void;
   tone?: SectionTone;
   addLabel?: string;
+  editIconOnly?: boolean;
 }
 
 export function EditableSection({
@@ -35,6 +36,7 @@ export function EditableSection({
   onChange,
   tone,
   addLabel,
+  editIconOnly = false,
 }: EditableSectionProps): ReactNode {
   const editable = onChange != null;
   const showToggle =
@@ -68,6 +70,7 @@ export function EditableSection({
               }
             }}
             aria-label={editing ? `Done editing ${title}` : `Edit ${title}`}
+            iconOnly={editIconOnly}
           />
         )}
       </div>

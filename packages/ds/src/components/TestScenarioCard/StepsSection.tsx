@@ -18,6 +18,7 @@ export interface StepsSectionProps {
   onEditingChange: (editing: boolean) => void;
   expanded: boolean;
   onExpandedChange?: (expanded: boolean) => void;
+  editIconOnly?: boolean;
 }
 
 export function StepsSection({
@@ -27,6 +28,7 @@ export function StepsSection({
   onEditingChange,
   expanded,
   onExpandedChange,
+  editIconOnly = false,
 }: StepsSectionProps): ReactNode {
   const sectionRef = useRef<HTMLElement>(null);
   const addButtonRef = useRef<HTMLButtonElement>(null);
@@ -98,6 +100,7 @@ export function StepsSection({
             aria-label={
               editing ? `Done editing ${STEPS_TITLE}` : `Edit ${STEPS_TITLE}`
             }
+            iconOnly={editIconOnly}
           />
         )}
       </div>

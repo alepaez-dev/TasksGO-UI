@@ -21,10 +21,12 @@ export interface EvidenceInputProps {
   onExpandedChange?: (expanded: boolean) => void;
   // called when removing the last chip leaves nothing here to focus
   onFocusFallback?: () => void;
+  stacked?: boolean;
 }
 
 export function EvidenceInput({
   items,
+  stacked = false,
   onAddFiles,
   onRemove,
   onOpenItem,
@@ -70,7 +72,10 @@ export function EvidenceInput({
   };
 
   return (
-    <div ref={listRef} className={styles.evidence}>
+    <div
+      ref={listRef}
+      className={cn(styles.evidence, stacked && styles.stackedEvidence)}
+    >
       {visible.map((item, index) => {
         const refLabel = (
           <RefLabel
