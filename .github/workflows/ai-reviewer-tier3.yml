@@ -37,7 +37,7 @@ jobs:
        contains(github.event.pull_request.labels.*.name, 'ai-reviewer-tier3') &&
        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association))
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       # Only an allow-listed user may trigger Tier 3 — on a `labeled` event OR on a push/reopen while the
@@ -69,20 +69,65 @@ jobs:
               }
             }
 
+      - name: Gate on CI success
+        id: ci_gate
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          WAIT_FOR: validate,a11y,e2e
+          WAIT_TIMEOUT_MS: '720000'
+        with:
+          script: |
+            const wanted = process.env.WAIT_FOR.split(',').map((s) => s.trim()).filter(Boolean);
+            const deadline = Date.now() + Number(process.env.WAIT_TIMEOUT_MS);
+            const ref = context.payload.pull_request.head.sha;
+            const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+            for (;;) {
+              const runs = await github.paginate(github.rest.checks.listForRef, {
+                owner: context.repo.owner, repo: context.repo.repo, ref, per_page: 100,
+              });
+              const byName = new Map(runs.map((r) => [r.name, r]));
+              // skipped/cancelled/failure all mean "this commit is not worth a review yet".
+              const notSucceeded = wanted.filter((n) => {
+                const r = byName.get(n);
+                return r?.status === 'completed' && r.conclusion !== 'success';
+              });
+              if (notSucceeded.length) {
+                core.notice(`Skipping the paid review: ${notSucceeded.join(', ')} did not succeed at ${ref.slice(0, 7)}. It will run on the next push while the label is present.`);
+                core.setOutput('proceed', 'false');
+                return;
+              }
+              const pending = wanted.filter((n) => byName.get(n)?.status !== 'completed');
+              if (pending.length === 0) {
+                core.info('All watched checks succeeded — running the review.');
+                core.setOutput('proceed', 'true');
+                return;
+              }
+              if (Date.now() > deadline) {
+                core.notice(`Skipping the paid review: still waiting on ${pending.join(', ')} after the wait timeout. Re-apply the label to retry.`);
+                core.setOutput('proceed', 'false');
+                return;
+              }
+              core.info(`Waiting for: ${pending.join(', ')}`);
+              await sleep(20000);
+            }
+
       # Base checkout (TRUSTED): the Tier 3 script, config, and deps. Default ref on
       # pull_request_target = the base branch, NOT the PR head.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.ci_gate.outputs.proceed == 'true'
         with:
           persist-credentials: false
 
       # Head checkout (UNTRUSTED) into _head — read ONLY
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.ci_gate.outputs.proceed == 'true'
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           path: _head
           persist-credentials: false
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: steps.ci_gate.outputs.proceed == 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -91,14 +136,17 @@ jobs:
             .github/ai-reviewer/package-lock.json
 
       - name: Install reviewer dependencies (base only)
+        if: steps.ci_gate.outputs.proceed == 'true'
         working-directory: .github/ai-reviewer-tier3
         run: npm ci --ignore-scripts
 
       - name: Install Tier 2 reviewer dependencies (imported by the Tier 3 agent)
+        if: steps.ci_gate.outputs.proceed == 'true'
         working-directory: .github/ai-reviewer
         run: npm ci --ignore-scripts
 
       - name: Run AI tier 3 review
+        if: steps.ci_gate.outputs.proceed == 'true'
         working-directory: .github/ai-reviewer-tier3
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
