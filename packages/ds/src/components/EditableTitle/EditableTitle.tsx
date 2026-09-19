@@ -23,7 +23,12 @@ export interface EditableTitleProps extends Omit<
   onChange: (value: string) => void;
   as?: TitleElement;
   titleClassName?: string;
-  editButton?: 'none' | 'hover' | 'always';
+  /**
+   * Edit-button presentation. `always-icon` is `always` with the label dropped
+   * to an accessible name — one prop, so "no button" and "icon-only button"
+   * cannot be asked for at the same time.
+   */
+  editButton?: 'none' | 'hover' | 'always' | 'always-icon';
   toggleClassName?: string;
   clickToEdit?: boolean;
   fullWidth?: boolean;
@@ -137,6 +142,7 @@ export const EditableTitle = forwardRef<HTMLDivElement, EditableTitleProps>(
             onEditingChange={onEditingChange}
             editLabel={editLabel}
             doneLabel={doneLabel}
+            iconOnly={editButton === 'always-icon'}
           />
         )}
       </div>

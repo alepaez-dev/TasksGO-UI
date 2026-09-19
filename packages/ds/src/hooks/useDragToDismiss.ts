@@ -19,7 +19,7 @@ export interface UseDragToDismissOptions {
 export interface UseDragToDismissHandlers {
   onTouchStart: (e: TouchEvent<HTMLElement>) => void;
   onTouchMove: (e: TouchEvent<HTMLElement>) => void;
-  onTouchEnd: () => void;
+  onTouchEnd: (e: TouchEvent<HTMLElement>) => void;
   onTouchCancel: () => void;
 }
 
@@ -65,44 +65,54 @@ export function useDragToDismiss({
     }
   }, [enabled]);
 
-  const onTouchStart = useCallback(
-    (e: TouchEvent<HTMLElement>) => {
-      if (!enabled) return;
-      if (isInsideScrolledContent(e.target)) return;
-      lastDragY.current = 0;
-      startY.current = e.touches[0].clientY;
-    },
-    [enabled],
-  );
-
-  const onTouchMove = useCallback(
-    (e: TouchEvent<HTMLElement>) => {
-      if (!enabled || startY.current === null) return;
-      const delta = e.touches[0].clientY - startY.current;
-      if (delta < DRAG_DEAD_ZONE) return;
-      const clamped = delta - DRAG_DEAD_ZONE;
-      lastDragY.current = clamped;
-      setDragY(clamped);
-    },
-    [enabled],
-  );
-
-  const endDrag = useCallback(() => {
-    if (!enabled || startY.current === null) return;
-    startY.current = null;
-    const finalY = lastDragY.current;
-    lastDragY.current = 0;
-    setDragY(0);
-    if (finalY >= threshold) {
-      onDismiss();
-    }
-  }, [enabled, threshold, onDismiss]);
-
   const cancelDrag = useCallback(() => {
     startY.current = null;
     lastDragY.current = 0;
     setDragY(0);
   }, []);
+
+  const onTouchStart = useCallback(
+    (e: TouchEvent<HTMLElement>) => {
+      if (!enabled) return;
+      if (e.touches.length > 1) return cancelDrag();
+      const touch = e.touches[0];
+      if (!touch) return;
+      if (isInsideScrolledContent(e.target)) return;
+      lastDragY.current = 0;
+      startY.current = touch.clientY;
+    },
+    [enabled, cancelDrag],
+  );
+
+  const onTouchMove = useCallback(
+    (e: TouchEvent<HTMLElement>) => {
+      if (!enabled || startY.current === null) return;
+      if (e.touches.length > 1) return cancelDrag();
+      const touch = e.touches[0];
+      if (!touch) return;
+      const delta = touch.clientY - startY.current;
+      if (delta < DRAG_DEAD_ZONE) return;
+      const clamped = delta - DRAG_DEAD_ZONE;
+      lastDragY.current = clamped;
+      setDragY(clamped);
+    },
+    [enabled, cancelDrag],
+  );
+
+  const endDrag = useCallback(
+    (e: TouchEvent<HTMLElement>) => {
+      if (e.touches.length > 0) return cancelDrag();
+      if (!enabled || startY.current === null) return;
+      startY.current = null;
+      const finalY = lastDragY.current;
+      lastDragY.current = 0;
+      setDragY(0);
+      if (finalY >= threshold) {
+        onDismiss();
+      }
+    },
+    [enabled, threshold, onDismiss, cancelDrag],
+  );
 
   return {
     dragY: enabled ? dragY : 0,

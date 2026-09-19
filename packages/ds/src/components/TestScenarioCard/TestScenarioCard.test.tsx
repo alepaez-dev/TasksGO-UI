@@ -1,7 +1,7 @@
 import { createRef, useState } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   TestScenarioCard,
   type TestScenarioSection,
@@ -17,7 +17,22 @@ const base = {
   assigneeLabel: 'Sarah K.',
   description: 'A second request within the TTL window is served from cache.',
   expected: 'Response carries `X-Cache: HIT`.',
+  statusSelectOpen: false,
+  onStatusSelectOpenChange: () => {},
 };
+
+function stubStacked() {
+  vi.stubGlobal('matchMedia', (media: string) => ({
+    media,
+    matches: true,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('TestScenarioCard', () => {
   it('renders the header (title, case id, byline, status pill)', () => {
@@ -1042,5 +1057,48 @@ describe('TestScenarioCard', () => {
     expect(
       screen.queryByRole('button', { name: 'rate_429.png' }),
     ).not.toBeInTheDocument();
+  });
+
+  describe('status sheet (stacked)', () => {
+    it('ignores a pick of the status it already has', async () => {
+      stubStacked();
+      const onStatusChange = vi.fn();
+      const user = userEvent.setup();
+      render(
+        <TestScenarioCard
+          {...base}
+          status="waived"
+          waiveReason="Out of scope; tracked under ENG-2871."
+          open
+          statusSelectOpen
+          onStatusSelectOpenChange={() => {}}
+          onStatusChange={onStatusChange}
+        />,
+      );
+
+      await user.click(screen.getByRole('option', { name: /Waived/ }));
+
+      expect(onStatusChange).not.toHaveBeenCalled();
+    });
+
+    it('still reports a pick of a different status', async () => {
+      stubStacked();
+      const onStatusChange = vi.fn();
+      const user = userEvent.setup();
+      render(
+        <TestScenarioCard
+          {...base}
+          status="waived"
+          open
+          statusSelectOpen
+          onStatusSelectOpenChange={() => {}}
+          onStatusChange={onStatusChange}
+        />,
+      );
+
+      await user.click(screen.getByRole('option', { name: /Passed/ }));
+
+      expect(onStatusChange).toHaveBeenCalledWith('passed');
+    });
   });
 });

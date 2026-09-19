@@ -8,13 +8,12 @@ import { evidenceIcon } from '../../utils/resolvePreview';
 import { isScriptScheme } from '../../utils/sanitizeHref';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
-import { type TransitionDuration } from '../../tokens/interaction';
+import { useSwipe } from '../../hooks/useSwipe';
+import { breakpoints, type TransitionDuration } from '../../tokens/interaction';
 import { type EvidenceItem } from '../../types/evidence';
 import { Filmstrip } from './Filmstrip';
 import { PreviewStage } from './PreviewStage';
 import styles from './FilePreviewOverlay.module.css';
-
-const STACKED_QUERY = '(max-width: 480px)';
 
 function downloadHref(file: EvidenceItem): string | undefined {
   if (file.url != null) {
@@ -87,9 +86,10 @@ export const FilePreviewOverlay = forwardRef<
     ref,
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
+    const backdropRef = useRef<HTMLDivElement>(null);
     const closeRef = useRef<HTMLButtonElement>(null);
     useFocusTrap(panelRef, open, { autoFocus: false });
-    const stacked = useMediaQuery(STACKED_QUERY);
+    const stacked = useMediaQuery(breakpoints.stacked);
 
     function setRefs(node: HTMLDivElement | null) {
       panelRef.current = node;
@@ -99,6 +99,17 @@ export const FilePreviewOverlay = forwardRef<
 
     const lastIndex = files.length - 1;
     const index = Math.min(Math.max(activeIndex, 0), Math.max(lastIndex, 0));
+
+    useSwipe({
+      target: backdropRef,
+      enabled: open && files.length > 1,
+      onSwipeLeft: () => {
+        if (index < lastIndex) onActiveIndexChange(index + 1);
+      },
+      onSwipeRight: () => {
+        if (index > 0) onActiveIndexChange(index - 1);
+      },
+    });
 
     useEffect(() => {
       if (!open || files.length === 0) return;
@@ -235,6 +246,7 @@ export const FilePreviewOverlay = forwardRef<
 
     return (
       <OverlayShell
+        backdropRef={backdropRef}
         open={open}
         onClose={onClose}
         duration={duration}
