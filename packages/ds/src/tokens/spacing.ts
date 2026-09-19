@@ -1,4 +1,13 @@
 export const spacing = {
+  // WCAG 2.2 AA (2.5.8) only requires 24px, and WCAG 2.1 AA — the project's
+  // stated bar — has no target-size criterion at all. 44px is the Apple HIG
+  // figure, reserved for controls a thumb aims at repeatedly.
+  touch: {
+    target: '44px',
+    // for controls that sit two-to-a-row, where the full target makes the
+    // container heavier than the design; still clear of the 24px floor
+    compact: '36px',
+  },
   layout: {
     sidebarWidth: '288px',
     rightRailWidth: '320px',

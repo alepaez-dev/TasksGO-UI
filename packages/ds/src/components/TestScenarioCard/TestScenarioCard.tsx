@@ -6,9 +6,13 @@ import {
   type ReactNode,
 } from 'react';
 import { useClickOutside } from '../../hooks/useClickOutside';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { Avatar } from '../Avatar';
 import { Badge, type BadgeProps } from '../Badge';
+import { BottomSheet } from '../BottomSheet';
+import { OptionList } from '../OptionList';
 import { Icon } from '../Icon';
+import { IconButton } from '../IconButton';
 import { SectionHeader } from '../SectionHeader';
 import { Selector } from '../Selector';
 import { TicketId } from '../TicketId';
@@ -17,6 +21,7 @@ import { EditableTitle } from '../EditableTitle';
 import { EditableSection } from './EditableSection';
 import { StepsSection } from './StepsSection';
 import { EvidenceInput } from '../_internal/EvidenceInput';
+import { breakpoints } from '../../tokens/interaction';
 import { type EvidenceItem } from '../../types/evidence';
 import controls from '../_internal/controls.module.css';
 import styles from './TestScenarioCard.module.css';
@@ -60,8 +65,8 @@ export interface TestScenarioCardProps extends Omit<
 
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  statusSelectOpen?: boolean;
-  onStatusSelectOpenChange?: (open: boolean) => void;
+  statusSelectOpen: boolean;
+  onStatusSelectOpenChange: (open: boolean) => void;
   evidenceExpanded?: boolean;
   onEvidenceExpandedChange?: (expanded: boolean) => void;
   stepsExpanded?: boolean;
@@ -111,6 +116,19 @@ const STATUS_OPTIONS = STATUS_VALUES.map((value) => ({
   label: STATUS_LABEL[value],
 }));
 
+const STATUS_DESCRIPTION: Record<TestScenarioStatus, string> = {
+  passed: 'Scenario verified as working',
+  failed: 'Defect observed — record the actual result',
+  pending: 'Re-open — requires a fresh actual result',
+  waived: 'Skip — requires an explanation',
+};
+
+const STATUS_SHEET_OPTIONS = STATUS_VALUES.map((value) => ({
+  value,
+  label: STATUS_LABEL[value],
+  description: STATUS_DESCRIPTION[value],
+}));
+
 const EVIDENCE_PREVIEW_COUNT = 3;
 
 function toStatus(value: string): TestScenarioStatus | undefined {
@@ -147,7 +165,7 @@ export const TestScenarioCard = forwardRef<
 
       open = false,
       onOpenChange,
-      statusSelectOpen = false,
+      statusSelectOpen,
       onStatusSelectOpenChange,
       evidenceExpanded = false,
       onEvidenceExpandedChange,
@@ -177,6 +195,7 @@ export const TestScenarioCard = forwardRef<
     ref,
   ) => {
     const bodyId = `${caseId}-body`;
+    const statusSheetTitleId = `${caseId}-status-sheet`;
     const actualTone = status === 'failed' ? 'critical' : 'neutral';
     const hasEvidence = evidence.length > 0;
     // maxEvidence is display-only — the consumer owns the array and the Add control
@@ -188,10 +207,15 @@ export const TestScenarioCard = forwardRef<
     const statusSelectRef = useRef<HTMLDivElement>(null);
     const actionsRef = useRef<HTMLDivElement>(null);
     const closeStatusSelect = useCallback(
-      () => onStatusSelectOpenChange?.(false),
+      () => onStatusSelectOpenChange(false),
       [onStatusSelectOpenChange],
     );
-    useClickOutside(statusSelectRef, closeStatusSelect, statusSelectOpen);
+    const stacked = useMediaQuery(breakpoints.stacked);
+    useClickOutside(
+      statusSelectRef,
+      closeStatusSelect,
+      statusSelectOpen && !stacked,
+    );
 
     const applyStatus = (next: TestScenarioStatus) => {
       onStatusChange?.(next);
@@ -204,6 +228,23 @@ export const TestScenarioCard = forwardRef<
             ?.querySelector<HTMLButtonElement>('button')
             ?.focus();
       });
+    };
+
+    const statusBadge = (
+      <Badge variant={STATUS_BADGE[status]}>
+        <span className={cn(styles.pillDot, styles[status])} />
+        {STATUS_LABEL[status]}
+        <Icon name="expand_more" size="xs" className={styles.pillCaret} />
+      </Badge>
+    );
+
+    const renderStatusDot = (option: { value: string }) => {
+      const optionStatus = toStatus(option.value);
+      return (
+        <span
+          className={cn(styles.optionDot, optionStatus && styles[optionStatus])}
+        />
+      );
     };
 
     const isEditing = (key: TestScenarioSection) =>
@@ -220,6 +261,7 @@ export const TestScenarioCard = forwardRef<
         className={cn(styles.card, className)}
         data-status={status}
         data-position={position}
+        data-stacked={stacked || undefined}
       >
         <div className={styles.header}>
           <button
@@ -245,7 +287,7 @@ export const TestScenarioCard = forwardRef<
               <EditableTitle
                 as="span"
                 titleClassName={styles.title}
-                editButton="always"
+                editButton={stacked ? 'always-icon' : 'always'}
                 toggleClassName={styles.titleEdit}
                 aria-label="Scenario title"
                 value={title}
@@ -263,56 +305,51 @@ export const TestScenarioCard = forwardRef<
             </span>
           </span>
 
-          <Avatar
-            variant="profile"
-            size="sm"
-            className={styles.assignee}
-            initial={assigneeInitial}
-            aria-label={assigneeLabel}
-            tint={assigneeColor}
-          />
+          {!stacked && (
+            <Avatar
+              variant="profile"
+              size="sm"
+              className={styles.assignee}
+              initial={assigneeInitial}
+              aria-label={assigneeLabel}
+              tint={assigneeColor}
+            />
+          )}
 
-          <Selector
-            ref={statusSelectRef}
-            className={cn(
-              styles.statusSelect,
-              statusSelectOpen && styles.statusSelectOpen,
-            )}
-            showChevron={false}
-            options={STATUS_OPTIONS}
-            value={status}
-            onValueChange={(value) => {
-              const next = toStatus(value);
-              if (next) onStatusChange?.(next);
-            }}
-            open={statusSelectOpen}
-            onOpenChange={onStatusSelectOpenChange}
-            variant="inline"
-            dropdownAlign="end"
-            renderTriggerLabel={() => (
-              <Badge variant={STATUS_BADGE[status]}>
-                <span className={cn(styles.pillDot, styles[status])} />
-                {STATUS_LABEL[status]}
-                <Icon
-                  name="expand_more"
-                  size="xs"
-                  className={styles.pillCaret}
-                />
-              </Badge>
-            )}
-            renderOptionIndicator={(option) => {
-              const optionStatus = toStatus(option.value);
-              return (
-                <span
-                  className={cn(
-                    styles.optionDot,
-                    optionStatus && styles[optionStatus],
-                  )}
-                />
-              );
-            }}
-            aria-label="Set scenario status"
-          />
+          {stacked ? (
+            <button
+              type="button"
+              className={cn(styles.statusSelect, styles.statusTrigger)}
+              aria-haspopup="dialog"
+              aria-expanded={statusSelectOpen}
+              aria-label="Set scenario status"
+              onClick={() => onStatusSelectOpenChange(true)}
+            >
+              {statusBadge}
+            </button>
+          ) : (
+            <Selector
+              ref={statusSelectRef}
+              className={cn(
+                styles.statusSelect,
+                statusSelectOpen && styles.statusSelectOpen,
+              )}
+              showChevron={false}
+              options={STATUS_OPTIONS}
+              value={status}
+              onValueChange={(value) => {
+                const next = toStatus(value);
+                if (next) onStatusChange?.(next);
+              }}
+              open={statusSelectOpen}
+              onOpenChange={onStatusSelectOpenChange}
+              variant="inline"
+              dropdownAlign="end"
+              renderTriggerLabel={() => statusBadge}
+              renderOptionIndicator={renderStatusDot}
+              aria-label="Set scenario status"
+            />
+          )}
 
           <Icon
             name="expand_more"
@@ -330,6 +367,7 @@ export const TestScenarioCard = forwardRef<
             <div className={styles.bodyInner}>
               {status === 'waived' && (waiveReason || onWaiveReasonChange) && (
                 <EditableSection
+                  editIconOnly={stacked}
                   title="Waive Reason"
                   value={waiveReason ?? ''}
                   editing={isEditing('waiveReason')}
@@ -343,6 +381,7 @@ export const TestScenarioCard = forwardRef<
               )}
 
               <EditableSection
+                editIconOnly={stacked}
                 title="Description"
                 value={description}
                 editing={isEditing('description')}
@@ -353,6 +392,7 @@ export const TestScenarioCard = forwardRef<
               />
 
               <StepsSection
+                editIconOnly={stacked}
                 steps={steps}
                 onStepsChange={onStepsChange}
                 editing={isEditing('steps')}
@@ -362,6 +402,7 @@ export const TestScenarioCard = forwardRef<
               />
 
               <EditableSection
+                editIconOnly={stacked}
                 title="Expected Result"
                 value={expected}
                 editing={isEditing('expected')}
@@ -372,6 +413,7 @@ export const TestScenarioCard = forwardRef<
 
               {(actual || onActualChange) && (
                 <EditableSection
+                  editIconOnly={stacked}
                   title="Actual Result"
                   value={actual ?? ''}
                   editing={isEditing('actual')}
@@ -400,6 +442,7 @@ export const TestScenarioCard = forwardRef<
                     )}
                   </div>
                   <EvidenceInput
+                    stacked={stacked}
                     items={evidence}
                     onAddFiles={onAddEvidence}
                     onRemove={onRemoveEvidence}
@@ -415,46 +458,81 @@ export const TestScenarioCard = forwardRef<
                 </section>
               )}
 
-              <div
-                className={styles.actions}
-                role="group"
-                aria-label="Set status"
-                ref={actionsRef}
-              >
-                <span className={styles.actionsLabel}>Set Status</span>
-                {status !== 'passed' && (
-                  <button
-                    type="button"
-                    className={cn(styles.action, styles.actionPass)}
-                    onClick={() => applyStatus('passed')}
-                  >
-                    <Icon name="check" size="sm" />
-                    Mark as Passed
-                  </button>
-                )}
-                {status !== 'failed' && (
-                  <button
-                    type="button"
-                    className={cn(styles.action, styles.actionFail)}
-                    onClick={() => applyStatus('failed')}
-                  >
-                    <Icon name="close" size="sm" />
-                    Mark as Failed
-                  </button>
-                )}
-                {status !== 'waived' && (
-                  <button
-                    type="button"
-                    className={cn(styles.action, styles.actionWaive)}
-                    onClick={() => applyStatus('waived')}
-                  >
-                    <span className={styles.waiveIcon} aria-hidden="true" />
-                    Waive
-                  </button>
-                )}
-              </div>
+              {!stacked && (
+                <div
+                  className={styles.actions}
+                  role="group"
+                  aria-label="Set status"
+                  ref={actionsRef}
+                >
+                  <span className={styles.actionsLabel}>Set Status</span>
+                  {status !== 'passed' && (
+                    <button
+                      type="button"
+                      className={cn(styles.action, styles.actionPass)}
+                      onClick={() => applyStatus('passed')}
+                    >
+                      <Icon name="check" size="sm" />
+                      Mark as Passed
+                    </button>
+                  )}
+                  {status !== 'failed' && (
+                    <button
+                      type="button"
+                      className={cn(styles.action, styles.actionFail)}
+                      onClick={() => applyStatus('failed')}
+                    >
+                      <Icon name="close" size="sm" />
+                      Mark as Failed
+                    </button>
+                  )}
+                  {status !== 'waived' && (
+                    <button
+                      type="button"
+                      className={cn(styles.action, styles.actionWaive)}
+                      onClick={() => applyStatus('waived')}
+                    >
+                      <span className={styles.waiveIcon} aria-hidden="true" />
+                      Waive
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+        )}
+
+        {stacked && (
+          <BottomSheet
+            open={statusSelectOpen}
+            onClose={() => onStatusSelectOpenChange(false)}
+            aria-labelledby={statusSheetTitleId}
+          >
+            <div className={styles.statusSheet}>
+              <div className={styles.statusSheetHead}>
+                <h2 id={statusSheetTitleId} className={styles.statusSheetTitle}>
+                  Set status
+                  <TicketId>{caseId}</TicketId>
+                </h2>
+                <IconButton
+                  icon="close"
+                  aria-label="Close status picker"
+                  onClick={() => onStatusSelectOpenChange(false)}
+                />
+              </div>
+              <OptionList
+                options={STATUS_SHEET_OPTIONS}
+                value={status}
+                onSelect={(value) => {
+                  const next = toStatus(value);
+                  if (next && next !== status) onStatusChange?.(next);
+                  onStatusSelectOpenChange(false);
+                }}
+                renderOptionIndicator={renderStatusDot}
+                aria-label="Scenario status"
+              />
+            </div>
+          </BottomSheet>
         )}
       </div>
     );

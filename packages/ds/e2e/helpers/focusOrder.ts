@@ -14,10 +14,16 @@ export async function focusOrderWithin(
   return page.evaluate((sel) => {
     const root = document.querySelector(sel);
     if (root === null) throw new Error(`no element matches ${sel}`);
-    const focusable = root.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    const candidates = root.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]',
     );
-    return [...focusable].map((el) => ({
+    // sequential focus only: tabindex="-1" is programmatic, and a display:none
+    // control (a file input behind a button, say) has no visual position to
+    // compare against
+    const focusable = [...candidates].filter(
+      (el) => el.tabIndex >= 0 && el.getClientRects().length > 0,
+    );
+    return focusable.map((el) => ({
       label: (
         el.getAttribute('aria-label') ??
         el.textContent ??

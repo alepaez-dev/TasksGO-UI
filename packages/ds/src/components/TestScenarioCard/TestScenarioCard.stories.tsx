@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { mobileViewportStory } from '../../../.storybook/decorators';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { breakpoints } from '../../tokens/interaction';
 import type { Meta, StoryObj } from '@storybook/react';
 import {
   TestScenarioCard,
@@ -21,6 +24,7 @@ import {
 } from '../../stories/helpers/evidenceFixtures';
 
 const cleoShot = new URL('../../stories/assets/cleo.jpg', import.meta.url).href;
+const lokiShot = new URL('../../stories/assets/loki.jpg', import.meta.url).href;
 
 const RATE_429_SHOT = svgShot('#7d3b3b', '429 Too Many Requests');
 
@@ -34,6 +38,7 @@ const ALL_EVIDENCE: readonly TestScenarioEvidence[] = [
   { label: 'socket_log.png', kind: 'image', url: SOCKET_LOG_SHOT },
   { label: 'thread_dump.txt', kind: 'file', text: THREAD_DUMP },
   { label: 'cleo.jpg', kind: 'image', url: cleoShot },
+  { label: 'loki_paez.jpg', kind: 'image', url: lokiShot },
   { label: 'cache_metrics.json', kind: 'file', text: CACHE_METRICS },
   { label: 'notes.md', kind: 'file', text: CACHE_NOTES },
   { label: 'trace.zip', kind: 'file', url: EMPTY_ZIP },
@@ -88,6 +93,9 @@ function Controlled(props: TestScenarioCardProps) {
   };
 
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
+  const stacked = useMediaQuery(breakpoints.stacked);
+  const sheetPresentation = stacked ? 'sheet' : 'dialog';
 
   const handleAddEvidence = (files: readonly File[]) => {
     void Promise.all(
@@ -162,6 +170,7 @@ function Controlled(props: TestScenarioCardProps) {
         onStepsExpandedChange={setStepsExpanded}
       />
       <WaiveScenarioDialog
+        presentation={sheetPresentation}
         open={waiveOpen}
         scenarioTitle={title}
         reason={reasonDraft}
@@ -174,6 +183,7 @@ function Controlled(props: TestScenarioCardProps) {
         }}
       />
       <ReopenPendingDialog
+        presentation={sheetPresentation}
         open={reopenOpen}
         scenarioTitle={title}
         actualResult={actualDraft}
@@ -258,7 +268,7 @@ export const AllEvidenceTypes: Story = {
         'Monitor cache TTL expiration logs in Datadog',
       ]}
       evidence={ALL_EVIDENCE}
-      maxEvidence={6}
+      maxEvidence={7}
       expected="Connection re-established within 500ms with the original session context intact."
       actual="Session context dropped on reconnect; client forced to re-authenticate."
       open
@@ -310,7 +320,7 @@ export const Waived: Story = {
         { label: 'network.har', kind: 'file' },
         { label: 'trace.json', kind: 'file' },
       ]}
-      maxEvidence={6}
+      maxEvidence={7}
       expected="Connection should recover within 2 seconds without session state loss."
       actual="Not run — scenario waived before execution."
       open
@@ -410,6 +420,54 @@ export const Editing: Story = {
         'expected',
         'actual',
       ]}
+      open
+    />
+  ),
+};
+
+export const Mobile: Story = {
+  ...mobileViewportStory,
+  render: () => (
+    <Controlled
+      caseId="TC-409"
+      title="WebSocket Connection Persistence"
+      status="failed"
+      byline="Failed by Jordan D. · 5m ago"
+      assigneeInitial="JD"
+      assigneeLabel="Jordan D."
+      assigneeColor="var(--ds-color-avatar-tone-profile-sage)"
+      description="WebSocket connections automatically reconnect after a network interruption of < 500ms without dropping session context."
+      steps={[
+        'Deploy recent build to `QA-01` environment',
+        'Trigger concurrent updates via `/api/v1/sync` endpoint',
+        'Monitor cache TTL expiration logs in Datadog',
+      ]}
+      evidence={ALL_EVIDENCE}
+      maxEvidence={7}
+      expected="Connection re-established within 500ms with the original session context intact."
+      actual="Session context dropped on reconnect; client forced to re-authenticate."
+      open
+    />
+  ),
+};
+
+export const MobileWaived: Story = {
+  ...mobileViewportStory,
+  name: 'Mobile (waived)',
+  render: () => (
+    <Controlled
+      caseId="TC-409"
+      title="WebSocket Connection Persistence"
+      status="waived"
+      byline="Waived by Alex T. · 1d ago"
+      assigneeInitial="AT"
+      assigneeLabel="Alex T."
+      assigneeColor="var(--ds-color-avatar-tone-profile-plum)"
+      description="Ensure WebSocket connections reconnect after a network interruption."
+      waiveReason="Dev confirmed out of scope for this ticket; tracked separately under `ENG-2871`."
+      steps={['Deploy recent build to `QA-01` environment']}
+      expected="Connection should recover within 2 seconds without session state loss."
+      actual="Not run — scenario waived before execution."
       open
     />
   ),
