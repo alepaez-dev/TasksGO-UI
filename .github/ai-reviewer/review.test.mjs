@@ -29,11 +29,13 @@ import {
   renderVerifyReply,
   renderClearanceRecord,
   renderInlineBody,
+  renderSummaryBlock,
   escapeHtmlText,
   mergeThreadComments,
   selectThreadsToVerify,
   extractWindow,
   clampHunkTail,
+  REVIEW_THREADS_QUERY,
   shouldPostVerifyReply,
   shouldResolveThread,
   orderThreadsForVerification,
@@ -1128,8 +1130,56 @@ check('selectThreadsToVerify surfaces the reported-at commit from the root comme
     },
   ];
   const picked = selectThreadsToVerify(threads, { botActor: BOT });
-  assert.equal(picked[0].reportedSha, 'ca87eafecd3d869a212355ce73321c726662c61e', 'the before-state commit must ride along');
-  assert.equal(picked[1].reportedSha, null, 'a missing originalCommit degrades to null, not undefined');
+  assert.equal(picked[0].asReviewedSha, 'ca87eafecd3d869a212355ce73321c726662c61e', 'the before-state commit must ride along');
+  assert.equal(picked[1].asReviewedSha, null, 'a missing originalCommit degrades to null, not undefined');
+});
+
+
+check('REVIEW_THREADS_QUERY selects originalCommit on BOTH aliases — recent wins the merge', () => {
+  // The root copy is discarded by mergeThreadComments whenever recent(last: 50) contains it, which
+  // is every thread with <= 50 comments. Selected on root only, asReviewedSha is silently null.
+  const rootSel = REVIEW_THREADS_QUERY.match(/root: comments\(first: 1\) \{ nodes \{ ([^}]*) /)[1];
+  const recentSel = REVIEW_THREADS_QUERY.match(/recent: comments\(last: 50\) \{ nodes \{ ([^}]*) /)[1];
+  assert.match(rootSel, /originalCommit/, 'root must select originalCommit');
+  assert.match(recentSel, /originalCommit/, 'recent must select originalCommit — its copy is the one that survives the merge');
+});
+
+check('asReviewedSha survives the merge when the root comment is duplicated in recent', () => {
+  const f = { fp: 'fp-merge', file: 'src/new.tsx', line: 76, title: 'focus drops' };
+  const oid = 'ca87eafecd3d869a212355ce73321c726662c61e';
+  // Realistic GraphQL shapes for a 2-comment thread: recent CONTAINS the root (same id).
+  const rootNodes = [{ id: 'c1', body: `b\n${findingMarker(f)}`, diffHunk: 'h', originalCommit: { oid }, author: { login: BOT } }];
+  const recentNodes = [
+    { id: 'c1', body: `b\n${findingMarker(f)}`, diffHunk: 'h', originalCommit: { oid }, author: { login: BOT } },
+    { id: 'c2', body: 'a reply', diffHunk: 'h', originalCommit: { oid: 'ffffffffffffffffffffffffffffffffffffffff' }, author: { login: 'someone' } },
+  ];
+  // The exact mapping fetchReviewThreads applies to the merged nodes.
+  const comments = mergeThreadComments(rootNodes, recentNodes).map((c) => ({
+    body: c.body,
+    diffHunk: c.diffHunk,
+    originalCommitOid: c.originalCommit?.oid ?? null,
+    user: { login: c.author?.login, type: c.author?.__typename },
+  }));
+  assert.equal(comments.length, 2, 'the duplicated root must not appear twice');
+  const threads = [{ id: 'T', isResolved: false, isOutdated: false, viewerCanResolve: true, comments }];
+  const picked = selectThreadsToVerify(threads, { botActor: BOT });
+  assert.equal(picked.length, 1);
+  assert.equal(picked[0].asReviewedSha, oid, 'the surviving recent copy must carry the reported-at commit');
+});
+
+
+check('counterEvidence is surfaced in comments when meaningful, silent otherwise', () => {
+  const base = { category: 'frontend', severity: 'low', confidence: 'medium', title: 't', body: 'b', suggestion: '', file: 'a.ts', line: 1, fp: 'x' };
+  const withCe = renderInlineBody({ ...base, counterEvidence: 'the e2e asserts this exact gap and is green; filed because the assertion never runs in sheet mode' });
+  assert.match(withCe, /⚖️ Weighed against: the e2e asserts this exact gap/, 'meaningful counter-evidence must reach the PR comment');
+  for (const ce of ['none found', 'None found — nothing pushed back', '', undefined]) {
+    const body = renderInlineBody({ ...base, counterEvidence: ce });
+    assert.doesNotMatch(body, /Weighed against/, `"${ce}" must render nothing`);
+  }
+  const summary = renderSummaryBlock({ ...base, counterEvidence: 'a comment says this ordering is intended' });
+  assert.match(summary, /⚖️ Weighed against: a comment says this ordering is intended/, 'summary blocks surface it too');
+  const clamped = renderInlineBody({ ...base, counterEvidence: 'x'.repeat(600) });
+  assert.match(clamped, /x{500}…/, 'long counter-evidence is clamped like body/suggestion');
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);

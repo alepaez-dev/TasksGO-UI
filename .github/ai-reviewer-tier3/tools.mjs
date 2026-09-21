@@ -257,7 +257,6 @@ export function makeToolRunner({ root, config }) {
   const exts = config.toolExtensions ?? null;
   const ignore = config.ignore ?? [];
   const grepExempt = config.grepIgnoreExempt ?? [];
-  const grepIgnore = ignore.filter((p) => !grepExempt.includes(p));
   const maxWalk = config.maxFilesWalked ?? MAX_FILES_WALKED;
 
   let realRootPromise;
@@ -414,7 +413,7 @@ export function makeToolRunner({ root, config }) {
       const relPosix = relative(root, full).split(sep).join('/');
       if (exts && !exts.includes(extname(relPosix))) continue;
       if (globRe && !globRe.test(relPosix)) continue;
-      if (isIgnored(relPosix, grepIgnore)) {
+      if (isIgnored(relPosix, ignore) && !isIgnored(relPosix, grepExempt)) {
         skippedIgnored.push(relPosix); // a silent skip here reads as "no matches anywhere" — noted below
         continue;
       }

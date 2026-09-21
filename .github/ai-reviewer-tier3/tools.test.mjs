@@ -381,3 +381,19 @@ test('the tier-3 finding schema demands counter-evidence without licensing new t
   assert.match(items.properties.counterEvidence.description, /never a reason to make new tool calls/, 'the field must not induce extra rounds');
   assert.match(items.properties.counterEvidence.description, /green CI check/, 'the CI oracle is the canonical example');
 });
+
+test('grep exemption is decided by matched path, not by pattern spelling', async () => {
+  const root = mkdtempSync(join(tmpdir(), 't3spell-'));
+  mkdirSync(join(root, 'packages', 'ds', 'src', 'tokens'), { recursive: true });
+  writeFileSync(join(root, 'packages', 'ds', 'src', 'tokens', 'tokens.css'), ':root { --ds-y: 2px; }\n');
+  // The ignore entry was rewritten to a more specific glob; the exempt entry kept the old spelling.
+  // Both match the same FILE, so the exemption must still apply.
+  const run = makeToolRunner({
+    root,
+    config: { ...cfg, ignore: ['packages/*/src/tokens/tokens.css'], grepIgnoreExempt: ['**/tokens.css'] },
+  });
+  const r = await run('grep', { pattern: '--ds-y' });
+  assert.equal(r.isError, false);
+  assert.match(r.content, /tokens\.css:1:.*2px/, 'a rewritten ignore spelling must not silently re-hide the file');
+  assert.doesNotMatch(r.content, /NOT searched/, 'nothing should be reported as skipped');
+});

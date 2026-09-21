@@ -103,6 +103,7 @@ export const DEFAULT_CONFIG = {
   maxVerifyThreads: 20, // hard cap on threads verified per run (extras are logged + retried next run)
   verifyWindowLines: 40, // lines of current code shown around each finding's location
   maxVerifyFileChars: 60000, // don't ship a finding's whole file to Claude if it exceeds this
+  maxVerifyReviewedChars: 150000, // aggregate cap on ALL as-reviewed windows per run (they are additive; verify is outside the cost governor)
   maxVerifyOutputTokens: 24000,
   ignore: [
     '**/package-lock.json',
@@ -752,9 +753,9 @@ function buildVerifyUserMessage({ pr, items, diffText, skippedForSize = [], trun
       `Location: ${loc}`,
       `Title: ${sanitizeText(item.title, 200)}`,
       item.originalHunk ? `Original diff hunk:\n${item.originalHunk}` : '',
-      item.reviewedCode
-        ? `Code AS REVIEWED around ${loc} (commit ${String(item.reportedSha).slice(0, 7)} — the state the finding was filed against; compare with the current code below):\n${item.reviewedCode}`
-        : item.reviewedNote || '',
+      item.asReviewedCode
+        ? `Code AS REVIEWED around ${loc} (commit ${String(item.asReviewedSha).slice(0, 7)} — the state the finding was filed against; compare with the current code below):\n${item.asReviewedCode}`
+        : item.asReviewedNote || '',
       item.currentCode
         ? `Current code around ${loc} (head ${pr.headSha.slice(0, 7)}):\n${item.currentCode}`
         : item.fileNote || '(current code at this location could not be retrieved)',
@@ -985,7 +986,7 @@ export function selectThreadsToVerify(threads, { botActor, markerPrefix = 'ai-re
       line: Number.isInteger(rawLine) ? rawLine : null,
       title: typeof finding.title === 'string' ? finding.title : '',
       originalHunk: typeof root.diffHunk === 'string' ? root.diffHunk : '',
-      reportedSha: typeof root.originalCommitOid === 'string' ? root.originalCommitOid : null,
+      asReviewedSha: typeof root.originalCommitOid === 'string' ? root.originalCommitOid : null,
       lastVerifyStatus,
     });
   }
@@ -1185,11 +1186,19 @@ export function renderClearanceRecord(confirmSuppressed) {
   ].join('\n');
 }
 
+function renderCounterEvidence(f, max = 500) {
+  const ce = typeof f.counterEvidence === 'string' ? f.counterEvidence.trim() : '';
+  if (!ce || /^none found\b/i.test(ce)) return null;
+  return `<sub>⚖️ Weighed against: ${clampText(ce, max)}</sub>`;
+}
+
 export function renderInlineBody(finding, markerPrefix = 'ai-reviewer') {
   const meta = CATEGORY_META[finding.category];
   const lines = [`**${meta.emoji} ${meta.label} · ${SEVERITY_LABEL[finding.severity]}** — ${finding.title}`, ''];
   if (finding.body) lines.push(finding.body, '');
   if (finding.suggestion) lines.push(`**Suggested fix:** ${finding.suggestion}`, '');
+  const weighed = renderCounterEvidence(finding);
+  if (weighed) lines.push(weighed, '');
   lines.push(
     `<sub>🤖 AI bug review (Claude) · confidence: ${finding.confidence}. If this is a false positive, react 👎 or reply — and consider updating <code>.github/ai-reviewer/rules.md</code>.</sub>`,
   );
@@ -1218,6 +1227,8 @@ export function renderSummaryBlock(f, markerPrefix = 'ai-reviewer') {
   ];
   if (f.body) lines.push(clampText(f.body, 2000), '');
   if (f.suggestion) lines.push(`**Suggested fix:** ${clampText(f.suggestion, 2000)}`, '');
+  const weighed = renderCounterEvidence(f);
+  if (weighed) lines.push(weighed, '');
   lines.push(buildMarker(f, markerPrefix), '');
   return lines.join('\n');
 }
@@ -1267,7 +1278,7 @@ export function renderVerifyReply({ status, reason, sha, fp, outcome = 'left-ope
   return lines.join('\n');
 }
 
-const REVIEW_THREADS_QUERY = `
+export const REVIEW_THREADS_QUERY = `
 query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
   repository(owner: $owner, name: $repo) {
     pullRequest(number: $number) {
@@ -1282,8 +1293,11 @@ query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
           # TAIL carries the newest verify marker. A single comments(first: N) loses the marker once a
           # thread passes N, which silently re-arms the verify reply; comments(last: N) alone loses the
           # root, which drops the thread from verification entirely.
+          # originalCommit must be selected on BOTH aliases: mergeThreadComments prefers the recent
+          # copy of a duplicated comment, and recent(last: 50) CONTAINS the root for any thread with
+          # <= 50 comments — selected on root only, asReviewedSha comes back null on every real thread.
           root: comments(first: 1) { nodes { id body diffHunk originalCommit { oid } author { login __typename } } }
-          recent: comments(last: 50) { nodes { id body diffHunk author { login __typename } } }
+          recent: comments(last: 50) { nodes { id body diffHunk originalCommit { oid } author { login __typename } } }
         }
       }
     }
@@ -1316,7 +1330,7 @@ async function fetchReviewThreads(octokit, owner, repo, number) {
         comments: mergeThreadComments(t.root?.nodes, t.recent?.nodes).map((c) => ({
           body: c.body,
           diffHunk: c.diffHunk,
-          originalCommitOid: c.originalCommit?.oid ?? null, // requested on the root only
+          originalCommitOid: c.originalCommit?.oid ?? null,
           user: { login: c.author?.login, type: c.author?.__typename },
         })),
       });
@@ -1402,22 +1416,30 @@ export async function verifyAndResolveThreads(octokit, client, { owner, repo, pu
   const fileCache = new Map();
   const reviewedCache = new Map();
   const radius = config.verifyWindowLines ?? 40;
+  const reviewedRadius = Math.ceil(radius / 2);
+  let reviewedBudget = config.maxVerifyReviewedChars ?? 150000;
   for (const item of items) {
     item.originalHunk = clampHunkTail(item.originalHunk);
-    item.reviewedCode = '';
-    item.reviewedNote = '';
-    if (item.file && item.reportedSha) {
-      if (item.reportedSha === pr.headSha) {
-        item.reviewedNote =
+    item.asReviewedCode = '';
+    item.asReviewedNote = '';
+    if (item.file && item.asReviewedSha) {
+      if (item.asReviewedSha === pr.headSha) {
+        item.asReviewedNote =
           'The head commit IS the commit this finding was reported at — the flagged code cannot have changed since the report.';
       } else {
-        const key = `${item.reportedSha}:${item.file}`;
+        const key = `${item.asReviewedSha}:${item.file}`;
         if (!reviewedCache.has(key)) {
-          reviewedCache.set(key, await fetchFileAtRef(octokit, owner, repo, item.file, item.reportedSha));
+          reviewedCache.set(key, await fetchFileAtRef(octokit, owner, repo, item.file, item.asReviewedSha));
         }
         const reviewed = reviewedCache.get(key);
-        if (reviewed.kind === 'content') {
-          item.reviewedCode = extractWindow(reviewed.text, item.line, radius, { maxChars: config.maxVerifyFileChars || Infinity });
+        if (reviewed.kind === 'content' && reviewedBudget >= 500) {
+          item.asReviewedCode = extractWindow(reviewed.text, item.line, reviewedRadius, {
+            maxChars: Math.min(config.maxVerifyFileChars || Infinity, reviewedBudget),
+          });
+          reviewedBudget -= item.asReviewedCode.length;
+        } else if (reviewed.kind === 'content') {
+          item.asReviewedNote =
+            'The as-reviewed snapshot was omitted for size — decide from the hunk and the diff, and prefer "unsure" over "fixed".';
         }
       }
     }

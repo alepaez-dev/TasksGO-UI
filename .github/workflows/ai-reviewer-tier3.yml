@@ -3,6 +3,8 @@ name: AI Reviewer Tier 3
 # Autonomous, agentic deep review. Triggered only when a maintainer applies
 # the `ai-reviewer-tier3` label; re-runs on new commits while it is present. Independent of Tier 2
 # (`ai-reviewer`): its own comment namespace, its own sticky status, its own resolve-threads.
+# The review only runs once the watched CI checks succeed (see "Gate on CI success"); adding the
+# `ai-reviewer-tier3-force` label bypasses that gate for the current head.
 #
 # SECURITY MODEL (read before editing the trigger):
 #   - Uses `pull_request_target`, so it has the ANTHROPIC_API_KEY secret + write to post comments.
@@ -24,6 +26,7 @@ on:
 permissions:
   contents: write # resolveReviewThread needs write; safe — head is checked out read-only & never executed (ai-reviewer-guard.yml)
   pull-requests: write # post review comments
+  checks: read # the CI-success gate + the reviewer's CI-results block read check-run conclusions
 
 concurrency:
   group: ai-reviewer-tier3-pr-${{ github.event.pull_request.number }}
@@ -32,7 +35,9 @@ concurrency:
 jobs:
   review:
     if: >-
-      (github.event.action == 'labeled' && github.event.label.name == 'ai-reviewer-tier3') ||
+      (github.event.action == 'labeled' &&
+       contains(fromJSON('["ai-reviewer-tier3", "ai-reviewer-tier3-force"]'), github.event.label.name) &&
+       contains(github.event.pull_request.labels.*.name, 'ai-reviewer-tier3')) ||
       (github.event.action != 'labeled' &&
        contains(github.event.pull_request.labels.*.name, 'ai-reviewer-tier3') &&
        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.pull_request.author_association))
@@ -69,54 +74,104 @@ jobs:
               }
             }
 
+      # Base checkout (TRUSTED)
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Gate on CI success
         id: ci_gate
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          WAIT_FOR: validate,a11y,e2e
+          WAIT_FOR: guard,validate,a11y,e2e
           WAIT_TIMEOUT_MS: '720000'
+          # ci.yml runs only on PRs targeting main (branches: [main]), so on a STACKED PR its checks
+          # never exist at all (intentional).
+          APPEAR_GRACE_MS: '180000'
         with:
           script: |
+            const { classifyChecks, decideGate } = require(`${process.env.GITHUB_WORKSPACE}/.github/ai-reviewer-tier3/gate.cjs`);
             const wanted = process.env.WAIT_FOR.split(',').map((s) => s.trim()).filter(Boolean);
             const deadline = Date.now() + Number(process.env.WAIT_TIMEOUT_MS);
-            const ref = context.payload.pull_request.head.sha;
+            const appearDeadline = Date.now() + Number(process.env.APPEAR_GRACE_MS);
+            const seen = new Set();
+            let droppedLogged = false;
+            const pr = context.payload.pull_request;
+            const ref = pr.head.sha;
+            const short = ref.slice(0, 7);
             const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-            for (;;) {
-              const runs = await github.paginate(github.rest.checks.listForRef, {
-                owner: context.repo.owner, repo: context.repo.repo, ref, per_page: 100,
+            // A skipped gate must be visible where the maintainer is looking (the PR)
+            const MARKER = '<!-- ai-reviewer-tier3-gate v1 -->';
+            const findGateComment = async () => {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, per_page: 100,
               });
-              const byName = new Map(runs.map((r) => [r.name, r]));
-              // skipped/cancelled/failure all mean "this commit is not worth a review yet".
-              const notSucceeded = wanted.filter((n) => {
-                const r = byName.get(n);
-                return r?.status === 'completed' && r.conclusion !== 'success';
-              });
-              if (notSucceeded.length) {
-                core.notice(`Skipping the paid review: ${notSucceeded.join(', ')} did not succeed at ${ref.slice(0, 7)}. It will run on the next push while the label is present.`);
-                core.setOutput('proceed', 'false');
-                return;
+              return comments.find((c) => c.user?.type === 'Bot' && c.body?.includes(MARKER)) ?? null;
+            };
+            const upsertGateComment = async (body, { onlyIfExists = false } = {}) => {
+              try {
+                const existing = await findGateComment();
+                const full = `${body}\n${MARKER}`;
+                if (existing) {
+                  await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body: full });
+                } else if (!onlyIfExists) {
+                  await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, body: full });
+                }
+              } catch (e) {
+                core.warning(`Could not update the gate status comment: ${e.message}`);
               }
-              const pending = wanted.filter((n) => byName.get(n)?.status !== 'completed');
-              if (pending.length === 0) {
-                core.info('All watched checks succeeded — running the review.');
+            };
+            const skip = async (why) => {
+              core.notice(`Skipping the paid review at ${short}: ${why}`);
+              await upsertGateComment(
+                `⏸️ **Tier 3 review skipped** at \`${short}\` — ${why}\n\n` +
+                  'It runs automatically on the next push once CI is green. To run it now: add the `ai-reviewer-tier3-force` label to bypass this gate, ' +
+                  'or re-run the failed CI and then remove and re-add the `ai-reviewer-tier3` label (re-adding a label that is already present fires no event).',
+              );
+              core.setOutput('proceed', 'false');
+            };
+            const pass = async (why) => {
+              core.info(why);
+              // Refresh an earlier skip notice so the PR does not keep claiming "skipped".
+              await upsertGateComment(`▶️ **Tier 3 gate passed** at \`${short}\` — ${why}`, { onlyIfExists: true });
+              core.setOutput('proceed', 'true');
+            };
+            const labels = (pr.labels ?? []).map((l) => l?.name).filter(Boolean);
+            if (labels.includes('ai-reviewer-tier3-force')) {
+              await pass('the ai-reviewer-tier3-force label is present — CI gate bypassed.');
+              return;
+            }
+            for (;;) {
+              let runs;
+              try {
+                runs = await github.paginate(github.rest.checks.listForRef, {
+                  owner: context.repo.owner, repo: context.repo.repo, ref, per_page: 100,
+                });
+              } catch (e) {
+                // The gate is a cost heuristic, not a security control — it must never take the
+                // reviewer down. Fail OPEN: review without the gate, like before the gate existed.
+                core.warning(`Could not read check runs (${e.message}) — running the review without the CI gate.`);
                 core.setOutput('proceed', 'true');
                 return;
               }
-              if (Date.now() > deadline) {
-                core.notice(`Skipping the paid review: still waiting on ${pending.join(', ')} after the wait timeout. Re-apply the label to retry.`);
-                core.setOutput('proceed', 'false');
+              const states = classifyChecks(runs, wanted);
+              for (const [n, s] of states) if (s !== 'absent') seen.add(n);
+              const d = decideGate({ states, seen, graceExpired: Date.now() > appearDeadline, timedOut: Date.now() > deadline });
+              if (d.dropped.length && !droppedLogged) {
+                droppedLogged = true;
+                core.info(`Not triggered for this PR (base branch filters?): ${d.dropped.join(', ')} — gating on the rest.`);
+              }
+              if (d.action === 'skip') {
+                await skip(d.reason);
                 return;
               }
-              core.info(`Waiting for: ${pending.join(', ')}`);
+              if (d.action === 'pass') {
+                await pass(d.reason);
+                return;
+              }
+              core.info(d.reason);
               await sleep(20000);
             }
-
-      # Base checkout (TRUSTED): the Tier 3 script, config, and deps. Default ref on
-      # pull_request_target = the base branch, NOT the PR head.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: steps.ci_gate.outputs.proceed == 'true'
-        with:
-          persist-credentials: false
 
       # Head checkout (UNTRUSTED) into _head — read ONLY
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

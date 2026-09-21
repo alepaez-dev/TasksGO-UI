@@ -12,7 +12,7 @@
   "costWarnUsd": 1.5,
   "softWindDownFraction": 0.75,
   "logLevel": "info",
-  "minConfidence": "medium",
+  "minConfidence": "low",
   "minSeverity": "low",
   "maxFindings": 25,
   "maxClearedConcerns": 3,
