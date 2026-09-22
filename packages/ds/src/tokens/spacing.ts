@@ -65,6 +65,16 @@ export const spacing = {
     markerOffset: '4px',
     iconOffset: '3px',
   },
+  timelineGroup: {
+    pillPaddingY: '7px',
+    pillPaddingRight: '13px',
+    pillPaddingLeft: '9px',
+    pillGap: '9px',
+    countSize: '20px',
+    countPaddingX: '6px',
+    itemsGap: '11px',
+    itemsOffset: '12px',
+  },
   checklistRow: {
     badgeSize: '16px',
   },
