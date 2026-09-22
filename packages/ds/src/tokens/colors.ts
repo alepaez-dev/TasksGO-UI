@@ -4,6 +4,7 @@ const accent = {
   warm: '#d6c583',
   subtle: '#d9d1b2',
   warmText: '#856D4A',
+  warmSurface: '#faf8f0',
 } as const;
 
 const text = {

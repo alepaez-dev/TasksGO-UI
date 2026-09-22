@@ -85,6 +85,10 @@ export {
   type TimelineEventProps,
 } from './components/TimelineEvent';
 export {
+  TimelineGroup,
+  type TimelineGroupProps,
+} from './components/TimelineGroup';
+export {
   SectionHeader,
   type SectionHeaderProps,
 } from './components/SectionHeader';
@@ -272,6 +276,7 @@ export {
   buildSearchIndex,
   matchesQuery,
   groupItems,
+  countActions,
   withDividers,
   GROUP_GAP_MS,
   GAP_DIVIDER_MS,
