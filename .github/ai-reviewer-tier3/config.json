@@ -12,7 +12,7 @@
   "costWarnUsd": 1.5,
   "softWindDownFraction": 0.75,
   "logLevel": "info",
-  "minConfidence": "medium",
+  "minConfidence": "low",
   "minSeverity": "low",
   "maxFindings": 25,
   "maxClearedConcerns": 3,
@@ -66,6 +66,7 @@
   "verifyWindowLines": 40,
   "maxVerifyFileChars": 60000,
   "maxVerifyOutputTokens": 24000,
+  "grepIgnoreExempt": ["**/tokens.css", "**/typography.css"],
   "ignore": [
     "**/package-lock.json",
     "**/*.lock",

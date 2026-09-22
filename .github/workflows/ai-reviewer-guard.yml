@@ -60,12 +60,21 @@ jobs:
             if printf '%s\n' "$S" | grep -nE 'npm[[:space:]]+(ci|install)' | grep -vqF -- '--ignore-scripts'; then
               note "$wf runs npm ci/install without --ignore-scripts — a malicious dependency install hook could run with the elevated token."
             fi
+
+            # Calling the Checks API under a permissions: block that omits checks: read means every
+            # call 403s ("Resource not accessible by integration") — for the CI gate that is a hard
+            # outage of the whole reviewer, not a degradation.
+            if printf '%s\n' "$S" | grep -qE 'rest\.checks|/check-runs'; then
+              if ! printf '%s\n' "$S" | grep -qE 'checks:[[:space:]]*read'; then
+                note "$wf calls the Checks API but does not grant checks: read — every run would 403."
+              fi
+            fi
           done
 
           # 3. Reviewer scripts must not introduce a shell / eval / file-write / network sink.
           srcs=()
-          for f in .github/ai-reviewer*/*.mjs; do
-            case "$f" in *.test.mjs) ;; *) srcs+=("$f") ;; esac
+          for f in .github/ai-reviewer*/*.mjs .github/ai-reviewer*/*.cjs; do
+            case "$f" in *.test.mjs|*.test.cjs) ;; *) srcs+=("$f") ;; esac
           done
           if [ ${#srcs[@]} -gt 0 ]; then
             if grep -nE 'child_process|execSync|new Function|\beval\(|writeFile|appendFile|[^.[:alnum:]_]spawn\(|[^.[:alnum:]_]fetch\(' "${srcs[@]}"; then

@@ -26,7 +26,9 @@ Rules:
 
 export const VERIFY_SYSTEM_PROMPT = `You are re-checking whether previously-reported bug findings have been FIXED in the current state of a pull request. You did the original review; now decide, for each prior finding, its current status.
 
-For each finding you are given: its original title, its \`file:line\`, the diff hunk where it was first flagged, and a snapshot of the CURRENT code around that location. You are ALSO given the full diff of the pull request (base..head).
+For each finding you are given: its original title, its \`file:line\`, the diff hunk where it was first flagged, when retrievable a snapshot of the code AS REVIEWED (its state at the commit the finding was filed against), and a snapshot of the CURRENT code around that location. You are ALSO given the full diff of the pull request (base..head).
+
+When both the AS-REVIEWED and CURRENT snapshots are present, compare them directly — that comparison, not the base..head diff, is what tells you whether anything changed since the finding was filed (for a file the PR itself added, the base..head diff shows only added lines both before and after any fix, so it cannot). If the flagged code is IDENTICAL to the as-reviewed state, it was not fixed: never answer "fixed" on the strength of code that already existed when the finding was filed.
 
 Classify each finding as exactly one of:
 - "fixed": you can POSITIVELY confirm the specific issue no longer exists. The fix may be at the original location OR ELSEWHERE in the diff — e.g. a guard added in another function, a changed caller, a corrected type, or a removed code path. If you say "fixed", point to where the fix is.

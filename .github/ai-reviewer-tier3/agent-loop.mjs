@@ -55,13 +55,17 @@ export function budgetPhase(frac, softFraction = 0.75) {
 
 const SUFFICIENCY = 'A question you have already answered with a cited line is CLOSED — do not re-open it; spend the round on a question you have not answered.';
 
+// TODO: check if converge change from "confirm only the most important (high/critical) issues, stop opening new low-severity" to
+// "settle every concern you have already formed (file it, or clear it through the five-step gate"
+// increases cost. Monitor it.
 const BUDGET_GUIDANCE = {
   explore: `Explore freely — read whole functions and trace callers/state. ${SUFFICIENCY}`,
   prioritize:
-    'Past the mid-point of your budget — prioritize the highest-risk changes (security, correctness, data-loss) and avoid low-value exploration. ' +
+    'Past the mid-point of your budget — prioritize the highest-risk changes (security, correctness, data-loss) and stop opening NEW areas. ' +
+    'A concern you have already FORMED is not exploration: settle it with the read that decides it, whatever its severity. ' +
     SUFFICIENCY,
   converge:
-    'Budget is running low — CONVERGE NOW: confirm only the most important (high/critical) issues, stop opening new low-severity threads, and call submit_findings soon. ' +
+    'Budget is running low — CONVERGE NOW: stop opening new threads, settle every concern you have already formed (file it, or clear it through the five-step gate), and call submit_findings soon. ' +
     SUFFICIENCY,
 };
 
@@ -246,6 +250,17 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
     if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
     dropClearancesForFiledConcerns();
+  };
+
+  let findingsLogged = false;
+  const logFindings = () => {
+    if (logLevel === 'quiet' || findingsLogged || !findings?.length) return;
+    findingsLogged = true;
+    for (const f of findings) {
+      log(`  · ${f?.severity ?? '?'}/${f?.confidence ?? '?'} ${f?.title ?? '(untitled)'}`);
+      log(`      basis: ${f?.confidenceBasis?.trim() ? f.confidenceBasis : '(NONE — confidence is unbacked)'}`);
+      log(`      against: ${f?.counterEvidence?.trim() ? f.counterEvidence : '(NOT RECORDED — filing was not weighed against anything)'}`);
+    }
   };
 
   let recordsLogged = false;
@@ -479,6 +494,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       const needsHedgeGate = hedges.length > 0 && !hedgeRejected;
       if (needsHedgeGate && !canAffordBounce()) {
         stopUngated(`${hedges.length} hand-wave(s) left ungated`);
+        if (logLevel !== 'quiet') for (const h of hedges) log(`  hand-wave (ungated) · "${h}"`);
         break;
       }
       if (needsHedgeGate) {
@@ -532,11 +548,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
         surfaceReasoning(log, msg.content);
-        for (const f of findings) {
-          log(`  · ${f?.severity ?? '?'}/${f?.confidence ?? '?'} ${f?.title ?? '(untitled)'}`);
-          log(`      basis: ${f?.confidenceBasis?.trim() ? f.confidenceBasis : '(NONE — confidence is unbacked)'}`);
-        }
       }
+      logFindings();
       logRecords();
       break;
     }
@@ -590,6 +603,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   }
 
   restoreBanked();
+  logFindings();
   logRecords();
 
   return {

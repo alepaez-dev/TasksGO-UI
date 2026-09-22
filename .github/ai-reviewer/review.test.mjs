@@ -29,10 +29,13 @@ import {
   renderVerifyReply,
   renderClearanceRecord,
   renderInlineBody,
+  renderSummaryBlock,
   escapeHtmlText,
   mergeThreadComments,
   selectThreadsToVerify,
   extractWindow,
+  clampHunkTail,
+  REVIEW_THREADS_QUERY,
   shouldPostVerifyReply,
   shouldResolveThread,
   orderThreadsForVerification,
@@ -1090,6 +1093,93 @@ check('a renderBlock hook replaces the body but never the commentable lines', ()
   const plain = buildDiffContext(files, cfg);
   assert.match(withHook.diffText, /REPLACED/);
   assert.deepEqual([...withHook.commentableByFile.get('a.ts')], [...plain.commentableByFile.get('a.ts')]);
+});
+
+
+check('clampHunkTail keeps the END of an oversized hunk — the flagged line, not the imports', () => {
+  const hunk = ['@@ -0,0 +1,140 @@', ...Array.from({ length: 75 }, (_, i) => `+line ${i + 1}`), '+onEditingChange(false);'].join('\n');
+  const clamped = clampHunkTail(hunk, 200);
+  assert.ok(clamped.length <= 200 + 120, 'stays near the cap (plus the truncation note)');
+  assert.match(clamped, /onEditingChange\(false\);$/, 'the flagged line at the hunk tail must survive');
+  assert.match(clamped, /hunk truncated — showing the last 200 chars/, 'the cut must be disclosed');
+  assert.doesNotMatch(clamped, /@@ -0,0/, 'the header is what gets sacrificed');
+});
+
+check('clampHunkTail leaves a small hunk untouched', () => {
+  assert.equal(clampHunkTail('@@ -1 +1 @@\n+x'), '@@ -1 +1 @@\n+x');
+  assert.equal(clampHunkTail(null), '');
+  assert.equal(clampHunkTail(undefined), '');
+});
+
+check('selectThreadsToVerify surfaces the reported-at commit from the root comment', () => {
+  const f = { fp: 'fp9', file: 'src/new.tsx', line: 76, title: 'focus drops to body' };
+  const threads = [
+    {
+      id: 'T_sha',
+      isResolved: false,
+      isOutdated: false,
+      viewerCanResolve: true,
+      comments: [{ ...botComment(`body\n${findingMarker(f)}`), originalCommitOid: 'ca87eafecd3d869a212355ce73321c726662c61e' }],
+    },
+    {
+      id: 'T_nosha',
+      isResolved: false,
+      isOutdated: false,
+      viewerCanResolve: true,
+      comments: [botComment(`body\n${findingMarker({ ...f, fp: 'fp10' })}`)],
+    },
+  ];
+  const picked = selectThreadsToVerify(threads, { botActor: BOT });
+  assert.equal(picked[0].asReviewedSha, 'ca87eafecd3d869a212355ce73321c726662c61e', 'the before-state commit must ride along');
+  assert.equal(picked[1].asReviewedSha, null, 'a missing originalCommit degrades to null, not undefined');
+});
+
+
+check('REVIEW_THREADS_QUERY selects originalCommit on BOTH aliases — recent wins the merge', () => {
+  // The root copy is discarded by mergeThreadComments whenever recent(last: 50) contains it, which
+  // is every thread with <= 50 comments. Selected on root only, asReviewedSha is silently null.
+  const rootSel = REVIEW_THREADS_QUERY.match(/root: comments\(first: 1\) \{ nodes \{ ([^}]*) /)[1];
+  const recentSel = REVIEW_THREADS_QUERY.match(/recent: comments\(last: 50\) \{ nodes \{ ([^}]*) /)[1];
+  assert.match(rootSel, /originalCommit/, 'root must select originalCommit');
+  assert.match(recentSel, /originalCommit/, 'recent must select originalCommit — its copy is the one that survives the merge');
+});
+
+check('asReviewedSha survives the merge when the root comment is duplicated in recent', () => {
+  const f = { fp: 'fp-merge', file: 'src/new.tsx', line: 76, title: 'focus drops' };
+  const oid = 'ca87eafecd3d869a212355ce73321c726662c61e';
+  // Realistic GraphQL shapes for a 2-comment thread: recent CONTAINS the root (same id).
+  const rootNodes = [{ id: 'c1', body: `b\n${findingMarker(f)}`, diffHunk: 'h', originalCommit: { oid }, author: { login: BOT } }];
+  const recentNodes = [
+    { id: 'c1', body: `b\n${findingMarker(f)}`, diffHunk: 'h', originalCommit: { oid }, author: { login: BOT } },
+    { id: 'c2', body: 'a reply', diffHunk: 'h', originalCommit: { oid: 'ffffffffffffffffffffffffffffffffffffffff' }, author: { login: 'someone' } },
+  ];
+  // The exact mapping fetchReviewThreads applies to the merged nodes.
+  const comments = mergeThreadComments(rootNodes, recentNodes).map((c) => ({
+    body: c.body,
+    diffHunk: c.diffHunk,
+    originalCommitOid: c.originalCommit?.oid ?? null,
+    user: { login: c.author?.login, type: c.author?.__typename },
+  }));
+  assert.equal(comments.length, 2, 'the duplicated root must not appear twice');
+  const threads = [{ id: 'T', isResolved: false, isOutdated: false, viewerCanResolve: true, comments }];
+  const picked = selectThreadsToVerify(threads, { botActor: BOT });
+  assert.equal(picked.length, 1);
+  assert.equal(picked[0].asReviewedSha, oid, 'the surviving recent copy must carry the reported-at commit');
+});
+
+
+check('counterEvidence is surfaced in comments when meaningful, silent otherwise', () => {
+  const base = { category: 'frontend', severity: 'low', confidence: 'medium', title: 't', body: 'b', suggestion: '', file: 'a.ts', line: 1, fp: 'x' };
+  const withCe = renderInlineBody({ ...base, counterEvidence: 'the e2e asserts this exact gap and is green; filed because the assertion never runs in sheet mode' });
+  assert.match(withCe, /⚖️ Weighed against: the e2e asserts this exact gap/, 'meaningful counter-evidence must reach the PR comment');
+  for (const ce of ['none found', 'None found — nothing pushed back', '', undefined]) {
+    const body = renderInlineBody({ ...base, counterEvidence: ce });
+    assert.doesNotMatch(body, /Weighed against/, `"${ce}" must render nothing`);
+  }
+  const summary = renderSummaryBlock({ ...base, counterEvidence: 'a comment says this ordering is intended' });
+  assert.match(summary, /⚖️ Weighed against: a comment says this ordering is intended/, 'summary blocks surface it too');
+  const clamped = renderInlineBody({ ...base, counterEvidence: 'x'.repeat(600) });
+  assert.match(clamped, /x{500}…/, 'long counter-evidence is clamped like body/suggestion');
 });
 
 console.log(`\nAll ${passed} self-tests passed.`);
