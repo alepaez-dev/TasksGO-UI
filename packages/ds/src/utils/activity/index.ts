@@ -27,6 +27,7 @@ export {
   type ActivitySearchIndex,
 } from './searchItems';
 export { groupItems, GROUP_GAP_MS, type GroupItemsOptions } from './groupItems';
+export { countActions } from './countActions';
 export {
   withDividers,
   GAP_DIVIDER_MS,
