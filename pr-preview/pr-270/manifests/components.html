@@ -2773,7 +2773,7 @@ status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> CollapsibleCard</h2>
       <div class="badges">
-        <label for="c-13-components-collapsiblecard-props" class="badge ok as-toggle">3 prop types</label>
+        <label for="c-13-components-collapsiblecard-props" class="badge ok as-toggle">5 prop types</label>
         <label for="c-13-components-collapsiblecard-info" class="badge info as-toggle">1 info</label>
         <label for="c-13-components-collapsiblecard-stories" class="badge ok as-toggle">6 stories</label>
         
@@ -2807,13 +2807,17 @@ status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">3 prop types</span>
+              <span class="badge ok">5 prop types</span>
             </div>
             <pre><code>Component: src/components/CollapsibleCard/CollapsibleCard.tsx::CollapsibleCard</code></pre>
             <pre><code>Props:</code></pre>
             <pre><code>defaultOpen?: boolean
 
 header: ReactNode
+
+onOpenChange?: (open: boolean) =&gt; void
+
+open?: boolean
 
 variant?: &#39;default&#39; | &#39;subtle&#39; = &#39;default&#39;</code></pre>
           </div>
@@ -10245,13 +10249,13 @@ waiveReason?: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  750 | }
-  751 |
-&gt; 752 | const meta: Meta = {
+  764 | }
+  765 |
+&gt; 766 | const meta: Meta = {
       | ^
-  753 |   title: &#39;Pages/Ticket&#39;,
-  754 |   parameters: {
-  755 |     layout: &#39;fullscreen&#39;,
+  767 |   title: &#39;Pages/Ticket&#39;,
+  768 |   parameters: {
+  769 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
@@ -10415,6 +10419,8 @@ function TicketOverviewRender({
     taskDrawerTitle,
     taskSelectors,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
     addScenarioOpen,
     scenarioDraft,
     setScenarioDraft,
@@ -10423,6 +10429,10 @@ function TicketOverviewRender({
     confirmAddScenario,
     updateScenario,
     editingSectionsById,
+    stepsExpandedById,
+    setStepsExpanded,
+    evidenceExpandedById,
+    setEvidenceExpanded,
     setScenarioEditingSections,
     expandedScenarioId,
     toggleScenario,
@@ -10432,6 +10442,8 @@ function TicketOverviewRender({
     statusSelectScenarioId,
     setStatusSelectOpen,
     evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
     setEvidencePreviewIndex,
@@ -10637,7 +10649,8 @@ function TicketOverviewRender({
                           &lt;/span&gt;
                         &lt;/div&gt;
                         &lt;CollapsibleCard
-                          defaultOpen
+                          open={qaSummaryOpen}
+                          onOpenChange={setQaSummaryOpen}
                           header={
                             &lt;span className={styles.qaCardHeader}&gt;
                               &lt;span className={styles.qaCardTitle}&gt;
@@ -10748,6 +10761,10 @@ function TicketOverviewRender({
                       statusSelectScenarioId={statusSelectScenarioId}
                       onStatusSelectOpenChange={setStatusSelectOpen}
                       editingSectionsById={editingSectionsById}
+                      stepsExpandedById={stepsExpandedById}
+                      onStepsExpandedChange={setStepsExpanded}
+                      evidenceExpandedById={evidenceExpandedById}
+                      onEvidenceExpandedChange={setEvidenceExpanded}
                       onEditingSectionsChange={setScenarioEditingSections}
                       onOpenEvidence={openEvidencePreview}
                     /&gt;
@@ -10991,10 +11008,11 @@ function TicketOverviewRender({
 
       &lt;FilePreviewOverlay
         files={previewScenario?.evidence ?? []}
-        open={evidencePreview != null}
+        open={evidencePreviewOpen}
         activeIndex={evidencePreview?.index ?? 0}
         onActiveIndexChange={setEvidencePreviewIndex}
         onClose={closeEvidencePreview}
+        onClosed={clearEvidencePreview}
         downloadAllName={
           previewScenario != null
             ? `${previewScenario.id}-evidence.zip`
@@ -12214,13 +12232,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  750 | }
-  751 |
-&gt; 752 | const meta: Meta = {
+  764 | }
+  765 |
+&gt; 766 | const meta: Meta = {
       | ^
-  753 |   title: &#39;Pages/Ticket&#39;,
-  754 |   parameters: {
-  755 |     layout: &#39;fullscreen&#39;,
+  767 |   title: &#39;Pages/Ticket&#39;,
+  768 |   parameters: {
+  769 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
@@ -12384,6 +12402,8 @@ function TicketOverviewRender({
     taskDrawerTitle,
     taskSelectors,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
     addScenarioOpen,
     scenarioDraft,
     setScenarioDraft,
@@ -12392,6 +12412,10 @@ function TicketOverviewRender({
     confirmAddScenario,
     updateScenario,
     editingSectionsById,
+    stepsExpandedById,
+    setStepsExpanded,
+    evidenceExpandedById,
+    setEvidenceExpanded,
     setScenarioEditingSections,
     expandedScenarioId,
     toggleScenario,
@@ -12401,6 +12425,8 @@ function TicketOverviewRender({
     statusSelectScenarioId,
     setStatusSelectOpen,
     evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
     setEvidencePreviewIndex,
@@ -12606,7 +12632,8 @@ function TicketOverviewRender({
                           &lt;/span&gt;
                         &lt;/div&gt;
                         &lt;CollapsibleCard
-                          defaultOpen
+                          open={qaSummaryOpen}
+                          onOpenChange={setQaSummaryOpen}
                           header={
                             &lt;span className={styles.qaCardHeader}&gt;
                               &lt;span className={styles.qaCardTitle}&gt;
@@ -12717,6 +12744,10 @@ function TicketOverviewRender({
                       statusSelectScenarioId={statusSelectScenarioId}
                       onStatusSelectOpenChange={setStatusSelectOpen}
                       editingSectionsById={editingSectionsById}
+                      stepsExpandedById={stepsExpandedById}
+                      onStepsExpandedChange={setStepsExpanded}
+                      evidenceExpandedById={evidenceExpandedById}
+                      onEvidenceExpandedChange={setEvidenceExpanded}
                       onEditingSectionsChange={setScenarioEditingSections}
                       onOpenEvidence={openEvidencePreview}
                     /&gt;
@@ -12960,10 +12991,11 @@ function TicketOverviewRender({
 
       &lt;FilePreviewOverlay
         files={previewScenario?.evidence ?? []}
-        open={evidencePreview != null}
+        open={evidencePreviewOpen}
         activeIndex={evidencePreview?.index ?? 0}
         onActiveIndexChange={setEvidencePreviewIndex}
         onClose={closeEvidencePreview}
+        onClosed={clearEvidencePreview}
         downloadAllName={
           previewScenario != null
             ? `${previewScenario.id}-evidence.zip`
