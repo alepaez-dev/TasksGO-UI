@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { touchesFrontend, renderCiChecksBlock, trustedCheckRuns } from './review-agent.mjs';
+import { touchesFrontend, renderCiChecksBlock, trustedCheckRuns, renderCoveredStub, corroborateCoverage } from './review-agent.mjs';
 
 test('touchesFrontend detects frontend files and ignores CI-only changes', () => {
   assert.equal(touchesFrontend([{ filename: 'src/components/Button/Button.tsx' }]), true);
@@ -120,4 +120,37 @@ test('the CI-oracle rule has a single owner: it rides the block, never the syste
     assert.doesNotMatch(sys, /You are given the CI check results/, 'the system prompt must not promise data the user message may not supply');
     assert.doesNotMatch(sys, /refutation of YOUR PREMISE/, 'the refutation license must exist only where the data does');
   }
+});
+
+test('renderCoveredStub names the prior run and keeps read_file as the escape hatch', () => {
+  const stub = renderCoveredStub({ filename: 'src/a.tsx', additions: 10, deletions: 2 }, 'abc1234');
+  assert.match(stub, /fully reviewed by a previous run at abc1234/);
+  assert.match(stub, /unchanged since/);
+  assert.match(stub, /patch omitted/);
+  assert.match(stub, /read_file/);
+});
+
+test('corroborateCoverage banks only declared∩corroborated changed files and clips the rest', () => {
+  const out = corroborateCoverage({
+    declared: ['src/a.tsx', 'src/b.ts', 'src/never-read.ts', '../../etc/passwd', 'src/not-in-pr.ts'],
+    served: new Set(['src/a.tsx']),
+    findings: [{ file: 'src/b.ts', title: 't' }],
+    confirmSuppressed: [],
+    callSiteAudit: [],
+    changedPaths: new Set(['src/a.tsx', 'src/b.ts', 'src/never-read.ts']),
+  });
+  assert.deepEqual(out.banked.sort(), ['src/a.tsx', 'src/b.ts'], 'served or artifact-cited changed files bank');
+  assert.deepEqual(out.clipped.sort(), ['../../etc/passwd', 'src/never-read.ts', 'src/not-in-pr.ts'], 'hostile, foreign, and uncorroborated paths clip');
+});
+
+test('corroborateCoverage accepts citation-based corroboration from records', () => {
+  const out = corroborateCoverage({
+    declared: ['src/hooks/useX.ts'],
+    served: new Set(),
+    findings: [],
+    confirmSuppressed: [{ claim: 'c', enforcingCode: 'src/hooks/useX.ts:42 `x`' }],
+    callSiteAudit: [],
+    changedPaths: new Set(['src/hooks/useX.ts']),
+  });
+  assert.deepEqual(out.banked, ['src/hooks/useX.ts']);
 });

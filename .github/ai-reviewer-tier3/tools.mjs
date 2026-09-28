@@ -156,6 +156,14 @@ const SUBMIT_FINDINGS_SCHEMA = {
         required: ['title', 'why'],
       },
     },
+    coveredFiles: {
+      type: 'array',
+      items: { type: 'string' },
+      description:
+        'Optional. Repo-relative CHANGED files you FULLY dispositioned — every concern you formed about them is in ' +
+        '`findings` or `confirmSuppressed`, and you are done with them. Used to resume an interrupted review without ' +
+        're-paying for finished work. Never list a file you did not finish or only skimmed.',
+    },
     // Last on purpose. The model has already thought about the suppressed concerns and callSiteAudit, so the response should be richer (structured CoT)
     findings: TIER3_FINDINGS,
   },
@@ -481,14 +489,20 @@ export function makeToolRunner({ root, config }) {
     return { content: listing || '(empty directory)', isError: false };
   }
 
-  return async function run(name, input) {
+  const servedFiles = new Set();
+  async function run(name, input) {
     try {
-      if (name === 'read_file') return await readFileTool(input || {});
+      if (name === 'read_file') {
+        const out = await readFileTool(input || {});
+        if (!out.isError && typeof input?.path === 'string') servedFiles.add(input.path);
+        return out;
+      }
       if (name === 'grep') return await grepTool(input || {});
       if (name === 'list_dir') return await listDirTool(input || {});
       return err(`Unknown tool: ${name}`);
     } catch (e) {
       return err(`Tool ${name} failed: ${e && e.message ? e.message : 'unknown error'}`);
     }
-  };
+  }
+  return { run, servedFiles };
 }

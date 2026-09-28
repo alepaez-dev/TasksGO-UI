@@ -20,6 +20,8 @@ Optional env:
   REVIEWER_REPO       owner/repo override (default: derived from `origin`)
   REVIEWER_EFFORT     high | max        (default: config.json — high)
   REVIEWER_COST_CEILING  dollars        (default: config.json — 2)
+  PROGRESS_FIXTURE=path/to/payload.json  — dry-run only: resume from a synthetic progress payload
+                      (same JSON shape as the ai-reviewer-tier3-progress marker) instead of reading PR comments.
 USAGE
   exit 2
 fi
