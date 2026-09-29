@@ -161,6 +161,12 @@ export const OptionList = forwardRef<HTMLDivElement, OptionListProps>(
             const descriptionId = option.description
               ? `${descriptionIdPrefix}-${index}-desc`
               : undefined;
+            const showMeta = option.meta != null && !isSelected;
+            const metaId = showMeta
+              ? `${descriptionIdPrefix}-${index}-meta`
+              : undefined;
+            const describedBy =
+              [descriptionId, metaId].filter(Boolean).join(' ') || undefined;
             return (
               <div
                 key={option.value}
@@ -172,7 +178,7 @@ export const OptionList = forwardRef<HTMLDivElement, OptionListProps>(
                     ? option.label
                     : `${option.prefix} ${option.label}`
                 }
-                aria-describedby={descriptionId}
+                aria-describedby={describedBy}
                 className={cn(
                   styles.option,
                   isSelected && styles.optionSelected,
@@ -193,8 +199,10 @@ export const OptionList = forwardRef<HTMLDivElement, OptionListProps>(
                     </span>
                   )}
                 </span>
-                {option.meta != null && !isSelected && (
-                  <span className={styles.optionMeta}>{option.meta}</span>
+                {showMeta && (
+                  <span id={metaId} className={styles.optionMeta}>
+                    {option.meta}
+                  </span>
                 )}
                 {isSelected && (
                   <Icon

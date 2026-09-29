@@ -341,6 +341,59 @@ describe('OptionList', () => {
     expect(empty.className).toBe(plain.className);
   });
 
+  it('exposes meta to assistive tech as the option description', () => {
+    render(
+      <OptionList
+        options={[
+          { value: 'qa-01', label: 'QA-01', meta: 'Unstable' },
+          { value: 'qa-02', label: 'QA-02' },
+        ]}
+        value="qa-02"
+        onSelect={vi.fn()}
+        aria-label="Environments"
+      />,
+    );
+    const [unstable] = screen.getAllByRole('option');
+    expect(unstable).toHaveAccessibleName('QA-01');
+    expect(unstable).toHaveAccessibleDescription('Unstable');
+  });
+
+  it('describes an option by its description and its meta together', () => {
+    render(
+      <OptionList
+        options={[
+          {
+            value: 'qa-01',
+            label: 'QA-01',
+            description: 'Shared integration box',
+            meta: 'Unstable',
+          },
+          { value: 'qa-02', label: 'QA-02' },
+        ]}
+        value="qa-02"
+        onSelect={vi.fn()}
+        aria-label="Environments"
+      />,
+    );
+    expect(screen.getAllByRole('option')[0]).toHaveAccessibleDescription(
+      'Shared integration box Unstable',
+    );
+  });
+
+  it('drops the meta description on the selected option', () => {
+    render(
+      <OptionList
+        options={[{ value: 'qa-01', label: 'QA-01', meta: 'Healthy' }]}
+        value="qa-01"
+        onSelect={vi.fn()}
+        aria-label="Environments"
+      />,
+    );
+    const selected = screen.getByRole('option');
+    expect(selected).not.toHaveAttribute('aria-describedby');
+    expect(selected).toHaveAccessibleDescription('');
+  });
+
   it('keeps the prefix in the option name', () => {
     render(
       <OptionList
