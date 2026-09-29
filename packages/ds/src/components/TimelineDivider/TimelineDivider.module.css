@@ -1,0 +1,57 @@
+.divider {
+  display: flex;
+  align-items: center;
+  padding: var(--ds-space-timeline-divider-padding-y) 0
+    var(--ds-space-timeline-divider-padding-y)
+    calc(
+      var(--ds-space-timeline-event-gutter) +
+        var(--ds-space-timeline-event-content-indent)
+    );
+  list-style: none;
+}
+
+.label {
+  flex-shrink: 0;
+  margin: 0;
+  color: var(--ds-color-text-secondary);
+}
+
+.dayLabel {
+  font-family: var(--ds-text-timeline-day-divider-font-family);
+  font-size: var(--ds-text-timeline-day-divider-font-size);
+  font-weight: var(--ds-text-timeline-day-divider-font-weight);
+  letter-spacing: var(--ds-text-timeline-day-divider-letter-spacing);
+  line-height: var(--ds-text-timeline-day-divider-line-height);
+  text-transform: var(--ds-text-timeline-day-divider-text-transform);
+}
+
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--ds-color-border-default);
+}
+
+.dayDivider {
+  gap: var(--ds-space-timeline-divider-day-rule-gap);
+}
+
+.gap {
+  gap: var(--ds-space-timeline-divider-gap-rule-gap);
+}
+
+.gap::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--ds-color-border-default);
+}
+
+.gapLabel {
+  font-family: var(--ds-text-timeline-gap-divider-font-family);
+  font-size: var(--ds-text-timeline-gap-divider-font-size);
+  font-weight: var(--ds-text-timeline-gap-divider-font-weight);
+  letter-spacing: var(--ds-text-timeline-gap-divider-letter-spacing);
+  line-height: var(--ds-text-timeline-gap-divider-line-height);
+  text-transform: var(--ds-text-timeline-gap-divider-text-transform);
+}

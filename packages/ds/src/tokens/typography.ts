@@ -46,6 +46,14 @@ const buttonInputBase = {
   lineHeight: DEFAULT_LINE_HEIGHT,
 };
 
+const timelineDividerBase = {
+  fontSize: '9px',
+  fontFamily: fontFamilies.mono,
+  fontWeight: fontWeights.bold,
+  textTransform: 'uppercase',
+  lineHeight: DEFAULT_LINE_HEIGHT,
+};
+
 const bodyRegularSans12 = {
   fontSize: '12px',
   fontFamily: fontFamilies.sans,
@@ -267,6 +275,14 @@ export const typographyScale = {
   },
   timelineEvent: bodyRegularSans13,
   timelineEventMeta: bodyRegularSans12,
+  timelineDayDivider: {
+    ...timelineDividerBase,
+    letterSpacing: '0.22em',
+  },
+  timelineGapDivider: {
+    ...timelineDividerBase,
+    letterSpacing: '0.16em',
+  },
   propertyRowLabel: bodyRegularSans12,
   propertyRowValue: bodyRegularSans12,
   buttonAiLabel: {

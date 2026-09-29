@@ -89,6 +89,10 @@ export {
   type TimelineGroupProps,
 } from './components/TimelineGroup';
 export {
+  TimelineDivider,
+  type TimelineDividerProps,
+} from './components/TimelineDivider';
+export {
   SectionHeader,
   type SectionHeaderProps,
 } from './components/SectionHeader';

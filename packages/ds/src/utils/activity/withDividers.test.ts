@@ -95,8 +95,6 @@ describe('withDividers — gap dividers', () => {
 
 describe('withDividers — gaps are measured from a group’s trailing edge', () => {
   it('ignores a gap that only looks long because the group is wide', () => {
-    // Group spans 0–50; next item at 260. The real gap is 3.5h, under the
-    // 4h default — measuring from the group's start would report 4.33h.
     const nodes = withDividers([groupNode([0, 25, 50]), itemNode(260)], {
       now: at(0),
     });
@@ -105,7 +103,6 @@ describe('withDividers — gaps are measured from a group’s trailing edge', ()
   });
 
   it('reports the true distance when the gap is genuinely long', () => {
-    // 50 → 320 is 4.5h, not the 5.33h a start-anchored measure would claim.
     const nodes = withDividers([groupNode([0, 25, 50]), itemNode(320)], {
       now: at(0),
     });
@@ -157,6 +154,14 @@ describe('withDividers — sort direction and edges', () => {
       'day(yesterday)',
       'item(jd--1440)',
     ]);
+  });
+
+  it('reports whether a day falls in the same year as now', () => {
+    const [sameYear] = withDividers([itemNode(0)], { now: at(0) });
+    const [crossYear] = withDividers([itemNode(0)], { now: at(400 * DAY) });
+
+    expect(sameYear).toMatchObject({ type: 'dayDivider', sameYear: true });
+    expect(crossYear).toMatchObject({ type: 'dayDivider', sameYear: false });
   });
 
   it('returns nothing for an empty feed', () => {
