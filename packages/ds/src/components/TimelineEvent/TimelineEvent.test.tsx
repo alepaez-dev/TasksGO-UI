@@ -78,15 +78,15 @@ describe('TimelineEvent', () => {
   });
 
   it('rejects a row that is both pinned and pinnable', () => {
-    const illegal = (
+    render(
       <ul>
         {/* @ts-expect-error pinned and onPin are mutually exclusive */}
         <TimelineEvent icon="tag" timestamp="1h" pinned onPin={() => {}}>
           added label
         </TimelineEvent>
-      </ul>
+      </ul>,
     );
-    expect(illegal).toBeTruthy();
+    expect(screen.getByRole('listitem')).toHaveClass('pinned');
   });
 
   it('keeps a pin click off a clickable row', async () => {

@@ -9,7 +9,6 @@ interface TimelineGroupStoryArgs {
   summary: ReactNode;
   meta?: ReactNode;
   open: boolean;
-  onOpenChange?: (open: boolean) => void;
   matchLabel?: ReactNode;
   moreLabel?: ReactNode;
   children: ReactNode;
@@ -17,8 +16,11 @@ interface TimelineGroupStoryArgs {
 
 const meta = {
   title: 'Components/TimelineGroup',
-  component: TimelineGroup as (props: TimelineGroupStoryArgs) => ReactNode,
+  component: TimelineGroup as unknown as (
+    props: TimelineGroupStoryArgs,
+  ) => ReactNode,
   tags: ['autodocs'],
+  render: (args) => <Interactive key={String(args.open)} {...args} />,
   parameters: {
     docs: {
       description: {
@@ -34,9 +36,6 @@ const meta = {
     open: { control: 'boolean' },
     matchLabel: { control: 'text' },
     moreLabel: { control: 'text' },
-    // Owned by the page, or by the story's own state on the interactive ones —
-    // a control here would render and then do nothing.
-    onOpenChange: { control: false },
     children: { control: false },
   },
   args: {
@@ -104,12 +103,11 @@ function Interactive({ moreLabel, ...args }: TimelineGroupStoryArgs) {
 }
 
 export const Collapsed: Story = {
-  render: (args) => <Interactive key={String(args.open)} {...args} />,
   args: { children: twoRows },
   parameters: {
     docs: {
       description: {
-        story: 'Interactive — the toggle really opens and closes.',
+        story: 'The default resting state: a run stays closed until asked.',
       },
     },
   },
@@ -156,7 +154,6 @@ export const WithSystemExtra: Story = {
 };
 
 export const Capped: Story = {
-  render: (args) => <Interactive key={String(args.open)} {...args} />,
   args: {
     open: true,
     count: 9,

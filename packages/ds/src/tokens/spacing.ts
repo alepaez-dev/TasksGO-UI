@@ -75,6 +75,11 @@ export const spacing = {
     itemsGap: '11px',
     itemsOffset: '12px',
   },
+  timelineDivider: {
+    paddingY: '2px',
+    dayRuleGap: '22px',
+    gapRuleGap: '10px',
+  },
   checklistRow: {
     badgeSize: '16px',
   },

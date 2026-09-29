@@ -3,7 +3,9 @@ import type { ReactNode } from 'react';
 import { ActivityRow } from './ActivityRow';
 import { ExternalLink } from '../ExternalLink';
 import { Badge } from '../Badge';
-import type { IconName } from '../../icons';
+import { iconRegistry, type IconName } from '../../icons';
+
+const iconNames = Object.keys(iconRegistry) as IconName[];
 
 interface ActivityRowStoryArgs {
   icon?: IconName;
@@ -42,7 +44,7 @@ const meta = {
     ),
   ],
   argTypes: {
-    icon: { control: 'text' },
+    icon: { control: 'select', options: iconNames },
     tone: {
       control: 'inline-radio',
       options: ['neutral', 'info', 'success', 'warning', 'danger'],

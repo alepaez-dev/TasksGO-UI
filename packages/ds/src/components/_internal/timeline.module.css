@@ -1,0 +1,11 @@
+.timelineMarker {
+  grid-column: 1;
+  justify-self: center;
+  margin-top: var(--ds-space-timeline-event-marker-offset);
+  width: var(--ds-space-timeline-event-marker-size);
+  height: var(--ds-space-timeline-event-marker-size);
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-color-surface-primary);
+  border: 2px solid var(--ds-color-border-strong);
+  box-sizing: border-box;
+}

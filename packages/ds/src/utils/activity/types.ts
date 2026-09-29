@@ -101,6 +101,8 @@ export interface ActivityDayDivider {
   readonly type: 'dayDivider';
   readonly at: string;
   readonly relative: ActivityRelativeDay | null;
+  /** Whether `at` falls in the same year as `now`. */
+  readonly sameYear: boolean;
 }
 
 export interface ActivityGapDivider {
