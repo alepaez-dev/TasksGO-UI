@@ -48,11 +48,11 @@ export function buildProgressPayload({ head, covered, confirmSuppressed, callSit
   const safeCovered = [];
   for (const entry of covered ?? []) {
     // blobByPath, so a rewritten path could never match on resume — dropping is the honest fix.
-    if (`${entry?.path}${entry?.blob}`.includes('-->')) {
+    if (`${entry?.path}${entry?.blob}${entry?.head}`.includes('-->')) {
       droppedUnbankable += 1;
       continue;
     }
-    safeCovered.push({ path: entry.path, blob: entry.blob });
+    safeCovered.push({ path: entry.path, blob: entry.blob, head: entry.head });
   }
 
   const assemble = (nClear, nAudit) => {
@@ -129,7 +129,7 @@ export function parseProgressComment(body) {
 }
 
 export function validateProgress(payload, { blobByPath, hashFile }) {
-  const covered = (payload.covered ?? []).filter((c) => c && typeof c.blob === 'string' && blobByPath.get(c.path) === c.blob);
+  const covered = (payload.covered ?? []).filter((c) => c && typeof c.blob === 'string' && typeof c.head === 'string' && blobByPath.get(c.path) === c.blob);
   let droppedStale = 0;
   const keepRecords = (records) =>
     (records ?? []).filter((record) => {
@@ -142,6 +142,10 @@ export function validateProgress(payload, { blobByPath, hashFile }) {
   const callSiteAudit = keepRecords(payload.callSiteAudit);
   droppedStale += (payload.covered ?? []).length - covered.length;
   return { covered, confirmSuppressed, callSiteAudit, droppedStale };
+}
+
+export function coverageHeadMoved(covered, currentHead) {
+  return (covered ?? []).some((c) => c?.head !== currentHead);
 }
 
 const recordNorm = (v) => String(v ?? '').trim().toLowerCase().replace(/\s+/g, ' ');

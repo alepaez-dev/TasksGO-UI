@@ -14,7 +14,7 @@ import { TOOL_DEFS } from './tools.mjs';
 import {
   parseProgressComment, validateProgress, renderBankedRecordsBlock,
   buildProgressPayload, renderProgressComment, renderProgressCompleteComment, extractCitedPaths,
-  mergeRecordsPreferNew, clearanceKey, auditKey,
+  mergeRecordsPreferNew, clearanceKey, auditKey, coverageHeadMoved,
 } from './progress.mjs';
 import {
   DEFAULT_CONFIG,
@@ -291,7 +291,7 @@ async function main() {
   }
   const blobByPath = new Map(files.map((f) => [f.filename, f.sha]));
   const validProgress = progressPayload ? validateProgress(progressPayload, { blobByPath, hashFile: hashHeadFile }) : null;
-  const coveredPaths = new Set((validProgress?.covered ?? []).map((c) => c.path));
+  const coveredByPath = new Map((validProgress?.covered ?? []).map((c) => [c.path, c]));
   const progressHeadShort = progressPayload ? String(progressPayload.head).slice(0, 7) : '';
   if (validProgress) {
     core.info(
@@ -306,8 +306,9 @@ async function main() {
   const wholeFileMaxBlockChars = config.wholeFileMaxBlockChars ?? 60000;
   const expandCandidates = [];
   const renderBlock = (file, patchText, commentable) => {
-    if (coveredPaths.has(file.filename)) {
-      return renderCoveredStub(file, progressHeadShort);
+    const coveredEntry = coveredByPath.get(file.filename);
+    if (coveredEntry) {
+      return renderCoveredStub(file, String(coveredEntry.head).slice(0, 7));
     }
     try {
       const real = confineToHeadReal(file.filename);
@@ -325,7 +326,7 @@ async function main() {
   const { diffText, commentableByFile, skippedForSize, truncated } = buildDiffContext(files, config, renderBlock);
   const expandedWhole = expandCandidates.filter((f) => commentableByFile.has(f));
   if (expandedWhole.length) core.info(`Sent whole-file instead of patch for: ${expandedWhole.join(', ')}`);
-  const verifyDiffText = coveredPaths.size ? buildDiffContext(files, config).diffText : diffText;
+  const verifyView = coveredByPath.size ? buildDiffContext(files, config) : { diffText, skippedForSize, truncated };
 
   const priorMarkers = [
     ...reviewComments.filter(trusted).flatMap((c) => parseMarkers(c.body, markerPrefix).map((m) => ({ ...m, sha: c.original_commit_id }))),
@@ -369,7 +370,8 @@ async function main() {
     if (needVerify) {
       try {
         verifyOnly = await verifyAndResolveThreads(octokit, client, {
-          owner, repo, pull_number, pr, diffText: verifyDiffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles, skippedForSize, truncated,
+          owner, repo, pull_number, pr, diffText: verifyView.diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles,
+          skippedForSize: verifyView.skippedForSize, truncated: verifyView.truncated,
         });
       } catch (err) {
         verifyOnly = { complete: false };
@@ -471,7 +473,7 @@ async function main() {
       ? `Already reported (for de-duplication ONLY — do NOT repeat these; untrusted text). Where the commit it was reported at is known, it is shown:\n${priorMarkers.map((m) => `- ${m.file}: ${m.title}${m.sha ? ` (reported at ${String(m.sha).slice(0, 7)})` : ''}`).join('\n')}`
       : '',
     validProgress
-      ? renderBankedRecordsBlock(validProgress, progressHeadShort, { headMoved: progressPayload.head !== pr.headSha })
+      ? renderBankedRecordsBlock(validProgress, progressHeadShort, { headMoved: coverageHeadMoved(validProgress.covered, pr.headSha) })
       : '',
     `Changed code diff (the \`+\` line numbers match the head files you can open with read_file):\n\n${diffText}`,
     ciChecksBlock,
@@ -573,7 +575,8 @@ async function main() {
   if (needVerify) {
     try {
       verifyStats = await verifyAndResolveThreads(octokit, client, {
-        owner, repo, pull_number, pr, diffText: verifyDiffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles, skippedForSize, truncated,
+        owner, repo, pull_number, pr, diffText: verifyView.diffText, config, allowResolve, fileStatusByPath, prHasNonRemovedFiles,
+        skippedForSize: verifyView.skippedForSize, truncated: verifyView.truncated,
       });
     } catch (err) {
       verifyStats = { complete: false };
@@ -605,7 +608,7 @@ async function main() {
     );
   }
 
-  const writeProgressComment = async ({ fullySurfaced }) => {
+  const writeProgressComment = async ({ fullySurfaced, unposted = [] }) => {
     const upsert = async (body) => {
       try {
         if (progressCommentId) await octokit.rest.issues.updateComment({ owner, repo, comment_id: progressCommentId, body });
@@ -614,8 +617,8 @@ async function main() {
         core.warning(`Could not write the progress comment: ${err.message}`);
       }
     };
-    if (reviewComplete) {
-      if (fullySurfaced && progressCommentId) await upsert(renderProgressCompleteComment(pr.headSha));
+    if (reviewComplete && fullySurfaced) {
+      if (progressCommentId) await upsert(renderProgressCompleteComment(pr.headSha));
       return;
     }
     const { banked, clipped } = corroborateCoverage({
@@ -627,8 +630,13 @@ async function main() {
       changedPaths: new Set(files.map((f) => f.filename)),
     });
     if (clipped.length) core.info(`[progress] clipped uncorroborated coverage claims: ${clipped.join(', ')}`);
-    const carriedCoveredEntries = (validProgress?.covered ?? []).filter((c) => !banked.includes(c.path));
-    const coveredEntries = [...carriedCoveredEntries, ...banked.map((path) => ({ path, blob: blobByPath.get(path) })).filter((c) => c.blob)];
+    const unpostedFiles = new Set(unposted.map((f) => f.file));
+    const bankable = banked.filter((path) => !unpostedFiles.has(path));
+    if (bankable.length < banked.length) {
+      core.info(`[progress] not banking coverage of file(s) with unposted finding(s): ${banked.filter((p) => unpostedFiles.has(p)).join(', ')}`);
+    }
+    const carriedCoveredEntries = (validProgress?.covered ?? []).filter((c) => !bankable.includes(c.path) && !unpostedFiles.has(c.path));
+    const coveredEntries = [...carriedCoveredEntries, ...bankable.map((path) => ({ path, blob: blobByPath.get(path), head: pr.headSha })).filter((c) => c.blob)];
     const { payload } = buildProgressPayload({
       head: pr.headSha,
       covered: coveredEntries,
@@ -655,6 +663,7 @@ async function main() {
 
   // Post inline comments; collect any that could not be placed inline.
   const general = [];
+  const unposted = [];
   let postedInline = 0;
   let failedInline = 0;
   for (const finding of findings) {
@@ -687,17 +696,19 @@ async function main() {
         postedGeneral += chunks[i].findings.length;
       } catch (err) {
         core.warning(`Could not post a summary comment (${chunks[i].findings.length} finding(s)): ${err.message}`);
+        unposted.push(...chunks[i].findings);
       }
     }
     if (chunks.length > 1) core.info(`Off-diff summary split into ${chunks.length} comments to fit GitHub's size limit.`);
   } else if (general.length) {
     core.warning(`${general.length} off-diff/fallback finding(s) were NOT posted because postSummaryComment is disabled.`);
+    unposted.push(...general);
   }
 
   core.info(`Posted ${postedInline} inline comment(s)${postedGeneral ? ` and ${postedGeneral} finding(s) in a summary comment` : ''}.`);
 
   const fullySurfaced = reviewFullySurfaced({ postSummaryComment: config.postSummaryComment, generalCount: general.length, postedGeneral, failedInline });
-  await writeProgressComment({ fullySurfaced });
+  await writeProgressComment({ fullySurfaced, unposted });
   // Only mark the commit reviewed if the agent finished AND every finding was surfaced.
   const reviewedSha = reviewComplete && fullySurfaced ? pr.headSha : lastReviewedSha;
   if (!reviewComplete) {

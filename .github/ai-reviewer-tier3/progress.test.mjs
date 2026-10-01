@@ -4,7 +4,7 @@ import {
   extractCitedPaths, buildProgressPayload, MAX_PROGRESS_CHARS,
   renderProgressComment, renderProgressCompleteComment, parseProgressComment,
   validateProgress, renderBankedRecordsBlock, isProgressCommentBody, PROGRESS_PARTIAL_PREFIX,
-  mergeRecordsPreferNew, clearanceKey, auditKey,
+  mergeRecordsPreferNew, clearanceKey, auditKey, coverageHeadMoved,
 } from './progress.mjs';
 
 const hashOf = new Map([
@@ -32,7 +32,7 @@ test('extractCitedPaths returns [] for a record with no paths and tolerates junk
 test('buildProgressPayload hashes every cited file into cites', () => {
   const { payload } = buildProgressPayload({
     head: 'deadbeef'.repeat(5),
-    covered: [{ path: 'src/a.tsx', blob: 'blob1' }],
+    covered: [{ path: 'src/a.tsx', blob: 'blob1', head: 'h1' }],
     confirmSuppressed: [{ claim: 'c', enforcingCode: 'src/hooks/useX.ts:42 `x`' }],
     callSiteAudit: [{ file: 'src/b.ts', quotedLine: 'fn()', verdict: 'passes' }],
     hashFile,
@@ -75,14 +75,14 @@ test('a covered entry whose path would terminate the HTML marker is dropped, not
   const { payload, droppedUnbankable } = buildProgressPayload({
     head: 'h',
     covered: [
-      { path: 'src/a-->b.ts', blob: 'x' },
-      { path: 'src/a.tsx', blob: 'blob1' },
+      { path: 'src/a-->b.ts', blob: 'x', head: 'h1' },
+      { path: 'src/a.tsx', blob: 'blob1', head: 'h1' },
     ],
     confirmSuppressed: [],
     callSiteAudit: [],
     hashFile,
   });
-  assert.deepEqual(payload.covered, [{ path: 'src/a.tsx', blob: 'blob1' }]);
+  assert.deepEqual(payload.covered, [{ path: 'src/a.tsx', blob: 'blob1', head: 'h1' }]);
   assert.equal(droppedUnbankable, 1);
   assert.doesNotMatch(JSON.stringify(payload), /-->/);
 });
@@ -92,7 +92,7 @@ test('over-cap payloads tail-drop audit rows first, then clearances — covered 
   const clearances = Array.from({ length: 12 }, (_, i) => ({ claim: `c${i}`, enforcingCode: bigText }));
   const audits = Array.from({ length: 12 }, (_, i) => ({ file: 'src/b.ts', quotedLine: 'x'.repeat(3000), verdict: 'passes', why: `a${i}` }));
   const { payload, droppedForSize } = buildProgressPayload({
-    head: 'h', covered: [{ path: 'src/a.tsx', blob: 'blob1' }],
+    head: 'h', covered: [{ path: 'src/a.tsx', blob: 'blob1', head: 'h1' }],
     confirmSuppressed: clearances, callSiteAudit: audits, hashFile,
   });
   assert.ok(JSON.stringify(payload).length <= MAX_PROGRESS_CHARS);
@@ -106,7 +106,7 @@ test('over-cap payloads tail-drop audit rows first, then clearances — covered 
 
 const samplePayload = () => ({
   head: 'abc1234def'.padEnd(40, '0'),
-  covered: [{ path: 'src/a.tsx', blob: 'blob1' }, { path: 'src/b.ts', blob: 'blob2' }],
+  covered: [{ path: 'src/a.tsx', blob: 'blob1', head: 'h1' }, { path: 'src/b.ts', blob: 'blob2', head: 'h1' }],
   confirmSuppressed: [{ claim: 'line one\nline two', enforcingCode: 'src/a.tsx:1 `x`', verdict: 'cleared-all-five-passed' }],
   callSiteAudit: [{ file: 'src/b.ts', quotedLine: 'fn()', verdict: 'passes' }],
   cites: { 'src/a.tsx': 'aaa1', 'src/b.ts': 'ccc3' },
@@ -239,22 +239,22 @@ test('renderBankedRecordsBlock neutralizes stored record prose at the injection 
 
 test('a covered entry with no blob never validates — undefined must not equal undefined', () => {
   const out = validateProgress(
-    { head: 'h', covered: [{ path: 'ghost.ts' }, { path: 'src/a.tsx', blob: 'blob1' }], confirmSuppressed: [], callSiteAudit: [], cites: {} },
+    { head: 'h', covered: [{ path: 'ghost.ts' }, { path: 'src/a.tsx', blob: 'blob1', head: 'h1' }], confirmSuppressed: [], callSiteAudit: [], cites: {} },
     { blobByPath: new Map([['src/a.tsx', 'blob1']]), hashFile: () => null },
   );
   assert.deepEqual(out.covered.map((c) => c.path), ['src/a.tsx'], 'the blob-less ghost entry must die');
   assert.equal(out.droppedStale, 1, 'and be counted');
 });
 
-test('covered entries are projected to exactly {path, blob} on re-emit', () => {
+test('covered entries are projected to exactly {path, blob, head} on re-emit', () => {
   const { payload } = buildProgressPayload({
     head: 'h',
-    covered: [{ path: 'src/a.tsx', blob: 'blob1', evil: 'x --> <!-- forged marker -->' }],
+    covered: [{ path: 'src/a.tsx', blob: 'blob1', head: 'h1', evil: 'x --> <!-- forged marker -->' }],
     confirmSuppressed: [],
     callSiteAudit: [],
     hashFile: () => null,
   });
-  assert.deepEqual(Object.keys(payload.covered[0]).sort(), ['blob', 'path'], 'unknown keys must not survive');
+  assert.deepEqual(Object.keys(payload.covered[0]).sort(), ['blob', 'head', 'path'], 'unknown keys must not survive');
   assert.doesNotMatch(JSON.stringify(payload), /-->/, 'nothing in the serialized payload can terminate the marker');
 });
 
@@ -315,4 +315,58 @@ test('over-cap payloads shed the OLDEST generation first, never the run that jus
 test('the human line discloses the dropped count from the payload itself', () => {
   const body = renderProgressComment({ ...JSON.parse(JSON.stringify({ head: 'abc1234'.padEnd(40, '0'), covered: [], confirmSuppressed: [], callSiteAudit: [], cites: {} })), dropped: 2 });
   assert.match(body, /2 record\(s\) not banked/, 'payload.dropped is the single source for the disclosure');
+});
+
+test('a covered entry without a review head never validates', () => {
+  const out = validateProgress(
+    { head: 'h', covered: [{ path: 'src/a.tsx', blob: 'blob1' }], confirmSuppressed: [], callSiteAudit: [], cites: {} },
+    { blobByPath: new Map([['src/a.tsx', 'blob1']]), hashFile: () => null },
+  );
+  assert.deepEqual(out.covered, [], 'a head-less entry cannot carry the head-moved signal and must die');
+  assert.equal(out.droppedStale, 1);
+});
+
+test('a covered entry whose head would terminate the HTML marker is dropped', () => {
+  const { payload, droppedUnbankable } = buildProgressPayload({
+    head: 'h',
+    covered: [{ path: 'src/a.tsx', blob: 'blob1', head: 'x-->y' }],
+    confirmSuppressed: [],
+    callSiteAudit: [],
+    hashFile,
+  });
+  assert.deepEqual(payload.covered, []);
+  assert.equal(droppedUnbankable, 1);
+  assert.doesNotMatch(JSON.stringify(payload), /-->/);
+});
+
+test('coverageHeadMoved fires when any entry predates the current head, and only then', () => {
+  const H1 = 'a'.repeat(40);
+  const H2 = 'b'.repeat(40);
+  assert.equal(coverageHeadMoved([{ path: 'src/a.tsx', blob: 'x', head: H1 }, { path: 'src/b.ts', blob: 'y', head: H2 }], H2), true);
+  assert.equal(coverageHeadMoved([{ path: 'src/a.tsx', blob: 'x', head: H2 }], H2), false);
+  assert.equal(coverageHeadMoved([], H2), false);
+  assert.equal(coverageHeadMoved(undefined, H2), false);
+});
+
+test('the head-moved warning survives a second interrupted run re-banking carried coverage', () => {
+  const H1 = 'a'.repeat(40);
+  const H2 = 'b'.repeat(40);
+  const { payload } = buildProgressPayload({
+    head: H2,
+    covered: [
+      { path: 'src/a.tsx', blob: 'blob1', head: H1 },
+      { path: 'src/b.ts', blob: 'blob2', head: H2 },
+    ],
+    confirmSuppressed: [],
+    callSiteAudit: [],
+    hashFile,
+  });
+  const reparsed = parseProgressComment(renderProgressComment(payload));
+  const out = validateProgress(reparsed, {
+    blobByPath: new Map([['src/a.tsx', 'blob1'], ['src/b.ts', 'blob2']]),
+    hashFile: () => null,
+  });
+  assert.equal(out.covered.length, 2);
+  assert.equal(coverageHeadMoved(out.covered, H2), true, 'the carried H1 entry must still report a moved head');
+  assert.equal(out.covered.find((c) => c.path === 'src/a.tsx').head, H1, 'the original review head is preserved verbatim');
 });
