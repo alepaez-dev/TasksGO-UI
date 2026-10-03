@@ -29,6 +29,12 @@ import {
   initialForm,
 } from '../tasks/shared';
 import type { NewScenarioDraft } from '../../../components/AddScenarioDialog';
+import {
+  statusChangePrompt,
+  type StatusChangePrompt,
+  type TestScenarioStatus,
+} from '../../../components/TestScenarioCard';
+
 import { toStageValue } from '../../../utils/toStageValue';
 import { TEXT_LIKE_EVIDENCE } from '../../helpers/evidenceFixtures';
 import {
@@ -61,6 +67,13 @@ const DEV_SCRATCHPAD_SEED: readonly ScratchpadLine[] = [
 ];
 
 const BRANCH_COPIED_FLASH_MS = 2000;
+
+export interface PendingStatusChange {
+  scenarioId: string;
+  kind: StatusChangePrompt;
+  scenarioTitle: string;
+  previousActual?: string;
+}
 
 const EMPTY_SCENARIO_DRAFT: NewScenarioDraft = {
   name: '',
@@ -216,6 +229,13 @@ export interface UseTicketOverviewState {
   setActiveEnvironment: (value: string) => void;
   envSelector: UseSelectorStateReturn;
   statusSelectScenarioId: string | null;
+  pendingStatusChange: PendingStatusChange | null;
+  statusPromptOpen: boolean;
+  statusDraft: string;
+  setStatusDraft: (value: string) => void;
+  requestScenarioStatus: (id: string, next: TestScenarioStatus) => void;
+  confirmStatusChange: () => void;
+  cancelStatusChange: () => void;
   setStatusSelectOpen: (id: string, open: boolean) => void;
   evidencePreview: { scenarioId: string; index: number } | null;
   openEvidencePreview: (scenarioId: string, index: number) => void;
@@ -422,6 +442,60 @@ export function useTicketOverviewState(
     setStatusSelectScenarioId(open ? id : null);
   }, []);
 
+  const [pendingStatusChange, setPendingStatusChange] =
+    useState<PendingStatusChange | null>(null);
+  const [statusPromptOpen, setStatusPromptOpen] = useState(false);
+  const [statusDraft, setStatusDraft] = useState('');
+
+  const statusPatch = (
+    next: TestScenarioStatus,
+    extra?: Partial<QaScenario>,
+  ): Partial<QaScenario> => ({
+    status: next,
+    ...(next === 'waived' ? {} : { waiveReason: undefined }),
+    ...extra,
+  });
+
+  const requestScenarioStatus = useCallback(
+    (id: string, next: TestScenarioStatus) => {
+      const scenario = qaScenarios.find((s) => s.id === id);
+      if (!scenario) return;
+      const prompt = statusChangePrompt(scenario.status, next);
+      if (!prompt) {
+        updateScenario(id, statusPatch(next));
+        return;
+      }
+      setStatusSelectScenarioId(null);
+      setStatusDraft('');
+      setPendingStatusChange({
+        scenarioId: id,
+        kind: prompt,
+        scenarioTitle: scenario.title,
+        previousActual: scenario.actual,
+      });
+      setStatusPromptOpen(true);
+    },
+    [qaScenarios, updateScenario],
+  );
+
+  const cancelStatusChange = useCallback(() => {
+    setStatusPromptOpen(false);
+  }, []);
+
+  const confirmStatusChange = useCallback(() => {
+    if (!pendingStatusChange) return;
+    const { scenarioId, kind } = pendingStatusChange;
+    const value = statusDraft.trim();
+    if (!value) return;
+    updateScenario(
+      scenarioId,
+      kind === 'waived'
+        ? statusPatch('waived', { waiveReason: value })
+        : statusPatch('pending', { actual: value }),
+    );
+    setStatusPromptOpen(false);
+  }, [pendingStatusChange, statusDraft, updateScenario]);
+
   const [evidencePreview, setEvidencePreview] = useState<{
     scenarioId: string;
     index: number;
@@ -511,6 +585,13 @@ export function useTicketOverviewState(
     envSelector,
     statusSelectScenarioId,
     setStatusSelectOpen,
+    pendingStatusChange,
+    statusPromptOpen,
+    statusDraft,
+    setStatusDraft,
+    requestScenarioStatus,
+    confirmStatusChange,
+    cancelStatusChange,
     evidencePreview,
     openEvidencePreview,
     closeEvidencePreview,

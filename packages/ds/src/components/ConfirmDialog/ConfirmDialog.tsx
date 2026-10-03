@@ -14,6 +14,7 @@ export interface ConfirmDialogField {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  caption?: ReactNode;
   required?: boolean;
 }
 
@@ -52,6 +53,7 @@ export const ConfirmDialog = forwardRef<HTMLDivElement, ConfirmDialogProps>(
             value={field.value}
             onChange={field.onChange}
             placeholder={field.placeholder}
+            caption={field.caption}
             required={field.required}
           />
         )}

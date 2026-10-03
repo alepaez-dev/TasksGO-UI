@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { cn } from '../../../utils/cn';
 import styles from './DialogField.module.css';
 
@@ -9,18 +9,18 @@ export type DialogFieldLabelProps =
       as?: 'label';
       htmlFor: string;
       required?: boolean;
-      hint?: string;
+      note?: string;
       children: ReactNode;
     }
-  | { as: 'legend'; required?: boolean; hint?: string; children: ReactNode };
+  | { as: 'legend'; required?: boolean; note?: string; children: ReactNode };
 
 export function DialogFieldLabel(props: DialogFieldLabelProps) {
-  const { required = false, hint, children } = props;
+  const { required = false, note, children } = props;
   const className = cn(styles.label, required && styles.required);
   const body = (
     <>
       {children}
-      {hint && <span className={styles.hint}>{hint}</span>}
+      {note && <span className={styles.labelNote}>{note}</span>}
     </>
   );
 
@@ -42,7 +42,7 @@ export interface DialogFieldProps {
   as?: DialogFieldControl;
   required?: boolean;
   placeholder?: string;
-  describedBy?: string;
+  caption?: ReactNode;
 }
 
 export function DialogField({
@@ -53,12 +53,14 @@ export function DialogField({
   as = 'textarea',
   required = false,
   placeholder,
-  describedBy,
+  caption,
 }: DialogFieldProps) {
+  const captionId = useId();
   const controlClassName = cn(
     styles.control,
     as === 'textarea' && styles.textarea,
   );
+  const ariaDescribedBy = caption ? captionId : undefined;
 
   return (
     <div className={styles.field}>
@@ -73,7 +75,7 @@ export function DialogField({
           value={value}
           required={required}
           placeholder={placeholder}
-          aria-describedby={describedBy}
+          aria-describedby={ariaDescribedBy}
           onChange={(event) => onChange(event.target.value)}
         />
       ) : (
@@ -83,9 +85,14 @@ export function DialogField({
           value={value}
           required={required}
           placeholder={placeholder}
-          aria-describedby={describedBy}
+          aria-describedby={ariaDescribedBy}
           onChange={(event) => onChange(event.target.value)}
         />
+      )}
+      {caption && (
+        <p id={captionId} className={styles.caption}>
+          {caption}
+        </p>
       )}
     </div>
   );

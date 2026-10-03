@@ -6,3 +6,4 @@ export {
   type TestScenarioEvidence,
   type TestScenarioSection,
 } from './TestScenarioCard';
+export { statusChangePrompt, type StatusChangePrompt } from './statusGating';

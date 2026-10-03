@@ -11,6 +11,7 @@ function focusablesIn(root: HTMLElement): HTMLElement[] {
 
 export interface UseFocusTrapOptions {
   autoFocus?: boolean;
+  restoreTo?: () => HTMLElement | null;
 }
 
 export function useFocusTrap(
@@ -18,8 +19,12 @@ export function useFocusTrap(
   active: boolean,
   options: UseFocusTrapOptions = {},
 ): void {
-  const { autoFocus = true } = options;
+  const { autoFocus = true, restoreTo } = options;
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  const restoreToRef = useRef(restoreTo);
+  useEffect(() => {
+    restoreToRef.current = restoreTo;
+  });
 
   useEffect(() => {
     if (!active || !ref.current) return;
@@ -58,7 +63,11 @@ export function useFocusTrap(
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      previouslyFocused.current?.focus();
+      const previous = previouslyFocused.current;
+      const target = previous?.isConnected
+        ? previous
+        : (restoreToRef.current?.() ?? null);
+      target?.focus();
     };
   }, [active, ref, autoFocus]);
 }

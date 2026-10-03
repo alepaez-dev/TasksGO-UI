@@ -16,13 +16,6 @@
   gap: var(--ds-space-scale-md);
 }
 
-.actualColumn {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-scale-sm);
-  min-width: 0;
-}
-
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -112,18 +105,7 @@
   background-color: var(--ds-color-text-disabled);
 }
 
-.hint {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--ds-space-scale-sm);
-  margin: 0;
-  font-family: var(--ds-font-family-sans);
-  font-size: var(--ds-text-metadata-font-size);
-  line-height: var(--ds-text-metadata-line-height);
-  color: var(--ds-color-text-secondary);
-}
-
-.hintIcon {
+.captionIcon {
   flex-shrink: 0;
   color: var(--ds-color-status-high);
 }

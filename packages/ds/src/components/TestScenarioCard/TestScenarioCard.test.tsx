@@ -7,6 +7,7 @@ import {
   type TestScenarioSection,
   type TestScenarioStatus,
 } from './TestScenarioCard';
+import { stubStacked } from '../../test-helpers';
 
 const base = {
   caseId: 'TC-402',
@@ -20,15 +21,6 @@ const base = {
   statusSelectOpen: false,
   onStatusSelectOpenChange: () => {},
 };
-
-function stubStacked() {
-  vi.stubGlobal('matchMedia', (media: string) => ({
-    media,
-    matches: true,
-    addEventListener: () => {},
-    removeEventListener: () => {},
-  }));
-}
 
 afterEach(() => {
   vi.unstubAllGlobals();

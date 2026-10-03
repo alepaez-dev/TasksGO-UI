@@ -47,10 +47,21 @@
   resize: vertical;
 }
 
-.hint {
+.labelNote {
   margin-inline-start: var(--ds-space-scale-xs);
   color: var(--ds-color-text-secondary);
   font-weight: var(--ds-font-weight-regular);
   text-transform: none;
   letter-spacing: normal;
+}
+
+.caption {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-scale-sm);
+  margin: 0;
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-metadata-font-size);
+  line-height: var(--ds-text-metadata-line-height);
+  color: var(--ds-color-text-secondary);
 }
