@@ -12,7 +12,8 @@ type BadgeVariant =
   | 'success'
   | 'waived'
   | 'reference'
-  | 'count';
+  | 'count'
+  | 'previous';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
@@ -24,6 +25,9 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
 
     return (
       <span ref={ref} className={classes} {...rest}>
+        {variant === 'previous' && (
+          <span className={styles.srOnly}>{'was '}</span>
+        )}
         {children}
       </span>
     );

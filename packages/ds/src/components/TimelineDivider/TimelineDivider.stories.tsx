@@ -9,6 +9,7 @@ interface TimelineDividerStoryArgs {
   type: 'dayDivider' | 'gapDivider';
   at?: string;
   relative?: 'today' | 'yesterday' | null;
+  sameYear?: boolean;
   durationMs?: number;
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   locale?: string;
@@ -17,6 +18,7 @@ interface TimelineDividerStoryArgs {
 const YESTERDAY = '2026-01-13T09:12:00.000Z';
 const TODAY = '2026-01-14T08:30:00.000Z';
 const LAST_WEEK = '2026-01-06T15:45:00.000Z';
+const LAST_YEAR = '2025-11-02T10:20:00.000Z';
 
 const FEED_PADDING = 24;
 
@@ -46,6 +48,7 @@ const meta = {
         'none (older)': null,
       },
     },
+    sameYear: { control: 'boolean' },
     durationMs: { control: 'number' },
     headingLevel: { control: 'inline-radio', options: [2, 3, 4, 5, 6] },
     locale: {
@@ -95,6 +98,18 @@ export const EarlierDate: Story = {
       description: {
         story:
           'Anything older than yesterday has no relative name, so the date stands alone — no trailing separator with nothing after it.',
+      },
+    },
+  },
+};
+
+export const PreviousYear: Story = {
+  args: { at: LAST_YEAR, relative: null, sameYear: false },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Once a day falls outside the current year the heading names it, because `relative` is null this far back and two "Jan 13"s a year apart would otherwise be identical. `withDividers` decides this and reports it as `sameYear` — the component never reads the clock.',
       },
     },
   },
