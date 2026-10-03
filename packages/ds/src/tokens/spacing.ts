@@ -80,6 +80,9 @@ export const spacing = {
     dayRuleGap: '22px',
     gapRuleGap: '10px',
   },
+  highlight: {
+    paddingX: '2px',
+  },
   checklistRow: {
     badgeSize: '16px',
   },
