@@ -212,6 +212,8 @@ export {
 } from './components/TicketTitleBlock';
 export {
   TestScenarioCard,
+  statusChangePrompt,
+  type StatusChangePrompt,
   type TestScenarioCardProps,
   type TestScenarioStatus,
   type TestScenarioCardPosition,
@@ -318,7 +320,7 @@ export {
 } from './hooks/useMarkdownEditor';
 export { useAutoGrowTextarea } from './hooks/useAutoGrowTextarea';
 export { useKeyboardInset, type KeyboardInset } from './hooks/useKeyboardInset';
-export { useFocusTrap } from './hooks/useFocusTrap';
+export { useFocusTrap, type UseFocusTrapOptions } from './hooks/useFocusTrap';
 export {
   useDragToDismiss,
   type UseDragToDismissOptions,

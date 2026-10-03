@@ -39,6 +39,9 @@ export const ReopenPendingDialog = forwardRef<
         value: actualResult,
         onChange: onActualResultChange,
         placeholder: actualResultPlaceholder,
+        caption: actualResultPlaceholder
+          ? 'Previous value shown as placeholder — type to replace it.'
+          : undefined,
         required: true,
       }}
       confirmLabel="Re-open as pending"

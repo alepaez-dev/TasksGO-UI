@@ -69,7 +69,6 @@ export const AddScenarioDialog = forwardRef<
     const descriptionId = useId();
     const expectedId = useId();
     const actualId = useId();
-    const hintId = useId();
     const statusName = useId();
 
     const actualRequired = isScenarioFieldRequired('actual', value.status);
@@ -129,27 +128,30 @@ export const AddScenarioDialog = forwardRef<
               required
               placeholder="What should happen"
             />
-            <div className={styles.actualColumn}>
-              <DialogField
-                id={actualId}
-                label="Actual result"
-                value={value.actual}
-                onChange={changeHandlerFor('actual')}
-                required={actualRequired}
-                describedBy={actualRequired ? hintId : undefined}
-                placeholder="What was observed"
-              />
-              {actualRequired && (
-                <p id={hintId} className={styles.hint}>
-                  <Icon name="warning" size="sm" className={styles.hintIcon} />
-                  {FAILED_HINT}
-                </p>
-              )}
-            </div>
+            <DialogField
+              id={actualId}
+              label="Actual result"
+              value={value.actual}
+              onChange={changeHandlerFor('actual')}
+              required={actualRequired}
+              placeholder="What was observed"
+              caption={
+                actualRequired ? (
+                  <>
+                    <Icon
+                      name="warning"
+                      size="sm"
+                      className={styles.captionIcon}
+                    />
+                    {FAILED_HINT}
+                  </>
+                ) : undefined
+              }
+            />
           </div>
 
           <fieldset className={styles.optionalSection}>
-            <DialogFieldLabel as="legend" hint="optional">
+            <DialogFieldLabel as="legend" note="optional">
               Steps to reproduce
             </DialogFieldLabel>
             <StepEditor
@@ -165,7 +167,7 @@ export const AddScenarioDialog = forwardRef<
           >
             <DialogFieldLabel
               as="legend"
-              hint={`optional · up to ${evidenceLimit}`}
+              note={`optional · up to ${evidenceLimit}`}
             >
               Evidence
             </DialogFieldLabel>
