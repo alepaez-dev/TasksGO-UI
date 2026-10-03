@@ -1,0 +1,11 @@
+import{j as a}from"./jsx-runtime-u17CrQMm.js";import{r as i}from"./iframe-BAQvXxpj.js";import{c as u}from"./cn-2dOUpm6k.js";const _="_badge_1eze1_1",d="_progress_1eze1_22",p="_todo_1eze1_28",m="_done_1eze1_34",v="_high_1eze1_40",f="_critical_1eze1_46",g="_success_1eze1_52",h="_waived_1eze1_58",z="_reference_1eze1_64",w="_count_1eze1_75",y="_previous_1eze1_87",x="_srOnly_1eze1_94",e={badge:_,default:"_default_1eze1_16",progress:d,todo:p,done:m,high:v,critical:f,success:g,waived:h,reference:z,count:w,previous:y,srOnly:x},n=i.forwardRef(({variant:s="default",className:r,children:t,...o},l)=>{const c=u(e.badge,e[s],r);return a.jsxs("span",{ref:l,className:c,...o,children:[s==="previous"&&a.jsx("span",{className:e.srOnly,children:"was "}),t]})});n.displayName="Badge";n.__docgenInfo={description:"",methods:[],displayName:"Badge",props:{variant:{required:!1,tsType:{name:"union",raw:`| 'default'
+| 'progress'
+| 'todo'
+| 'done'
+| 'high'
+| 'critical'
+| 'success'
+| 'waived'
+| 'reference'
+| 'count'
+| 'previous'`,elements:[{name:"literal",value:"'default'"},{name:"literal",value:"'progress'"},{name:"literal",value:"'todo'"},{name:"literal",value:"'done'"},{name:"literal",value:"'high'"},{name:"literal",value:"'critical'"},{name:"literal",value:"'success'"},{name:"literal",value:"'waived'"},{name:"literal",value:"'reference'"},{name:"literal",value:"'count'"},{name:"literal",value:"'previous'"}]},description:"",defaultValue:{value:"'default'",computed:!1}}},composes:["HTMLAttributes"]};export{n as B,e as s};
