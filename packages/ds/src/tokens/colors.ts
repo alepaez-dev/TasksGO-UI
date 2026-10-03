@@ -107,6 +107,11 @@ export const colors = {
       text: text.secondary,
       border: 'transparent',
     },
+    previous: {
+      background: surface.secondary,
+      text: text.secondary,
+      border: border.default,
+    },
   },
 
   nav: {

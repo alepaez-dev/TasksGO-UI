@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Badge } from './Badge';
+import styles from './Badge.module.css';
 
 const meta = {
   title: 'Components/Badge',
@@ -19,9 +20,10 @@ const meta = {
         'waived',
         'reference',
         'count',
+        'previous',
       ],
       description:
-        'Visual style. Status variants (progress/todo/done/high/critical/success/waived) tint the badge by state; "reference" is a mono-styled chip for technical reference values like version IDs, build numbers, or short hashes; "count" is a neutral mono tally for numbers and fractions (e.g. 37, 2/13).',
+        'Visual style. Status variants (progress/todo/done/high/critical/success/waived) tint the badge by state; "reference" is a mono-styled chip for technical reference values like version IDs, build numbers, or short hashes; "count" is a neutral mono tally for numbers and fractions (e.g. 37, 2/13); "previous" is the struck-through left half of a value change, drained of colour so the new value carries it; it also prefixes a visually hidden "was" for assistive tech, so pass the bare value.',
     },
     children: { control: 'text' },
   },
@@ -34,6 +36,46 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+export const Previous: Story = {
+  args: { variant: 'previous', children: 'To Do' },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The superseded half of a value change. Carries no status colour — a previous "To Do", "Medium" and "Blocked" all look alike, because the colour belongs to the new value. Strike-through is visual only, so the badge also announces "was" to assistive tech.',
+      },
+    },
+  },
+};
+
+export const StatusChange: Story = {
+  render: () => (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 'var(--ds-space-scale-sm)',
+        fontFamily: 'var(--ds-font-family-sans)',
+        fontSize: 'var(--ds-text-timeline-event-font-size)',
+        color: 'var(--ds-color-text-secondary)',
+      }}
+    >
+      changed status <Badge variant="previous">To Do</Badge>{' '}
+      <span aria-hidden="true">→</span>
+      <span className={styles.srOnly}>to</span>{' '}
+      <Badge variant="progress">In Progress</Badge>
+    </span>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'How the pair reads in a feed row. The arrow and the sentence belong to the page — Badge renders one chip. The arrow is decorative, so the page supplies a hidden "to" beside it: a screen reader hears "changed status was To Do to In Progress".',
+      },
+    },
+  },
+};
 
 export const Progress: Story = {
   args: { variant: 'progress', children: 'In Progress' },
@@ -114,6 +156,7 @@ export const AllVariants: Story = {
       <Badge variant="reference">v4.1.0-alpha</Badge>
       <Badge variant="count">37</Badge>
       <Badge variant="count">2/13</Badge>
+      <Badge variant="previous">To Do</Badge>
     </div>
   ),
 };
