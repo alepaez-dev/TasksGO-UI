@@ -14,7 +14,7 @@ import { TOOL_DEFS } from './tools.mjs';
 import {
   parseProgressComment, validateProgress, renderBankedRecordsBlock,
   buildProgressPayload, renderProgressComment, renderProgressCompleteComment, extractCitedPaths,
-  mergeRecordsPreferNew, clearanceKey, auditKey, coverageHeadMoved,
+  mergeRecordsPreferNew, clearanceKey, auditKey, coverageHeadMoved, dropClearancesRefiledAsFindings,
 } from './progress.mjs';
 import {
   DEFAULT_CONFIG,
@@ -99,7 +99,7 @@ export function renderCoveredStub(file, sha7) {
   );
 }
 
-export function corroborateCoverage({ declared, served, findings, confirmSuppressed, callSiteAudit, changedPaths }) {
+export function corroborateCoverage({ declared, served, findings, confirmSuppressed, callSiteAudit, promptedPaths }) {
   const cited = new Set();
   for (const f of findings ?? []) if (typeof f?.file === 'string') cited.add(f.file);
   for (const r of [...(confirmSuppressed ?? []), ...(callSiteAudit ?? [])]) {
@@ -108,7 +108,7 @@ export function corroborateCoverage({ declared, served, findings, confirmSuppres
   const banked = [];
   const clipped = [];
   for (const path of declared ?? []) {
-    if (changedPaths.has(path) && (served.has(path) || cited.has(path))) banked.push(path);
+    if (promptedPaths.has(path) && (served.has(path) || cited.has(path))) banked.push(path);
     else clipped.push(path);
   }
   return { banked, clipped };
@@ -627,7 +627,7 @@ async function main() {
       findings: result.findings,
       confirmSuppressed: result.confirmSuppressed,
       callSiteAudit: result.callSiteAudit,
-      changedPaths: new Set(files.map((f) => f.filename)),
+      promptedPaths: new Set(commentableByFile.keys()),
     });
     if (clipped.length) core.info(`[progress] clipped uncorroborated coverage claims: ${clipped.join(', ')}`);
     const unpostedFiles = new Set(unposted.map((f) => f.file));
@@ -635,12 +635,18 @@ async function main() {
     if (bankable.length < banked.length) {
       core.info(`[progress] not banking coverage of file(s) with unposted finding(s): ${banked.filter((p) => unpostedFiles.has(p)).join(', ')}`);
     }
-    const carriedCoveredEntries = (validProgress?.covered ?? []).filter((c) => !bankable.includes(c.path) && !unpostedFiles.has(c.path));
-    const coveredEntries = [...carriedCoveredEntries, ...bankable.map((path) => ({ path, blob: blobByPath.get(path), head: pr.headSha })).filter((c) => c.blob)];
+    const served = new Set(result.servedFiles);
+    const restamped = bankable.filter((p) => !coveredByPath.has(p) || served.has(p));
+    const carriedCoveredEntries = (validProgress?.covered ?? []).filter((c) => !restamped.includes(c.path) && !unpostedFiles.has(c.path));
+    const coveredEntries = [...carriedCoveredEntries, ...restamped.map((path) => ({ path, blob: blobByPath.get(path), head: pr.headSha })).filter((c) => c.blob)];
     const { payload } = buildProgressPayload({
       head: pr.headSha,
       covered: coveredEntries,
-      confirmSuppressed: mergeRecordsPreferNew(validProgress?.confirmSuppressed, result.confirmSuppressed, clearanceKey),
+      confirmSuppressed: mergeRecordsPreferNew(
+        dropClearancesRefiledAsFindings(validProgress?.confirmSuppressed, result.findings),
+        result.confirmSuppressed,
+        clearanceKey,
+      ),
       callSiteAudit: mergeRecordsPreferNew(validProgress?.callSiteAudit, result.callSiteAudit, auditKey),
       hashFile: hashHeadFile,
     });

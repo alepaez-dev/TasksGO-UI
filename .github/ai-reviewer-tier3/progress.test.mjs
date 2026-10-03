@@ -4,7 +4,7 @@ import {
   extractCitedPaths, buildProgressPayload, MAX_PROGRESS_CHARS,
   renderProgressComment, renderProgressCompleteComment, parseProgressComment,
   validateProgress, renderBankedRecordsBlock, isProgressCommentBody, PROGRESS_PARTIAL_PREFIX,
-  mergeRecordsPreferNew, clearanceKey, auditKey, coverageHeadMoved,
+  mergeRecordsPreferNew, clearanceKey, auditKey, coverageHeadMoved, dropClearancesRefiledAsFindings,
 } from './progress.mjs';
 
 const hashOf = new Map([
@@ -282,6 +282,23 @@ test('mergeRecordsPreferNew dedups on normalized keys and prefers the new versio
   assert.equal(merged[0].counterexample, 'NEW wording', 'the new version wins the collision');
   assert.equal(merged[1].claim, 'unrelated old concern', 'non-colliding old records survive, after the new ones');
   assert.deepEqual(mergeRecordsPreferNew(undefined, undefined, clearanceKey), []);
+});
+
+test('a carried clearance dies when this run filed its concern as a finding', () => {
+  const carried = [
+    { claim: 'Selector never  dismisses on outside click', verdict: 'cleared-all-five-passed' },
+    { claim: 'unrelated settled concern', verdict: 'cleared-all-five-passed' },
+    { claim: 'focus is lost on enter', verdict: 'is-a-bug-moved-to-findings' },
+  ];
+  const findings = [
+    { title: 'selector never dismisses on OUTSIDE click' },
+    { title: 'Focus is lost on Enter' },
+  ];
+  const out = dropClearancesRefiledAsFindings(carried, findings);
+  assert.deepEqual(out.map((c) => c.claim), ['unrelated settled concern', 'focus is lost on enter'],
+    'the refiled clearance dies regardless of casing/spacing; the moved-to-findings row is the gate succeeding and stays');
+  assert.deepEqual(dropClearancesRefiledAsFindings(carried, []), carried, 'no findings, nothing dropped');
+  assert.deepEqual(dropClearancesRefiledAsFindings(undefined, undefined), []);
 });
 
 test('auditKey collides on file:line:symbol regardless of casing and spacing', () => {

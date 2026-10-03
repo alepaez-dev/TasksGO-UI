@@ -130,17 +130,21 @@ test('renderCoveredStub names the prior run and keeps read_file as the escape ha
   assert.match(stub, /read_file/);
 });
 
-test('corroborateCoverage banks only declared∩corroborated changed files and clips the rest', () => {
+test('corroborateCoverage banks only declared∩corroborated prompted files and clips the rest', () => {
   const out = corroborateCoverage({
-    declared: ['src/a.tsx', 'src/b.ts', 'src/never-read.ts', '../../etc/passwd', 'src/not-in-pr.ts'],
-    served: new Set(['src/a.tsx']),
+    declared: ['src/a.tsx', 'src/b.ts', 'src/never-read.ts', '../../etc/passwd', 'src/not-in-pr.ts', 'src/skipped-for-size.ts'],
+    served: new Set(['src/a.tsx', 'src/skipped-for-size.ts']),
     findings: [{ file: 'src/b.ts', title: 't' }],
     confirmSuppressed: [],
     callSiteAudit: [],
-    changedPaths: new Set(['src/a.tsx', 'src/b.ts', 'src/never-read.ts']),
+    promptedPaths: new Set(['src/a.tsx', 'src/b.ts', 'src/never-read.ts']),
   });
-  assert.deepEqual(out.banked.sort(), ['src/a.tsx', 'src/b.ts'], 'served or artifact-cited changed files bank');
-  assert.deepEqual(out.clipped.sort(), ['../../etc/passwd', 'src/never-read.ts', 'src/not-in-pr.ts'], 'hostile, foreign, and uncorroborated paths clip');
+  assert.deepEqual(out.banked.sort(), ['src/a.tsx', 'src/b.ts'], 'served or artifact-cited prompted files bank');
+  assert.deepEqual(
+    out.clipped.sort(),
+    ['../../etc/passwd', 'src/never-read.ts', 'src/not-in-pr.ts', 'src/skipped-for-size.ts'],
+    'hostile, foreign, uncorroborated, and never-prompted paths clip — a served file whose patch never entered the prompt must not bank',
+  );
 });
 
 test('corroborateCoverage accepts citation-based corroboration from records', () => {
@@ -150,7 +154,7 @@ test('corroborateCoverage accepts citation-based corroboration from records', ()
     findings: [],
     confirmSuppressed: [{ claim: 'c', enforcingCode: 'src/hooks/useX.ts:42 `x`' }],
     callSiteAudit: [],
-    changedPaths: new Set(['src/hooks/useX.ts']),
+    promptedPaths: new Set(['src/hooks/useX.ts']),
   });
   assert.deepEqual(out.banked, ['src/hooks/useX.ts']);
 });

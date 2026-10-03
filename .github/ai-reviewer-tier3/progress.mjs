@@ -158,6 +158,12 @@ export function auditKey(record) {
   return `${recordNorm(record?.file)}:${record?.line ?? ''}:${recordNorm(record?.symbol)}`;
 }
 
+export function dropClearancesRefiledAsFindings(carried, findings) {
+  const filed = new Set((findings ?? []).map((f) => recordNorm(f?.title)).filter(Boolean));
+  if (!filed.size) return carried ?? [];
+  return (carried ?? []).filter((c) => c?.verdict === 'is-a-bug-moved-to-findings' || !filed.has(clearanceKey(c)));
+}
+
 export function mergeRecordsPreferNew(oldRecords, newRecords, keyFn) {
   const fresh = newRecords ?? [];
   const newKeys = new Set(fresh.map(keyFn));
