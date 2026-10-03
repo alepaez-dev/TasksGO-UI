@@ -3,6 +3,7 @@ import { mobileViewportStory } from '../../../.storybook/decorators';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { breakpoints } from '../../tokens/interaction';
 import type { Meta, StoryObj } from '@storybook/react';
+import { statusChangePrompt } from './statusGating';
 import {
   TestScenarioCard,
   type TestScenarioCardProps,
@@ -77,19 +78,19 @@ function Controlled(props: TestScenarioCardProps) {
   const [title, setTitle] = useState(props.title);
 
   const handleStatusChange = (next: TestScenarioStatus) => {
-    if (next === 'waived') {
-      setSelectOpen(false);
+    const prompt = statusChangePrompt(status, next);
+    if (!prompt) {
+      setStatus(next);
+      return;
+    }
+    setSelectOpen(false);
+    if (prompt === 'waived') {
       setReasonDraft('');
       setWaiveOpen(true);
-      return;
-    }
-    if (next === 'pending' && (status === 'passed' || status === 'waived')) {
-      setSelectOpen(false);
+    } else {
       setActualDraft('');
       setReopenOpen(true);
-      return;
     }
-    setStatus(next);
   };
 
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);

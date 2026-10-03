@@ -175,6 +175,13 @@ function TicketOverviewRender({
     envSelector,
     statusSelectScenarioId,
     setStatusSelectOpen,
+    pendingStatusChange,
+    statusPromptOpen,
+    statusDraft,
+    setStatusDraft,
+    requestScenarioStatus,
+    confirmStatusChange,
+    cancelStatusChange,
     evidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
@@ -494,6 +501,13 @@ function TicketOverviewRender({
                       editingSectionsById={editingSectionsById}
                       onEditingSectionsChange={setScenarioEditingSections}
                       onOpenEvidence={openEvidencePreview}
+                      pendingStatusChange={pendingStatusChange}
+                      statusPromptOpen={statusPromptOpen}
+                      statusDraft={statusDraft}
+                      onStatusDraftChange={setStatusDraft}
+                      onRequestScenarioStatus={requestScenarioStatus}
+                      onConfirmStatusChange={confirmStatusChange}
+                      onCancelStatusChange={cancelStatusChange}
                     />
                   </TicketTabPanel>
                 )}

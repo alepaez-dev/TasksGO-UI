@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import {
   TestScenarioCard,
   type TestScenarioCardPosition,
@@ -8,7 +9,15 @@ import { StatusDot } from '../../../components/StatusDot';
 import { Button } from '../../../components/Button';
 import { Icon } from '../../../components/Icon';
 import type { UseSelectorStateReturn } from '../../../hooks/useSelector';
-import type { TestScenarioSection } from '../../../components/TestScenarioCard';
+import type {
+  TestScenarioSection,
+  TestScenarioStatus,
+} from '../../../components/TestScenarioCard';
+import { WaiveScenarioDialog } from '../../../components/WaiveScenarioDialog';
+import { ReopenPendingDialog } from '../../../components/ReopenPendingDialog';
+import { useMediaQuery } from '../../../hooks/useMediaQuery';
+import { breakpoints } from '../../../tokens/interaction';
+import type { PendingStatusChange } from './useTicketOverviewState';
 import { formatByline, healthDotVariant } from './qaViewModel';
 import type { QaEnvironment, QaScenario } from './shared';
 import { TEXT_LIKE_EVIDENCE } from '../../helpers/evidenceFixtures';
@@ -34,6 +43,13 @@ export interface QaPanelProps {
     sections: readonly TestScenarioSection[],
   ) => void;
   onOpenEvidence: (scenarioId: string, index: number) => void;
+  pendingStatusChange: PendingStatusChange | null;
+  statusPromptOpen: boolean;
+  statusDraft: string;
+  onStatusDraftChange: (value: string) => void;
+  onRequestScenarioStatus: (id: string, next: TestScenarioStatus) => void;
+  onConfirmStatusChange: () => void;
+  onCancelStatusChange: () => void;
 }
 
 function listPosition(index: number, total: number): TestScenarioCardPosition {
@@ -61,7 +77,32 @@ export function QaPanel({
   editingSectionsById,
   onEditingSectionsChange,
   onOpenEvidence,
+  pendingStatusChange,
+  statusPromptOpen,
+  statusDraft,
+  onStatusDraftChange,
+  onRequestScenarioStatus,
+  onConfirmStatusChange,
+  onCancelStatusChange,
 }: QaPanelProps) {
+  const stacked = useMediaQuery(breakpoints.stacked);
+  const dialogPresentation = stacked ? 'sheet' : 'dialog';
+
+  const cardRefs = useRef(new Map<string, HTMLDivElement>());
+  const setCardRef = (id: string) => (node: HTMLDivElement | null) => {
+    if (node) cardRefs.current.set(id, node);
+    else cardRefs.current.delete(id);
+  };
+  const pendingScenarioId = pendingStatusChange?.scenarioId ?? null;
+  const statusTriggerOf = () => {
+    const card = pendingScenarioId
+      ? cardRefs.current.get(pendingScenarioId)
+      : null;
+    return (
+      card?.querySelector<HTMLElement>('[aria-label="Set scenario status"]') ??
+      null
+    );
+  };
   const activeEnvIndex = environments.findIndex(
     (env) => env.value === activeEnvironment,
   );
@@ -185,6 +226,7 @@ export function QaPanel({
             {scenarios.map((scenario, index) => (
               <TestScenarioCard
                 key={scenario.id}
+                ref={setCardRef(scenario.id)}
                 position={listPosition(index, scenarios.length)}
                 caseId={scenario.id}
                 title={scenario.title}
@@ -206,7 +248,7 @@ export function QaPanel({
                   onStatusSelectOpenChange(scenario.id, open)
                 }
                 onStatusChange={(next) =>
-                  onUpdateScenario(scenario.id, { status: next })
+                  onRequestScenarioStatus(scenario.id, next)
                 }
                 editingSections={editingSectionsById[scenario.id] ?? []}
                 onEditingSectionsChange={(sections) =>
@@ -279,6 +321,28 @@ export function QaPanel({
           </div>
         )}
       </div>
+
+      <WaiveScenarioDialog
+        presentation={dialogPresentation}
+        restoreFocusTo={statusTriggerOf}
+        open={statusPromptOpen && pendingStatusChange?.kind === 'waived'}
+        scenarioTitle={pendingStatusChange?.scenarioTitle ?? ''}
+        reason={statusDraft}
+        onReasonChange={onStatusDraftChange}
+        onCancel={onCancelStatusChange}
+        onConfirm={onConfirmStatusChange}
+      />
+      <ReopenPendingDialog
+        presentation={dialogPresentation}
+        restoreFocusTo={statusTriggerOf}
+        open={statusPromptOpen && pendingStatusChange?.kind === 'pending'}
+        scenarioTitle={pendingStatusChange?.scenarioTitle ?? ''}
+        actualResult={statusDraft}
+        onActualResultChange={onStatusDraftChange}
+        actualResultPlaceholder={pendingStatusChange?.previousActual}
+        onCancel={onCancelStatusChange}
+        onConfirm={onConfirmStatusChange}
+      />
     </>
   );
 }

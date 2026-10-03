@@ -118,3 +118,139 @@ describe('useTicketOverviewState — add scenario', () => {
     expect(result.current.qaFailedCount).toBe(2);
   });
 });
+
+describe('useTicketOverviewState — status gating', () => {
+  const statusOf = (
+    result: { current: ReturnType<typeof useTicketOverviewState> },
+    id: string,
+  ) => result.current.qaScenarios.find((s) => s.id === id)?.status;
+
+  const scenario = (
+    result: { current: ReturnType<typeof useTicketOverviewState> },
+    id: string,
+  ) => result.current.qaScenarios.find((s) => s.id === id);
+
+  it('applies an ungated move straight away', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.requestScenarioStatus('TC-418', 'passed'));
+    expect(statusOf(result, 'TC-418')).toBe('passed');
+    expect(result.current.statusPromptOpen).toBe(false);
+  });
+
+  it('holds a waive until its reason is given', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.requestScenarioStatus('TC-402', 'waived'));
+
+    expect(statusOf(result, 'TC-402')).toBe('passed');
+    expect(result.current.statusPromptOpen).toBe(true);
+    expect(result.current.pendingStatusChange).toMatchObject({
+      scenarioId: 'TC-402',
+      kind: 'waived',
+    });
+  });
+
+  it('commits the status and the reason in one update', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.requestScenarioStatus('TC-402', 'waived'));
+    act(() => result.current.setStatusDraft('Out of scope; see ENG-2871.'));
+    act(() => result.current.confirmStatusChange());
+
+    expect(scenario(result, 'TC-402')).toMatchObject({
+      status: 'waived',
+      waiveReason: 'Out of scope; see ENG-2871.',
+    });
+    expect(result.current.statusPromptOpen).toBe(false);
+  });
+
+  it('leaves the scenario untouched when cancelled', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.requestScenarioStatus('TC-402', 'waived'));
+    act(() => result.current.setStatusDraft('half a thought'));
+    act(() => result.current.cancelStatusChange());
+
+    expect(statusOf(result, 'TC-402')).toBe('passed');
+    expect(scenario(result, 'TC-402')?.waiveReason).toBeUndefined();
+    expect(result.current.statusPromptOpen).toBe(false);
+  });
+
+  it('keeps the prompt content while it closes, then reseeds on reopen', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.requestScenarioStatus('TC-402', 'waived'));
+    act(() => result.current.setStatusDraft('half a thought'));
+    act(() => result.current.cancelStatusChange());
+
+    expect(result.current.statusPromptOpen).toBe(false);
+    expect(result.current.pendingStatusChange).not.toBeNull();
+    expect(result.current.statusDraft).toBe('half a thought');
+
+    act(() => result.current.requestScenarioStatus('TC-402', 'waived'));
+    expect(result.current.statusPromptOpen).toBe(true);
+    expect(result.current.statusDraft).toBe('');
+  });
+
+  it('refuses to commit a blank justification', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.requestScenarioStatus('TC-402', 'waived'));
+    act(() => result.current.setStatusDraft('   '));
+    act(() => result.current.confirmStatusChange());
+
+    expect(statusOf(result, 'TC-402')).toBe('passed');
+    expect(result.current.pendingStatusChange).not.toBeNull();
+  });
+
+  it('holds a re-open from passed, offering the previous actual', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    const before = scenario(result, 'TC-402');
+    act(() => result.current.requestScenarioStatus('TC-402', 'pending'));
+
+    expect(statusOf(result, 'TC-402')).toBe('passed');
+    expect(result.current.pendingStatusChange).toMatchObject({
+      kind: 'pending',
+      previousActual: before?.actual,
+    });
+  });
+
+  it('lets a failed scenario re-open without a dialog', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.requestScenarioStatus('TC-418', 'pending'));
+
+    expect(statusOf(result, 'TC-418')).toBe('pending');
+    expect(result.current.statusPromptOpen).toBe(false);
+  });
+
+  it('drops the waive reason when a waived scenario is re-opened', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    expect(scenario(result, 'TC-409')?.waiveReason).toBeDefined();
+
+    act(() => result.current.requestScenarioStatus('TC-409', 'pending'));
+    act(() => result.current.setStatusDraft('Observed 3 drops in 60s.'));
+    act(() => result.current.confirmStatusChange());
+
+    expect(statusOf(result, 'TC-409')).toBe('pending');
+    expect(scenario(result, 'TC-409')?.waiveReason).toBeUndefined();
+  });
+
+  it('drops the waive reason on an ungated move off waived', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.requestScenarioStatus('TC-409', 'passed'));
+
+    expect(statusOf(result, 'TC-409')).toBe('passed');
+    expect(scenario(result, 'TC-409')?.waiveReason).toBeUndefined();
+  });
+
+  it('ignores a request for the status it already has', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.requestScenarioStatus('TC-409', 'waived'));
+
+    expect(result.current.statusPromptOpen).toBe(false);
+    expect(scenario(result, 'TC-409')?.waiveReason).toBeDefined();
+  });
+
+  it('closes the status picker when a dialog takes over', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.setStatusSelectOpen('TC-402', true));
+    act(() => result.current.requestScenarioStatus('TC-402', 'waived'));
+
+    expect(result.current.statusSelectScenarioId).toBeNull();
+  });
+});
