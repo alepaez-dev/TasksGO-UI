@@ -81,6 +81,10 @@ export {
 } from './components/ExternalLink';
 export { ActivityRow, type ActivityRowProps } from './components/ActivityRow';
 export {
+  HighlightedText,
+  type HighlightedTextProps,
+} from './components/HighlightedText';
+export {
   TimelineEvent,
   type TimelineEventProps,
 } from './components/TimelineEvent';
