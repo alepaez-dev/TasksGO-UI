@@ -1,4 +1,4 @@
-import { createRef } from 'react';
+import { createRef, type KeyboardEvent } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { ChecklistRow } from './ChecklistRow';
@@ -95,7 +95,7 @@ describe('ChecklistRow', () => {
 
   it('does not activate when consumer onKeyDown calls preventDefault', () => {
     const onClick = vi.fn();
-    const consumerKeyDown = vi.fn((event: React.KeyboardEvent) => {
+    const consumerKeyDown = vi.fn((event: KeyboardEvent) => {
       event.preventDefault();
     });
     render(
