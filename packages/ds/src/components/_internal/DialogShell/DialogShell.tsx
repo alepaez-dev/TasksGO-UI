@@ -50,6 +50,7 @@ export const DialogShell = forwardRef<HTMLDivElement, DialogShellProps>(
       forceMount = false,
       onOpened,
       onClosed,
+      restoreFocusTo,
       children,
       id: idProp,
       className,
@@ -60,7 +61,10 @@ export const DialogShell = forwardRef<HTMLDivElement, DialogShellProps>(
     const isSheet = presentation === 'sheet';
     const panelRef = useRef<HTMLDivElement>(null);
     // in sheet mode BottomSheet owns the trap on this same node
-    useFocusTrap(panelRef, open && !isSheet, { autoFocus: false });
+    useFocusTrap(panelRef, open && !isSheet, {
+      autoFocus: false,
+      restoreTo: restoreFocusTo,
+    });
     const generatedId = useId();
     const id = idProp ?? generatedId;
 
@@ -114,6 +118,7 @@ export const DialogShell = forwardRef<HTMLDivElement, DialogShellProps>(
           forceMount={forceMount}
           onOpened={handleOpened}
           onClosed={onClosed}
+          restoreFocusTo={restoreFocusTo}
           aria-labelledby={titleId}
           aria-describedby={descId}
           className={className}
