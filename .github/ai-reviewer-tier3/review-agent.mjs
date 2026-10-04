@@ -608,6 +608,13 @@ async function main() {
     );
   }
 
+  const mergedConfirmSuppressed = mergeRecordsPreferNew(
+    dropClearancesRefiledAsFindings(validProgress?.confirmSuppressed, result.findings),
+    result.confirmSuppressed,
+    clearanceKey,
+  );
+  const mergedCallSiteAudit = mergeRecordsPreferNew(validProgress?.callSiteAudit, result.callSiteAudit, auditKey);
+
   const writeProgressComment = async ({ fullySurfaced, unposted = [] }) => {
     const upsert = async (body) => {
       try {
@@ -642,15 +649,14 @@ async function main() {
     const { payload } = buildProgressPayload({
       head: pr.headSha,
       covered: coveredEntries,
-      confirmSuppressed: mergeRecordsPreferNew(
-        dropClearancesRefiledAsFindings(validProgress?.confirmSuppressed, result.findings),
-        result.confirmSuppressed,
-        clearanceKey,
-      ),
-      callSiteAudit: mergeRecordsPreferNew(validProgress?.callSiteAudit, result.callSiteAudit, auditKey),
+      confirmSuppressed: mergedConfirmSuppressed,
+      callSiteAudit: mergedCallSiteAudit,
       hashFile: hashHeadFile,
     });
-    if (!payload.covered.length && !payload.confirmSuppressed.length && !payload.callSiteAudit.length) return;
+    if (!payload.covered.length && !payload.confirmSuppressed.length && !payload.callSiteAudit.length) {
+      if (progressCommentId) await upsert(renderProgressComment(payload));
+      return;
+    }
     core.info(`[progress] banking ${payload.covered.length} covered file(s), ${payload.confirmSuppressed.length} clearance(s), ${payload.callSiteAudit.length} audit row(s)${payload.dropped ? ` (${payload.dropped} not banked)` : ''}`);
     await upsert(renderProgressComment(payload));
   };
@@ -659,7 +665,7 @@ async function main() {
     await writeProgressComment({ fullySurfaced: true });
     core.info('No new tier-3 issues to post. Done.');
     const reviewedSha = reviewComplete ? pr.headSha : lastReviewedSha;
-    await writeJobSummary({ findings, dropped, capped, config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit, confirmSuppressed: result.confirmSuppressed });
+    await writeJobSummary({ findings, dropped, capped, config, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: mergedCallSiteAudit, confirmSuppressed: mergedConfirmSuppressed });
     await upsertStatus(
       { posted: 0, findingsCount: 0, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns, clearedBlock: carriedCleared(reviewedSha, cleared) },
       banner,
@@ -722,7 +728,7 @@ async function main() {
     core.warning(`Tier 3 ${why}; not marking ${pr.headSha.slice(0, 7)} reviewed so a re-run resumes.`);
   }
 
-  await writeJobSummary({ findings, dropped, capped, config, postedInline, postedGeneral, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: result.callSiteAudit, confirmSuppressed: result.confirmSuppressed });
+  await writeJobSummary({ findings, dropped, capped, config, postedInline, postedGeneral, seenCount: seenFingerprints.size, inputTokens, usage, costUsd, note, resolved: resolvedCount, callSiteAudit: mergedCallSiteAudit, confirmSuppressed: mergedConfirmSuppressed });
   await upsertStatus(
     { posted: postedInline + postedGeneral, findingsCount: findings.length, inputTokens, usage, costUsd, reviewedSha, verifiedSha, resolved: resolvedCount, cleared, maxClearedConcerns: config.maxClearedConcerns, clearedBlock: carriedCleared(reviewedSha, cleared) },
     banner,
