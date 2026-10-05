@@ -1359,3 +1359,43 @@ test('the converge guidance demands settling every formed concern, not only high
   assert.doesNotMatch(g, /high\/critical/, 'PR #234: "confirm only high/critical" excused filing a low concern unverified');
   assert.match(g, /settle every concern you have already formed/);
 });
+
+test('coveredFiles survives the completeness bounce and is returned', async () => {
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { findings: [], callSiteAudit: [], coveredFiles: ['src/a.tsx', 'src/b.ts'] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+    // forced re-submit omits coveredFiles entirely — the bank must preserve it
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [] } }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.deepEqual(out.coveredFiles, ['src/a.tsx', 'src/b.ts'], 'declared coverage must survive a bounce');
+});
+
+test('a run that never submits returns empty coveredFiles and the served-file list', async () => {
+  const client = stubClient([
+    { content: [{ type: 'text', text: 'just prose' }], usage: { input_tokens: 100, output_tokens: 10 } },
+    { content: [{ type: 'text', text: 'still prose' }], usage: { input_tokens: 100, output_tokens: 10 } },
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.deepEqual(out.coveredFiles, []);
+  assert.ok(Array.isArray(out.servedFiles));
+});
+
+test('the wind-down message asks for coveredFiles', async () => {
+  // Ceiling must sit ABOVE round 1's $0.75 spend (30000 out tokens) so the wind-down turn fires
+  // instead of the hard ceiling break — same shape as the existing unaffordable-bounce test.
+  const tight = { ...config, costCeilingUsd: 1.0, terminalOutputTokens: 8000 };
+  const client = stubClient([
+    { content: [{ type: 'tool_use', id: 'tu_1', name: 'read_file', input: { path: 'a.ts' } }], usage: { input_tokens: 0, output_tokens: 30000 } },
+    { content: [{ type: 'tool_use', id: 'tu_2', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [], coveredFiles: [] } }], usage: { input_tokens: 0, output_tokens: 100 } },
+  ]);
+  let windDownText = '';
+  const spyClient = {
+    beta: { messages: { stream(params) {
+      const userTexts = params.messages.filter((m) => m.role === 'user').flatMap((m) => (Array.isArray(m.content) ? m.content : [])).filter((b) => b.type === 'text').map((b) => b.text);
+      windDownText = userTexts.find((t) => /out of review budget|round limit/.test(t)) ?? windDownText;
+      return { finalMessage: async () => client.beta.messages.stream().finalMessage() };
+    } } },
+  };
+  await runReviewAgent({ client: spyClient, config: tight, system: 'sys', userMessage: 'review', root, log: () => {} });
+  assert.match(windDownText, /coveredFiles/, 'the wind-down turn must ask for the coverage declaration');
+});

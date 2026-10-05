@@ -180,7 +180,7 @@ async function streamRoundWithRetry({ client, models, startIdx, maxRetries, base
 }
 
 export async function runReviewAgent({ client, config, system, userMessage, root, log }) {
-  const runTool = makeToolRunner({ root, config });
+  const { run: runTool, servedFiles } = makeToolRunner({ root, config });
   const governor = createGovernor({ config });
   const tools = TOOL_DEFS;
   const logLevel = config.logLevel ?? 'info';
@@ -216,6 +216,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let bankedAudit = null;
   let bankedConfirm = null;
   let bankedDismissed = null;
+  let coveredFiles = null;
+  let bankedCoveredFiles = null;
 
   const concernKey = (s) => (typeof s === 'string' ? s.trim().toLowerCase() : '');
 
@@ -249,6 +251,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     if (bankedAudit && !callSiteAudit.length) callSiteAudit = bankedAudit;
     if (bankedConfirm && !confirmSuppressed.length) confirmSuppressed = bankedConfirm;
     if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
+    if (bankedCoveredFiles && !coveredFiles?.length) coveredFiles = bankedCoveredFiles;
     dropClearancesForFiledConcerns();
   };
 
@@ -330,7 +333,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
               type: 'text',
               text:
                 `${limitReached} Call submit_findings now with every genuine bug you have ` +
-                'confirmed so far (or an empty list if none). Do not call any other tool or read more files.',
+                'confirmed so far (or an empty list if none), and set coveredFiles to the changed files you FULLY ' +
+                'dispositioned so an interrupted review can resume without re-paying for them. Do not call any other tool or read more files.',
               cache_control: { type: 'ephemeral' },
             },
           ],
@@ -432,11 +436,13 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       const submittedConfirm = submit.input?.confirmSuppressed;
       const submittedFindings = submit.input?.findings;
       const submittedDismissed = submit.input?.dismissed;
+      const submittedCovered = submit.input?.coveredFiles;
       const bankSubmission = () => {
         if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
         if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
         if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
         if (Array.isArray(submittedDismissed) && submittedDismissed.length) bankedDismissed = submittedDismissed;
+        if (Array.isArray(submittedCovered) && submittedCovered.length) bankedCoveredFiles = submittedCovered;
         // Same rule as the two bounce branches: an empty audit is still an audit the model reported.
         if (Array.isArray(submittedAudit)) auditReported = true;
       };
@@ -453,13 +459,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       }
       if (needsAudit) {
         auditRejected = true;
-        if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
-        if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
-        if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
-        if (Array.isArray(submittedDismissed) && submittedDismissed.length) bankedDismissed = submittedDismissed;
-        // Deliberately NOT gated on .length like the banking above: an empty audit is still the model
-        // reporting one, and that is the whole distinction this flag carries.
-        if (Array.isArray(submittedAudit)) auditReported = true;
+        bankSubmission();
         const missing =[!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed'].filter(Boolean);
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing ${missing.join(' + ')} — asking once for the completeness record.`);
         clearUserBreakpoints();
@@ -499,12 +499,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       }
       if (needsHedgeGate) {
         hedgeRejected = true;
-        if (Array.isArray(submittedFindings) && submittedFindings.length) bankedFindings = submittedFindings;
-        if (Array.isArray(submittedAudit) && submittedAudit.length) bankedAudit = submittedAudit;
-        if (Array.isArray(submittedConfirm) && submittedConfirm.length) bankedConfirm = submittedConfirm;
-        if (Array.isArray(submittedDismissed) && submittedDismissed.length) bankedDismissed = submittedDismissed;
-        // Same as the completeness gate above — a bounced turn that carried an audit still reported one.
-        if (Array.isArray(submittedAudit)) auditReported = true;
+        bankSubmission();
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: reasoning hand-waved ${hedges.length} concern(s) — asking once for each to enter confirmSuppressed.`);
         clearUserBreakpoints();
         messages.push({
@@ -541,6 +536,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         findings = [];
       }
       if (Array.isArray(submittedDismissed)) dismissed = submittedDismissed;
+      if (Array.isArray(submittedCovered)) coveredFiles = submittedCovered;
       // Restore BEFORE the log block on purpose: the count below reports what will actually be
       // published, and logRecords() a few lines down is post-restore too. Moving it after the log
       // makes the run say "→ 0 finding(s)" on a run that posts one.
@@ -611,6 +607,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     callSiteAudit,
     confirmSuppressed,
     dismissed: dismissed ?? [],
+    coveredFiles: coveredFiles ?? [],
+    servedFiles: [...servedFiles],
     usage: governor.totalUsage(),
     costUsd: governor.spentUsd(),
     usedFallback: modelIdx > 0,

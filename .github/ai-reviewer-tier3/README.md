@@ -62,11 +62,25 @@ mistaken for a clean pass:
 - a `> ⚠️ …` banner in the **job summary**,
 - and the same banner on the **sticky PR status comment** and the first off-diff summary comment.
 
-It also does **not** mark the commit "reviewed." Re-applying the label runs a **fresh review, billed
-again** (there is no exploration memory across runs) — the partial findings already posted persist and
-are de-duplicated, but a PR large enough to hit the ceiling is best handled by the `ai-reviewer-tier3-max`
-label (deeper pass, $3 ceiling), raising `costCeilingUsd`, or splitting the PR — not by re-labeling at the
-same budget.
+It also does **not** mark the commit "reviewed" — but it **banks its completed work** (see
+*Incremental resume* below), so re-applying the label **resumes**: the next run validates the banked
+state against current content and pays only for the remainder. The partial findings already posted
+persist and are de-duplicated. Resuming shrinks re-runs — it does not raise the per-run ceiling — so a
+PR big enough to blow the ceiling repeatedly is still better served by the `ai-reviewer-tier3-max`
+label (deeper pass, $3 ceiling), raising `costCeilingUsd`, or splitting the PR.
+
+### Incremental resume (issue #246)
+
+An interrupted run banks its completed work in a sticky `ai-reviewer-tier3-progress` comment:
+covered files (keyed to their blob SHA) plus the clearance/audit records (keyed to content hashes
+of every file they cite). The next run validates each entry against current content — anything
+touched since is re-reviewed in full, and a record dies if *any* file it cites changed — then
+collapses still-covered files to one-line stubs and injects the surviving records as settled (but
+re-openable on contrary evidence), paying only for the remainder. Validation is per-file, not
+per-head: a covered file whose *dependents* changed in a later push stays stubbed, so when the head
+has moved the resumed run is explicitly instructed to check interactions between the newer patches
+and covered files (opening them with `read_file`). A completed run resets the comment. Corrupt,
+forged, or oversized state degrades to a normal full-price run, never to a skipped review.
 
 ## Independence from Tier 2
 
