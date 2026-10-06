@@ -1,3 +1,5 @@
+const fabBottomOffset = '24px';
+
 export const spacing = {
   layout: {
     sidebarWidth: '288px',
@@ -132,7 +134,10 @@ export const spacing = {
   fab: {
     size: '48px',
     rightOffset: '24px',
-    bottomOffset: '24px',
+    bottomOffset: fabBottomOffset,
+    extendedPaddingX: '20px',
+    extendedGap: '8px',
+    bottomOffsetAboveTabBar: `calc(var(--ds-space-bottom-tab-bar-height) + env(safe-area-inset-bottom) + ${fabBottomOffset})`,
   },
   bottomTabBar: {
     height: '64px',

@@ -165,7 +165,7 @@ export const ManyTabs: Story = {
 
 const fabOffsetOverride = {
   '--ds-space-fab-bottom-offset':
-    'calc(var(--ds-space-bottom-tab-bar-height) + env(safe-area-inset-bottom) + 24px)',
+    'var(--ds-space-fab-bottom-offset-above-tab-bar)',
 } as CSSProperties;
 
 export const WithFab: Story = {

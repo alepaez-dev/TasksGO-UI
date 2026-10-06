@@ -75,4 +75,48 @@ describe('Fab', () => {
     await user.keyboard('{Enter}');
     expect(handleClick).toHaveBeenCalledOnce();
   });
+
+  it('renders no visible text when icon-only', () => {
+    render(<Fab aria-label="New task" />);
+    expect(screen.getByRole('button')).toHaveTextContent('');
+  });
+
+  describe('extended', () => {
+    it('falls back to the icon-only shape when the label is empty', () => {
+      const { container } = render(<Fab label="" />);
+      const button = screen.getByRole('button');
+      expect(button).toHaveTextContent('');
+      expect(container.querySelector('[class*="label"]')).toBeNull();
+      // an empty label cannot name the button; the type cannot express
+      // "non-empty string", so this documents the gap rather than hiding it
+      expect(button).toHaveAccessibleName('');
+    });
+
+    it('renders the label as visible text', () => {
+      render(<Fab label="Add scenario" />);
+      expect(screen.getByText('Add scenario')).toBeInTheDocument();
+    });
+
+    it('takes its accessible name from the visible label', () => {
+      render(<Fab label="Add scenario" />);
+      const button = screen.getByRole('button', { name: 'Add scenario' });
+      expect(button).not.toHaveAttribute('aria-label');
+    });
+
+    it('still renders the icon alongside the label', () => {
+      const { container } = render(<Fab label="Add scenario" />);
+      expect(container.querySelector('svg')).toHaveAttribute(
+        'aria-hidden',
+        'true',
+      );
+    });
+
+    it('calls onClick when clicked', async () => {
+      const user = userEvent.setup();
+      const handleClick = vi.fn();
+      render(<Fab label="Add scenario" onClick={handleClick} />);
+      await user.click(screen.getByRole('button', { name: 'Add scenario' }));
+      expect(handleClick).toHaveBeenCalledOnce();
+    });
+  });
 });
