@@ -1,0 +1,10 @@
+import{S as o}from"./StepList-CiFgQHer.js";import"./jsx-runtime-u17CrQMm.js";import"./iframe-BwB5Cs5r.js";import"./preload-helper-3dDiHxC_.js";import"./cn-2dOUpm6k.js";import"./Markdown-BmX2sYMo.js";import"./linkRenderRule-biBuvEhO.js";import"./sanitizeHref-Bnrf33AA.js";import"./Card-CiYH5qSL.js";const g={title:"Components/StepList",component:o,tags:["autodocs"]},e={args:{steps:["Deploy recent build to `QA-01` environment","Fire 500 rps against `/v1/assets/hot` for 30s","Inspect response headers once burst limit is crossed"]}},t={args:{steps:["Trigger concurrent updates via `/api/v1/sync` endpoint","Monitor **cache TTL** expiration logs in Datadog","Observe WebSocket reconnection attempts after simulated network drop"]}},r={args:{dividers:!0,steps:["Deploy recent build to `QA-01` environment","Trigger concurrent updates via `/api/v1/sync` endpoint","Monitor cache TTL expiration logs in Datadog","Observe WebSocket reconnection attempts after simulated network drop"]}};e.parameters={...e.parameters,docs:{...e.parameters?.docs,source:{originalSource:"{\n  args: {\n    steps: ['Deploy recent build to `QA-01` environment', 'Fire 500 rps against `/v1/assets/hot` for 30s', 'Inspect response headers once burst limit is crossed']\n  }\n}",...e.parameters?.docs?.source}}};t.parameters={...t.parameters,docs:{...t.parameters?.docs,source:{originalSource:`{
+  args: {
+    steps: ['Trigger concurrent updates via \`/api/v1/sync\` endpoint', 'Monitor **cache TTL** expiration logs in Datadog', 'Observe WebSocket reconnection attempts after simulated network drop']
+  }
+}`,...t.parameters?.docs?.source}}};r.parameters={...r.parameters,docs:{...r.parameters?.docs,source:{originalSource:`{
+  args: {
+    dividers: true,
+    steps: ['Deploy recent build to \`QA-01\` environment', 'Trigger concurrent updates via \`/api/v1/sync\` endpoint', 'Monitor cache TTL expiration logs in Datadog', 'Observe WebSocket reconnection attempts after simulated network drop']
+  }
+}`,...r.parameters?.docs?.source}}};const l=["Default","WithFormatting","WithDividers"];export{e as Default,r as WithDividers,t as WithFormatting,l as __namedExportsOrder,g as default};
