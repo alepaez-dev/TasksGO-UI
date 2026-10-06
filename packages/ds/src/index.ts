@@ -84,6 +84,7 @@ export {
   HighlightedText,
   type HighlightedTextProps,
 } from './components/HighlightedText';
+export type { MatchRange } from './utils/matchRanges';
 export {
   TimelineEvent,
   type TimelineEventProps,
