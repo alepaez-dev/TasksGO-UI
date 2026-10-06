@@ -31,3 +31,17 @@ export function parseScopeBlock(source: string): ScopeBlockData {
 
   return { included, excluded };
 }
+
+export function parseScopeFence(
+  lang: string | undefined,
+  text: string,
+): ScopeBlockData | null {
+  if (lang !== 'scope') return null;
+  const scope = parseScopeBlock(text);
+  if (scope.included.length === 0 && scope.excluded.length === 0) return null;
+  return scope;
+}
+
+export function isScopeBlock(lang: string | undefined, text: string): boolean {
+  return parseScopeFence(lang, text) !== null;
+}
