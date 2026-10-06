@@ -33,7 +33,7 @@ export const DEPLOY: ActivityActor = {
   kind: 'system',
 };
 
-export const FIXTURE_BASE = Date.parse('2026-01-14T12:00:00.000Z');
+export const FIXTURE_BASE = new Date(2026, 0, 14, 12).getTime();
 
 export function at(minutes: number): string {
   return new Date(FIXTURE_BASE + minutes * 60_000).toISOString();
