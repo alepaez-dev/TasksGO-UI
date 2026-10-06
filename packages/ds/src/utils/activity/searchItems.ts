@@ -1,4 +1,5 @@
 import { parseSearchTerms } from '../searchTerms';
+import { plainText } from '../markdown/plainText';
 import type { ActivityItem } from './types';
 
 export interface ActivitySearchIndex {
@@ -31,11 +32,14 @@ export function buildSearchIndex(item: ActivityItem): ActivitySearchIndex {
   return {
     discussion: join([
       item.actor.name,
-      item.body,
+      plainText(item.body),
       // An ask can be marked answered without a reply, so this name may be the
       // only place the answerer appears — and the UI shows it as "Answered by".
       item.kind === 'ask' ? item.answeredBy?.name : undefined,
-      ...item.replies.flatMap((reply) => [reply.actor.name, reply.body]),
+      ...item.replies.flatMap((reply) => [
+        reply.actor.name,
+        plainText(reply.body),
+      ]),
     ]),
     fields: '',
     artifacts: '',

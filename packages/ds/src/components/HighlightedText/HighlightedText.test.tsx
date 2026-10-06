@@ -105,6 +105,17 @@ describe('HighlightedText', () => {
     expect(container.textContent).toBe('<script>alert(1)</script> <b>bold</b>');
   });
 
+  it('marks the given ranges and ignores query, which cannot see other nodes', () => {
+    const { container } = render(
+      <HighlightedText
+        text="edge-cache"
+        query="cache"
+        ranges={[{ start: 0, end: 5 }]}
+      />,
+    );
+    expect(marks(container)).toEqual(['edge-']);
+  });
+
   it('highlights inside a Badge', () => {
     render(
       <Badge variant="progress">
