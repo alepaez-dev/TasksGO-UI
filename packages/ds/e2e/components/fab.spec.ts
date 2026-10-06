@@ -24,11 +24,21 @@ test.describe('Fab — extended variant with a long label', () => {
         if (label.scrollWidth <= label.clientWidth) {
           throw new Error('label is not truncated; story is not exercising this');
         }
+        const icon = fab.querySelector('[class*="_icon_"]');
+        if (icon === null) throw new Error('icon element not found');
+        const iconRect = icon.getBoundingClientRect();
         const rect = fab.getBoundingClientRect();
-        return { left: rect.left, right: rect.right, vw: window.innerWidth };
+        return {
+          left: rect.left,
+          right: rect.right,
+          vw: window.innerWidth,
+          iconWidth: iconRect.width,
+          iconHeight: iconRect.height,
+        };
       });
 
     expect(box.left).toBeGreaterThanOrEqual(0);
     expect(box.right).toBeLessThanOrEqual(box.vw);
+    expect(box.iconWidth).toBe(box.iconHeight);
   });
 });

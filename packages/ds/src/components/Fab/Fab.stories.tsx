@@ -45,7 +45,13 @@ export const Disabled: Story = {
 };
 
 export const Extended: Story = {
-  render: () => <Fab label="Add scenario" />,
+  argTypes: {
+    label: { control: 'text' },
+  },
+  args: {
+    label: 'Add scenario',
+    'aria-label': undefined,
+  },
 };
 
 export const ExtendedLongLabel: Story = {

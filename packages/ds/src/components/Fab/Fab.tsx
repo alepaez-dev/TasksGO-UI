@@ -4,6 +4,7 @@ import type { IconName } from '../../icons';
 import { cn } from '../../utils/cn';
 import styles from './Fab.module.css';
 
+// An empty `label` renders an unnamed icon-only button; icon-only FABs take `aria-label`.
 type FabLabelProps =
   | { label: string; 'aria-label'?: never }
   | { label?: never; 'aria-label': string };
@@ -26,7 +27,7 @@ export const Fab = forwardRef<HTMLButtonElement, FabProps>(
         )}
         {...rest}
       >
-        <Icon name={icon} size="md" />
+        <Icon name={icon} size="md" className={styles.icon} />
         {label ? <span className={styles.label}>{label}</span> : null}
       </button>
     );
