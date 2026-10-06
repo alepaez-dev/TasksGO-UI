@@ -1,0 +1,26 @@
+import{j as t}from"./jsx-runtime-u17CrQMm.js";import{r as n}from"./iframe-DWpm_JIO.js";import{A as D}from"./AddScenarioDialog-66av9EEq.js";import{b as F}from"./evidenceFixtures-CClYs46t.js";import{F as k}from"./FilePreviewOverlay-DvJvty4O.js";import"./preload-helper-_ynXzUkH.js";import"./cn-2dOUpm6k.js";import"./DialogField-Qu0yt7Er.js";import"./useFocusTrap-2KEOSwAc.js";import"./index-C-W-4GPZ.js";import"./index-Bsj4FI9l.js";import"./Button-iApomBQy.js";import"./Icon-7ZVDxb1s.js";import"./EvidenceInput-BcMBx8F6.js";import"./useAutoGrowTextarea-CEsJw-Sx.js";import"./RefLabel-D0Nf_2vg.js";import"./sanitizeHref-Bnrf33AA.js";import"./Markdown-Dpb56BJi.js";import"./linkRenderRule-BeFBusiD.js";import"./HighlightedText-BIcCQciU.js";import"./Card-DaxHp7A7.js";import"./IconButton-BiOunvaG.js";const _="_notice_1depy_1",N={notice:_},ne={title:"Components/AddScenarioDialog",component:D,parameters:{layout:"centered"},argTypes:{value:{control:!1},open:{control:"boolean"}}},j={name:"",status:"pending",description:"",expected:"",actual:"",steps:[],evidence:[]},f={name:"Verify cache hit on /v1/assets",status:"failed",description:"Edge cache should serve a warm asset on the second request.",expected:"Response carries X-Cache: HIT within 200ms.",actual:"",steps:[],evidence:[]},O=/\.(dmg|exe|msi|bat|sh|pkg)$/i;function o({initial:u=j,isEvidenceAllowed:L,addEvidenceDisabled:y}){const[I,g]=n.useState(!0),[E,w]=n.useState(u),[h,v]=n.useState(""),C=()=>{v(""),g(!1)},[b,x]=n.useState(null),[R,A]=n.useState([]);return n.useEffect(()=>{let r=!1;const a=[];return Promise.all(E.evidence.map(async e=>{const s=URL.createObjectURL(e);a.push(s);const S={label:e.name,kind:e.type.startsWith("image/")?"image":"file",url:s};return e.type.startsWith("text/")||F.test(e.name)?{...S,text:await e.text()}:S})).then(e=>{r||A(e)}),()=>{r=!0,a.forEach(e=>URL.revokeObjectURL(e))}},[E.evidence]),t.jsxs(t.Fragment,{children:[t.jsx("button",{type:"button",onClick:()=>g(!0),children:"Add scenario"}),t.jsx(D,{open:I,value:E,onValueChange:r=>{v(""),w(r)},onCancel:C,onConfirm:C,isEvidenceAllowed:L,addEvidenceDisabled:y,onOpenEvidence:x,onEvidenceRejected:r=>{const a=r.filter(s=>s.reason==="filtered").map(s=>s.file.name),e=r.filter(s=>s.reason==="limit").length;v([a.length?`Not an allowed file type: ${a.join(", ")}`:"",e?`${e} file(s) over the limit were not added.`:""].filter(Boolean).join(" · "))},evidenceMessage:h?t.jsx("p",{role:"status",className:N.notice,children:h}):null}),t.jsx(k,{files:R,open:b!=null,activeIndex:b??0,onActiveIndexChange:x,onClose:()=>x(null)})]})}const i={render:()=>t.jsx(o,{})},c={render:()=>t.jsx(o,{initial:{...f,status:"passed"}})},d={render:()=>t.jsx(o,{initial:f})},l={render:()=>t.jsx(o,{initial:{...f,actual:"Response carried X-Cache: MISS twice."}})},m={name:"Consumer blocks executables",render:()=>t.jsx(o,{isEvidenceAllowed:u=>!O.test(u.name)})},p={name:"Evidence add disabled (upload in flight)",render:()=>t.jsx(o,{addEvidenceDisabled:!0,initial:{...j,evidence:[new File(["x"],"screenshot.png",{type:"image/png"})]}})};i.parameters={...i.parameters,docs:{...i.parameters?.docs,source:{originalSource:`{
+  render: () => <Controlled />
+}`,...i.parameters?.docs?.source}}};c.parameters={...c.parameters,docs:{...c.parameters?.docs,source:{originalSource:`{
+  render: () => <Controlled initial={{
+    ...FILLED,
+    status: 'passed'
+  }} />
+}`,...c.parameters?.docs?.source}}};d.parameters={...d.parameters,docs:{...d.parameters?.docs,source:{originalSource:`{
+  render: () => <Controlled initial={FILLED} />
+}`,...d.parameters?.docs?.source}}};l.parameters={...l.parameters,docs:{...l.parameters?.docs,source:{originalSource:`{
+  render: () => <Controlled initial={{
+    ...FILLED,
+    actual: 'Response carried X-Cache: MISS twice.'
+  }} />
+}`,...l.parameters?.docs?.source}}};m.parameters={...m.parameters,docs:{...m.parameters?.docs,source:{originalSource:`{
+  name: 'Consumer blocks executables',
+  render: () => <Controlled isEvidenceAllowed={file => !BLOCKED_EVIDENCE.test(file.name)} />
+}`,...m.parameters?.docs?.source}}};p.parameters={...p.parameters,docs:{...p.parameters?.docs,source:{originalSource:`{
+  name: 'Evidence add disabled (upload in flight)',
+  render: () => <Controlled addEvidenceDisabled initial={{
+    ...EMPTY,
+    evidence: [new File(['x'], 'screenshot.png', {
+      type: 'image/png'
+    })]
+  }} />
+}`,...p.parameters?.docs?.source}}};const oe=["Default","Passed","FailedNeedsActualResult","ReadyToSubmit","ConsumerBlocksExecutables","EvidenceAddDisabled"];export{m as ConsumerBlocksExecutables,i as Default,p as EvidenceAddDisabled,d as FailedNeedsActualResult,c as Passed,l as ReadyToSubmit,oe as __namedExportsOrder,ne as default};
