@@ -1,0 +1,4 @@
+.mention {
+  color: var(--ds-color-accent-primary);
+  font-weight: var(--ds-font-weight-medium);
+}

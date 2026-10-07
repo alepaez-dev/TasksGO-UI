@@ -49,7 +49,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Renders a markdown string to styled React elements. Raw embedded HTML is disabled and link/image URLs are routed through `sanitizeHref`. All styling comes from design tokens — the library ships no CSS. GFM tables and task lists are supported. Pass `query` to mark matching terms in the body. Fenced code blocks are marked; scope blocks are not.',
+          'Renders a markdown string to styled React elements. Raw embedded HTML is disabled and link/image URLs are routed through `sanitizeHref`. All styling comes from design tokens — the library ships no CSS. GFM tables and task lists are supported. Pass `query` to mark matching terms in the body. Fenced code blocks are marked; scope blocks are not. Pass `mentions` with the handles you recognise to render `@handle` as a mention — handles not in the list stay plain text.',
       },
     },
   },

@@ -3,11 +3,11 @@ import { astToJSX, RuleType, type MarkdownToJSX } from 'markdown-to-jsx/react';
 import { cn } from '../../utils/cn';
 import { sanitizeHref } from '../../utils/sanitizeHref';
 import { linkRenderRule } from '../../utils/markdown/linkRenderRule';
-import { highlightRenderRule } from '../../utils/markdown/highlightRenderRule';
 import {
-  buildHighlightPlan,
-  type HighlightPlan,
-} from '../../utils/markdown/highlightPlan';
+  textRenderRule,
+  type TextRenderContext,
+} from '../../utils/markdown/textRenderRule';
+import { buildHighlightPlan } from '../../utils/markdown/highlightPlan';
 import { parseScopeFence } from '../../utils/markdown/parseScopeBlock';
 import { ScopeBlock } from './blocks/ScopeBlock';
 import styles from './Markdown.module.css';
@@ -18,9 +18,10 @@ export interface MarkdownProps extends Omit<
 > {
   source: string;
   query?: string;
+  mentions?: readonly string[];
 }
 
-function buildOptions(plan: HighlightPlan): MarkdownToJSX.Options {
+function buildOptions(ctx: TextRenderContext): MarkdownToJSX.Options {
   return {
     forceBlock: true,
     disableParsingRawHTML: true,
@@ -31,8 +32,8 @@ function buildOptions(plan: HighlightPlan): MarkdownToJSX.Options {
         const scope = parseScopeFence(node.lang, node.text);
         if (scope) return <ScopeBlock key={state.key} {...scope} />;
       }
-      const highlighted = highlightRenderRule(next, node, state, plan);
-      if (highlighted) return highlighted;
+      const text = textRenderRule(next, node, state, ctx);
+      if (text) return text;
       const link = linkRenderRule(node, renderChildren, state);
       if (link) return link;
       if (node.type === RuleType.gfmTask) {
@@ -51,13 +52,18 @@ function buildOptions(plan: HighlightPlan): MarkdownToJSX.Options {
   };
 }
 
+const NO_MENTIONS: readonly string[] = [];
+
 export const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(
-  ({ source, query = '', className, ...rest }, ref) => {
+  ({ source, query = '', mentions = NO_MENTIONS, className, ...rest }, ref) => {
     const { ast, plan } = useMemo(
       () => buildHighlightPlan(source, query),
       [source, query],
     );
-    const options = useMemo(() => buildOptions(plan), [plan]);
+    const options = useMemo(
+      () => buildOptions({ plan, mentions }),
+      [plan, mentions],
+    );
     const rendered = useMemo(
       () => astToJSX(ast as MarkdownToJSX.ASTNode[], options),
       [ast, options],

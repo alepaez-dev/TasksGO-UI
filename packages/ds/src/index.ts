@@ -85,6 +85,8 @@ export {
   type HighlightedTextProps,
 } from './components/HighlightedText';
 export type { MatchRange } from './utils/matchRanges';
+export { CommentCard, type CommentCardProps } from './components/CommentCard';
+export { ReactionBar, type ReactionBarProps } from './components/ReactionBar';
 export {
   TimelineEvent,
   type TimelineEventProps,
