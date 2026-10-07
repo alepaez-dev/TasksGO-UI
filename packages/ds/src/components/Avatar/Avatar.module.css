@@ -42,6 +42,17 @@
   height: var(--ds-space-avatar-size-sm);
 }
 
+.lg {
+  width: var(--ds-space-avatar-size-lg);
+  height: var(--ds-space-avatar-size-lg);
+}
+
+.project.lg,
+.profile.lg {
+  font-size: var(--ds-text-avatar-lg-initial-font-size);
+  font-weight: var(--ds-text-avatar-lg-initial-font-weight);
+}
+
 .project.sm,
 .profile.sm {
   font-size: var(--ds-text-avatar-sm-initial-font-size);

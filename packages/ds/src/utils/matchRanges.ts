@@ -41,3 +41,18 @@ export function matchRanges(text: string, query: string): MatchRange[] {
   }
   return merged;
 }
+
+export function sliceRanges(
+  ranges: readonly MatchRange[],
+  start: number,
+  length: number,
+): MatchRange[] {
+  const end = start + length;
+  const local: MatchRange[] = [];
+  for (const range of ranges) {
+    const from = Math.max(range.start, start);
+    const to = Math.min(range.end, end);
+    if (from < to) local.push({ start: from - start, end: to - start });
+  }
+  return local;
+}

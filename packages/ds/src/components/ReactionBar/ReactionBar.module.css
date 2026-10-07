@@ -1,0 +1,50 @@
+.bar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-reaction-bar-gap);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-reaction-bar-chip-gap);
+  height: var(--ds-space-reaction-bar-chip-height);
+  padding: 0 var(--ds-space-reaction-bar-chip-padding-x);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-color-surface-primary);
+  font-family: var(--ds-text-reaction-chip-font-family);
+  font-size: var(--ds-text-reaction-chip-font-size);
+  line-height: var(--ds-text-reaction-chip-line-height);
+  color: var(--ds-color-text-secondary);
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--ds-color-text-disabled);
+}
+
+.chip:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.on {
+  background: var(--ds-color-badge-progress-background);
+  border-color: var(--ds-color-badge-progress-border);
+  color: var(--ds-color-badge-progress-text);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.count {
+  font-family: var(--ds-text-reaction-count-font-family);
+  font-size: var(--ds-text-reaction-count-font-size);
+}
+
+.add {
+  color: var(--ds-color-text-disabled);
+}
+
+.add:hover {
+  color: var(--ds-color-text-primary);
+}

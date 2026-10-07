@@ -1,0 +1,225 @@
+.entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--ds-space-comment-card-gutter-gap);
+  list-style: none;
+  font-family: var(--ds-font-family-sans);
+}
+
+.avatar {
+  z-index: 1;
+}
+
+.main {
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-comment-card-head-gap);
+  min-height: var(--ds-space-avatar-size-lg);
+}
+
+.author {
+  font-size: var(--ds-text-comment-card-author-font-size);
+  font-weight: var(--ds-text-comment-card-author-font-weight);
+  color: var(--ds-color-text-primary);
+}
+
+.time {
+  font-size: var(--ds-text-comment-card-meta-font-size);
+  color: var(--ds-color-text-disabled);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-comment-card-chip-gap);
+  padding: var(--ds-space-comment-card-chip-padding-y)
+    var(--ds-space-comment-card-chip-padding-x);
+  border-radius: var(--ds-radius-full);
+  font-family: var(--ds-text-comment-card-kind-font-family);
+  font-size: var(--ds-text-comment-card-kind-font-size);
+  font-weight: var(--ds-text-comment-card-kind-font-weight);
+  letter-spacing: var(--ds-text-comment-card-kind-letter-spacing);
+  text-transform: uppercase;
+}
+
+.chipComment {
+  background: var(--ds-color-badge-progress-background);
+  color: var(--ds-color-badge-progress-text);
+}
+
+.chipAsk {
+  background: var(--ds-color-comment-card-ask-chip-background);
+  color: var(--ds-color-status-high);
+}
+
+.chipAnswered {
+  background: var(--ds-color-comment-card-answered-chip-background);
+  color: var(--ds-color-status-active);
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-comment-card-action-gap);
+  opacity: 0;
+  transition: opacity var(--ds-transition-duration-fast) ease;
+}
+
+.entry:hover .actions,
+.entry:focus-within .actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .actions {
+    opacity: 1;
+  }
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-space-comment-card-action-size);
+  height: var(--ds-space-comment-card-action-size);
+  border: 0;
+  background: transparent;
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-text-disabled);
+  cursor: pointer;
+}
+
+.action:hover {
+  background: var(--ds-color-surface-hover);
+  color: var(--ds-color-text-primary);
+}
+
+.action:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.bubble {
+  margin-top: var(--ds-space-comment-card-bubble-offset);
+  padding: var(--ds-space-comment-card-bubble-padding-y)
+    var(--ds-space-comment-card-bubble-padding-x);
+  border-radius: var(--ds-radius-lg);
+  font-size: var(--ds-text-comment-card-body-font-size);
+  line-height: var(--ds-text-comment-card-body-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.bubbleComment {
+  background: var(--ds-color-surface-primary);
+  border: 1px solid var(--ds-color-border-default);
+}
+
+.bubbleAsk {
+  background: var(--ds-color-comment-card-ask-background);
+  border: 1px solid var(--ds-color-comment-card-ask-border);
+  border-left-width: var(--ds-space-comment-card-ask-rule-width);
+}
+
+.bubbleAnswered {
+  background: var(--ds-color-comment-card-answered-background);
+  border-color: var(--ds-color-comment-card-answered-border);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-comment-card-foot-gap);
+  margin-top: var(--ds-space-comment-card-foot-offset);
+}
+
+.footBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-comment-card-foot-btn-gap);
+  height: var(--ds-space-comment-card-foot-btn-height);
+  padding: 0 var(--ds-space-comment-card-foot-btn-padding-x);
+  border: 0;
+  background: transparent;
+  border-radius: var(--ds-radius-sm);
+  font-family: inherit;
+  font-size: var(--ds-text-comment-card-foot-font-size);
+  font-weight: var(--ds-text-comment-card-foot-font-weight);
+  color: var(--ds-color-text-secondary);
+  cursor: pointer;
+}
+
+button.footBtn:hover {
+  background: var(--ds-color-surface-hover);
+  color: var(--ds-color-text-primary);
+}
+
+button.footBtn:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.solved {
+  color: var(--ds-color-status-active);
+  cursor: default;
+}
+
+.replies {
+  margin-top: var(--ds-space-comment-card-replies-offset);
+  padding-left: var(--ds-space-comment-card-replies-indent);
+  border-left: var(--ds-space-comment-card-replies-rule-width) solid
+    var(--ds-color-border-default);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-comment-card-replies-gap);
+  list-style: none;
+}
+
+.reply {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--ds-space-comment-card-reply-gap);
+}
+
+.replyHead {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-comment-card-head-gap);
+  min-height: var(--ds-space-avatar-size);
+}
+
+.replyAuthor {
+  font-size: var(--ds-text-comment-card-reply-author-font-size);
+  font-weight: var(--ds-text-comment-card-reply-author-font-weight);
+  color: var(--ds-color-text-primary);
+}
+
+.replyBody {
+  margin-top: var(--ds-space-comment-card-reply-body-offset);
+  font-size: var(--ds-text-comment-card-reply-body-font-size);
+  line-height: var(--ds-text-comment-card-reply-body-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.pinned {
+  border-radius: var(--ds-radius-md);
+  outline: 2px solid var(--ds-color-status-high);
+  outline-offset: var(--ds-space-scale-xs);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

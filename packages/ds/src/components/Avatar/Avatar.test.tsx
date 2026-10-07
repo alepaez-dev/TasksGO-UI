@@ -37,6 +37,11 @@ describe('Avatar', () => {
     expect(screen.getByText('AD')).toBeInTheDocument();
   });
 
+  it('applies the lg size the activity feed entry uses', () => {
+    render(<Avatar initial="JD" size="lg" aria-label="Jordan D." />);
+    expect(screen.getByRole('img')).toHaveClass('lg');
+  });
+
   it('applies tint', () => {
     render(<Avatar initial="AP" aria-label="Ale P." tint="#7D9B84" />);
     expect(

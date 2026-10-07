@@ -68,6 +68,14 @@ export const colors = {
 
   highlight,
 
+  commentCard: {
+    askBackground: 'rgba(180, 83, 9, 0.04)',
+    askBorder: 'rgba(180, 83, 9, 0.24)',
+    askChipBackground: 'rgba(180, 83, 9, 0.10)',
+    answeredBackground: 'rgba(34, 197, 94, 0.04)',
+    answeredBorder: 'rgba(34, 197, 94, 0.28)',
+    answeredChipBackground: 'rgba(34, 197, 94, 0.10)',
+  },
   badge: {
     progress: {
       background: '#eff6ff',

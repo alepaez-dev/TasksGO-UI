@@ -3,20 +3,31 @@ import type {
   ActivityAsk,
   ActivityComment,
   ActivityEvent,
+  ActivityReply,
 } from './types';
 
 export const JORDAN: ActivityActor = {
   id: 'jd',
   name: 'Jordan D.',
-  initial: 'J',
+  initial: 'JD',
   kind: 'human',
+  tint: '#4F6F8F',
 };
 
 export const ALEX: ActivityActor = {
   id: 'am',
   name: 'Alex M.',
-  initial: 'A',
+  initial: 'AM',
   kind: 'human',
+  tint: '#856D4A',
+};
+
+export const MIKE: ActivityActor = {
+  id: 'mr',
+  name: 'Mike R.',
+  initial: 'MR',
+  kind: 'human',
+  tint: '#7560C2',
 };
 
 export const CI: ActivityActor = {
@@ -87,6 +98,20 @@ export function ask(
     body: 'what TTL?',
     reactions: [],
     replies: [],
+    ...overrides,
+  };
+}
+
+export function reply(
+  actor: ActivityActor,
+  minutes: number,
+  overrides: Partial<ActivityReply> = {},
+): ActivityReply {
+  return {
+    id: `r-${actor.id}-${minutes}`,
+    at: at(minutes),
+    actor,
+    body: 'sounds good',
     ...overrides,
   };
 }

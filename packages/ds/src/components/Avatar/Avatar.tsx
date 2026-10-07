@@ -3,7 +3,7 @@ import { cn } from '../../utils/cn';
 import styles from './Avatar.module.css';
 
 type AvatarVariant = 'project' | 'profile';
-type AvatarSize = 'sm' | 'md';
+type AvatarSize = 'sm' | 'md' | 'lg';
 
 export interface AvatarProps extends HTMLAttributes<HTMLSpanElement> {
   initial: string;
