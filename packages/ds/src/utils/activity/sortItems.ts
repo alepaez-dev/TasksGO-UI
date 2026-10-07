@@ -7,7 +7,12 @@ export function sortItems(
   direction: ActivitySortDirection,
 ): ActivityItem[] {
   const sign = direction === 'oldest' ? 1 : -1;
-  return [...items].sort(
-    (a, b) => sign * (Date.parse(a.at) - Date.parse(b.at)),
-  );
+  return [...items].sort((a, b) => {
+    const aTime = Date.parse(a.at);
+    const bTime = Date.parse(b.at);
+    const aBad = Number.isNaN(aTime);
+    const bBad = Number.isNaN(bTime);
+    if (aBad || bBad) return Number(aBad) - Number(bBad);
+    return sign * (aTime - bTime);
+  });
 }
