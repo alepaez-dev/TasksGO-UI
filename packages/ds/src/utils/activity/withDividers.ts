@@ -39,11 +39,14 @@ export function withDividers(
 
   for (const node of nodes) {
     const at = nodeStart(node);
+    const day = toLocalDayNumber(at);
 
-    if (
-      previousAt === null ||
-      toLocalDayNumber(at) !== toLocalDayNumber(previousAt)
-    ) {
+    if (Number.isNaN(day)) {
+      feed.push(node);
+      continue;
+    }
+
+    if (previousAt === null || day !== toLocalDayNumber(previousAt)) {
       feed.push({ type: 'dayDivider', at, relative: relativeDay(at, now) });
     } else {
       // Only within a day: across one, the day divider already marks the break.

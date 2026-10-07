@@ -19,15 +19,17 @@ function changedFields(events: readonly ActivityEvent[]): string[] {
 }
 
 function toGroup(events: readonly ActivityEvent[]): ActivityNode {
-  const owner =
-    events.find((event) => event.actor.kind === 'human')?.actor ??
-    events[0].actor;
+  const human = events.find((event) => event.actor.kind === 'human')?.actor;
+  const owner = human ?? events[0].actor;
+  const ownEvents = human
+    ? events.filter((event) => event.actor.kind === 'human')
+    : events;
   return {
     type: 'group',
     id: `group-${events[0].id}`,
     actor: owner,
     items: events,
-    fields: changedFields(events),
+    fields: changedFields(ownEvents),
   };
 }
 

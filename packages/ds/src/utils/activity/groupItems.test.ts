@@ -253,4 +253,30 @@ describe('groupItems — shape and edge cases', () => {
       'description',
     ]);
   });
+
+  it('lists only the owner’s fields when system events are absorbed', () => {
+    const nodes = groupItems([
+      event(JORDAN, 0, { field: 'status' }),
+      event(CI, 1, { field: 'buildState' }),
+      event(JORDAN, 2, { field: 'status' }),
+    ]);
+
+    expect(nodes).toHaveLength(1);
+    const [group] = nodes;
+    expect(group.type === 'group' && group.fields).toEqual(['status']);
+  });
+
+  it('lists every field for a system-only run', () => {
+    const nodes = groupItems([
+      event(CI, 0, { field: 'buildState' }),
+      event(DEPLOY, 1, { field: 'environment' }),
+    ]);
+
+    expect(nodes).toHaveLength(1);
+    const [group] = nodes;
+    expect(group.type === 'group' && group.fields).toEqual([
+      'buildState',
+      'environment',
+    ]);
+  });
 });

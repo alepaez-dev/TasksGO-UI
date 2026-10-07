@@ -162,4 +162,22 @@ describe('withDividers — sort direction and edges', () => {
   it('returns nothing for an empty feed', () => {
     expect(withDividers([], { now: at(0) })).toEqual([]);
   });
+
+  it('files an unparseable timestamp under the open day without breaking the next divider', () => {
+    const bad: ActivityNode = {
+      type: 'item',
+      item: event(JORDAN, 0, { id: 'bad', at: 'not-a-date' }),
+    };
+    const nodes = withDividers([itemNode(0), bad, itemNode(6 * HOUR)], {
+      now: at(0),
+    });
+
+    expect(shape(nodes)).toEqual([
+      'day(today)',
+      'item(jd-0)',
+      'item(bad)',
+      'gap(6.00h)',
+      'item(jd-360)',
+    ]);
+  });
 });
