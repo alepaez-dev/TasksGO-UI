@@ -329,17 +329,14 @@
 }
 
 .metaRow {
-  position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   min-height: var(--ds-space-scale-lg);
   pointer-events: auto;
 }
 
 .metaRow .downloadAll {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0;
-  border: none;
+  grid-column: 2;
+  white-space: nowrap;
 }
