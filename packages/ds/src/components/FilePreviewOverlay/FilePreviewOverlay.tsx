@@ -91,6 +91,12 @@ export const FilePreviewOverlay = forwardRef<
     useFocusTrap(panelRef, open, { autoFocus: false });
     const stacked = useMediaQuery(STACKED_QUERY);
 
+    useEffect(() => {
+      if (open && document.activeElement === document.body) {
+        closeRef.current?.focus();
+      }
+    }, [open, stacked]);
+
     function setRefs(node: HTMLDivElement | null) {
       panelRef.current = node;
       if (typeof ref === 'function') ref(node);
