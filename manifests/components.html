@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/63 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">63/63 infos</a><span class="filter-pill ok" aria-disabled="true">293 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/63 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">63/63 infos</a><span class="filter-pill ok" aria-disabled="true">296 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -4082,9 +4082,9 @@ size?: &#39;sm&#39; | &#39;md&#39; = &#39;md&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Fab</h2>
       <div class="badges">
-        <label for="c-21-components-fab-props" class="badge ok as-toggle">2 prop types</label>
+        <label for="c-21-components-fab-props" class="badge ok as-toggle">1 prop type</label>
         <label for="c-21-components-fab-info" class="badge info as-toggle">1 info</label>
-        <label for="c-21-components-fab-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-21-components-fab-stories" class="badge ok as-toggle">6 stories</label>
         
       </div>
     </div>
@@ -4116,13 +4116,11 @@ size?: &#39;sm&#39; | &#39;md&#39; = &#39;md&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">2 prop types</span>
+              <span class="badge ok">1 prop type</span>
             </div>
             <pre><code>Component: src/components/Fab/Fab.tsx::Fab</code></pre>
             <pre><code>Props:</code></pre>
-            <pre><code>aria-label: string
-
-icon?: unknown = &#39;add&#39;</code></pre>
+            <pre><code>icon?: unknown = &#39;add&#39;</code></pre>
           </div>
         </div>
     
@@ -4134,7 +4132,7 @@ icon?: unknown = &#39;add&#39;</code></pre>
                 <div class="row">
                   <span class="ex-name">Imports</span>
                 </div>
-                <pre><code>import { Fab } from "@all3hp/tasksgo-ui";</code></pre>
+                <pre><code>import { BottomTabBar, Fab, NavItem } from "@all3hp/tasksgo-ui";</code></pre>
               </div>
           
           
@@ -4164,6 +4162,54 @@ icon?: unknown = &#39;add&#39;</code></pre>
               
               
               <pre><code>const Disabled = () =&gt; &lt;Fab icon=&quot;add&quot; aria-label=&quot;New task&quot; disabled /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Extended</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Extended = () =&gt; &lt;Fab icon=&quot;add&quot; aria-label={undefined} label=&quot;Add scenario&quot; /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Extended (label longer than the viewport)</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const ExtendedLongLabel = () =&gt; &lt;Fab label=&quot;Add a regression scenario for the gateway&quot; /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Extended Above Tab Bar</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const ExtendedAboveTabBar = () =&gt; (
+  &lt;div style={{ minHeight: &#39;100vh&#39;, ...fabOffsetOverride }}&gt;
+    &lt;Fab label=&quot;Add scenario&quot; /&gt;
+    &lt;BottomTabBar aria-label=&quot;Main navigation&quot;&gt;
+      &lt;NavItem
+        icon=&quot;task_alt&quot;
+        activeIcon=&quot;check_circle&quot;
+        label=&quot;Tasks&quot;
+        href=&quot;#tasks&quot;
+        orientation=&quot;vertical&quot;
+      /&gt;
+      &lt;NavItem
+        icon=&quot;confirmation_number&quot;
+        activeIcon=&quot;confirmation_number_filled&quot;
+        label=&quot;Tickets&quot;
+        href=&quot;#tickets&quot;
+        orientation=&quot;vertical&quot;
+        active
+      /&gt;
+    &lt;/BottomTabBar&gt;
+  &lt;/div&gt;
+);</code></pre>
             </div>
         </div>
     
