@@ -36,11 +36,23 @@ export function useFocusTrap(
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key !== 'Tab' || !ref.current) return;
 
+      const openOverlays = document.querySelectorAll(
+        '[data-ds-overlay="open"]',
+      );
+      const topmost = openOverlays[openOverlays.length - 1];
+      if (topmost && !topmost.contains(ref.current)) return;
+
       const currentFocusables = focusablesIn(ref.current);
       if (currentFocusables.length === 0) return;
 
       const first = currentFocusables[0];
       const last = currentFocusables[currentFocusables.length - 1];
+
+      if (!ref.current.contains(document.activeElement)) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+        return;
+      }
 
       if (e.shiftKey) {
         if (document.activeElement === first) {
