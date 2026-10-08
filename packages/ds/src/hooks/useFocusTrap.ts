@@ -36,6 +36,12 @@ export function useFocusTrap(
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key !== 'Tab' || !ref.current) return;
 
+      const openOverlays = document.querySelectorAll(
+        '[data-ds-overlay="open"]',
+      );
+      const topmost = openOverlays[openOverlays.length - 1];
+      if (topmost && !topmost.contains(ref.current)) return;
+
       const currentFocusables = focusablesIn(ref.current);
       if (currentFocusables.length === 0) return;
 

@@ -8,6 +8,7 @@ import { evidenceIcon } from '../../utils/resolvePreview';
 import { isScriptScheme } from '../../utils/sanitizeHref';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { usePendingAction } from '../../hooks/usePendingAction';
 import { type TransitionDuration } from '../../tokens/interaction';
 import { type EvidenceItem } from '../../types/evidence';
 import { Filmstrip } from './Filmstrip';
@@ -141,26 +142,22 @@ export const FilePreviewOverlay = forwardRef<
       0,
     );
 
-    async function handleDownloadAll(button: HTMLButtonElement) {
-      if (button.getAttribute('aria-disabled') === 'true') return;
-      button.setAttribute('aria-disabled', 'true');
-      try {
-        const entries = await Promise.all(files.map(zipEntryFor));
-        const zipFiles = entries.filter((entry): entry is ZipFileInput =>
-          Boolean(entry),
-        );
-        if (zipFiles.length === 0) return;
-        const zipUrl = URL.createObjectURL(createZip(zipFiles));
-        const anchor = document.createElement('a');
-        anchor.href = zipUrl;
-        anchor.download = downloadAllName;
-        anchor.click();
-        // deferred: revoking synchronously can abort the still-starting download
-        window.setTimeout(() => URL.revokeObjectURL(zipUrl), 1000);
-      } finally {
-        button.removeAttribute('aria-disabled');
-      }
+    async function downloadAll() {
+      const entries = await Promise.all(files.map(zipEntryFor));
+      const zipFiles = entries.filter((entry): entry is ZipFileInput =>
+        Boolean(entry),
+      );
+      if (zipFiles.length === 0) return;
+      const zipUrl = URL.createObjectURL(createZip(zipFiles));
+      const anchor = document.createElement('a');
+      anchor.href = zipUrl;
+      anchor.download = downloadAllName;
+      anchor.click();
+      // deferred: revoking synchronously can abort the still-starting download
+      window.setTimeout(() => URL.revokeObjectURL(zipUrl), 1000);
     }
+
+    const downloadAllAction = usePendingAction(downloadAll);
 
     const identity = file != null && (
       <span className={styles.fileIdentity}>
@@ -181,7 +178,8 @@ export const FilePreviewOverlay = forwardRef<
       <button
         type="button"
         className={styles.downloadAll}
-        onClick={(event) => void handleDownloadAll(event.currentTarget)}
+        aria-disabled={downloadAllAction.pending || undefined}
+        onClick={downloadAllAction.run}
       >
         <Icon name="download" size="sm" />
         Download all {downloadableCount} files
