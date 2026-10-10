@@ -77,15 +77,7 @@ export const TimelineEvent = forwardRef<HTMLLIElement, TimelineEventProps>(
             <button
               type="button"
               className={styles.pin}
-              onClick={(event) => {
-                event.stopPropagation();
-                onPin();
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.stopPropagation();
-                }
-              }}
+              onClick={onPin}
               aria-labelledby={`${pinLabelId} ${contentId}`}
             >
               <Icon name="push_pin_filled" size="xs" />

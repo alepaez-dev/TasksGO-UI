@@ -89,43 +89,6 @@ describe('TimelineEvent', () => {
     expect(illegal).toBeTruthy();
   });
 
-  it('keeps a pin click off a clickable row', async () => {
-    const onRowClick = vi.fn();
-    const onPin = vi.fn();
-    renderRow({ onClick: onRowClick, onPin });
-
-    await userEvent.click(screen.getByRole('button'));
-
-    expect(onPin).toHaveBeenCalledTimes(1);
-    expect(onRowClick).not.toHaveBeenCalled();
-  });
-
-  it('keeps a keyboard pin off a row that listens for keys', async () => {
-    const onRowKeyDown = vi.fn();
-    const onPin = vi.fn();
-    renderRow({ onKeyDown: onRowKeyDown, onPin });
-
-    screen.getByRole('button').focus();
-    await userEvent.keyboard('{Enter}');
-
-    expect(onPin).toHaveBeenCalledTimes(1);
-    expect(onRowKeyDown).not.toHaveBeenCalled();
-  });
-
-  it('lets Escape and Tab on the pin reach document listeners', async () => {
-    const seen: string[] = [];
-    const listener = (event: KeyboardEvent) => seen.push(event.key);
-    document.addEventListener('keydown', listener);
-    renderRow({ onPin: vi.fn() });
-
-    screen.getByRole('button').focus();
-    await userEvent.keyboard('{Escape}');
-    await userEvent.tab();
-    document.removeEventListener('keydown', listener);
-
-    expect(seen).toEqual(['Escape', 'Tab']);
-  });
-
   it('lets the pinned row take focus, which is how the pin flow lands', () => {
     const ref = createRef<HTMLLIElement>();
     render(

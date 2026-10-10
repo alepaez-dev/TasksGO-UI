@@ -24,7 +24,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A single event row in an activity timeline. Renders an `<li>` — wrap rows in a `<ul>`, which owns the spacing between them via `gap`; the row adds no margin of its own. `standalone` (default) draws the spine marker and reserves the left gutter; `nested` omits both and must sit inside a group container that supplies the indent, so it renders flush left on its own. Pass `onPin` to render the pin button — its presence is the trigger. `pinned` draws the highlight ring and is mutually exclusive with `onPin`: a pinned row carries no control, because unpinning happens in the feed’s "Clear pin" banner. The pin button unmounts once the row is pinned, so the `onPin` handler must move focus to the pinned row through its `ref`.',
+          'A single event row in an activity timeline. Renders an `<li>` — wrap rows in a `<ul>`, which owns the spacing between them via `gap`; the row adds no margin of its own. `standalone` (default) draws the spine marker and reserves the left gutter; `nested` omits both and must sit inside a group container that supplies the indent, so it renders flush left on its own. Pass `onPin` to render the pin button — its presence is the trigger. `pinned` draws the highlight ring and is mutually exclusive with `onPin`: a pinned row carries no control, because unpinning happens in the feed’s "Clear pin" banner. The pin button unmounts once the row is pinned, so the consumer must focus the pinned row through its `ref` after it renders as pinned, e.g. in an effect keyed on the pinned id.',
       },
     },
   },
