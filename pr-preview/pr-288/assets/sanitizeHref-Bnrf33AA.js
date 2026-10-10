@@ -1,0 +1,1 @@
+const r=/^(javascript|data|vbscript):/i,n=/^(javascript|vbscript):/i,s=/[\x00-\x1f]/g;function i(t){return t.replace(s,"").trim()}function c(t){return r.test(i(t))?"#":t}function e(t){return n.test(i(t))}export{e as i,c as s};
