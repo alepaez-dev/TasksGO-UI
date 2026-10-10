@@ -47,6 +47,7 @@ export {
   MoreHorizIcon,
   OpenInNewIcon,
   PersonIcon,
+  PushPinFilledIcon,
   ReplyIcon,
   ScheduleIcon,
   ScienceIcon,
@@ -79,6 +80,10 @@ export {
   type ExternalLinkProps,
 } from './components/ExternalLink';
 export { ActivityRow, type ActivityRowProps } from './components/ActivityRow';
+export {
+  TimelineEvent,
+  type TimelineEventProps,
+} from './components/TimelineEvent';
 export {
   SectionHeader,
   type SectionHeaderProps,
