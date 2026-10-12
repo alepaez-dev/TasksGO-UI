@@ -809,18 +809,19 @@ async function requestVerifications(client, config, system, userMessage) {
 }
 
 // Estimate the USD cost of a request from its usage, using the per-model rates in config.pricing
-// (per 1M tokens). Cache reads bill at ~0.1x input, cache writes at ~1.25x. Returns null if the
-// model has no configured price.
+// (per 1M tokens). Cache reads bill at the model's `cacheRead` rate when set, else ~0.1x input; cache
+// writes at ~1.25x. Returns null if the model has no configured price.
 export function estimateCostUsd(usage, model, pricing) {
   const rate = pricing?.[model];
   if (!rate || !usage) return null;
   const inPerTok = (rate.input || 0) / 1e6;
   const outPerTok = (rate.output || 0) / 1e6;
+  const cacheReadPerTok = (rate.cacheRead ?? (rate.input || 0) * 0.1) / 1e6;
   const freshInput = usage.input_tokens || 0;
   const cacheRead = usage.cache_read_input_tokens || 0;
   const cacheWrite = usage.cache_creation_input_tokens || 0;
   const output = usage.output_tokens || 0;
-  return freshInput * inPerTok + cacheRead * inPerTok * 0.1 + cacheWrite * inPerTok * 1.25 + output * outPerTok;
+  return freshInput * inPerTok + cacheRead * cacheReadPerTok + cacheWrite * inPerTok * 1.25 + output * outPerTok;
 }
 
 export function summarizeUsage(usage) {

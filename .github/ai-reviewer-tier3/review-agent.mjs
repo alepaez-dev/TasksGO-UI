@@ -163,7 +163,7 @@ function neutralizeWritesForDryRun(octokit) {
 
 // Plain-text note for an over-budget / over-rounds interrupt (writeJobSummary wraps it as `> ⚠️ …`;
 // the PR comments prepend it as a `> ⚠️ …` banner). Null when the run finished normally.
-function interruptNote(result, config) {
+export function interruptNote(result, config) {
   if (!result.interruptedReason && result.windDownReason && result.submitted) {
     const spent = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
     const limit = result.windDownReason === 'max_rounds' ? `${config.maxRounds}-round limit` : `$${config.costCeilingUsd} budget ceiling`;
@@ -183,6 +183,9 @@ function interruptNote(result, config) {
   }
   if (result.interruptedReason === 'error') {
     return `Tier 3 stopped early — a model request failed mid-review (after ${spend}). Findings may be incomplete; see the run log.`;
+  }
+  if (result.interruptedReason === 'refusal') {
+    return `Tier 3 stopped early — the model declined the request (safety refusal) after ${spend}. Findings may be incomplete; see the run log.`;
   }
   return `Tier 3 stopped early — hit the maxRounds limit (${config.maxRounds}) after ${spend}. Findings may be incomplete.`;
 }
@@ -547,6 +550,8 @@ async function main() {
     core.warning(`Tier 3 hit maxRounds (${config.maxRounds}); findings may be incomplete.`);
   } else if (result.interruptedReason === 'error') {
     core.warning('Tier 3 stopped early after a model API error; findings may be incomplete (see the run log).');
+  } else if (result.interruptedReason === 'refusal') {
+    core.warning('Tier 3 stopped early: the model declined the request (safety refusal); findings may be incomplete (see the run log).');
   }
   if (result.toolBudgetExhausted) {
     core.warning(`Tier 3 hit the tool-call budget (maxToolCalls=${config.maxToolCalls}); the model was asked to wrap up, so exploration may be incomplete.`);

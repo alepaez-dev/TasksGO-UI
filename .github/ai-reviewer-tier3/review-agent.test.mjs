@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { touchesFrontend, renderCiChecksBlock, trustedCheckRuns, renderCoveredStub, corroborateCoverage } from './review-agent.mjs';
+import { touchesFrontend, renderCiChecksBlock, trustedCheckRuns, renderCoveredStub, corroborateCoverage, interruptNote } from './review-agent.mjs';
+
+test('a refusal interrupt is reported as a declined request, not as the maxRounds limit', () => {
+  const config = { model: 'claude-opus-5-5', maxRounds: 40, costCeilingUsd: 2, pricing: {} };
+  const note = interruptNote({ interruptedReason: 'refusal', usage: { input_tokens: 1000, output_tokens: 10 }, costUsd: 0.5 }, config);
+  assert.match(note, /declined/);
+  assert.doesNotMatch(note, /maxRounds/);
+});
 
 test('touchesFrontend detects frontend files and ignores CI-only changes', () => {
   assert.equal(touchesFrontend([{ filename: 'src/components/Button/Button.tsx' }]), true);

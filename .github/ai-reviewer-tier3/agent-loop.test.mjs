@@ -624,7 +624,7 @@ function scriptedClient(steps) {
     beta: {
       messages: {
         stream(params) {
-          calls.push(params);
+          calls.push(structuredClone(params));
           const step = steps[Math.min(i++, steps.length - 1)];
           return { finalMessage: async () => { if (step instanceof Error) throw step; return step; } };
         },
@@ -720,6 +720,119 @@ test('a fallback round is priced at the fallback model\'s real rate, not the pri
   assert.equal(outA.usedFallback, false);
   assert.equal(outB.usedFallback, true);
   assert.ok(outB.costUsd < outA.costUsd, `fallback (sonnet) cost ${outB.costUsd} should be < primary (opus) cost ${outA.costUsd}`);
+});
+
+const refusalMsg = (category, content = []) => ({
+  stop_reason: 'refusal',
+  stop_details: { type: 'refusal', category },
+  content,
+  usage: { input_tokens: 100000, output_tokens: 0 },
+});
+
+test('a refusal is retried on the fallback model without its output entering the history', async () => {
+  const { client, calls } = scriptedClient([refusalMsg('cyber', [{ type: 'text', text: 'partial answer' }]), submitMsg()]);
+  const out = await runReviewAgent({ client, config: fast({ fallbackModel: 'claude-opus-4-7' }), system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.submitted, true);
+  assert.equal(out.interruptedReason, null);
+  assert.equal(out.usedFallback, true);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].model, 'claude-opus-4-7');
+  assert.deepEqual(calls[1].messages, calls[0].messages);
+  assert.ok(out.costUsd >= 0.5, `the refused attempt is billed and must be counted, got ${out.costUsd}`);
+});
+
+test('a refusal with no model left to retry on stops the run as a refusal, not a clean pass', async () => {
+  const { client, calls } = scriptedClient([grepMsg(), refusalMsg('bio'), submitMsg()]);
+  const out = await runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.interruptedReason, 'refusal');
+  assert.equal(out.submitted, false);
+  assert.equal(calls.length, 2);
+});
+
+test('a reasoning_extraction refusal is not retried on the fallback model', async () => {
+  const { client, calls } = scriptedClient([refusalMsg('reasoning_extraction'), submitMsg()]);
+  const out = await runReviewAgent({ client, config: fast({ fallbackModel: 'claude-opus-4-7' }), system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.interruptedReason, 'refusal');
+  assert.equal(calls.length, 1);
+});
+
+test('findings banked before a refusal are still returned', async () => {
+  const finding = { title: 'stale ref after unmount', severity: 'high', confidence: 'high' };
+  const bounced = { content: [{ type: 'tool_use', id: 'tb', name: 'submit_findings', input: { findings: [finding] } }], usage: { input_tokens: 100, output_tokens: 10 } };
+  const { client } = scriptedClient([bounced, refusalMsg('cyber')]);
+  const out = await runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.interruptedReason, 'refusal');
+  assert.deepEqual(out.findings, [finding]);
+});
+
+const nearCeiling = fast({
+  model: 'claude-opus-5-5',
+  fallbackModel: 'claude-opus-5',
+  maxTransientRetries: 0,
+  costCeilingUsd: 2,
+  terminalOutputTokens: 16000,
+  pricing: { 'claude-opus-5-5': { input: 4, output: 20, cacheRead: 0.2 }, 'claude-opus-5': { input: 5, output: 25 } },
+});
+const bigContextGrep = (i) => ({
+  content: [{ type: 'tool_use', id: `g${i}`, name: 'grep', input: { pattern: 'x' } }],
+  usage: { input_tokens: 0, cache_read_input_tokens: 500000, cache_creation_input_tokens: 0, output_tokens: 2410 },
+});
+const nineBigRounds = () => Array.from({ length: 9 }, (_, i) => bigContextGrep(i));
+
+test('a refusal does not fall back when a cold-cache round on the fallback would cross the ceiling', async () => {
+  const refused = { ...refusalMsg('cyber'), usage: { input_tokens: 0, cache_read_input_tokens: 500000, cache_creation_input_tokens: 0, output_tokens: 0 } };
+  const { client, calls } = scriptedClient([...nineBigRounds(), refused, submitMsg()]);
+  const out = await runReviewAgent({ client, config: nearCeiling, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.interruptedReason, 'refusal');
+  assert.equal(calls.length, 10);
+  assert.ok(calls.every((c) => c.model === 'claude-opus-5-5'), 'no request may go to the fallback model');
+  assert.ok(out.costUsd <= nearCeiling.costCeilingUsd, `spent ${out.costUsd} over the ${nearCeiling.costCeilingUsd} ceiling`);
+});
+
+test('an API error does not fall back when a cold-cache round on the fallback would cross the ceiling', async () => {
+  const { client, calls } = scriptedClient([...nineBigRounds(), overloaded(), submitMsg()]);
+  const out = await runReviewAgent({ client, config: nearCeiling, system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.interruptedReason, 'error');
+  assert.equal(calls.length, 10);
+  assert.ok(calls.every((c) => c.model === 'claude-opus-5-5'), 'no request may go to the fallback model');
+  assert.ok(out.costUsd <= nearCeiling.costCeilingUsd, `spent ${out.costUsd} over the ${nearCeiling.costCeilingUsd} ceiling`);
+});
+
+test('every request re-sends the previous history unchanged and only appends to it', async () => {
+  const toolRound = {
+    content: [
+      { type: 'thinking', thinking: 'look for the callers', signature: 'sig-1' },
+      { type: 'tool_use', id: 'tg1', name: 'grep', input: { pattern: 'x' } },
+    ],
+    usage: { input_tokens: 100, output_tokens: 10 },
+  };
+  const handWavingProse = {
+    content: [
+      { type: 'thinking', thinking: 'The stale ref is harmless.', signature: 'sig-2' },
+      { type: 'text', text: 'Reviewed.' },
+    ],
+    usage: { input_tokens: 100, output_tokens: 10 },
+  };
+  const submitWithoutAudit = { content: [{ type: 'tool_use', id: 'ts1', name: 'submit_findings', input: { findings: [] } }], usage: { input_tokens: 100, output_tokens: 10 } };
+  const hedgeBouncedSubmit = submitMsg();
+  const acceptedSubmit = submitMsg();
+  const { client, calls } = scriptedClient([toolRound, handWavingProse, submitWithoutAudit, hedgeBouncedSubmit, acceptedSubmit]);
+  const lines = [];
+  await runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.match(joined, /↳ grep/);
+  assert.match(joined, /nudging it to call submit_findings/);
+  assert.match(joined, /asking once for the completeness record/);
+  assert.match(joined, /hand-waved 1 concern/);
+  const withoutBreakpoints = (messages) => JSON.parse(JSON.stringify(messages, (key, value) => (key === 'cache_control' ? undefined : value)));
+  for (let i = 1; i < calls.length; i++) {
+    const before = withoutBreakpoints(calls[i - 1].messages);
+    const after = withoutBreakpoints(calls[i].messages);
+    assert.ok(after.length > before.length, `request ${i} did not append a turn`);
+    assert.deepEqual(after.slice(0, before.length), before, `request ${i} edited the history it re-sent`);
+    assert.deepEqual(calls[i].system, calls[0].system);
+    assert.deepEqual(calls[i].tools, calls[0].tools);
+  }
 });
 
 test('logs the model thinking (Thinking ->) when the response carries a thinking block', async () => {
