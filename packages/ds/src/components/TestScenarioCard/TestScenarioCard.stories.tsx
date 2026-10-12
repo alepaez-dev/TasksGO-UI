@@ -53,7 +53,12 @@ const meta: Meta<typeof TestScenarioCard> = {
 export default meta;
 type Story = StoryObj<typeof TestScenarioCard>;
 
-function Controlled(props: TestScenarioCardProps) {
+function Controlled(
+  props: Omit<
+    TestScenarioCardProps,
+    'statusSelectOpen' | 'onStatusSelectOpenChange'
+  >,
+) {
   const [open, setOpen] = useState(props.open ?? false);
   const [status, setStatus] = useState<TestScenarioStatus>(props.status);
   const [selectOpen, setSelectOpen] = useState(false);
