@@ -77,6 +77,13 @@ test('the terminal reserve is never smaller than the cap the terminal turn is se
   );
 });
 
+test('every model the loop can call has a price in config.json', () => {
+  const cfg = JSON.parse(readFileSync(new URL('./config.json', import.meta.url), 'utf8'));
+  for (const model of [cfg.model, cfg.fallbackModel].filter(Boolean)) {
+    assert.ok(cfg.pricing?.[model]?.input > 0 && cfg.pricing[model].output > 0, `${model} has no price in config.json`);
+  }
+});
+
 test('affordableOutputTokens never returns more than the budget can pay for', () => {
   const g = createGovernor({ config });
   const usage = { input_tokens: 0, cache_read_input_tokens: 200000, cache_creation_input_tokens: 0, output_tokens: 0 };

@@ -286,6 +286,16 @@ check('estimateCostUsd prices fresh/cached input and output correctly', () => {
   assert.equal(estimateCostUsd({ input_tokens: 1 }, 'mystery', pricing), null);
 });
 
+check('estimateCostUsd prices cache reads at the model\'s own cacheRead rate when one is configured', () => {
+  const pricing = { 'claude-opus-5-5': { input: 4, output: 20, cacheRead: 0.2 } };
+  const cost = estimateCostUsd(
+    { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 1000000, cache_creation_input_tokens: 1000000 },
+    'claude-opus-5-5',
+    pricing,
+  );
+  assert.ok(Math.abs(cost - 5.2) < 1e-9, `1M cache reads at $0.20 + 1M cache writes at $5 should be $5.20, got ${cost}`);
+});
+
 check('worstCaseCostUsd is the deterministic per-run ceiling from the hard caps', () => {
   const config = {
     model: 'claude-opus-4-8',
