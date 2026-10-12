@@ -1,0 +1,110 @@
+.row {
+  position: relative;
+  display: grid;
+  align-items: start;
+  list-style: none;
+  font-family: var(--ds-font-family-sans);
+}
+
+.standalone {
+  grid-template-columns:
+    var(--ds-space-timeline-event-gutter) auto
+    minmax(0, 1fr);
+}
+
+.nested {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.standalone .icon {
+  margin-left: var(--ds-space-timeline-event-content-indent);
+}
+
+.marker {
+  grid-column: 1;
+  justify-self: center;
+  margin-top: var(--ds-space-timeline-event-marker-offset);
+  width: var(--ds-space-timeline-event-marker-size);
+  height: var(--ds-space-timeline-event-marker-size);
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-color-surface-primary);
+  border: 2px solid var(--ds-color-border-default);
+  box-sizing: border-box;
+}
+
+.body {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ds-space-timeline-event-inline-gap);
+  min-width: 0;
+  font-size: var(--ds-text-timeline-event-font-size);
+  line-height: var(--ds-text-timeline-event-line-height);
+  color: var(--ds-color-text-secondary);
+}
+
+.icon {
+  color: var(--ds-color-text-disabled);
+  margin-right: var(--ds-space-timeline-event-inline-gap);
+  margin-top: var(--ds-space-timeline-event-icon-offset);
+}
+
+.content {
+  min-width: 0;
+}
+
+.separator {
+  margin-right: var(--ds-space-scale-xs);
+}
+
+.timestamp {
+  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-text-timeline-event-meta-font-size);
+  white-space: nowrap;
+}
+
+.muted .body {
+  font-style: italic;
+  font-size: var(--ds-text-timeline-event-meta-font-size);
+}
+
+.pinned {
+  border-radius: var(--ds-radius-md);
+  outline: 2px solid var(--ds-color-accent-warm-text);
+  outline-offset: var(--ds-space-scale-xs);
+}
+
+.pin {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-scale-xs);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ds-color-text-secondary);
+  font: inherit;
+  font-size: var(--ds-text-timeline-event-meta-font-size);
+  cursor: pointer;
+}
+
+.pin:hover {
+  color: var(--ds-color-accent-warm-text);
+}
+
+.pin:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+  border-radius: var(--ds-radius-sm);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

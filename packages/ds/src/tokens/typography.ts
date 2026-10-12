@@ -46,6 +46,15 @@ const buttonInputBase = {
   lineHeight: DEFAULT_LINE_HEIGHT,
 };
 
+const bodyRegularSans12 = {
+  fontSize: '12px',
+  fontFamily: fontFamilies.sans,
+  fontWeight: fontWeights.regular,
+  letterSpacing: 'normal',
+  textTransform: 'none',
+  lineHeight: DEFAULT_LINE_HEIGHT,
+};
+
 const bodyRegularSans13 = {
   fontSize: '13px',
   fontFamily: fontFamilies.sans,
@@ -215,14 +224,7 @@ export const typographyScale = {
     textTransform: 'uppercase',
     lineHeight: '1',
   },
-  searchInputSm: {
-    fontSize: '12px',
-    fontFamily: fontFamilies.sans,
-    fontWeight: fontWeights.regular,
-    letterSpacing: 'normal',
-    textTransform: 'none',
-    lineHeight: DEFAULT_LINE_HEIGHT,
-  },
+  searchInputSm: bodyRegularSans12,
   refLabel: {
     fontSize: '10px',
     fontFamily: fontFamilies.mono,
@@ -263,22 +265,10 @@ export const typographyScale = {
     textTransform: 'none',
     lineHeight: '1.25',
   },
-  propertyRowLabel: {
-    fontSize: '12px',
-    fontFamily: fontFamilies.sans,
-    fontWeight: fontWeights.regular,
-    letterSpacing: 'normal',
-    textTransform: 'none',
-    lineHeight: DEFAULT_LINE_HEIGHT,
-  },
-  propertyRowValue: {
-    fontSize: '12px',
-    fontFamily: fontFamilies.sans,
-    fontWeight: fontWeights.regular,
-    letterSpacing: 'normal',
-    textTransform: 'none',
-    lineHeight: DEFAULT_LINE_HEIGHT,
-  },
+  timelineEvent: bodyRegularSans13,
+  timelineEventMeta: bodyRegularSans12,
+  propertyRowLabel: bodyRegularSans12,
+  propertyRowValue: bodyRegularSans12,
   buttonAiLabel: {
     fontSize: '10px',
     fontFamily: fontFamilies.sans,
@@ -288,14 +278,7 @@ export const typographyScale = {
     lineHeight: DEFAULT_LINE_HEIGHT,
   },
   externalLink: bodyRegularSans14,
-  externalLinkSm: {
-    fontSize: '12px',
-    fontFamily: fontFamilies.sans,
-    fontWeight: fontWeights.regular,
-    letterSpacing: 'normal',
-    textTransform: 'none',
-    lineHeight: DEFAULT_LINE_HEIGHT,
-  },
+  externalLinkSm: bodyRegularSans12,
   heading1: {
     fontSize: '22px',
     fontFamily: fontFamilies.sans,
