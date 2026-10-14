@@ -85,6 +85,12 @@ export {
   type HighlightedTextProps,
 } from './components/HighlightedText';
 export type { MatchRange } from './utils/matchRanges';
+export {
+  ActivityComposer,
+  type ActivityComposerProps,
+  type ActivityComposerMode,
+  type ActivityComposerAttachment,
+} from './components/ActivityComposer';
 export { CommentCard, type CommentCardProps } from './components/CommentCard';
 export { ReactionBar, type ReactionBarProps } from './components/ReactionBar';
 export {
@@ -294,6 +300,7 @@ export {
   type ActivityActor,
   type ActivityActorKind,
   type ActivityAsk,
+  type ActivityAttachment,
   type ActivityComment,
   type ActivityDayDivider,
   type ActivityEvent,

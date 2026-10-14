@@ -138,4 +138,21 @@ describe('buildSearchIndex — markdown bodies', () => {
     );
     expect(matchesQuery(buildSearchIndex(item), 'the doc')).toBe(true);
   });
+
+  it('finds a comment by the name of a file attached to it', () => {
+    const item = comment(JORDAN, 0, {
+      body: 'results attached',
+      attachments: [
+        { id: 'a1', name: 'k6-staging-run-0412.csv', kind: 'file' },
+      ],
+    });
+    expect(matchesQuery(buildSearchIndex(item), 'k6-staging')).toBe(true);
+  });
+
+  it('finds an attachment whatever case the query is typed in', () => {
+    const item = comment(JORDAN, 0, {
+      attachments: [{ id: 'a1', name: 'k6-p95-latency.png', kind: 'image' }],
+    });
+    expect(matchesQuery(buildSearchIndex(item), 'K6-P95')).toBe(true);
+  });
 });

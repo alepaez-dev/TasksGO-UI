@@ -68,6 +68,11 @@ export const colors = {
 
   highlight,
 
+  activityComposer: {
+    askTabBackground: 'rgba(180, 83, 9, 0.09)',
+    attachActiveBackground: 'rgba(79, 111, 143, 0.08)',
+    askSubmitHoverBackground: '#92400e',
+  },
   commentCard: {
     askBackground: 'rgba(180, 83, 9, 0.04)',
     askBorder: 'rgba(180, 83, 9, 0.24)',

@@ -4,43 +4,6 @@
   gap: var(--ds-space-scale-sm);
 }
 
-.evidenceChip {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ds-space-scale-xs);
-  min-width: 0;
-  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
-  border: 1px solid var(--ds-color-border-default);
-  border-radius: var(--ds-radius-md);
-  background-color: var(--ds-color-surface-secondary);
-}
-
-.evidenceChipClickable {
-  cursor: pointer;
-}
-
-.evidenceChipClickable:hover {
-  background-color: var(--ds-color-surface-hover);
-}
-
-.evidenceRemove {
-  position: relative;
-  z-index: 1;
-}
-
-.evidenceLabel {
-  /* refLabel is inline-flex, so it can only shrink; the text child clips */
-  min-width: 0;
-}
-
-.evidenceLabelText {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .evidenceActions {
   display: flex;
   align-items: center;
@@ -93,36 +56,5 @@
 .evidenceMore:focus-visible,
 .addEvidence:focus-visible {
   outline: var(--ds-focus-ring-width) solid transparent;
-  box-shadow: var(--ds-focus-ring);
-}
-
-.evidenceOpen {
-  display: inline-flex;
-  min-width: 0;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-radius: var(--ds-radius-sm);
-}
-
-/* stretched hit area: the whole chip opens the preview; the remove button
-   sits above it via .evidenceRemove */
-.evidenceOpen::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--ds-radius-md);
-}
-
-.evidenceOpen:hover {
-  text-decoration: underline;
-}
-
-.evidenceOpen:focus-visible {
-  outline: var(--ds-focus-ring-width) solid transparent;
-}
-
-.evidenceOpen:focus-visible::after {
   box-shadow: var(--ds-focus-ring);
 }

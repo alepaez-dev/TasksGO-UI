@@ -3,13 +3,17 @@ import { Avatar } from '../Avatar';
 import { Icon } from '../Icon';
 import { Markdown } from '../Markdown';
 import { ReactionBar } from '../ReactionBar';
+import { FileChip } from '../_internal/FileChip';
 import { cn } from '../../utils/cn';
 import type {
   ActivityActor,
+  ActivityAttachment,
   ActivityReaction,
   ActivityReply,
 } from '../../utils/activity';
 import styles from './CommentCard.module.css';
+
+const NO_ATTACHMENTS: readonly ActivityAttachment[] = [];
 
 const chipClass = {
   comment: styles.chipComment,
@@ -41,6 +45,8 @@ export type CommentCardProps = CommentCardKindState &
     timestamp: ReactNode;
     query?: string;
     mentions?: readonly string[];
+    attachments?: readonly ActivityAttachment[];
+    onOpenAttachment?: (id: string) => void;
     replies?: readonly ActivityReply[];
     reactions?: readonly ActivityReaction[];
     onReply?: () => void;
@@ -58,6 +64,8 @@ export const CommentCard = forwardRef<HTMLLIElement, CommentCardProps>(
       timestamp,
       query = '',
       mentions,
+      attachments = NO_ATTACHMENTS,
+      onOpenAttachment,
       replies = [],
       reactions = [],
       answeredBy,
@@ -142,6 +150,23 @@ export const CommentCard = forwardRef<HTMLLIElement, CommentCardProps>(
               answered && styles.bubbleAnswered,
             )}
           />
+
+          {attachments.length > 0 && (
+            <div className={styles.attachments}>
+              {attachments.map((attachment) => (
+                <FileChip
+                  key={attachment.id}
+                  label={attachment.name}
+                  kind={attachment.kind}
+                  onOpen={
+                    onOpenAttachment
+                      ? () => onOpenAttachment(attachment.id)
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
+          )}
 
           <div className={styles.foot}>
             {onReply && (

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { CommentCard } from './CommentCard';
 import type {
   ActivityActor,
+  ActivityAttachment,
   ActivityReaction,
   ActivityReply,
 } from '../../utils/activity';
@@ -26,6 +27,8 @@ interface CommentCardStoryArgs {
   timestamp: ReactNode;
   query?: string;
   mentions?: readonly string[];
+  attachments?: readonly ActivityAttachment[];
+  onOpenAttachment?: (index: number) => void;
   replies?: readonly ActivityReply[];
   reactions?: readonly ActivityReaction[];
   answeredBy?: ActivityActor;
@@ -80,6 +83,20 @@ export const Default: Story = {
     onReply: () => {},
     onAddReaction: () => {},
     onMore: () => {},
+  },
+};
+
+export const WithAttachments: Story = {
+  decorators: [inFeed],
+  args: {
+    reactions,
+    onReply: () => {},
+    onOpenAttachment: () => {},
+    attachments: [
+      { id: 'a1', name: 'cache-hit-ratio-grafana.png', kind: 'image' },
+      { id: 'a2', name: 'gateway-topology.png', kind: 'image' },
+      { id: 'a3', name: 'SNS-invalidation-RFC.pdf', kind: 'file' },
+    ],
   },
 };
 

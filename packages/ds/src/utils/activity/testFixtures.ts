@@ -81,6 +81,7 @@ export function comment(
     body: 'hello',
     reactions: [],
     replies: [],
+    attachments: [],
     ...overrides,
   };
 }
@@ -98,6 +99,7 @@ export function ask(
     body: 'what TTL?',
     reactions: [],
     replies: [],
+    attachments: [],
     ...overrides,
   };
 }

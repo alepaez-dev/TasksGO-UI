@@ -43,11 +43,18 @@ interface ActivityItemBase {
   readonly actor: ActivityActor;
 }
 
+export interface ActivityAttachment {
+  readonly id: string;
+  readonly name: string;
+  readonly kind: 'image' | 'file';
+}
+
 export interface ActivityComment extends ActivityItemBase {
   readonly kind: 'comment';
   readonly body: string;
   readonly reactions: readonly ActivityReaction[];
   readonly replies: readonly ActivityReply[];
+  readonly attachments: readonly ActivityAttachment[];
 }
 
 export interface ActivityAsk extends ActivityItemBase {
@@ -55,6 +62,7 @@ export interface ActivityAsk extends ActivityItemBase {
   readonly body: string;
   readonly reactions: readonly ActivityReaction[];
   readonly replies: readonly ActivityReply[];
+  readonly attachments: readonly ActivityAttachment[];
   /** Absent means the ask is still open — absence is the state, not a missing value. */
   readonly answeredBy?: ActivityActor;
 }

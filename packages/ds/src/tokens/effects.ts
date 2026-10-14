@@ -1,6 +1,7 @@
 export const effects = {
   blur: 'blur(12px)',
   fadedOpacity: '0.6',
+  uploadingOpacity: '0.7',
   mutedOpacity: '0.4',
   disabledOpacity: '0.5',
   desaturate: 'grayscale(1)',
