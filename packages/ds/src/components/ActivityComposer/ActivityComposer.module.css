@@ -1,0 +1,192 @@
+.composer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--ds-space-activity-composer-gutter-gap);
+  font-family: var(--ds-font-family-sans);
+}
+
+.box {
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface-primary);
+  overflow: hidden;
+  transition:
+    box-shadow var(--ds-transition-duration-fast) ease,
+    border-color var(--ds-transition-duration-fast) ease;
+}
+
+.box:focus-within {
+  border-color: var(--ds-color-accent-primary);
+  box-shadow: var(--ds-focus-ring);
+}
+
+.modes {
+  display: flex;
+  gap: var(--ds-space-activity-composer-mode-gap);
+  padding: var(--ds-space-activity-composer-modes-padding-top)
+    var(--ds-space-activity-composer-modes-padding-x) 0;
+}
+
+.mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-activity-composer-mode-icon-gap);
+  height: var(--ds-space-activity-composer-mode-height);
+  padding: 0 var(--ds-space-activity-composer-mode-padding-x);
+  border: 0;
+  background: transparent;
+  border-radius: var(--ds-radius-md);
+  font-family: inherit;
+  font-size: var(--ds-text-activity-composer-mode-font-size);
+  font-weight: var(--ds-text-activity-composer-mode-font-weight);
+  color: var(--ds-color-text-secondary);
+  cursor: pointer;
+}
+
+.mode:hover {
+  background: var(--ds-color-surface-hover);
+}
+
+.mode:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.modeOn {
+  background: var(--ds-color-surface-secondary);
+  color: var(--ds-color-text-primary);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.modeOnAsk {
+  background: var(--ds-color-activity-composer-ask-tab-background);
+  color: var(--ds-color-status-high);
+}
+
+.area {
+  display: block;
+  width: 100%;
+  min-height: var(--ds-space-activity-composer-area-min-height);
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  padding: var(--ds-space-activity-composer-area-padding-top)
+    var(--ds-space-activity-composer-area-padding-x)
+    var(--ds-space-activity-composer-area-padding-bottom);
+  background: transparent;
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-activity-composer-area-font-size);
+  line-height: var(--ds-text-activity-composer-area-line-height);
+  color: var(--ds-color-text-primary);
+}
+
+.area::placeholder {
+  color: var(--ds-color-text-disabled);
+}
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-activity-composer-attachments-gap);
+  padding: 0 var(--ds-space-activity-composer-area-padding-x)
+    var(--ds-space-activity-composer-attachments-padding-bottom);
+}
+
+.attachments > * {
+  max-width: var(--ds-space-file-chip-max-width);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-activity-composer-foot-gap);
+  padding: var(--ds-space-activity-composer-foot-padding-y)
+    var(--ds-space-activity-composer-foot-padding-x);
+  border-top: 1px solid var(--ds-color-border-default);
+}
+
+/* MarkdownToolbar is a size container (container-type: inline-size), which in a
+   flex row computes to zero width and wraps every button onto its own line */
+.toolbar {
+  --ds-space-icon-button-md-size: var(
+    --ds-space-activity-composer-toolbar-button-size
+  );
+  --ds-icon-size-md: var(--ds-space-activity-composer-toolbar-icon-size);
+  container-type: normal;
+  flex: 0 0 auto;
+  min-width: auto;
+}
+
+.attach {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-space-activity-composer-attach-size);
+  height: var(--ds-space-activity-composer-attach-size);
+  border: 0;
+  background: transparent;
+  border-radius: var(--ds-radius-sm);
+  color: var(--ds-color-text-secondary);
+  cursor: pointer;
+}
+
+.attach:hover {
+  background: var(--ds-color-surface-hover);
+  color: var(--ds-color-text-primary);
+}
+
+.attach:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.hint {
+  margin-left: auto;
+  margin-right: var(--ds-space-activity-composer-hint-gap);
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-activity-composer-hint-font-size);
+  color: var(--ds-color-text-secondary);
+}
+
+.submitAsk {
+  background: var(--ds-color-status-high);
+}
+
+.submitAsk:hover:not(:disabled) {
+  background: var(--ds-color-activity-composer-ask-submit-hover-background);
+}
+
+.attachActive {
+  width: auto;
+  padding: 0 var(--ds-space-activity-composer-attach-active-padding-x);
+  color: var(--ds-color-accent-primary);
+  background: var(--ds-color-activity-composer-attach-active-background);
+}
+
+.attachActive:hover {
+  color: var(--ds-color-accent-primary);
+  background: var(--ds-color-activity-composer-attach-active-background);
+}
+
+.attachCount {
+  margin-left: var(--ds-space-activity-composer-attach-count-gap);
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-activity-composer-hint-font-size);
+  font-weight: var(--ds-font-weight-bold);
+}
+
+.fileInput {
+  display: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

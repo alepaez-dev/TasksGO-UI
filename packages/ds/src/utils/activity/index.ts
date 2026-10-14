@@ -2,6 +2,7 @@ export type {
   ActivityActor,
   ActivityActorKind,
   ActivityAsk,
+  ActivityAttachment,
   ActivityComment,
   ActivityDayDivider,
   ActivityEvent,

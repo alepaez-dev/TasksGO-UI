@@ -1,0 +1,91 @@
+.chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-scale-xs);
+  min-width: 0;
+  padding: var(--ds-space-scale-xs) var(--ds-space-scale-sm);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background-color: var(--ds-color-surface-secondary);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background-color: var(--ds-color-surface-hover);
+}
+
+.remove {
+  position: relative;
+  z-index: 1;
+}
+
+.label {
+  min-width: 0;
+}
+
+.labelText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.open {
+  display: inline-flex;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--ds-radius-sm);
+}
+
+/* stretched hit area: the whole chip opens the preview; the remove button
+   sits above it via .remove's z-index */
+.open::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--ds-radius-md);
+}
+
+.open:hover {
+  text-decoration: underline;
+}
+
+.open:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+}
+
+.open:focus-visible::after {
+  box-shadow: var(--ds-focus-ring);
+}
+
+.uploading {
+  opacity: var(--ds-effect-uploading-opacity);
+}
+
+.uploading .labelText,
+.uploading .percent {
+  color: var(--ds-color-text-primary);
+}
+
+.percent {
+  flex-shrink: 0;
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-file-chip-percent-font-size);
+  color: var(--ds-color-accent-primary);
+}
+
+.bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: calc(var(--ds-file-chip-progress) * 100%);
+  height: var(--ds-space-file-chip-bar-height);
+  background: var(--ds-color-accent-primary);
+}

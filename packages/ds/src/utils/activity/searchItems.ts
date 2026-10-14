@@ -42,7 +42,7 @@ export function buildSearchIndex(item: ActivityItem): ActivitySearchIndex {
       ]),
     ]),
     fields: '',
-    artifacts: '',
+    artifacts: join(item.attachments.map((attachment) => attachment.name)),
   };
 }
 

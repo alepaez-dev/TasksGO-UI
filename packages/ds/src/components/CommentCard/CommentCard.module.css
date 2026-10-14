@@ -131,6 +131,17 @@
   border-color: var(--ds-color-comment-card-answered-border);
 }
 
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-comment-card-attachments-gap);
+  margin-top: var(--ds-space-comment-card-attachments-offset);
+}
+
+.attachments > * {
+  max-width: var(--ds-space-file-chip-max-width);
+}
+
 .foot {
   display: flex;
   align-items: center;

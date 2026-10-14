@@ -106,6 +106,52 @@ describe('CommentCard', () => {
     expect(onToggleReaction).toHaveBeenCalledExactlyOnceWith('👍');
   });
 
+  it('lists the files attached to the comment', () => {
+    render(
+      <CommentCard
+        kind="comment"
+        {...base}
+        attachments={[
+          { id: 'a1', name: 'cache-hit-ratio-grafana.png', kind: 'image' },
+          { id: 'a2', name: 'SNS-invalidation-RFC.pdf', kind: 'file' },
+        ]}
+      />,
+    );
+    expect(screen.getByText('cache-hit-ratio-grafana.png')).toBeInTheDocument();
+    expect(screen.getByText('SNS-invalidation-RFC.pdf')).toBeInTheDocument();
+  });
+
+  it('shows a chip per attachment and none when there are none', () => {
+    const { rerender } = render(<CommentCard kind="comment" {...base} />);
+    expect(screen.queryByText('one.png')).not.toBeInTheDocument();
+
+    rerender(
+      <CommentCard
+        kind="comment"
+        {...base}
+        attachments={[{ id: 'a1', name: 'one.png', kind: 'image' }]}
+      />,
+    );
+    expect(screen.getByText('one.png')).toBeInTheDocument();
+  });
+
+  it('reports which attachment was opened', async () => {
+    const onOpenAttachment = vi.fn();
+    render(
+      <CommentCard
+        kind="comment"
+        {...base}
+        attachments={[
+          { id: 'a1', name: 'one.png', kind: 'image' },
+          { id: 'a2', name: 'two.pdf', kind: 'file' },
+        ]}
+        onOpenAttachment={onOpenAttachment}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: /two\.pdf/ }));
+    expect(onOpenAttachment).toHaveBeenCalledExactlyOnceWith('a2');
+  });
+
   it('offers a pin button when the caller can handle pinning', async () => {
     const onPin = vi.fn();
     render(<CommentCard kind="comment" {...base} onPin={onPin} />);

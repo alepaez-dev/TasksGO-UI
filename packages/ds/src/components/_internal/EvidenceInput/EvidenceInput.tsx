@@ -1,10 +1,9 @@
 import { useRef, type ChangeEvent, type ReactNode } from 'react';
 import { Icon } from '../../Icon';
-import { RefLabel } from '../../RefLabel';
+import { FileChip } from '../FileChip';
 import { cn } from '../../../utils/cn';
-import { evidenceIcon } from '../../../utils/resolvePreview';
-import { type EvidenceItem } from '../../../types/evidence';
 import controls from '../controls.module.css';
+import { type EvidenceItem } from '../../../types/evidence';
 import styles from './EvidenceInput.module.css';
 
 export interface EvidenceInputProps {
@@ -53,7 +52,7 @@ export function EvidenceInput({
     // previous remove button, or the Add control when none remain.
     requestAnimationFrame(() => {
       const buttons = listRef.current?.querySelectorAll<HTMLButtonElement>(
-        '[data-evidence-remove]',
+        '[data-file-chip-remove]',
       );
       const el = buttons?.[target];
       if (el) el.focus();
@@ -71,50 +70,15 @@ export function EvidenceInput({
 
   return (
     <div ref={listRef} className={styles.evidence}>
-      {visible.map((item, index) => {
-        const refLabel = (
-          <RefLabel
-            className={styles.evidenceLabel}
-            variant={item.kind === 'image' ? 'attachment' : 'doc'}
-            icon={evidenceIcon(item)}
-            title={item.label}
-          >
-            <span className={styles.evidenceLabelText}>{item.label}</span>
-          </RefLabel>
-        );
-        return (
-          <span
-            key={index}
-            className={cn(
-              styles.evidenceChip,
-              onOpenItem && styles.evidenceChipClickable,
-            )}
-          >
-            {onOpenItem ? (
-              <button
-                type="button"
-                className={styles.evidenceOpen}
-                onClick={() => onOpenItem(index)}
-              >
-                {refLabel}
-              </button>
-            ) : (
-              refLabel
-            )}
-            {onRemove && (
-              <button
-                type="button"
-                className={cn(controls.removeButton, styles.evidenceRemove)}
-                aria-label={`Remove ${item.label}`}
-                data-evidence-remove=""
-                onClick={() => removeAt(index)}
-              >
-                <Icon name="close" size="xs" />
-              </button>
-            )}
-          </span>
-        );
-      })}
+      {visible.map((item, index) => (
+        <FileChip
+          key={index}
+          label={item.label}
+          kind={item.kind}
+          onOpen={onOpenItem ? () => onOpenItem(index) : undefined}
+          onRemove={onRemove ? () => removeAt(index) : undefined}
+        />
+      ))}
       {(canToggle || onAddFiles) && (
         <span className={styles.evidenceActions}>
           {canToggle && (
