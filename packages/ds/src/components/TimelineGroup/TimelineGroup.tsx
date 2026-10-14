@@ -1,6 +1,6 @@
 import {
   forwardRef,
-  useEffect,
+  useCallback,
   useId,
   useRef,
   type HTMLAttributes,
@@ -57,15 +57,14 @@ export const TimelineGroup = forwardRef<HTMLLIElement, TimelineGroupProps>(
   ) => {
     const itemsId = useId();
     const toggleRef = useRef<HTMLButtonElement>(null);
-    const wasOpen = useRef(open);
-
-    useEffect(() => {
-      const justCollapsed = wasOpen.current && !open;
-      wasOpen.current = open;
-      if (justCollapsed && document.activeElement === document.body) {
-        toggleRef.current?.focus();
-      }
-    }, [open]);
+    const keepFocusOnCollapse = useCallback(
+      (items: HTMLUListElement) => () => {
+        if (items.contains(document.activeElement)) {
+          toggleRef.current?.focus();
+        }
+      },
+      [],
+    );
 
     return (
       <li ref={ref} className={cn(styles.group, className)} {...rest}>
@@ -75,7 +74,7 @@ export const TimelineGroup = forwardRef<HTMLLIElement, TimelineGroupProps>(
           className={cn(styles.toggle, open && styles.toggleOpen)}
           onClick={() => onOpenChange(!open)}
           aria-expanded={open}
-          aria-controls={itemsId}
+          aria-controls={open ? itemsId : undefined}
         >
           <span className={styles.count} aria-hidden="true">
             {count}
@@ -88,7 +87,7 @@ export const TimelineGroup = forwardRef<HTMLLIElement, TimelineGroupProps>(
           )}
         </button>
         {open && (
-          <ul id={itemsId} className={styles.items}>
+          <ul ref={keepFocusOnCollapse} id={itemsId} className={styles.items}>
             {children}
             {moreLabel !== undefined && (
               <li className={styles.moreRow}>
