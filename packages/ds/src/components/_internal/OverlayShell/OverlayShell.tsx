@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../../utils/cn';
 import { useScrollLock } from '../../../hooks/useScrollLock';
@@ -24,6 +24,7 @@ export interface OverlayShellProps {
   forceMount?: boolean;
   onOpened?: () => void;
   onClosed?: () => void;
+  backdropRef?: RefObject<HTMLDivElement | null>;
   children: OverlayShellChildren;
 }
 
@@ -34,6 +35,7 @@ export function OverlayShell({
   forceMount = false,
   onOpened,
   onClosed,
+  backdropRef: externalBackdropRef,
   children,
 }: OverlayShellProps) {
   const { shouldRender, isVisible, backdropRef } = useOverlayLifecycle({
@@ -42,6 +44,14 @@ export function OverlayShell({
     onOpened,
     onClosed,
   });
+
+  const setBackdrop = useCallback(
+    (node: HTMLDivElement | null) => {
+      backdropRef.current = node;
+      if (externalBackdropRef) externalBackdropRef.current = node;
+    },
+    [backdropRef, externalBackdropRef],
+  );
 
   useScrollLock(open);
 
@@ -80,7 +90,7 @@ export function OverlayShell({
 
   return createPortal(
     <div
-      ref={backdropRef}
+      ref={setBackdrop}
       data-ds-overlay={open ? 'open' : undefined}
       className={cn(styles.backdrop, isVisible && styles.open)}
       style={durationStyle}

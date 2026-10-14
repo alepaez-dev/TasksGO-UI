@@ -60,6 +60,7 @@ export const AddScenarioDialog = forwardRef<
       onEvidenceRejected,
       evidenceMessage,
       onOpenEvidence,
+      presentation,
       ...rest
     },
     ref,
@@ -83,6 +84,7 @@ export const AddScenarioDialog = forwardRef<
       <DialogShell
         ref={ref}
         {...rest}
+        presentation={presentation}
         icon={<Icon name="add" size="xs" />}
         iconTone="accent"
         title="Add test scenario"
@@ -168,6 +170,7 @@ export const AddScenarioDialog = forwardRef<
               Evidence
             </DialogFieldLabel>
             <EvidenceInput
+              stacked={presentation === 'sheet'}
               items={value.evidence.map((file) => ({
                 label: file.name,
                 kind: file.type.startsWith('image/') ? 'image' : 'file',

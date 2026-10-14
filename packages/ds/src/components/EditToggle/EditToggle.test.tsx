@@ -60,4 +60,45 @@ describe('EditToggle', () => {
       screen.getByRole('button', { name: 'Edit steps' }),
     ).toBeInTheDocument();
   });
+
+  describe('iconOnly', () => {
+    it('drops the visible text but keeps it as the accessible name', () => {
+      render(
+        <EditToggle editing={false} onEditingChange={() => {}} iconOnly />,
+      );
+      const btn = screen.getByRole('button', { name: 'Edit' });
+      // the label is the whole point of the prop: gone from the page, kept
+      // for assistive tech
+      expect(btn).toHaveTextContent('');
+      expect(btn).toHaveAttribute('aria-label', 'Edit');
+    });
+
+    it('names itself Done while editing', () => {
+      render(<EditToggle editing onEditingChange={() => {}} iconOnly />);
+      const btn = screen.getByRole('button', { name: 'Done' });
+      expect(btn).toHaveTextContent('');
+      expect(btn).toHaveAttribute('aria-label', 'Done');
+    });
+
+    it("lets a caller's own aria-label win over the fallback", () => {
+      render(
+        <EditToggle
+          editing={false}
+          onEditingChange={() => {}}
+          iconOnly
+          aria-label="Edit Description"
+        />,
+      );
+      expect(
+        screen.getByRole('button', { name: 'Edit Description' }),
+      ).toBeInTheDocument();
+    });
+
+    it('keeps the visible text when not set', () => {
+      render(<EditToggle editing={false} onEditingChange={() => {}} />);
+      const btn = screen.getByRole('button', { name: 'Edit' });
+      expect(btn).toHaveTextContent('Edit');
+      expect(btn).not.toHaveAttribute('aria-label');
+    });
+  });
 });

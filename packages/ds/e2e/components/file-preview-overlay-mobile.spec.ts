@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 import { storyUrl } from '../helpers/storyUrl';
 import { backwardStops, focusOrderWithin } from '../helpers/focusOrder';
 
@@ -6,6 +6,37 @@ const STORY_ID = 'components-filepreviewoverlay--mobile';
 const NO_PREVIEW_STORY_ID = 'components-filepreviewoverlay--mobile-no-preview';
 
 const DIALOG = '[role="dialog"]';
+
+/**
+ * Dispatches a real one-finger drag across `target`. The listener sits on the
+ * overlay backdrop, so a touch anywhere inside the overlay bubbles to it.
+ */
+async function swipeOn(target: Locator, fromX: number, toX: number) {
+  await target.evaluate(
+    (el, { startX, endX }) => {
+      const makeTouchEvent = (type: string, x: number) => {
+        const touch = new Touch({
+          identifier: 1,
+          target: el,
+          clientX: x,
+          clientY: 300,
+        });
+        const activeTouches = type === 'touchend' ? [] : [touch];
+        return new TouchEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          touches: activeTouches,
+          targetTouches: activeTouches,
+          changedTouches: [touch],
+        });
+      };
+      el.dispatchEvent(makeTouchEvent('touchstart', startX));
+      el.dispatchEvent(makeTouchEvent('touchmove', endX));
+      el.dispatchEvent(makeTouchEvent('touchend', endX));
+    },
+    { startX: fromX, endX: toX },
+  );
+}
 
 async function openStory(page: Page, storyId: string) {
   await page.goto(storyUrl(storyId));
@@ -117,12 +148,113 @@ test.describe('FilePreviewOverlay — stacked layout', () => {
     const visible = await strip.evaluate((el) => {
       const active = el.querySelector('[aria-current="true"]');
       if (active === null) throw new Error('no active thumbnail');
-      const s = el.getBoundingClientRect();
-      const a = active.getBoundingClientRect();
-      return a.left >= s.left - 1 && a.right <= s.right + 1;
+      const strip = el.getBoundingClientRect();
+      const thumb = active.getBoundingClientRect();
+      return thumb.left >= strip.left - 1 && thumb.right <= strip.right + 1;
     });
 
     expect(visible).toBe(true);
+  });
+
+  test('swipes to change file, over the overlay and over the image', async ({
+    page,
+  }) => {
+    const counter = page.getByText(/^\d+ \/ \d+$/);
+    const overlay = page.getByRole('dialog');
+
+    await expect(counter).toHaveText('1 / 7');
+
+    // anywhere in the overlay, including the empty space beside the image
+    await swipeOn(overlay, 320, 120);
+    await expect(counter).toHaveText('2 / 7');
+
+    await swipeOn(overlay, 120, 320);
+    await expect(counter).toHaveText('1 / 7');
+
+    // and over the image itself, addressed by its alt text
+    await swipeOn(page.getByAltText('cleo.jpg'), 320, 120);
+    await expect(counter).toHaveText('2 / 7');
+
+    // but scoped to this overlay: a gesture outside it is ignored, so a
+    // stacked overlay cannot drive the file underneath it
+    await swipeOn(page.locator('body'), 320, 120);
+    await expect(counter).toHaveText('2 / 7');
+  });
+
+  test('clamps at the first file and at the last', async ({ page }) => {
+    const counter = page.getByText(/^\d+ \/ \d+$/);
+    const overlay = page.getByRole('dialog');
+
+    // first file: swiping back must not wrap to the last
+    await expect(counter).toHaveText('1 / 7');
+    await swipeOn(overlay, 120, 320);
+    await expect(counter).toHaveText('1 / 7');
+
+    // walk to the end. Note this asserts behaviour, not the guard: activeIndex
+    // is clamped on read, so removing `index < lastIndex` still passes here.
+    const next = page.getByRole('button', { name: 'Next file' });
+    for (let i = 0; i < 6; i += 1) await next.click();
+    await expect(counter).toHaveText('7 / 7');
+
+    await swipeOn(overlay, 320, 120);
+    await expect(counter).toHaveText('7 / 7');
+  });
+
+  test('a pinch does not navigate, even if a finger drifts sideways', async ({
+    page,
+  }) => {
+    const counter = page.getByText(/^\d+ \/ \d+$/);
+    await expect(counter).toHaveText('1 / 7');
+
+    await page.getByRole('dialog').evaluate((el) => {
+      const fingerAt = (x: number, identifier: number) =>
+        new Touch({ identifier, target: el, clientX: x, clientY: 300 });
+      const fire = (
+        type: string,
+        activeTouches: Touch[],
+        changedTouches: Touch[],
+      ) =>
+        el.dispatchEvent(
+          new TouchEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            touches: activeTouches,
+            targetTouches: activeTouches,
+            changedTouches,
+          }),
+        );
+
+      const thumb = fingerAt(300, 1);
+      fire('touchstart', [thumb], [thumb]);
+      // second finger lands — a pinch begins
+      const index = fingerAt(320, 2);
+      fire('touchstart', [thumb, index], [index]);
+      // the thumb drifts far enough left to clear the 56px threshold
+      const thumbDrifted = fingerAt(100, 1);
+      fire('touchmove', [thumbDrifted, index], [thumbDrifted]);
+      // and the second finger lifts first, as it usually does
+      fire('touchend', [thumbDrifted], [index]);
+    });
+
+    await expect(counter).toHaveText('1 / 7');
+  });
+
+  test('ignores gestures starting on either screen edge', async ({ page }) => {
+    const counter = page.getByText(/^\d+ \/ \d+$/);
+    const overlay = page.getByRole('dialog');
+    await expect(counter).toHaveText('1 / 7');
+
+    // both edges belong to the OS (iOS back/forward, Android gesture nav), so
+    // a swipe starting there must not also drive the lightbox
+    await swipeOn(overlay, 8, 200);
+    await expect(counter).toHaveText('1 / 7');
+
+    await swipeOn(overlay, 384, 184);
+    await expect(counter).toHaveText('1 / 7');
+
+    // and a gesture starting inboard of them still works
+    await swipeOn(overlay, 320, 120);
+    await expect(counter).toHaveText('2 / 7');
   });
 
   test('close stays reachable and dismisses the overlay', async ({ page }) => {

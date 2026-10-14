@@ -126,3 +126,16 @@
 .evidenceOpen:focus-visible::after {
   box-shadow: var(--ds-focus-ring);
 }
+
+.stackedEvidence {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.stackedEvidence .evidenceOpen {
+  min-height: var(--ds-space-touch-compact);
+}
+
+.stackedEvidence .evidenceRemove {
+  width: var(--ds-space-touch-target);
+  height: var(--ds-space-touch-compact);
+}
