@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">4/64 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">64/64 infos</a><span class="filter-pill ok" aria-disabled="true">306 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">4/64 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">64/64 infos</a><span class="filter-pill ok" aria-disabled="true">308 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -3669,7 +3669,12 @@ clickToEdit?: boolean = false
 
 doneLabel?: string
 
-editButton?: &#39;none&#39; | &#39;hover&#39; | &#39;always&#39; = &#39;hover&#39;
+/**
+ * Edit-button presentation. `always-icon` is `always` with the label dropped
+ * to an accessible name — one prop, so &quot;no button&quot; and &quot;icon-only button&quot;
+ * cannot be asked for at the same time.
+ */
+editButton?: &#39;none&#39; | &#39;hover&#39; | &#39;always&#39; | &#39;always-icon&#39; = &#39;hover&#39;
 
 editing: boolean
 
@@ -3781,7 +3786,7 @@ value: string</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> EditToggle</h2>
       <div class="badges">
-        <label for="c-19-components-edittoggle-props" class="badge ok as-toggle">4 prop types</label>
+        <label for="c-19-components-edittoggle-props" class="badge ok as-toggle">5 prop types</label>
         <label for="c-19-components-edittoggle-info" class="badge info as-toggle">1 info</label>
         <label for="c-19-components-edittoggle-stories" class="badge ok as-toggle">3 stories</label>
         
@@ -3815,7 +3820,7 @@ value: string</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">4 prop types</span>
+              <span class="badge ok">5 prop types</span>
             </div>
             <pre><code>Component: src/components/EditToggle/EditToggle.tsx::EditToggle</code></pre>
             <pre><code>Props:</code></pre>
@@ -3824,6 +3829,8 @@ value: string</code></pre>
 editing: boolean
 
 editLabel?: string = &#39;Edit&#39;
+
+iconOnly?: boolean = false
 
 onEditingChange: (editing: boolean) =&gt; void</code></pre>
           </div>
@@ -9895,7 +9902,7 @@ trailing?: ReactNode</code></pre>
       <div class="badges">
         <label for="c-58-components-testscenariocard-props" class="badge ok as-toggle">37 prop types</label>
         <label for="c-58-components-testscenariocard-info" class="badge info as-toggle">1 info</label>
-        <label for="c-58-components-testscenariocard-stories" class="badge ok as-toggle">8 stories</label>
+        <label for="c-58-components-testscenariocard-stories" class="badge ok as-toggle">10 stories</label>
         
       </div>
     </div>
@@ -9979,7 +9986,7 @@ onRemoveEvidence?: (index: number) =&gt; void
 
 onStatusChange?: (status: TestScenarioStatus) =&gt; void
 
-onStatusSelectOpenChange?: (open: boolean) =&gt; void
+onStatusSelectOpenChange: (open: boolean) =&gt; void
 
 onStepsChange?: (steps: readonly string[]) =&gt; void
 
@@ -9998,7 +10005,7 @@ position?: | &#39;standalone&#39;
 
 status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39; | &#39;waived&#39;
 
-statusSelectOpen?: boolean = false
+statusSelectOpen: boolean
 
 steps?: unknown = []
 
@@ -10104,7 +10111,7 @@ waiveReason?: string</code></pre>
       &#39;Monitor cache TTL expiration logs in Datadog&#39;,
     ]}
     evidence={ALL_EVIDENCE}
-    maxEvidence={6}
+    maxEvidence={7}
     expected=&quot;Connection re-established within 500ms with the original session context intact.&quot;
     actual=&quot;Session context dropped on reconnect; client forced to re-authenticate.&quot;
     open
@@ -10166,7 +10173,7 @@ waiveReason?: string</code></pre>
       { label: &#39;network.har&#39;, kind: &#39;file&#39; },
       { label: &#39;trace.json&#39;, kind: &#39;file&#39; },
     ]}
-    maxEvidence={6}
+    maxEvidence={7}
     expected=&quot;Connection should recover within 2 seconds without session state loss.&quot;
     actual=&quot;Not run — scenario waived before execution.&quot;
     open
@@ -10281,6 +10288,61 @@ waiveReason?: string</code></pre>
       &#39;expected&#39;,
       &#39;actual&#39;,
     ]}
+    open
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Mobile</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Mobile = () =&gt; (
+  &lt;Controlled
+    caseId=&quot;TC-409&quot;
+    title=&quot;WebSocket Connection Persistence&quot;
+    status=&quot;failed&quot;
+    byline=&quot;Failed by Jordan D. · 5m ago&quot;
+    assigneeInitial=&quot;JD&quot;
+    assigneeLabel=&quot;Jordan D.&quot;
+    assigneeColor=&quot;var(--ds-color-avatar-tone-profile-sage)&quot;
+    description=&quot;WebSocket connections automatically reconnect after a network interruption of &lt; 500ms without dropping session context.&quot;
+    steps={[
+      &#39;Deploy recent build to `QA-01` environment&#39;,
+      &#39;Trigger concurrent updates via `/api/v1/sync` endpoint&#39;,
+      &#39;Monitor cache TTL expiration logs in Datadog&#39;,
+    ]}
+    evidence={ALL_EVIDENCE}
+    maxEvidence={7}
+    expected=&quot;Connection re-established within 500ms with the original session context intact.&quot;
+    actual=&quot;Session context dropped on reconnect; client forced to re-authenticate.&quot;
+    open
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Mobile (waived)</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const MobileWaived = () =&gt; (
+  &lt;Controlled
+    caseId=&quot;TC-409&quot;
+    title=&quot;WebSocket Connection Persistence&quot;
+    status=&quot;waived&quot;
+    byline=&quot;Waived by Alex T. · 1d ago&quot;
+    assigneeInitial=&quot;AT&quot;
+    assigneeLabel=&quot;Alex T.&quot;
+    assigneeColor=&quot;var(--ds-color-avatar-tone-profile-plum)&quot;
+    description=&quot;Ensure WebSocket connections reconnect after a network interruption.&quot;
+    waiveReason=&quot;Dev confirmed out of scope for this ticket; tracked separately under `ENG-2871`.&quot;
+    steps={[&#39;Deploy recent build to `QA-01` environment&#39;]}
+    expected=&quot;Connection should recover within 2 seconds without session state loss.&quot;
+    actual=&quot;Not run — scenario waived before execution.&quot;
     open
   /&gt;
 );</code></pre>
