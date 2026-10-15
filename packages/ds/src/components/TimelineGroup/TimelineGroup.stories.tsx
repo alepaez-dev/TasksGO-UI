@@ -9,7 +9,7 @@ interface TimelineGroupStoryArgs {
   summary: ReactNode;
   meta?: ReactNode;
   open: boolean;
-  onOpenChange?: (open: boolean) => void;
+  onOpenChange: (open: boolean) => void;
   matchLabel?: ReactNode;
   moreLabel?: ReactNode;
   children: ReactNode;
@@ -44,6 +44,7 @@ const meta = {
     summary: 'Jordan D. performed 2 updates',
     meta: '· labels, sprint · 1d 2h ago',
     open: false,
+    onOpenChange: () => {},
   },
   decorators: [
     (Story) => (
