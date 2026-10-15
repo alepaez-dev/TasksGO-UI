@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">4/64 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">64/64 infos</a><span class="filter-pill ok" aria-disabled="true">308 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">5/65 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">65/65 infos</a><span class="filter-pill ok" aria-disabled="true">315 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -11675,7 +11675,7 @@ export const Muted: Story = {
     docs: {
       description: {
         story:
-          &#39;De-emphasis via italic and a smaller size — deliberately not colour, since the palette has nothing dimmer than `text-secondary` that clears WCAG AA. Used in the activity feed for automated events that happened inside a person’s run: present for context, but not one of their updates.&#39;,
+          &#39;De-emphasis via italic and a smaller size, keeping `text-secondary`. Used in the activity feed for automated events that happened inside a person’s run: present for context, but not one of their updates.&#39;,
       },
     },
   },
@@ -11867,6 +11867,448 @@ export const LongContentWraps: Story = {
 </article>
 <article
   class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode</h2>
+      <div class="badges">
+        <label for="c-63-components-timelinegroup-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-63-components-timelinegroup-info" class="badge info as-toggle">1 info</label>
+        <label for="c-63-components-timelinegroup-stories" class="badge ok as-toggle">7 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/TimelineGroup/TimelineGroup.stories.tsx">components-timelinegroup · ./src/components/TimelineGroup/TimelineGroup.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-63-components-timelinegroup-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-63-components-timelinegroup-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-63-components-timelinegroup-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&quot; component.
+  16 | }
+  17 |
+&gt; 18 | const meta = {
+     | ^
+  19 |   title: &#39;Components/TimelineGroup&#39;,
+  20 |   component: TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode,
+  21 |   tags: [&#39;autodocs&#39;],
+
+./src/components/TimelineGroup/TimelineGroup.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import { useState, type ReactNode } from &#39;react&#39;;
+import { TimelineGroup } from &#39;./TimelineGroup&#39;;
+import { TimelineEvent } from &#39;../TimelineEvent&#39;;
+import { Badge } from &#39;../Badge&#39;;
+
+interface TimelineGroupStoryArgs {
+  count: number;
+  summary: ReactNode;
+  meta?: ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) =&gt; void;
+  matchLabel?: ReactNode;
+  moreLabel?: ReactNode;
+  children: ReactNode;
+}
+
+const meta = {
+  title: &#39;Components/TimelineGroup&#39;,
+  component: TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;A collapsed run of consecutive events by one person, or of automated events with no person behind them. Renders an `&lt;li&gt;` — wrap it in the feed’s `&lt;ul&gt;`. Takes `TimelineEvent` rows as children rather than data, so the page decides which are muted, pinned or highlighted. `count` is the actions belonging to whoever the run is attributed to — use `countActions(group)`. For a person that excludes system extras, so eight updates plus an automated build reads &quot;8 updates&quot; over nine rows; a run with no person behind it counts every row, reading &quot;4 system events&quot;. Rows are unmounted while collapsed, not hidden. Long runs are capped by the page, which passes `moreLabel` and `onMoreToggle`.&#39;,
+      },
+    },
+  },
+  argTypes: {
+    count: { control: { type: &#39;number&#39;, min: 1 } },
+    summary: { control: &#39;text&#39; },
+    meta: { control: &#39;text&#39; },
+    open: { control: &#39;boolean&#39; },
+    matchLabel: { control: &#39;text&#39; },
+    moreLabel: { control: &#39;text&#39; },
+    // Owned by the page, or by the story&#39;s own state on the interactive ones —
+    // a control here would render and then do nothing.
+    onOpenChange: { control: false },
+    children: { control: false },
+  },
+  args: {
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· labels, sprint · 1d 2h ago&#39;,
+    open: false,
+    onOpenChange: () =&gt; {},
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          listStyle: &#39;none&#39;,
+          margin: 0,
+          background: &#39;var(--ds-color-surface-secondary)&#39;,
+          padding: 24,
+          width: 620,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+          gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+} satisfies Meta&lt;TimelineGroupStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+const twoRows: ReactNode = (
+  &lt;&gt;
+    &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;tag&quot; timestamp=&quot;1d 2h ago&quot;&gt;
+      added label &lt;Badge variant=&quot;progress&quot;&gt;needs-qa&lt;/Badge&gt;
+    &lt;/TimelineEvent&gt;
+    &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 2h ago&quot;&gt;
+      set sprint to &lt;Badge variant=&quot;progress&quot;&gt;Q1-W4-INFRA&lt;/Badge&gt;
+    &lt;/TimelineEvent&gt;
+  &lt;/&gt;
+);
+
+function Interactive({ moreLabel, ...args }: TimelineGroupStoryArgs) {
+  const [open, setOpen] = useState(args.open);
+  const [showAll, setShowAll] = useState(false);
+  const more =
+    moreLabel === undefined
+      ? {}
+      : {
+          moreLabel: showAll ? &#39;Show less&#39; : moreLabel,
+          onMoreToggle: () =&gt; setShowAll((v) =&gt; !v),
+          moreExpanded: showAll,
+        };
+
+  return (
+    &lt;TimelineGroup {...args} {...more} open={open} onOpenChange={setOpen}&gt;
+      {args.children}
+      {showAll &amp;&amp; (
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;person&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          added &lt;b&gt;Mike R.&lt;/b&gt; as a watcher
+        &lt;/TimelineEvent&gt;
+      )}
+    &lt;/TimelineGroup&gt;
+  );
+}
+
+export const Collapsed: Story = {
+  render: (args) =&gt; &lt;Interactive key={String(args.open)} {...args} /&gt;,
+  args: { children: twoRows },
+  parameters: {
+    docs: {
+      description: {
+        story: &#39;Interactive — the toggle really opens and closes.&#39;,
+      },
+    },
+  },
+};
+
+export const Open: Story = {
+  args: { open: true, children: twoRows },
+};
+
+export const WithSystemExtra: Story = {
+  args: {
+    open: true,
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· status, description · 1d 8h ago&#39;,
+    children: (
+      &lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
+          &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent
+          variant=&quot;nested&quot;
+          muted
+          icon=&quot;task_alt&quot;
+          timestamp=&quot;1d 8h ago&quot;
+        &gt;
+          Build #1847 triggered automatically
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;edit&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          updated the description
+        &lt;/TimelineEvent&gt;
+      &lt;/&gt;
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;The count says 2, not 3. The automated build happened inside Jordan’s run and is shown for context, but it is not one of his updates — matching the mockup, whose pill reads &quot;8 updates&quot; over nine rows.&#39;,
+      },
+    },
+  },
+};
+
+export const Capped: Story = {
+  render: (args) =&gt; &lt;Interactive key={String(args.open)} {...args} /&gt;,
+  args: {
+    open: true,
+    count: 9,
+    summary: &#39;Jordan D. performed 9 updates&#39;,
+    meta: &#39;· status, description, labels · 1d 8h ago&#39;,
+    moreLabel: &#39;Show 5 more&#39;,
+    children: twoRows,
+  },
+};
+
+export const Matching: Story = {
+  args: {
+    open: true,
+    matchLabel: &#39;1 of 2 match&#39;,
+    children: twoRows,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;While a search is active, a group holding a match expands and reports how many of its rows matched.&#39;,
+      },
+    },
+  },
+};
+
+export const LongSummary: Story = {
+  args: {
+    open: false,
+    summary: &#39;Bartholomew Featherstonehaugh-Wellesley performed 14 updates&#39;,
+    meta: &#39;· status, description, labels, sprint, priority · 1d 8h ago&#39;,
+    children: twoRows,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Both slots truncate rather than wrap: the pill is a stadium and only reads as one on a single line. The meta gives way before the actor and the action do, and the count, chevron and match chip never shrink.&#39;,
+      },
+    },
+  },
+};
+
+export const SystemOnly: Story = {
+  args: {
+    open: true,
+    count: 4,
+    summary: &#39;4 system events&#39;,
+    meta: &#39;· CI, deploys, QA runs · 20m ago&#39;,
+    children: (
+      &lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;task_alt&quot; timestamp=&quot;34m ago&quot;&gt;
+          Build &lt;b&gt;#1847&lt;/b&gt; passed on &lt;b&gt;QA-01&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;science&quot; timestamp=&quot;28m ago&quot;&gt;
+          QA scenario &lt;b&gt;TC-412&lt;/b&gt; marked Failed
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;file_upload&quot; timestamp=&quot;24m ago&quot;&gt;
+          Deployed &lt;b&gt;edge-gateway-service&lt;/b&gt; to &lt;b&gt;QA-02&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;image&quot; timestamp=&quot;20m ago&quot;&gt;
+          Evidence &lt;b&gt;rate_429.png&lt;/b&gt; attached to TC-412
+        &lt;/TimelineEvent&gt;
+      &lt;/&gt;
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;A run with no person behind it is never attributed to one: it reads &quot;4 system events&quot;, not a bot’s name. `ActivityGroup.actor` holds whichever bot happened to be first, so naming it would credit a deploy to CI.&#39;,
+      },
+    },
+  },
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { Badge, TimelineEvent, TimelineGroup } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Collapsed</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Collapsed = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open={false}
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Open</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Open = () =&gt; &lt;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">With System Extra</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithSystemExtra = () =&gt; &lt;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· status, description · 1d 8h ago&quot;
+    open
+    onOpenChange={() =&gt; {}}&gt;(&lt;&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+        changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
+        &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent
+        variant=&quot;nested&quot;
+        muted
+        icon=&quot;task_alt&quot;
+        timestamp=&quot;1d 8h ago&quot;
+      &gt;
+        Build #1847 triggered automatically
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;edit&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+        updated the description
+      &lt;/TimelineEvent&gt;
+    &lt;/&gt;)&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Capped</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Capped = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={9}
+    summary=&quot;Jordan D. performed 9 updates&quot;
+    meta=&quot;· status, description, labels · 1d 8h ago&quot;
+    open
+    onOpenChange={() =&gt; {}}
+    moreLabel=&quot;Show 5 more&quot;&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Matching</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Matching = () =&gt; &lt;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open
+    onOpenChange={() =&gt; {}}
+    matchLabel=&quot;1 of 2 match&quot;&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Long Summary</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const LongSummary = () =&gt; &lt;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode
+    count={2}
+    summary=&quot;Bartholomew Featherstonehaugh-Wellesley performed 14 updates&quot;
+    meta=&quot;· status, description, labels, sprint, priority · 1d 8h ago&quot;
+    open={false}
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">System Only</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const SystemOnly = () =&gt; &lt;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode
+    count={4}
+    summary=&quot;4 system events&quot;
+    meta=&quot;· CI, deploys, QA runs · 20m ago&quot;
+    open
+    onOpenChange={() =&gt; {}}&gt;(&lt;&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;task_alt&quot; timestamp=&quot;34m ago&quot;&gt;
+        Build &lt;b&gt;#1847&lt;/b&gt; passed on &lt;b&gt;QA-01&lt;/b&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;science&quot; timestamp=&quot;28m ago&quot;&gt;
+        QA scenario &lt;b&gt;TC-412&lt;/b&gt; marked Failed
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;file_upload&quot; timestamp=&quot;24m ago&quot;&gt;
+        Deployed &lt;b&gt;edge-gateway-service&lt;/b&gt; to &lt;b&gt;QA-02&lt;/b&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;image&quot; timestamp=&quot;20m ago&quot;&gt;
+        Evidence &lt;b&gt;rate_429.png&lt;/b&gt; attached to TC-412
+      &lt;/TimelineEvent&gt;
+    &lt;/&gt;)&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
   no-error 
   has-info 
   no-story-error
@@ -11877,9 +12319,9 @@ export const LongContentWraps: Story = {
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> WaiveScenarioDialog</h2>
       <div class="badges">
-        <label for="c-63-components-waivescenariodialog-props" class="badge ok as-toggle">4 prop types</label>
-        <label for="c-63-components-waivescenariodialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-63-components-waivescenariodialog-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-64-components-waivescenariodialog-props" class="badge ok as-toggle">4 prop types</label>
+        <label for="c-64-components-waivescenariodialog-info" class="badge info as-toggle">1 info</label>
+        <label for="c-64-components-waivescenariodialog-stories" class="badge ok as-toggle">3 stories</label>
         
       </div>
     </div>
@@ -11891,10 +12333,10 @@ export const LongContentWraps: Story = {
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-63-components-waivescenariodialog-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-63-components-waivescenariodialog-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-64-components-waivescenariodialog-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-64-components-waivescenariodialog-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  <input id="c-63-components-waivescenariodialog-props" class="tg tg-props" type="checkbox" hidden />
+  <input id="c-64-components-waivescenariodialog-props" class="tg tg-props" type="checkbox" hidden />
 
   <div class="panels">
     
@@ -11977,7 +12419,7 @@ scenarioTitle: string</code></pre>
           <label for="no-component-import-found-toggle" class="group-header">
             <span class="caret">▸</span>
             <span class="group-title">No component import found</span>
-            <span class="group-count">2</span>
+            <span class="group-count">3</span>
           </label>
           <div class="group-cards">
 <article
@@ -12464,7 +12906,7 @@ export const Muted: Story = {
     docs: {
       description: {
         story:
-          &#39;De-emphasis via italic and a smaller size — deliberately not colour, since the palette has nothing dimmer than `text-secondary` that clears WCAG AA. Used in the activity feed for automated events that happened inside a person’s run: present for context, but not one of their updates.&#39;,
+          &#39;De-emphasis via italic and a smaller size, keeping `text-secondary`. Used in the activity feed for automated events that happened inside a person’s run: present for context, but not one of their updates.&#39;,
       },
     },
   },
@@ -12649,6 +13091,448 @@ export const LongContentWraps: Story = {
               
               
               <pre><code>const LongContentWraps = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;person&quot; timestamp=&quot;22h ago&quot;&gt;assigned this ticket to Jordan D. and added Mike R., Alex M. and three others as watchers&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode</h2>
+      <div class="badges">
+        <label for="c-error-2-components-timelinegroup-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-error-2-components-timelinegroup-info" class="badge info as-toggle">1 info</label>
+        <label for="c-error-2-components-timelinegroup-stories" class="badge ok as-toggle">7 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/TimelineGroup/TimelineGroup.stories.tsx">components-timelinegroup · ./src/components/TimelineGroup/TimelineGroup.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-error-2-components-timelinegroup-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-error-2-components-timelinegroup-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-error-2-components-timelinegroup-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&quot; component.
+  16 | }
+  17 |
+&gt; 18 | const meta = {
+     | ^
+  19 |   title: &#39;Components/TimelineGroup&#39;,
+  20 |   component: TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode,
+  21 |   tags: [&#39;autodocs&#39;],
+
+./src/components/TimelineGroup/TimelineGroup.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import { useState, type ReactNode } from &#39;react&#39;;
+import { TimelineGroup } from &#39;./TimelineGroup&#39;;
+import { TimelineEvent } from &#39;../TimelineEvent&#39;;
+import { Badge } from &#39;../Badge&#39;;
+
+interface TimelineGroupStoryArgs {
+  count: number;
+  summary: ReactNode;
+  meta?: ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) =&gt; void;
+  matchLabel?: ReactNode;
+  moreLabel?: ReactNode;
+  children: ReactNode;
+}
+
+const meta = {
+  title: &#39;Components/TimelineGroup&#39;,
+  component: TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;A collapsed run of consecutive events by one person, or of automated events with no person behind them. Renders an `&lt;li&gt;` — wrap it in the feed’s `&lt;ul&gt;`. Takes `TimelineEvent` rows as children rather than data, so the page decides which are muted, pinned or highlighted. `count` is the actions belonging to whoever the run is attributed to — use `countActions(group)`. For a person that excludes system extras, so eight updates plus an automated build reads &quot;8 updates&quot; over nine rows; a run with no person behind it counts every row, reading &quot;4 system events&quot;. Rows are unmounted while collapsed, not hidden. Long runs are capped by the page, which passes `moreLabel` and `onMoreToggle`.&#39;,
+      },
+    },
+  },
+  argTypes: {
+    count: { control: { type: &#39;number&#39;, min: 1 } },
+    summary: { control: &#39;text&#39; },
+    meta: { control: &#39;text&#39; },
+    open: { control: &#39;boolean&#39; },
+    matchLabel: { control: &#39;text&#39; },
+    moreLabel: { control: &#39;text&#39; },
+    // Owned by the page, or by the story&#39;s own state on the interactive ones —
+    // a control here would render and then do nothing.
+    onOpenChange: { control: false },
+    children: { control: false },
+  },
+  args: {
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· labels, sprint · 1d 2h ago&#39;,
+    open: false,
+    onOpenChange: () =&gt; {},
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          listStyle: &#39;none&#39;,
+          margin: 0,
+          background: &#39;var(--ds-color-surface-secondary)&#39;,
+          padding: 24,
+          width: 620,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+          gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+} satisfies Meta&lt;TimelineGroupStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+const twoRows: ReactNode = (
+  &lt;&gt;
+    &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;tag&quot; timestamp=&quot;1d 2h ago&quot;&gt;
+      added label &lt;Badge variant=&quot;progress&quot;&gt;needs-qa&lt;/Badge&gt;
+    &lt;/TimelineEvent&gt;
+    &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 2h ago&quot;&gt;
+      set sprint to &lt;Badge variant=&quot;progress&quot;&gt;Q1-W4-INFRA&lt;/Badge&gt;
+    &lt;/TimelineEvent&gt;
+  &lt;/&gt;
+);
+
+function Interactive({ moreLabel, ...args }: TimelineGroupStoryArgs) {
+  const [open, setOpen] = useState(args.open);
+  const [showAll, setShowAll] = useState(false);
+  const more =
+    moreLabel === undefined
+      ? {}
+      : {
+          moreLabel: showAll ? &#39;Show less&#39; : moreLabel,
+          onMoreToggle: () =&gt; setShowAll((v) =&gt; !v),
+          moreExpanded: showAll,
+        };
+
+  return (
+    &lt;TimelineGroup {...args} {...more} open={open} onOpenChange={setOpen}&gt;
+      {args.children}
+      {showAll &amp;&amp; (
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;person&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          added &lt;b&gt;Mike R.&lt;/b&gt; as a watcher
+        &lt;/TimelineEvent&gt;
+      )}
+    &lt;/TimelineGroup&gt;
+  );
+}
+
+export const Collapsed: Story = {
+  render: (args) =&gt; &lt;Interactive key={String(args.open)} {...args} /&gt;,
+  args: { children: twoRows },
+  parameters: {
+    docs: {
+      description: {
+        story: &#39;Interactive — the toggle really opens and closes.&#39;,
+      },
+    },
+  },
+};
+
+export const Open: Story = {
+  args: { open: true, children: twoRows },
+};
+
+export const WithSystemExtra: Story = {
+  args: {
+    open: true,
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· status, description · 1d 8h ago&#39;,
+    children: (
+      &lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
+          &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent
+          variant=&quot;nested&quot;
+          muted
+          icon=&quot;task_alt&quot;
+          timestamp=&quot;1d 8h ago&quot;
+        &gt;
+          Build #1847 triggered automatically
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;edit&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          updated the description
+        &lt;/TimelineEvent&gt;
+      &lt;/&gt;
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;The count says 2, not 3. The automated build happened inside Jordan’s run and is shown for context, but it is not one of his updates — matching the mockup, whose pill reads &quot;8 updates&quot; over nine rows.&#39;,
+      },
+    },
+  },
+};
+
+export const Capped: Story = {
+  render: (args) =&gt; &lt;Interactive key={String(args.open)} {...args} /&gt;,
+  args: {
+    open: true,
+    count: 9,
+    summary: &#39;Jordan D. performed 9 updates&#39;,
+    meta: &#39;· status, description, labels · 1d 8h ago&#39;,
+    moreLabel: &#39;Show 5 more&#39;,
+    children: twoRows,
+  },
+};
+
+export const Matching: Story = {
+  args: {
+    open: true,
+    matchLabel: &#39;1 of 2 match&#39;,
+    children: twoRows,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;While a search is active, a group holding a match expands and reports how many of its rows matched.&#39;,
+      },
+    },
+  },
+};
+
+export const LongSummary: Story = {
+  args: {
+    open: false,
+    summary: &#39;Bartholomew Featherstonehaugh-Wellesley performed 14 updates&#39;,
+    meta: &#39;· status, description, labels, sprint, priority · 1d 8h ago&#39;,
+    children: twoRows,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Both slots truncate rather than wrap: the pill is a stadium and only reads as one on a single line. The meta gives way before the actor and the action do, and the count, chevron and match chip never shrink.&#39;,
+      },
+    },
+  },
+};
+
+export const SystemOnly: Story = {
+  args: {
+    open: true,
+    count: 4,
+    summary: &#39;4 system events&#39;,
+    meta: &#39;· CI, deploys, QA runs · 20m ago&#39;,
+    children: (
+      &lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;task_alt&quot; timestamp=&quot;34m ago&quot;&gt;
+          Build &lt;b&gt;#1847&lt;/b&gt; passed on &lt;b&gt;QA-01&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;science&quot; timestamp=&quot;28m ago&quot;&gt;
+          QA scenario &lt;b&gt;TC-412&lt;/b&gt; marked Failed
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;file_upload&quot; timestamp=&quot;24m ago&quot;&gt;
+          Deployed &lt;b&gt;edge-gateway-service&lt;/b&gt; to &lt;b&gt;QA-02&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;image&quot; timestamp=&quot;20m ago&quot;&gt;
+          Evidence &lt;b&gt;rate_429.png&lt;/b&gt; attached to TC-412
+        &lt;/TimelineEvent&gt;
+      &lt;/&gt;
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;A run with no person behind it is never attributed to one: it reads &quot;4 system events&quot;, not a bot’s name. `ActivityGroup.actor` holds whichever bot happened to be first, so naming it would credit a deploy to CI.&#39;,
+      },
+    },
+  },
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { Badge, TimelineEvent, TimelineGroup } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Collapsed</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Collapsed = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open={false}
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Open</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Open = () =&gt; &lt;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">With System Extra</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithSystemExtra = () =&gt; &lt;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· status, description · 1d 8h ago&quot;
+    open
+    onOpenChange={() =&gt; {}}&gt;(&lt;&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+        changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
+        &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent
+        variant=&quot;nested&quot;
+        muted
+        icon=&quot;task_alt&quot;
+        timestamp=&quot;1d 8h ago&quot;
+      &gt;
+        Build #1847 triggered automatically
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;edit&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+        updated the description
+      &lt;/TimelineEvent&gt;
+    &lt;/&gt;)&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Capped</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Capped = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={9}
+    summary=&quot;Jordan D. performed 9 updates&quot;
+    meta=&quot;· status, description, labels · 1d 8h ago&quot;
+    open
+    onOpenChange={() =&gt; {}}
+    moreLabel=&quot;Show 5 more&quot;&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Matching</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Matching = () =&gt; &lt;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open
+    onOpenChange={() =&gt; {}}
+    matchLabel=&quot;1 of 2 match&quot;&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Long Summary</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const LongSummary = () =&gt; &lt;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode
+    count={2}
+    summary=&quot;Bartholomew Featherstonehaugh-Wellesley performed 14 updates&quot;
+    meta=&quot;· status, description, labels, sprint, priority · 1d 8h ago&quot;
+    open={false}
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">System Only</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const SystemOnly = () =&gt; &lt;TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode
+    count={4}
+    summary=&quot;4 system events&quot;
+    meta=&quot;· CI, deploys, QA runs · 20m ago&quot;
+    open
+    onOpenChange={() =&gt; {}}&gt;(&lt;&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;task_alt&quot; timestamp=&quot;34m ago&quot;&gt;
+        Build &lt;b&gt;#1847&lt;/b&gt; passed on &lt;b&gt;QA-01&lt;/b&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;science&quot; timestamp=&quot;28m ago&quot;&gt;
+        QA scenario &lt;b&gt;TC-412&lt;/b&gt; marked Failed
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;file_upload&quot; timestamp=&quot;24m ago&quot;&gt;
+        Deployed &lt;b&gt;edge-gateway-service&lt;/b&gt; to &lt;b&gt;QA-02&lt;/b&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;image&quot; timestamp=&quot;20m ago&quot;&gt;
+        Evidence &lt;b&gt;rate_429.png&lt;/b&gt; attached to TC-412
+      &lt;/TimelineEvent&gt;
+    &lt;/&gt;)&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
         </div>
     
