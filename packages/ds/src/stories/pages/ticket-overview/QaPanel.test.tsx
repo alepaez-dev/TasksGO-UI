@@ -10,12 +10,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function Harness() {
+function Harness({ activeEnvironment }: { activeEnvironment?: string } = {}) {
   const s = useTicketOverviewState();
   return (
     <QaPanel
       environments={ticket.qa.environments}
-      activeEnvironment={s.activeEnvironment}
+      activeEnvironment={activeEnvironment ?? s.activeEnvironment}
       onEnvironmentChange={s.setActiveEnvironment}
       envSelector={s.envSelector}
       scenarios={s.qaScenarios}
@@ -65,5 +65,27 @@ describe('QaPanel — status prompt presentation', () => {
     const prompt = screen.getByRole('dialog', { name: 'Waive scenario' });
     expect(prompt).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+  });
+
+  it('keeps the promote target aligned with the environment it shows', async () => {
+    render(<Harness activeEnvironment="does-not-exist" />);
+
+    const [first, second] = ticket.qa.environments;
+    expect(
+      screen.getByRole('button', { name: new RegExp(first.label) }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: new RegExp(`Promote to ${second.label}`),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('offers no promote action on the last environment in the chain', () => {
+    const last = ticket.qa.environments[ticket.qa.environments.length - 1];
+    render(<Harness activeEnvironment={last.value} />);
+    expect(
+      screen.queryByRole('button', { name: /Promote to/ }),
+    ).not.toBeInTheDocument();
   });
 });

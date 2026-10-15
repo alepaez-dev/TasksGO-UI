@@ -5,8 +5,6 @@ import { backwardStops, focusOrderWithin } from '../helpers/focusOrder';
 const STORY_ID = 'components-filepreviewoverlay--mobile';
 const NO_PREVIEW_STORY_ID = 'components-filepreviewoverlay--mobile-no-preview';
 
-const DIALOG = '[role="dialog"]';
-
 /**
  * Dispatches a real one-finger drag across `target`. The listener sits on the
  * overlay backdrop, so a touch anywhere inside the overlay bubbles to it.
@@ -70,7 +68,7 @@ test.describe('FilePreviewOverlay — stacked layout', () => {
   test('keeps every control inside the viewport', async ({ page }) => {
     await expectStackedLayout(page);
 
-    const overflowing = await page.locator(DIALOG).evaluate((dialog) => {
+    const overflowing = await page.getByRole('dialog').evaluate((dialog) => {
       const limit = window.innerWidth + 0.5;
       const insideScroller = (el: Element) => {
         for (
@@ -95,14 +93,14 @@ test.describe('FilePreviewOverlay — stacked layout', () => {
   test('tab order follows the stacked visual order', async ({ page }) => {
     await expectStackedLayout(page);
 
-    const stops = await focusOrderWithin(page, DIALOG);
+    const stops = await focusOrderWithin(page.getByRole('dialog'));
     expect(backwardStops(stops)).toEqual([]);
   });
 
   test('lays the nav row above the counter row', async ({ page }) => {
     await expectStackedLayout(page);
 
-    const boxes = await page.locator(DIALOG).evaluate((dialog) => {
+    const boxes = await page.getByRole('dialog').evaluate((dialog) => {
       const y = (sel: string) => {
         const el = dialog.querySelector(sel);
         return el === null ? null : Math.round(el.getBoundingClientRect().y);
@@ -117,7 +115,9 @@ test.describe('FilePreviewOverlay — stacked layout', () => {
 
     // prev / Download / next share row 4
     expect(Math.abs((boxes.prev ?? 0) - (boxes.next ?? 0))).toBeLessThan(24);
-    expect(Math.abs((boxes.prev ?? 0) - (boxes.download ?? 0))).toBeLessThan(24);
+    expect(Math.abs((boxes.prev ?? 0) - (boxes.download ?? 0))).toBeLessThan(
+      24,
+    );
     // Download all sits on its own row underneath
     expect(boxes.downloadAll ?? 0).toBeGreaterThan(boxes.download ?? 0);
   });

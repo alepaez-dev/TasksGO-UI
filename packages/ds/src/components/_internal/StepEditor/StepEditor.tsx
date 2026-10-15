@@ -1,5 +1,6 @@
 import { useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { Icon } from '../../Icon';
+import { flushSync } from 'react-dom';
 import { cn } from '../../../utils/cn';
 import { useAutoGrowTextarea } from '../../../hooks/useAutoGrowTextarea';
 import controls from '../controls.module.css';
@@ -130,8 +131,15 @@ export function StepEditor({
       ))}
       <button
         type="button"
-        className={cn(controls.addButton, styles.addStepSpacing)}
-        onClick={() => onStepsChange([...steps, ''])}
+        className={cn(
+          controls.addButton,
+          steps.length > 0 && styles.addStepSpacing,
+        )}
+        onClick={() => {
+          flushSync(() => onStepsChange([...steps, '']));
+          const areas = editorRef.current?.querySelectorAll('textarea');
+          areas?.[areas.length - 1]?.focus();
+        }}
       >
         <Icon name="add" size="sm" />
         Add step

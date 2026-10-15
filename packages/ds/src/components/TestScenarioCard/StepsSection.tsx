@@ -1,4 +1,5 @@
 import { useRef, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import { EditToggle } from '../EditToggle';
 import { Icon } from '../Icon';
 import { SectionHeader } from '../SectionHeader';
@@ -70,11 +71,11 @@ export function StepsSection({
         type="button"
         className={controls.addButton}
         onClick={() => {
-          onStepsChange(['']);
-          onEditingChange(true);
-          requestAnimationFrame(() => {
-            sectionRef.current?.querySelector('textarea')?.focus();
+          flushSync(() => {
+            onStepsChange(['']);
+            onEditingChange(true);
           });
+          sectionRef.current?.querySelector('textarea')?.focus();
         }}
       >
         <Icon name="add" size="sm" />

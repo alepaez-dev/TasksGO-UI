@@ -29,4 +29,17 @@ describe('StatusDot', () => {
     render(<StatusDot label="Active" className="custom" />);
     expect(screen.getByRole('img')).toHaveClass('custom');
   });
+
+  it('exposes the label to assistive tech', () => {
+    render(<StatusDot variant="high" label="Pipeline Unstable" />);
+    expect(
+      screen.getByRole('img', { name: 'Pipeline Unstable' }),
+    ).toBeInTheDocument();
+  });
+
+  it('is decorative when the label is empty', () => {
+    const { container } = render(<StatusDot variant="high" label="" />);
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(container.firstElementChild).toHaveAttribute('aria-hidden', 'true');
+  });
 });

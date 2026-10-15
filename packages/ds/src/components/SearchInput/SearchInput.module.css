@@ -118,6 +118,6 @@
 @media (pointer: coarse) {
   .md .input,
   .sm .input {
-    font-size: 16px;
+    font-size: var(--ds-text-input-touch-font-size);
   }
 }

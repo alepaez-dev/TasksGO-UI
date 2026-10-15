@@ -4,6 +4,7 @@ import type {
   QaScenario,
   ChecklistItem,
 } from './shared';
+import type { QaEnvironmentOption } from '../../../components/QaEnvironmentCard';
 
 export function formatByline(byline: QaScenarioByline): string {
   if ('person' in byline) {
@@ -48,4 +49,18 @@ export function healthDotVariant(
   if (health === 'unstable') return 'high';
   if (health === 'degraded') return 'critical';
   return 'active';
+}
+
+export function toEnvironmentOptions(
+  environments: readonly QaEnvironment[],
+): QaEnvironmentOption[] {
+  return environments.map((env) => ({
+    value: env.value,
+    label: env.label,
+    reviewStatus: env.reviewStatus,
+    lastDeployment: env.lastDeployment,
+    healthVariant: healthDotVariant(env.health),
+    pipelineLabel: env.pipeline.label,
+    pipelineVariant: env.pipeline.status === 'passing' ? 'active' : 'high',
+  }));
 }

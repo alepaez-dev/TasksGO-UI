@@ -286,6 +286,7 @@ export const TestScenarioCard = forwardRef<
             {onTitleChange ? (
               <EditableTitle
                 as="span"
+                fullWidth={stacked}
                 titleClassName={styles.title}
                 editButton={stacked ? 'always-icon' : 'always'}
                 toggleClassName={styles.titleEdit}
@@ -521,6 +522,7 @@ export const TestScenarioCard = forwardRef<
                 />
               </div>
               <OptionList
+                className={styles.statusSheetOptions}
                 options={STATUS_SHEET_OPTIONS}
                 value={status}
                 onSelect={(value) => {

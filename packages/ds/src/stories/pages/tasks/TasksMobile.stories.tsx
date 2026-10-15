@@ -1,4 +1,5 @@
-import { useState, useRef, type CSSProperties } from 'react';
+import { useState, useRef } from 'react';
+import { fabAboveTabBarStyle } from '../../helpers/fabOffset';
 import type { Meta, StoryObj } from '@storybook/react';
 import { withDefaultViewport } from '../../../../.storybook/decorators';
 import { mobileViewportOptions } from '../../../../.storybook/preview';
@@ -42,12 +43,6 @@ import { useTasksState } from './useTasksState';
 import searchPillStyles from '../../helpers/searchPill.module.css';
 import headerLayoutStyles from '../../helpers/headerLayout.module.css';
 import styles from './TasksMobile.module.css';
-
-// Lift the FAB above the BottomTabBar; the default offset assumes no tab bar.
-const fabOffsetOverride = {
-  '--ds-space-fab-bottom-offset':
-    'var(--ds-space-fab-bottom-offset-above-tab-bar)',
-} as CSSProperties;
 
 type MoreMenuView = 'menu' | 'picker';
 
@@ -96,7 +91,7 @@ function TasksMobileRender({
   );
 
   return (
-    <div className={styles.shell} style={fabOffsetOverride}>
+    <div className={styles.shell} style={fabAboveTabBarStyle}>
       <Header
         compact
         left={

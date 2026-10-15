@@ -623,6 +623,29 @@ describe('TestScenarioCard', () => {
     expect(onStepsChange).toHaveBeenCalledWith(['first', 'second', '']);
   });
 
+  it('focuses the step it just added', async () => {
+    function Harness() {
+      const [steps, setSteps] = useState<readonly string[]>(['first']);
+      return (
+        <TestScenarioCard
+          {...base}
+          open
+          steps={steps}
+          onStepsChange={setSteps}
+          editingSections={['steps']}
+        />
+      );
+    }
+    render(<Harness />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Add step' }));
+    await waitFor(() => {
+      const areas = screen.getAllByRole('textbox');
+      expect(areas).toHaveLength(2);
+      expect(areas[1]).toHaveFocus();
+    });
+  });
+
   it('removes a step via its remove button', async () => {
     const onStepsChange = vi.fn();
     render(

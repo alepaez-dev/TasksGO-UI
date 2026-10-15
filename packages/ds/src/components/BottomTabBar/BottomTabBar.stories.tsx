@@ -1,4 +1,5 @@
-import { useState, type CSSProperties } from 'react';
+import { useState } from 'react';
+import { fabAboveTabBarStyle } from '../../stories/helpers/fabOffset';
 import type { Meta, StoryObj } from '@storybook/react';
 import { withDefaultViewport } from '../../../.storybook/decorators';
 import { mobileViewportOptions } from '../../../.storybook/preview';
@@ -163,14 +164,9 @@ export const ManyTabs: Story = {
   render: (args) => <InteractiveBar {...args} tabs={manyTabs} />,
 };
 
-const fabOffsetOverride = {
-  '--ds-space-fab-bottom-offset':
-    'var(--ds-space-fab-bottom-offset-above-tab-bar)',
-} as CSSProperties;
-
 export const WithFab: Story = {
   render: (args) => (
-    <div style={{ minHeight: '100vh', ...fabOffsetOverride }}>
+    <div style={{ minHeight: '100vh', ...fabAboveTabBarStyle }}>
       <Fab aria-label="New task" />
       <InteractiveBar {...args} tabs={defaultTabs} />
     </div>

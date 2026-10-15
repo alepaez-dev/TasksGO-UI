@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Locator } from '@playwright/test';
 
 const SAME_ROW_TOLERANCE = 24;
 
@@ -7,14 +7,9 @@ export interface FocusStop {
   readonly y: number;
 }
 
-export async function focusOrderWithin(
-  page: Page,
-  selector: string,
-): Promise<FocusStop[]> {
-  return page.evaluate((sel) => {
-    const root = document.querySelector(sel);
-    if (root === null) throw new Error(`no element matches ${sel}`);
-    const candidates = root.querySelectorAll<HTMLElement>(
+export async function focusOrderWithin(root: Locator): Promise<FocusStop[]> {
+  return root.evaluate((element) => {
+    const candidates = element.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]',
     );
     // sequential focus only: tabindex="-1" is programmatic, and a display:none
@@ -31,7 +26,7 @@ export async function focusOrderWithin(
       ).trim(),
       y: Math.round(el.getBoundingClientRect().y),
     }));
-  }, selector);
+  });
 }
 
 /** Stops that sit visually above the stop before them. */

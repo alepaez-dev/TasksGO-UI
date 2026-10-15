@@ -366,12 +366,37 @@ describe('FilePreviewOverlay', () => {
       </>
     );
     const { rerender } = render(withOpener(false));
-    screen.getByRole('button', { name: 'opener' }).focus();
+    const opener = screen.getByRole('button', { name: 'opener' });
+    opener.focus();
     rerender(withOpener(true));
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'opener' })).not.toHaveFocus(),
-    );
+    await waitFor(() => expect(opener).not.toHaveFocus());
     rerender(withOpener(false));
-    expect(screen.getByRole('button', { name: 'opener' })).toHaveFocus();
+    expect(opener).toHaveFocus();
+  });
+
+  it('makes the page behind it inert while open', async () => {
+    const withOpener = (open: boolean) => (
+      <>
+        <button type="button">opener</button>
+        <FilePreviewOverlay {...base} open={open} />
+      </>
+    );
+    const { rerender } = render(withOpener(false));
+    const opener = screen.getByRole('button', { name: 'opener' });
+    const background = opener.parentElement;
+    expect(background).not.toBeNull();
+    expect(background).not.toHaveAttribute('inert');
+
+    rerender(withOpener(true));
+    await waitFor(() => {
+      expect(background).toHaveAttribute('inert');
+      expect(background).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    rerender(withOpener(false));
+    await waitFor(() => {
+      expect(background).not.toHaveAttribute('inert');
+      expect(background).not.toHaveAttribute('aria-hidden');
+    });
   });
 });

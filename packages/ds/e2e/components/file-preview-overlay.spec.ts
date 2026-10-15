@@ -22,7 +22,7 @@ test.describe('FilePreviewOverlay — wide layout', () => {
       )
       .toBeLessThan(200);
 
-    const stops = await focusOrderWithin(page, '[role="dialog"]');
+    const stops = await focusOrderWithin(page.getByRole('dialog'));
     expect(backwardStops(stops)).toEqual([]);
   });
 });

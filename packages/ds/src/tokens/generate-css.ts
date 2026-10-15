@@ -11,7 +11,12 @@
  */
 
 import { colors } from './colors.ts';
-import { fontFamilies, fontWeights, typographyScale } from './typography.ts';
+import {
+  fontFamilies,
+  fontWeights,
+  inputTouch,
+  typographyScale,
+} from './typography.ts';
 import { spacing } from './spacing.ts';
 import { radius } from './radius.ts';
 import { elevation } from './elevation.ts';
@@ -172,6 +177,11 @@ export function generateTokensCSS(): string {
 
   for (const [name, value] of Object.entries(fontWeights)) {
     lines.push(`  --ds-font-weight-${camelToKebab(name)}: ${value};`);
+  }
+  lines.push('');
+
+  for (const [prop, value] of Object.entries(inputTouch)) {
+    lines.push(`  --ds-text-input-touch-${camelToKebab(prop)}: ${value};`);
   }
   lines.push('');
 

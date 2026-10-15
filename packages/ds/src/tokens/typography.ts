@@ -346,6 +346,10 @@ export const typographyScale = {
   },
 } as const satisfies Record<string, TypographyScale>;
 
+export const inputTouch = {
+  fontSize: '16px',
+} as const;
+
 export type TypographyScaleName = keyof typeof typographyScale;
 export type FontFamily = keyof typeof fontFamilies;
 export type FontWeight = keyof typeof fontWeights;

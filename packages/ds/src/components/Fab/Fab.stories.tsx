@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { fabAboveTabBarStyle } from '../../stories/helpers/fabOffset';
 import type { Meta, StoryObj } from '@storybook/react';
 import { iconRegistry, type IconName } from '../../icons';
 import { Fab } from './Fab';
@@ -6,11 +6,6 @@ import { BottomTabBar } from '../BottomTabBar';
 import { NavItem } from '../NavItem';
 import { withDefaultViewport } from '../../../.storybook/decorators';
 import { mobileViewportOptions } from '../../../.storybook/preview';
-
-const fabOffsetOverride = {
-  '--ds-space-fab-bottom-offset':
-    'var(--ds-space-fab-bottom-offset-above-tab-bar)',
-} as CSSProperties;
 
 const iconNames = Object.keys(iconRegistry) as IconName[];
 
@@ -59,7 +54,7 @@ export const ExtendedAboveTabBar: Story = {
   decorators: [withDefaultViewport('mobile')],
   parameters: { viewport: { options: mobileViewportOptions } },
   render: () => (
-    <div style={{ minHeight: '100vh', ...fabOffsetOverride }}>
+    <div style={{ minHeight: '100vh', ...fabAboveTabBarStyle }}>
       <Fab label="Add scenario" />
       <BottomTabBar aria-label="Main navigation">
         <NavItem
