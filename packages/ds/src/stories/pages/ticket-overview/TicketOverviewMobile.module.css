@@ -409,3 +409,11 @@
   font-family: var(--ds-font-family-sans);
   color: var(--ds-color-text-secondary);
 }
+
+.qaPanel {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: var(--ds-space-scale-lg);
+  padding-bottom: calc(var(--ds-space-fab-size) + var(--ds-space-scale-lg) * 2);
+}

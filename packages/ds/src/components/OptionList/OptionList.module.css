@@ -97,6 +97,16 @@
   align-items: flex-start;
 }
 
+.optionIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: calc(
+    var(--ds-text-nav-label-font-size) * var(--ds-text-nav-label-line-height)
+  );
+}
+
 .optionDescription {
   font-size: var(--ds-text-nav-label-sm-font-size);
   font-family: var(--ds-text-nav-label-sm-font-family);

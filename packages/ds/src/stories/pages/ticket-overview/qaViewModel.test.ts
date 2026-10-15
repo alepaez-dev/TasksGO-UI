@@ -4,8 +4,10 @@ import {
   healthDotVariant,
   countFailed,
   toChecklistItems,
+  toEnvironmentOptions,
 } from './qaViewModel';
 import type { QaScenario } from './shared';
+import { ticket } from './shared';
 
 const scenario = (overrides: Partial<QaScenario>): QaScenario => ({
   id: 'TC-1',
@@ -94,5 +96,36 @@ describe('qa helpers', () => {
         metaVariant: 'waived',
       },
     ]);
+  });
+});
+
+describe('toEnvironmentOptions', () => {
+  it('maps QA environments onto card options', () => {
+    const [first] = toEnvironmentOptions(ticket.qa.environments);
+    expect(first).toMatchObject({
+      value: 'qa-01',
+      label: 'QA-01',
+      reviewStatus: 'In review',
+      healthVariant: 'high',
+    });
+    expect(first.lastDeployment).toBe('24 mins ago');
+    expect(first.pipelineLabel).toBe('Unstable');
+    expect(first.pipelineVariant).toBe('high');
+  });
+
+  it('marks a passing pipeline active', () => {
+    const [option] = toEnvironmentOptions([
+      {
+        value: 'staging',
+        label: 'STAGING',
+        health: 'stable',
+        reviewStatus: 'Healthy',
+        lastDeployment: '1 day ago',
+        pipeline: { label: 'Healthy', status: 'passing' },
+      },
+    ]);
+    expect(option.pipelineVariant).toBe('active');
+    expect(option.healthVariant).toBe('active');
+    expect(option.reviewStatus).toBe('Healthy');
   });
 });

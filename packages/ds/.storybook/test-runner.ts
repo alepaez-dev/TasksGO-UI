@@ -24,8 +24,17 @@ const config: TestRunnerConfig = {
     const viewportOpts = storyContext.parameters?.viewport?.options as
       | Record<string, { name?: string }>
       | undefined;
-    const usesMobileViewportSet =
-      viewportOpts?.responsive?.name === 'Default';
+    const usesMobileViewportSet = viewportOpts?.responsive?.name === 'Default';
+
+    // the runner loads iframe.html with no manager to resize it, so the viewport
+    // global alone leaves mobile stories rendering desktop-wide. Set it on every
+    // story: the page is shared, so a mobile story would otherwise leave the
+    // narrow viewport in place for every story that follows it.
+    await page.setViewportSize(
+      usesMobileViewportSet
+        ? { width: 375, height: 812 }
+        : { width: 1280, height: 800 },
+    );
 
     if (usesMobileViewportSet) {
       await page
@@ -86,9 +95,7 @@ const config: TestRunnerConfig = {
     );
 
     if (results.violations.length > 0) {
-      throw new Error(
-        `A11y violations:\n${formatResults(results.violations)}`,
-      );
+      throw new Error(`A11y violations:\n${formatResults(results.violations)}`);
     }
 
     if (results.incomplete.length > 0) {

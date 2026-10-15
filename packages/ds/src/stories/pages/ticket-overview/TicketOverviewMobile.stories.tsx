@@ -50,10 +50,22 @@ import {
   tabs,
   ticket,
 } from './shared';
+import { QaPanel } from './QaPanel';
+import { Fab } from '../../../components/Fab';
+import { AddScenarioDialog } from '../../../components/AddScenarioDialog';
+import { fabAboveTabBarStyle } from '../../helpers/fabOffset';
 import headerLayoutStyles from '../../helpers/headerLayout.module.css';
 import styles from './TicketOverviewMobile.module.css';
 
 const TAB_ID_PREFIX = 'ticket-overview-mobile';
+
+const PANEL_TABS = ['dev', 'qa', 'activity'] as const;
+
+const TAB_PANEL_CLASS: Record<(typeof PANEL_TABS)[number], string> = {
+  dev: styles.devPanel,
+  qa: styles.qaPanel,
+  activity: styles.tabPanelEmpty,
+};
 
 type TicketCiStatus = DevData['repository']['ci']['status'];
 
@@ -83,9 +95,15 @@ const CI_CLASS: Record<TicketCiStatus, string> = {
 function TicketOverviewMobileRender({
   scratchpadSeed,
   initialActiveTab = 'overview',
+  initialEnvSheetOpen = false,
+  initialStatusSheetScenarioId,
+  initialStatusPrompt,
 }: {
   scratchpadSeed?: readonly ScratchpadLine[];
   initialActiveTab?: string;
+  initialEnvSheetOpen?: boolean;
+  initialStatusSheetScenarioId?: string;
+  initialStatusPrompt?: { scenarioId: string; status: 'waived' | 'pending' };
 } = {}) {
   const {
     activeTab,
@@ -143,7 +161,55 @@ function TicketOverviewMobileRender({
     taskSelectors,
     qaChecklist,
     qaFailedCount,
+    qaScenarios,
+    updateScenario,
+    expandedScenarioId,
+    toggleScenario,
+    statusSelectScenarioId,
+    setStatusSelectOpen,
+    editingSectionsById,
+    setScenarioEditingSections,
+    activeEnvironment,
+    setActiveEnvironment,
+    envSelector,
+    pendingStatusChange,
+    statusPromptOpen,
+    statusDraft,
+    setStatusDraft,
+    requestScenarioStatus,
+    confirmStatusChange,
+    cancelStatusChange,
+    openEvidencePreview,
+    addScenarioOpen,
+    scenarioDraft,
+    setScenarioDraft,
+    openAddScenario,
+    cancelAddScenario,
+    confirmAddScenario,
   } = useTicketOverviewState(scratchpadSeed, initialActiveTab);
+
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (seeded.current) return;
+    seeded.current = true;
+    if (initialEnvSheetOpen) envSelector.onOpenChange(true);
+    if (initialStatusSheetScenarioId) {
+      setStatusSelectOpen(initialStatusSheetScenarioId, true);
+    }
+    if (initialStatusPrompt) {
+      requestScenarioStatus(
+        initialStatusPrompt.scenarioId,
+        initialStatusPrompt.status,
+      );
+    }
+  }, [
+    initialEnvSheetOpen,
+    initialStatusSheetScenarioId,
+    initialStatusPrompt,
+    envSelector,
+    setStatusSelectOpen,
+    requestScenarioStatus,
+  ]);
   const activeProject = getProject('eng-core');
   const activeAssignee = getPerson(assignee);
   const activeReporter = getPerson(reporter);
@@ -235,7 +301,7 @@ function TicketOverviewMobileRender({
   }
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} style={fabAboveTabBarStyle}>
       <Header
         compact
         left={
@@ -397,17 +463,14 @@ function TicketOverviewMobileRender({
             </div>
           )}
 
-          {(['dev', 'qa', 'activity'] as const)
-            .filter((tabValue) => activeTab === tabValue)
-            .map((tabValue) => (
+          {PANEL_TABS.filter((tabValue) => activeTab === tabValue).map(
+            (tabValue) => (
               <div
                 key={tabValue}
                 role="tabpanel"
                 id={getTabPanelId(TAB_ID_PREFIX, tabValue)}
                 aria-labelledby={getTabId(TAB_ID_PREFIX, tabValue)}
-                className={
-                  tabValue === 'dev' ? styles.devPanel : styles.tabPanelEmpty
-                }
+                className={TAB_PANEL_CLASS[tabValue]}
               >
                 {tabValue === 'dev' ? (
                   <Scratchpad
@@ -436,15 +499,39 @@ function TicketOverviewMobileRender({
                     onBadgeOpenChange={scratchpad.onBadgeOpenChange}
                     onViewTask={openTaskDrawer}
                   />
+                ) : tabValue === 'qa' ? (
+                  <QaPanel
+                    environments={ticket.qa.environments}
+                    activeEnvironment={activeEnvironment}
+                    onEnvironmentChange={setActiveEnvironment}
+                    envSelector={envSelector}
+                    scenarios={qaScenarios}
+                    onUpdateScenario={updateScenario}
+                    expandedScenarioId={expandedScenarioId}
+                    onToggleScenario={toggleScenario}
+                    statusSelectScenarioId={statusSelectScenarioId}
+                    onStatusSelectOpenChange={setStatusSelectOpen}
+                    editingSectionsById={editingSectionsById}
+                    onEditingSectionsChange={setScenarioEditingSections}
+                    onOpenEvidence={openEvidencePreview}
+                    pendingStatusChange={pendingStatusChange}
+                    statusPromptOpen={statusPromptOpen}
+                    statusDraft={statusDraft}
+                    onStatusDraftChange={setStatusDraft}
+                    onRequestScenarioStatus={requestScenarioStatus}
+                    onConfirmStatusChange={confirmStatusChange}
+                    onCancelStatusChange={cancelStatusChange}
+                  />
                 ) : (
                   'Nothing here yet.'
                 )}
               </div>
-            ))}
+            ),
+          )}
         </div>
       </div>
 
-      {activeTab !== 'dev' && (
+      {activeTab !== 'dev' && activeTab !== 'qa' && (
         <div className={styles.actionBar}>
           <Button
             variant="primary"
@@ -460,6 +547,19 @@ function TicketOverviewMobileRender({
           />
         </div>
       )}
+
+      {activeTab === 'qa' && (
+        <Fab label="Add scenario" onClick={openAddScenario} />
+      )}
+
+      <AddScenarioDialog
+        presentation="sheet"
+        open={addScenarioOpen}
+        value={scenarioDraft}
+        onValueChange={setScenarioDraft}
+        onCancel={cancelAddScenario}
+        onConfirm={confirmAddScenario}
+      />
 
       <BottomTabBar aria-label="Main navigation">
         <NavItem
@@ -1018,6 +1118,7 @@ const LONG_SCRATCHPAD_SEED: readonly ScratchpadLine[] = [
 ];
 
 export const MobileLongNotes: Story = {
+  name: 'Mobile Dev tab (Long Notes)',
   render: () => (
     <TicketOverviewMobileRender scratchpadSeed={LONG_SCRATCHPAD_SEED} />
   ),
@@ -1033,4 +1134,37 @@ export const MobileLongNotes: Story = {
 
 export const MobileQa: Story = {
   render: () => <TicketOverviewMobileRender initialActiveTab="qa" />,
+};
+
+export const MobileQaEnvironmentSheet: Story = {
+  render: () => (
+    <TicketOverviewMobileRender initialActiveTab="qa" initialEnvSheetOpen />
+  ),
+};
+
+export const MobileQaStatusSheet: Story = {
+  render: () => (
+    <TicketOverviewMobileRender
+      initialActiveTab="qa"
+      initialStatusSheetScenarioId="TC-402"
+    />
+  ),
+};
+
+export const MobileQaWaive: Story = {
+  render: () => (
+    <TicketOverviewMobileRender
+      initialActiveTab="qa"
+      initialStatusPrompt={{ scenarioId: 'TC-402', status: 'waived' }}
+    />
+  ),
+};
+
+export const MobileQaReopen: Story = {
+  render: () => (
+    <TicketOverviewMobileRender
+      initialActiveTab="qa"
+      initialStatusPrompt={{ scenarioId: 'TC-402', status: 'pending' }}
+    />
+  ),
 };

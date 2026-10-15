@@ -1,1 +1,5 @@
-export { StatusDot, type StatusDotProps } from './StatusDot';
+export {
+  StatusDot,
+  type StatusDotProps,
+  type StatusDotVariant,
+} from './StatusDot';

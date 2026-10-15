@@ -2,7 +2,7 @@ import { forwardRef, type HTMLAttributes } from 'react';
 import { cn } from '../../utils/cn';
 import styles from './StatusDot.module.css';
 
-type StatusDotVariant =
+export type StatusDotVariant =
   | 'active'
   | 'critical'
   | 'high'
@@ -18,6 +18,12 @@ export interface StatusDotProps extends HTMLAttributes<HTMLSpanElement> {
 export const StatusDot = forwardRef<HTMLSpanElement, StatusDotProps>(
   ({ variant = 'active', label, className, ...rest }, ref) => {
     const classes = cn(styles.dot, styles[variant], className);
+
+    if (!label) {
+      return (
+        <span ref={ref} aria-hidden="true" className={classes} {...rest} />
+      );
+    }
 
     return (
       <span

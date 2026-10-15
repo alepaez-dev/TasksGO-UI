@@ -246,7 +246,7 @@ button.checkbox:focus-visible {
 @media (pointer: coarse) {
   .textGrid > .textArea,
   .textGrid::after {
-    font-size: 16px;
+    font-size: var(--ds-text-input-touch-font-size);
   }
 }
 
@@ -316,6 +316,7 @@ button.checkbox:focus-visible {
 }
 
 .lineContent {
+  display: block;
   position: relative;
   pointer-events: none;
 }

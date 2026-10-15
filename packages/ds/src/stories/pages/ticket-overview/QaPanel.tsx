@@ -3,11 +3,8 @@ import {
   TestScenarioCard,
   type TestScenarioCardPosition,
 } from '../../../components/TestScenarioCard';
-import { Selector } from '../../../components/Selector';
+import { QaEnvironmentCard } from '../../../components/QaEnvironmentCard';
 import { SectionHeader } from '../../../components/SectionHeader';
-import { StatusDot } from '../../../components/StatusDot';
-import { Button } from '../../../components/Button';
-import { Icon } from '../../../components/Icon';
 import type { UseSelectorStateReturn } from '../../../hooks/useSelector';
 import type {
   TestScenarioSection,
@@ -18,7 +15,7 @@ import { ReopenPendingDialog } from '../../../components/ReopenPendingDialog';
 import { useMediaQuery } from '../../../hooks/useMediaQuery';
 import { breakpoints } from '../../../tokens/interaction';
 import type { PendingStatusChange } from './useTicketOverviewState';
-import { formatByline, healthDotVariant } from './qaViewModel';
+import { formatByline, toEnvironmentOptions } from './qaViewModel';
 import type { QaEnvironment, QaScenario } from './shared';
 import { TEXT_LIKE_EVIDENCE } from '../../helpers/evidenceFixtures';
 import styles from './QaPanel.module.css';
@@ -103,14 +100,13 @@ export function QaPanel({
       null
     );
   };
-  const activeEnvIndex = environments.findIndex(
+  const foundEnvIndex = environments.findIndex(
     (env) => env.value === activeEnvironment,
   );
-  const activeEnv = environments[activeEnvIndex] ?? environments[0];
-  const nextEnv =
-    activeEnvIndex >= 0 && activeEnvIndex + 1 < environments.length
-      ? environments[activeEnvIndex + 1]
-      : undefined;
+  const activeEnvIndex = foundEnvIndex >= 0 ? foundEnvIndex : 0;
+  const environmentOptions = toEnvironmentOptions(environments);
+  const activeEnv = environments[activeEnvIndex];
+  const nextEnv = environments[activeEnvIndex + 1];
 
   const passingScenarioCount = scenarios.filter(
     (s) => s.status === 'passed',
@@ -123,75 +119,23 @@ export function QaPanel({
 
   return (
     <>
-      <div className={styles.envBar}>
-        <Selector
-          ref={envSelectorRef}
-          variant="inline"
-          triggerPrefix={
-            <span className={styles.envIcon}>
-              <Icon name="science" size="md" />
-            </span>
-          }
-          header={
-            <span className={styles.envMenuHeader}>Switch environment</span>
-          }
-          options={environments.map((env) => ({
-            value: env.value,
-            label: env.label,
-            meta: env.reviewStatus,
-          }))}
-          value={activeEnvironment}
-          onValueChange={onEnvironmentChange}
-          open={envSelectorOpen}
-          onOpenChange={onEnvSelectorOpenChange}
-          action={{
-            label: 'Manage environments',
-            icon: 'settings',
-            onClick: () => {},
-          }}
-          renderTriggerLabel={(option) => {
-            const env = environments.find((e) => e.value === option.value);
-            return (
-              <span className={styles.envTrigger}>
-                <span className={styles.envName}>
-                  ENVIRONMENT: {option.label}
-                </span>
-                <span className={styles.envDeploy}>
-                  Last deployment: {env?.lastDeployment}
-                </span>
-              </span>
-            );
-          }}
-          renderOptionIndicator={(option) => {
-            const env = environments.find((e) => e.value === option.value);
-            return (
-              <StatusDot
-                variant={env ? healthDotVariant(env.health) : 'info'}
-                label={env ? env.reviewStatus : ''}
-              />
-            );
-          }}
-          aria-label={`Environment: ${activeEnv.label}`}
-        />
-        <span className={styles.pipelineStatus}>
-          <span className={styles.pipelineLabel}>Pipeline status</span>
-          <span className={styles.pipelineValue}>
-            <StatusDot
-              variant={
-                activeEnv.pipeline.status === 'passing' ? 'active' : 'high'
+      <QaEnvironmentCard
+        wideSelectorRef={envSelectorRef}
+        environments={environmentOptions}
+        activeValue={activeEnv?.value ?? activeEnvironment}
+        onValueChange={onEnvironmentChange}
+        switcherOpen={envSelectorOpen}
+        onSwitcherOpenChange={onEnvSelectorOpenChange}
+        promote={
+          nextEnv
+            ? {
+                label: `Promote to ${nextEnv.label}`,
+                onClick: () => onEnvironmentChange(nextEnv.value),
               }
-              label={`Pipeline ${activeEnv.pipeline.label}`}
-            />
-            {activeEnv.pipeline.label}
-          </span>
-        </span>
-        {nextEnv && (
-          <Button variant="secondary" size="sm" className={styles.promote}>
-            Promote to {nextEnv.label}
-            <Icon name="chevron_right" size="sm" />
-          </Button>
-        )}
-      </div>
+            : undefined
+        }
+        onManageEnvironments={() => {}}
+      />
 
       <div className={styles.scenariosSection}>
         <div className={styles.scenariosHead}>

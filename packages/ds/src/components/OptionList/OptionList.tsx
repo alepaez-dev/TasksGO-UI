@@ -181,7 +181,9 @@ export const OptionList = forwardRef<HTMLDivElement, OptionListProps>(
                 onClick={() => onSelect(option.value)}
                 onKeyDown={handleOptionKeyDown(option.value)}
               >
-                {renderIndicator(option)}
+                <span className={styles.optionIndicator}>
+                  {renderIndicator(option)}
+                </span>
                 <span className={styles.optionText}>
                   <span className={styles.optionLabel}>{option.label}</span>
                   {descriptionId != null && (

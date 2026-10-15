@@ -2,6 +2,7 @@ import { useCallback, useEffect, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../../utils/cn';
 import { useScrollLock } from '../../../hooks/useScrollLock';
+import { useInertBackground } from '../../../hooks/useInertBackground';
 import { useOverlayLifecycle } from '../../../hooks/useOverlayLifecycle';
 import {
   transitionDurations,
@@ -54,6 +55,7 @@ export function OverlayShell({
   );
 
   useScrollLock(open);
+  useInertBackground(open);
 
   useEffect(() => {
     if (!open) return;
@@ -91,6 +93,7 @@ export function OverlayShell({
   return createPortal(
     <div
       ref={setBackdrop}
+      data-ds-overlay-portal=""
       data-ds-overlay={open ? 'open' : undefined}
       className={cn(styles.backdrop, isVisible && styles.open)}
       style={durationStyle}

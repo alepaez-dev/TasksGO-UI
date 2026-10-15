@@ -251,7 +251,7 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-scale-sm);
+  gap: var(--ds-space-scale-xs);
 }
 
 .sectionBody {
@@ -493,8 +493,16 @@
   cursor: pointer;
 }
 
+.card[data-stacked] .titleEdit {
+  min-width: var(--ds-space-touch-compact);
+  min-height: var(--ds-space-touch-compact);
+  align-items: flex-start;
+  padding: var(--ds-space-scale-xs);
+}
+
 .card[data-stacked] .statusTrigger {
   min-height: var(--ds-space-touch-target);
+  align-items: flex-start;
 }
 
 .statusSheet {
@@ -522,7 +530,12 @@
 }
 
 .card[data-stacked] .header {
+  align-items: flex-start;
   background-color: var(--ds-color-surface-hover);
+}
+
+.card[data-stacked] .header:last-child {
+  background-color: var(--ds-color-surface-primary);
 }
 
 .card[data-stacked] .body {
@@ -532,4 +545,17 @@
 .card[data-stacked] .bodyInner {
   background-color: var(--ds-color-surface-hover);
   padding: var(--ds-space-scale-md);
+}
+
+.statusSheetOptions {
+  margin-inline: calc(
+    -1 * (var(--ds-space-dropdown-inset) + var(--ds-space-nav-item-padding-x))
+  );
+}
+
+@media (pointer: coarse) {
+  .editorTextarea,
+  textarea.title {
+    font-size: var(--ds-text-input-touch-font-size);
+  }
 }

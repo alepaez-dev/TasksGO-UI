@@ -1,9 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import { storyUrl } from '../helpers/storyUrl';
 import { backwardStops, focusOrderWithin } from '../helpers/focusOrder';
+import { editToggles, evidenceRowCounts } from '../helpers/scenarioCard';
 
 const STORY_ID = 'components-testscenariocard--all-evidence-types';
-const CARD = '[class*="_card_"]';
 
 const statusTrigger = (page: Page) =>
   page.getByRole('button', { name: 'Set scenario status' });
@@ -25,7 +25,7 @@ test.describe('TestScenarioCard — wide layout', () => {
   test('tab order follows the visual order', async ({ page }) => {
     await expectWideLayout(page);
 
-    const stops = await focusOrderWithin(page, CARD);
+    const stops = await focusOrderWithin(page.locator('body'));
     expect(backwardStops(stops)).toEqual([]);
   });
 
@@ -37,7 +37,7 @@ test.describe('TestScenarioCard — wide layout', () => {
     await expect(
       page.getByRole('button', { name: 'Mark as Passed' }),
     ).toBeVisible();
-    await expect(page.locator('[class*="_assignee_"]')).toHaveCount(1);
+    await expect(page.getByRole('img', { name: 'Jordan D.' })).toHaveCount(1);
   });
 
   test('labels its edit toggles with text, not a bare pencil', async ({
@@ -45,7 +45,11 @@ test.describe('TestScenarioCard — wide layout', () => {
   }) => {
     await expectWideLayout(page);
 
-    await expect(page.locator('[class*="_iconOnly_"]')).toHaveCount(0);
+    const labelled = await editToggles(page).evaluateAll((els) =>
+      els.map((el) => (el.textContent ?? '').trim()),
+    );
+    expect(labelled).toHaveLength(5);
+    expect(labelled.filter((text) => text === '')).toEqual([]);
     await expect(
       page.getByRole('button', { name: 'Edit Description' }),
     ).toContainText('Edit');
@@ -54,12 +58,7 @@ test.describe('TestScenarioCard — wide layout', () => {
   test('lays evidence three-up', async ({ page }) => {
     await expectWideLayout(page);
 
-    const columns = await page
-      .locator('[class*="_evidence_"]')
-      .first()
-      .evaluate(
-        (el) => getComputedStyle(el).gridTemplateColumns.split(' ').length,
-      );
-    expect(columns).toBe(3);
+    await page.getByRole('button', { name: /more/i }).click();
+    expect(await evidenceRowCounts(page)).toEqual([3, 3, 1]);
   });
 });

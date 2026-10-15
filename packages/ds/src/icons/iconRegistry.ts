@@ -31,6 +31,7 @@ import { FormatListBulletedIcon } from './formatListBulleted';
 import { FormatQuoteIcon } from './formatQuote';
 import { HeadingIcon } from './heading';
 import { HelpIcon } from './help';
+import { HourglassIcon } from './hourglass';
 import { ImageIcon } from './image';
 import { LinkIcon } from './link';
 import { LockIcon } from './lock';
@@ -81,6 +82,7 @@ export const iconRegistry = {
   format_quote: FormatQuoteIcon,
   heading: HeadingIcon,
   help: HelpIcon,
+  hourglass: HourglassIcon,
   image: ImageIcon,
   link: LinkIcon,
   lock: LockIcon,

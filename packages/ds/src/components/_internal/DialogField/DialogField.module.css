@@ -65,3 +65,9 @@
   line-height: var(--ds-text-metadata-line-height);
   color: var(--ds-color-text-secondary);
 }
+
+@media (pointer: coarse) {
+  .control {
+    font-size: var(--ds-text-input-touch-font-size);
+  }
+}

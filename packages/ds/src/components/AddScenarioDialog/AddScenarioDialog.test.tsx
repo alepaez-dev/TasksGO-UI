@@ -222,6 +222,26 @@ describe('AddScenarioDialog', () => {
     expect(onValueChange).toHaveBeenCalledWith({ ...empty, steps: [''] });
   });
 
+  it('focuses the first step it adds', async () => {
+    function Harness() {
+      const [draft, setDraft] = useState<NewScenarioDraft>(empty);
+      return (
+        <AddScenarioDialog
+          {...base}
+          open
+          value={draft}
+          onValueChange={setDraft}
+        />
+      );
+    }
+    render(<Harness />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Add step' }));
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: /Step 1/i })).toHaveFocus(),
+    );
+  });
+
   it('emits edited step text on the draft', async () => {
     const onValueChange = vi.fn();
     render(

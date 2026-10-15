@@ -30,8 +30,8 @@ const scrollbar = {
 } as const;
 
 const status = {
-  critical: '#dc2626',
-  high: '#b45309',
+  critical: '#d52525',
+  high: '#b05109',
   medium: '#7560c2',
   low: '#737373',
   info: '#2563eb',

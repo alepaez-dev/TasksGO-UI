@@ -58,7 +58,11 @@ export {
   ChecklistRow,
   type ChecklistRowProps,
 } from './components/ChecklistRow';
-export { StatusDot, type StatusDotProps } from './components/StatusDot';
+export {
+  StatusDot,
+  type StatusDotProps,
+  type StatusDotVariant,
+} from './components/StatusDot';
 export { StepList, type StepListProps } from './components/StepList';
 export { Badge, type BadgeProps } from './components/Badge';
 export { NavItem, type NavItemProps } from './components/NavItem';
@@ -208,6 +212,11 @@ export {
   type ConfirmDialogField,
   type ConfirmDialogPresetProps,
 } from './components/ConfirmDialog';
+export {
+  QaEnvironmentCard,
+  type QaEnvironmentCardProps,
+  type QaEnvironmentOption,
+} from './components/QaEnvironmentCard';
 export {
   WaiveScenarioDialog,
   type WaiveScenarioDialogProps,

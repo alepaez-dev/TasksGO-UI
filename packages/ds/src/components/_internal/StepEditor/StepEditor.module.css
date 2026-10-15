@@ -66,3 +66,9 @@
   margin-top: var(--ds-space-scale-md);
   margin-inline-start: var(--ds-space-scale-sm);
 }
+
+@media (pointer: coarse) {
+  .stepInput {
+    font-size: var(--ds-text-input-touch-font-size);
+  }
+}
