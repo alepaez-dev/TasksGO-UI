@@ -149,7 +149,10 @@ function buildRequestParams(model, { config, system, tools, messages, maxTokens 
   };
 }
 
-async function streamRoundWithRetry({ client, models, startIdx, maxRetries, baseDelay, params, log }) {
+const refusalCategory = (msg) => msg.stop_details?.category ?? 'uncategorized';
+const contextTokens = (usage) => (usage?.input_tokens ?? 0) + (usage?.cache_read_input_tokens ?? 0) + (usage?.cache_creation_input_tokens ?? 0);
+
+async function streamRoundWithRetry({ client, models, startIdx, maxRetries, baseDelay, params, log, canSwitchTo }) {
   let lastErr;
   for (let idx = startIdx; idx < models.length; idx++) {
     const model = models[idx];
@@ -163,14 +166,18 @@ async function streamRoundWithRetry({ client, models, startIdx, maxRetries, base
         if (!isTransientError(e)) throw e;
         lastErr = e;
         const moreAttempts = attempt < maxRetries;
-        const moreModels = idx < models.length - 1;
-        if (!moreAttempts && !moreModels) throw e;
+        const nextModel = models[idx + 1];
+        const moreModels = Boolean(nextModel) && canSwitchTo(nextModel);
+        if (!moreAttempts && !moreModels) {
+          if (nextModel) log(`transient API error on ${model} (retries exhausted): ${errMsg(e)} — not falling back to ${nextModel}: a cold-cache round there would cross the cost ceiling`);
+          throw e;
+        }
         if (moreAttempts) {
           const delay = baseDelay * 2 ** attempt;
           log(`transient API error on ${model} (attempt ${attempt + 1}/${maxRetries + 1}): ${errMsg(e)}${delay ? ` — retrying in ${delay}ms` : ''}`);
           if (delay) await sleep(delay);
         } else {
-          log(`transient API error on ${model} (retries exhausted): ${errMsg(e)} — falling back to ${models[idx + 1]}`);
+          log(`transient API error on ${model} (retries exhausted): ${errMsg(e)} — falling back to ${nextModel}`);
           break;
         }
       }
@@ -300,6 +307,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   };
 
   const canAffordBounce = () => !governor.wouldExceed(governor.projectTerminalTurnUsd(lastUsage, models[modelIdx]));
+  const canAffordColdRound = (model, tokens) => !governor.wouldExceed(governor.projectColdRoundUsd(tokens, model));
+  const nextRoundContext = () => contextTokens(lastUsage) + (lastUsage?.output_tokens ?? 0);
+  const canSwitchTo = (model) => canAffordColdRound(model, nextRoundContext());
 
   while (true) {
     const roundStart = Date.now();
@@ -356,6 +366,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         baseDelay,
         params: { config, system, tools, messages, maxTokens: roundCap },
         log,
+        canSwitchTo,
       });
       if (res.msg?.stop_reason === 'max_tokens' && roundCap < config.maxOutputTokens) {
         governor.record(res.msg.usage, models[res.idx]);
@@ -379,6 +390,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
             baseDelay,
             params: { config, system, tools, messages, maxTokens: retryCap },
             log,
+            canSwitchTo,
           });
         }
       }
@@ -393,6 +405,25 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     // The truncated turn was billed but its tool call is unusable, and there is no budget to redo it.
     // Stop with whatever is banked
     if (truncatedUnaffordable) {
+      findings = findings ?? [];
+      break;
+    }
+    if (msg.stop_reason === 'refusal') {
+      governor.record(msg.usage, models[modelIdx]);
+      const nextModel = models[modelIdx + 1];
+      const category = refusalCategory(msg);
+      const notRetried =
+        !nextModel ? 'no fallback model'
+        : category === 'reasoning_extraction' ? `${category} is not retried on another model`
+        : !canAffordColdRound(nextModel, Math.max(contextTokens(msg.usage), nextRoundContext())) ? `a cold-cache round on ${nextModel} would cross the cost ceiling`
+        : null;
+      if (!notRetried) {
+        log(`${models[modelIdx]} declined the request (refusal: ${category}) — retrying on ${nextModel}`);
+        modelIdx += 1;
+        continue;
+      }
+      governor.interrupt('refusal');
+      log(`round ${rounds + 1}/${config.maxRounds}: ${models[modelIdx]} declined the request (refusal: ${category}) — ${notRetried}; stopping with what is banked.`);
       findings = findings ?? [];
       break;
     }

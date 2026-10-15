@@ -25,6 +25,10 @@ export function createGovernor({ config }) {
     const basis = lastUsage ?? { input_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0, output_tokens: 0 };
     return priceFor({ ...basis, output_tokens: Math.max(basis.output_tokens ?? 0, floor) }, model);
   }
+  function projectColdRoundUsd(contextTokens, model = config.model) {
+    const floor = config.terminalOutputTokens ?? 8000;
+    return priceFor({ input_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: contextTokens, output_tokens: floor }, model);
+  }
   function affordableOutputTokens(lastUsage, model = config.model, budgetUsd = 0) {
     const basis = { ...(lastUsage ?? ZERO), output_tokens: 0 };
     const rate = (config.pricing?.[model]?.output ?? config.pricing?.[config.model]?.output ?? 0) / 1e6;
@@ -47,6 +51,7 @@ export function createGovernor({ config }) {
     budgetFraction,
     totalUsage: () => total,
     projectTerminalTurnUsd,
+    projectColdRoundUsd,
     affordableOutputTokens,
     wouldExceed,
     interrupt,
