@@ -98,7 +98,7 @@ export const Muted: Story = {
     docs: {
       description: {
         story:
-          'De-emphasis via italic and a smaller size — deliberately not colour, since the palette has nothing dimmer than `text-secondary` that clears WCAG AA. Used in the activity feed for automated events that happened inside a person’s run: present for context, but not one of their updates.',
+          'De-emphasis via italic and a smaller size, keeping `text-secondary`. Used in the activity feed for automated events that happened inside a person’s run: present for context, but not one of their updates.',
       },
     },
   },
