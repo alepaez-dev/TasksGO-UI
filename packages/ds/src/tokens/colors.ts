@@ -16,6 +16,7 @@ const text = {
 
 const border = {
   default: '#f0f0f0',
+  strong: '#c8c8c8',
 } as const;
 
 const surface = {

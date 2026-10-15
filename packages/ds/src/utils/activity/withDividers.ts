@@ -23,6 +23,10 @@ function nodeEnd(node: ActivityNode): string {
     : node.items[node.items.length - 1].at;
 }
 
+function sameLocalYear(iso: string, now: string): boolean {
+  return new Date(iso).getFullYear() === new Date(now).getFullYear();
+}
+
 function relativeDay(iso: string, now: string): ActivityRelativeDay | null {
   const delta = toLocalDayNumber(now) - toLocalDayNumber(iso);
   if (delta === 0) return 'today';
@@ -47,7 +51,12 @@ export function withDividers(
     }
 
     if (previousAt === null || day !== toLocalDayNumber(previousAt)) {
-      feed.push({ type: 'dayDivider', at, relative: relativeDay(at, now) });
+      feed.push({
+        type: 'dayDivider',
+        at,
+        relative: relativeDay(at, now),
+        sameYear: sameLocalYear(at, now),
+      });
     } else {
       // Only within a day: across one, the day divider already marks the break.
       const gap = Math.abs(Date.parse(at) - Date.parse(previousAt));

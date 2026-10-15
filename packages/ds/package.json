@@ -32,6 +32,8 @@
     "test:ci": "vitest run",
     "lint": "eslint src/ && prettier --check src/",
     "lint:fix": "eslint src/ --fix && prettier --write src/",
+    "pretypecheck": "npm run typings",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "pretypecheck:stories": "npm run typings",
     "typecheck:stories": "tsc --noEmit -p tsconfig.stories.json",
     "storybook": "concurrently -n types,sb -k -c blue,magenta \"npm:typings:watch\" \"storybook dev -p 6006\"",
