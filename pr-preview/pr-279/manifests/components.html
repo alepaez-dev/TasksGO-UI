@@ -11923,7 +11923,7 @@ interface TimelineGroupStoryArgs {
   summary: ReactNode;
   meta?: ReactNode;
   open: boolean;
-  onOpenChange?: (open: boolean) =&gt; void;
+  onOpenChange: (open: boolean) =&gt; void;
   matchLabel?: ReactNode;
   moreLabel?: ReactNode;
   children: ReactNode;
@@ -11958,6 +11958,7 @@ const meta = {
     summary: &#39;Jordan D. performed 2 updates&#39;,
     meta: &#39;· labels, sprint · 1d 2h ago&#39;,
     open: false,
+    onOpenChange: () =&gt; {},
   },
   decorators: [
     (Story) =&gt; (
@@ -12183,7 +12184,8 @@ export const SystemOnly: Story = {
     count={2}
     summary=&quot;Jordan D. performed 2 updates&quot;
     meta=&quot;· labels, sprint · 1d 2h ago&quot;
-    open={false}&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+    open={false}
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -12196,7 +12198,8 @@ export const SystemOnly: Story = {
     count={2}
     summary=&quot;Jordan D. performed 2 updates&quot;
     meta=&quot;· labels, sprint · 1d 2h ago&quot;
-    open&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+    open
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -12209,7 +12212,8 @@ export const SystemOnly: Story = {
     count={2}
     summary=&quot;Jordan D. performed 2 updates&quot;
     meta=&quot;· status, description · 1d 8h ago&quot;
-    open&gt;(&lt;&gt;
+    open
+    onOpenChange={() =&gt; {}}&gt;(&lt;&gt;
       &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
         changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
         &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
@@ -12240,6 +12244,7 @@ export const SystemOnly: Story = {
     summary=&quot;Jordan D. performed 9 updates&quot;
     meta=&quot;· status, description, labels · 1d 8h ago&quot;
     open
+    onOpenChange={() =&gt; {}}
     moreLabel=&quot;Show 5 more&quot;&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
             </div>
             <div class="note ok">
@@ -12254,6 +12259,7 @@ export const SystemOnly: Story = {
     summary=&quot;Jordan D. performed 2 updates&quot;
     meta=&quot;· labels, sprint · 1d 2h ago&quot;
     open
+    onOpenChange={() =&gt; {}}
     matchLabel=&quot;1 of 2 match&quot;&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
@@ -12267,7 +12273,8 @@ export const SystemOnly: Story = {
     count={2}
     summary=&quot;Bartholomew Featherstonehaugh-Wellesley performed 14 updates&quot;
     meta=&quot;· status, description, labels, sprint, priority · 1d 8h ago&quot;
-    open={false}&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+    open={false}
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -12280,7 +12287,8 @@ export const SystemOnly: Story = {
     count={4}
     summary=&quot;4 system events&quot;
     meta=&quot;· CI, deploys, QA runs · 20m ago&quot;
-    open&gt;(&lt;&gt;
+    open
+    onOpenChange={() =&gt; {}}&gt;(&lt;&gt;
       &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;task_alt&quot; timestamp=&quot;34m ago&quot;&gt;
         Build &lt;b&gt;#1847&lt;/b&gt; passed on &lt;b&gt;QA-01&lt;/b&gt;
       &lt;/TimelineEvent&gt;
@@ -13146,7 +13154,7 @@ interface TimelineGroupStoryArgs {
   summary: ReactNode;
   meta?: ReactNode;
   open: boolean;
-  onOpenChange?: (open: boolean) =&gt; void;
+  onOpenChange: (open: boolean) =&gt; void;
   matchLabel?: ReactNode;
   moreLabel?: ReactNode;
   children: ReactNode;
@@ -13181,6 +13189,7 @@ const meta = {
     summary: &#39;Jordan D. performed 2 updates&#39;,
     meta: &#39;· labels, sprint · 1d 2h ago&#39;,
     open: false,
+    onOpenChange: () =&gt; {},
   },
   decorators: [
     (Story) =&gt; (
@@ -13406,7 +13415,8 @@ export const SystemOnly: Story = {
     count={2}
     summary=&quot;Jordan D. performed 2 updates&quot;
     meta=&quot;· labels, sprint · 1d 2h ago&quot;
-    open={false}&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+    open={false}
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -13419,7 +13429,8 @@ export const SystemOnly: Story = {
     count={2}
     summary=&quot;Jordan D. performed 2 updates&quot;
     meta=&quot;· labels, sprint · 1d 2h ago&quot;
-    open&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+    open
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -13432,7 +13443,8 @@ export const SystemOnly: Story = {
     count={2}
     summary=&quot;Jordan D. performed 2 updates&quot;
     meta=&quot;· status, description · 1d 8h ago&quot;
-    open&gt;(&lt;&gt;
+    open
+    onOpenChange={() =&gt; {}}&gt;(&lt;&gt;
       &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
         changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
         &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
@@ -13463,6 +13475,7 @@ export const SystemOnly: Story = {
     summary=&quot;Jordan D. performed 9 updates&quot;
     meta=&quot;· status, description, labels · 1d 8h ago&quot;
     open
+    onOpenChange={() =&gt; {}}
     moreLabel=&quot;Show 5 more&quot;&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
             </div>
             <div class="note ok">
@@ -13477,6 +13490,7 @@ export const SystemOnly: Story = {
     summary=&quot;Jordan D. performed 2 updates&quot;
     meta=&quot;· labels, sprint · 1d 2h ago&quot;
     open
+    onOpenChange={() =&gt; {}}
     matchLabel=&quot;1 of 2 match&quot;&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
@@ -13490,7 +13504,8 @@ export const SystemOnly: Story = {
     count={2}
     summary=&quot;Bartholomew Featherstonehaugh-Wellesley performed 14 updates&quot;
     meta=&quot;· status, description, labels, sprint, priority · 1d 8h ago&quot;
-    open={false}&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+    open={false}
+    onOpenChange={() =&gt; {}}&gt;{twoRows}&lt;/TimelineGroup as (props: TimelineGroupStoryArgs) =&gt; ReactNode&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -13503,7 +13518,8 @@ export const SystemOnly: Story = {
     count={4}
     summary=&quot;4 system events&quot;
     meta=&quot;· CI, deploys, QA runs · 20m ago&quot;
-    open&gt;(&lt;&gt;
+    open
+    onOpenChange={() =&gt; {}}&gt;(&lt;&gt;
       &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;task_alt&quot; timestamp=&quot;34m ago&quot;&gt;
         Build &lt;b&gt;#1847&lt;/b&gt; passed on &lt;b&gt;QA-01&lt;/b&gt;
       &lt;/TimelineEvent&gt;
