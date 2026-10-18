@@ -6,10 +6,12 @@ import styles from './SegmentedControl.module.css';
 export interface SegmentedControlOption {
   value: string;
   label: string;
+  count?: number;
   disabled?: boolean;
 }
 
 type SegmentedControlSize = 'sm' | 'md';
+type SegmentedControlVariant = 'toggle' | 'filter';
 
 export interface SegmentedControlProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
@@ -19,9 +21,23 @@ export interface SegmentedControlProps extends Omit<
   value: string;
   onValueChange: (value: string) => void;
   size?: SegmentedControlSize;
+  variant?: SegmentedControlVariant;
   idPrefix?: string;
   'aria-label'?: string;
 }
+
+const variantClasses = {
+  toggle: {
+    list: styles.toggleList,
+    segment: styles.toggle,
+    selected: styles.toggleSelected,
+  },
+  filter: {
+    list: styles.filterList,
+    segment: styles.filter,
+    selected: styles.filterSelected,
+  },
+} as const;
 
 export function getSegmentId(idPrefix: string, value: string): string {
   return `${idPrefix}-segment-${value}`;
@@ -41,6 +57,7 @@ export const SegmentedControl = forwardRef<
       value,
       onValueChange,
       size = 'md',
+      variant = 'toggle',
       idPrefix,
       'aria-label': ariaLabel,
       className,
@@ -60,7 +77,12 @@ export const SegmentedControl = forwardRef<
         role="tablist"
         aria-label={ariaLabel}
         aria-orientation="horizontal"
-        className={cn(styles.segmented, styles[size], className)}
+        className={cn(
+          styles.segmented,
+          variant === 'toggle' && styles[size],
+          variantClasses[variant].list,
+          className,
+        )}
         {...rest}
       >
         {options.map((option, index) => {
@@ -78,12 +100,17 @@ export const SegmentedControl = forwardRef<
               }
               className={cn(
                 styles.segment,
+                variantClasses[variant].segment,
                 selected && styles.selected,
+                selected && variantClasses[variant].selected,
                 option.disabled && styles.disabled,
               )}
               {...getTabProps(index)}
             >
               {option.label}
+              {option.count !== undefined && (
+                <span className={styles.count}>{option.count}</span>
+              )}
             </button>
           );
         })}

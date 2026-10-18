@@ -154,6 +154,13 @@ export const spacing = {
     lg: '24px',
     xl: '32px',
   },
+  segmentedControl: {
+    countGap: '6px',
+    filterGap: '2px',
+    filterPadding: '3px',
+    filterSegmentHeight: '30px',
+    filterSegmentPaddingX: '13px',
+  },
   breadcrumb: {
     gap: '8px',
   },
