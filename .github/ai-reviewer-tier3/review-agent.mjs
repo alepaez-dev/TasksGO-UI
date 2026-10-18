@@ -13,7 +13,7 @@ import { changedRatio, deletedLinesByHeadLine, renderWholeFileBlock, sizeBand } 
 import { TOOL_DEFS } from './tools.mjs';
 import {
   parseRootCauseMarkers, renderRootCauseComment, planRootCausePosts, resolveRootCauseMembers,
-  extractFindingBody, renderAlreadyReported, renderPriorRootCausesBlock,
+  extractFindingBody, renderAlreadyReported, renderPriorRootCausesBlock, titleKey,
 } from './root-causes.mjs';
 import {
   parseProgressComment, validateProgress, renderBankedRecordsBlock,
@@ -29,6 +29,7 @@ import {
   renderInlineBody,
   chunkSummaryComments,
   parseMarkers,
+  parseVerifyMarker,
   isTrustedMarkerComment,
   statusMarkerRe,
   parseStatusReviewedSha,
@@ -57,13 +58,21 @@ export function touchesFrontend(files) {
   return (files ?? []).some((f) => FRONTEND_EXTS.has(extname(f?.filename ?? '')));
 }
 
-const titleKey = (t) => String(t ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+export function fixedStatusByFp(comments, markerPrefix, trusted) {
+  const out = new Map();
+  for (const c of comments ?? []) {
+    if (!trusted(c)) continue;
+    const v = parseVerifyMarker(c.body, markerPrefix);
+    if (v && typeof v.fp === 'string' && typeof v.status === 'string') out.set(v.fp, { status: v.status, sha: v.sha });
+  }
+  return out;
+}
 
-// Turns the loop's clusters (member = finding TITLE) into posts (member = fp/title/file).
-export function buildRootCausePosts({ rootCauses, findings, priorMarkers, priorRootCauses }) {
+export function buildRootCausePosts({ rootCauses, findings, priorMarkers, priorRootCauses, unpostedTitles = [] }) {
+  const unposted = new Set(unpostedTitles.map(titleKey));
   const byTitle = new Map();
-  for (const m of priorMarkers ?? []) if (m?.title && m?.fp) byTitle.set(titleKey(m.title), { fp: m.fp, title: m.title, file: m.file });
-  for (const f of findings ?? []) if (f?.title && f?.fp) byTitle.set(titleKey(f.title), { fp: f.fp, title: f.title, file: f.file });
+  for (const m of priorMarkers ?? []) if (m?.title && m?.fp) byTitle.set(titleKey(m.title), { fp: m.fp, title: m.title, file: m.file, fixed: m.fixed === true });
+  for (const f of findings ?? []) if (f?.title && f?.fp && !unposted.has(titleKey(f.title))) byTitle.set(titleKey(f.title), { fp: f.fp, title: f.title, file: f.file, fixed: false });
   const resolved = [];
   const unresolved = [];
   for (const rc of rootCauses ?? []) {
@@ -358,16 +367,22 @@ async function main() {
   if (expandedWhole.length) core.info(`Sent whole-file instead of patch for: ${expandedWhole.join(', ')}`);
   const verifyView = coveredByPath.size ? buildDiffContext(files, config) : { diffText, skippedForSize, truncated };
 
-  // An inline comment carries exactly one finding, so its text IS that finding's body; summary
-  // comments bundle several, so those markers stay title-only.
+  const verifyByFp = fixedStatusByFp(reviewComments, markerPrefix, trusted);
+  const withFixed = (m) => {
+    const v = verifyByFp.get(m.fp);
+    return v?.status === 'fixed' ? { ...m, fixed: true, fixedSha: v.sha } : { ...m, fixed: false };
+  };
   const priorMarkers = [
     ...reviewComments.filter(trusted).flatMap((c) => {
       const markers = parseMarkers(c.body, markerPrefix);
-      const body = markers.length === 1 ? extractFindingBody(c.body) : '';
-      return markers.map((m) => ({ ...m, sha: c.original_commit_id, body }));
+      const isSingleFindingComment = markers.length === 1;
+      const body = isSingleFindingComment ? extractFindingBody(c.body) : '';
+      return markers.map((m) => withFixed({ ...m, sha: c.original_commit_id, body }));
     }),
-    ...issueComments.filter(trusted).flatMap((c) => parseMarkers(c.body, markerPrefix)),
+    ...issueComments.filter(trusted).flatMap((c) => parseMarkers(c.body, markerPrefix).map(withFixed)),
   ];
+  const fixedCount = priorMarkers.filter((m) => m.fixed).length;
+  if (fixedCount) core.info(`${fixedCount} of the previously reported finding(s) are verified fixed.`);
   const priorRootCauses = issueComments
     .filter(trusted)
     .flatMap((c) => parseRootCauseMarkers(c.body, markerPrefix).map((p) => ({ ...p, id: c.id })));
@@ -556,6 +571,7 @@ async function main() {
   const result = await runReviewAgent({
     client, config, system, userMessage, root: headDir, log: (m) => core.info(m),
     priorTitles: priorMarkers.map((m) => m.title),
+    priorFixedTitles: priorMarkers.filter((m) => m.fixed).map((m) => m.title),
   });
   const reviewCostUsd = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
   core.info(
@@ -703,9 +719,11 @@ async function main() {
     await upsert(renderProgressComment(payload));
   };
 
-  const postRootCauses = async () => {
+  const postRootCauses = async (unpostedFindings = []) => {
     if (!result.rootCauses?.length) return;
-    const { create, update, unchanged, unresolved } = buildRootCausePosts({ rootCauses: result.rootCauses, findings, priorMarkers, priorRootCauses });
+    const { create, update, unchanged, unresolved } = buildRootCausePosts({
+      rootCauses: result.rootCauses, findings, priorMarkers, priorRootCauses, unpostedTitles: unpostedFindings.map((f) => f.title),
+    });
     for (const rc of unresolved) core.info(`[root-cause] not posted — member(s) not resolvable to a posted finding: "${rc.title}" (${(rc.members ?? []).join(' | ')})`);
     for (const u of unchanged) core.info(`[root-cause] already posted, no new members: "${u.rootCause.title}"`);
     for (const rc of create) {
@@ -784,7 +802,7 @@ async function main() {
   }
 
   core.info(`Posted ${postedInline} inline comment(s)${postedGeneral ? ` and ${postedGeneral} finding(s) in a summary comment` : ''}.`);
-  await postRootCauses();
+  await postRootCauses(unposted);
 
   const fullySurfaced = reviewFullySurfaced({ postSummaryComment: config.postSummaryComment, generalCount: general.length, postedGeneral, failedInline });
   await writeProgressComment({ fullySurfaced, unposted });

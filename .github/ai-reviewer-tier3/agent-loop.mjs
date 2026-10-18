@@ -1,6 +1,9 @@
 import { TOOL_DEFS, makeToolRunner } from './tools.mjs';
 import { createGovernor } from './cost-governor.mjs';
-import { validateRootCauses, checkMechanismCitation, deriveClusterCandidates, uncoveredCandidates, coveredConcernsSharingOrigin } from './root-causes.mjs';
+import {
+  validateRootCauses, checkMechanismCitation, groupScanByOrigin, unclusteredGroups, coveredConcernsSharingOrigin,
+  resolveCitationLine, originKey, titleKey, renderRootCauseCorrection,
+} from './root-causes.mjs';
 
 const TASK_BUDGET_BETA = 'task-budgets-2026-03-13';
 
@@ -54,7 +57,7 @@ export function budgetPhase(frac, softFraction = 0.75) {
   return 'explore';
 }
 
-const CLEARANCE_VERDICTS = new Set(['cleared-all-five-passed', 'is-a-bug-moved-to-findings']);
+const DECIDED_VERDICTS = new Set(['cleared-all-five-passed', 'is-a-bug-moved-to-findings']);
 
 const SUFFICIENCY = 'A question you have already answered with a cited line is CLOSED — do not re-open it; spend the round on a question you have not answered.';
 
@@ -182,7 +185,7 @@ async function streamRoundWithRetry({ client, models, startIdx, maxRetries, base
   throw lastErr;
 }
 
-export async function runReviewAgent({ client, config, system, userMessage, root, log, priorTitles = [] }) {
+export async function runReviewAgent({ client, config, system, userMessage, root, log, priorTitles = [], priorFixedTitles = [] }) {
   const { run: runTool, servedFiles } = makeToolRunner({ root, config });
   const governor = createGovernor({ config });
   const tools = TOOL_DEFS;
@@ -213,8 +216,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let auditReported = false;
   let auditRejected = false;
   let hedgeRejected = false;
-  let rootCauseRejected = false;
-  let verdictRejected = false;
+  let correctionRejected = false;
+  let rootCausesRejected = false;
   let reasoningSoFar = '';
   let callSiteAudit = [];
   let confirmSuppressed = [];
@@ -453,10 +456,13 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         knownTitles: priorTitles,
         checkCitation: (m) => checkMechanismCitation(m, { root }),
       });
-      const scanGroups = deriveClusterCandidates(submittedScan);
-      const unclustered = uncoveredCandidates(scanGroups, Array.isArray(submittedRootCauses) ? submittedRootCauses : []);
-      const coveredMembers = coveredConcernsSharingOrigin(submittedScan);
-      const scanExpected = filedTitles.length + priorTitles.length >= 2;
+      const resolveLine = (c) => resolveCitationLine(c, { root });
+      const scanGroups = groupScanByOrigin(submittedScan, { resolveLine });
+      const unclustered = unclusteredGroups(scanGroups, Array.isArray(submittedRootCauses) ? submittedRootCauses : []);
+      const coveredMembers = coveredConcernsSharingOrigin(submittedScan, { resolveLine });
+      const fixedPrior = new Set(priorFixedTitles.map(titleKey));
+      const openPriorCount = priorTitles.filter((t) => !fixedPrior.has(titleKey(t))).length;
+      const scanExpected = filedTitles.length + openPriorCount >= 2;
       const scanMissing = scanExpected && !Array.isArray(submittedScan);
       const logRootCauses = () => {
         if (logLevel === 'quiet') return;
@@ -475,7 +481,9 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         for (const g of unclustered) log(`      unclustered · ${g.line} — ${g.titles.map((t) => `"${t}"`).join(', ')}`);
         for (const c of coveredMembers) log(`      covered-but-shares-origin · "${c.title}" is a member of ${c.line} with ${c.sharedWith.map((t) => `"${t}"`).join(', ')} — must be filed`);
         for (const e of Array.isArray(submittedScan) ? submittedScan : []) {
-          log(`      scan entry · [${e?.status ?? '?'}] "${e?.title ?? '?'}" → fails ${e?.failsAt ?? e?.mechanismLine ?? '?'} · origin ${e?.originatesAt ?? e?.mechanismLine ?? '?'}`);
+          const k = originKey(e, resolveLine);
+          const moved = k?.moved ? ` (resolved to ${k.label})` : '';
+          log(`      scan entry · [${e?.status ?? '?'}] "${e?.title ?? '?'}" → fails ${e?.failsAt ?? '?'} · origin ${e?.originatesAt ?? '?'}${moved}`);
         }
       };
       const bankSubmission = () => {
@@ -495,7 +503,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         logRootCauses();
         findings = findings ?? [];
       };
-      const needsAudit = (!Array.isArray(submittedAudit) || !Array.isArray(submittedConfirm) || scanMissing) && !auditRejected;
+      const needsAudit = (!Array.isArray(submittedAudit) || !Array.isArray(submittedConfirm)) && !auditRejected;
       if (needsAudit && !canAffordBounce()) {
         stopUngated('completeness record missing');
         break;
@@ -503,7 +511,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       if (needsAudit) {
         auditRejected = true;
         bankSubmission();
-        const missing = [!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed', scanMissing && 'rootCauseScan'].filter(Boolean);
+        const missing = [!Array.isArray(submittedAudit) && 'callSiteAudit', !Array.isArray(submittedConfirm) && 'confirmSuppressed'].filter(Boolean);
         if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: submit_findings missing ${missing.join(' + ')} — asking once for the completeness record.`);
         clearUserBreakpoints();
         messages.push({
@@ -530,41 +538,6 @@ export async function runReviewAgent({ client, config, system, userMessage, root
                   },
             ),
             { type: 'text', text: '[completeness] Record the call-site audit, then submit.', cache_control: { type: 'ephemeral' } },
-          ],
-        });
-        continue;
-      }
-      const noVerdict = (Array.isArray(submittedConfirm) ? submittedConfirm : []).filter(
-        (c) => c && !CLEARANCE_VERDICTS.has(c.verdict),
-      );
-      const needsVerdictGate = noVerdict.length > 0 && !verdictRejected;
-      if (needsVerdictGate && !canAffordBounce()) {
-        stopUngated(`${noVerdict.length} clearance record(s) without a verdict`);
-        if (logLevel !== 'quiet') for (const c of noVerdict) log(`  no verdict (ungated) · "${c.claim ?? '?'}"`);
-        break;
-      }
-      if (needsVerdictGate) {
-        verdictRejected = true;
-        bankSubmission();
-        if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: ${noVerdict.length} clearance record(s) carry no verdict — asking once for each to be decided.`);
-        clearUserBreakpoints();
-        messages.push({
-          role: 'user',
-          content: [
-            ...uses.map((u) => ({
-              type: 'tool_result',
-              tool_use_id: u.id,
-              is_error: true,
-              content:
-                u.id === submit.id
-                  ? 'submit_findings rejected: these `confirmSuppressed` records have no `verdict`, so nothing has decided them:\n' +
-                    noVerdict.map((c) => `  · "${c.claim ?? '?'}"`).join('\n') +
-                    '\nFor EACH one, re-check the five steps and set `verdict` to `cleared-all-five-passed` ONLY if every step holds — a cited enforcing line, ' +
-                    'coverage of THIS path, and an attempted counterexample. If any step fails, set `is-a-bug-moved-to-findings` and add it to `findings`. ' +
-                    'Answer from what you have ALREADY read; do not call any other tool. Then call submit_findings again.'
-                  : 'Not run — submit_findings was rejected.',
-            })),
-            { type: 'text', text: '[verdict] Decide every clearance record, then submit.', cache_control: { type: 'ephemeral' } },
           ],
         });
         continue;
@@ -603,37 +576,55 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         });
         continue;
       }
-      const needsRootCauseGate = (rootCauseProblems.length > 0 || unclustered.length > 0 || coveredMembers.length > 0) && !rootCauseRejected;
-      if (needsRootCauseGate && !canAffordBounce()) {
+      const noVerdict = (Array.isArray(submittedConfirm) ? submittedConfirm : []).filter(
+        (c) => c && !DECIDED_VERDICTS.has(c.verdict),
+      );
+      const rootCauseNeedsCorrection = rootCauseProblems.length > 0 || unclustered.length > 0 || coveredMembers.length > 0;
+      const needsCorrection = (scanMissing || noVerdict.length > 0 || rootCauseNeedsCorrection) && !correctionRejected;
+      if (needsCorrection && !canAffordBounce()) {
         if (logLevel !== 'quiet') {
-          log(
-            `round ${rounds}/${config.maxRounds}: [gate-skipped] rootCauses left as submitted — ${rootCauseProblems.length} problem(s), ${unclustered.length} unclustered group(s), ${coveredMembers.length} covered concern(s) sharing an origin, no budget for the re-ask.`,
-          );
+          if (scanMissing) log(`round ${rounds}/${config.maxRounds}: [gate-skipped] rootCauseScan missing — no budget for the re-ask; accepting as submitted.`);
+          if (noVerdict.length) {
+            log(`round ${rounds}/${config.maxRounds}: [gate-skipped] ${noVerdict.length} clearance record(s) without a verdict — no budget for the re-ask; accepting as submitted.`);
+            for (const c of noVerdict) log(`  no verdict (ungated) · "${c.claim ?? '?'}"`);
+          }
+          if (rootCauseNeedsCorrection) {
+            log(
+              `round ${rounds}/${config.maxRounds}: [gate-skipped] rootCauses left as submitted — ${rootCauseProblems.length} problem(s), ${unclustered.length} unclustered group(s), ${coveredMembers.length} covered concern(s) sharing an origin, no budget for the re-ask.`,
+            );
+          }
         }
-      } else if (needsRootCauseGate) {
-        rootCauseRejected = true;
+      } else if (needsCorrection) {
+        correctionRejected = true;
+        if (rootCauseNeedsCorrection) rootCausesRejected = true;
         bankSubmission();
         if (logLevel !== 'quiet') {
-          log(`round ${rounds}/${config.maxRounds}: rootCauses needs one correction pass — ${rootCauseProblems.length} problem(s), ${unclustered.length} unclustered shared-line group(s), ${coveredMembers.length} covered concern(s) sharing an origin.`);
+          log(
+            `round ${rounds}/${config.maxRounds}: submit_findings needs one correction pass —` +
+              `${scanMissing ? ' missing rootCauseScan;' : ''}` +
+              `${noVerdict.length ? ` ${noVerdict.length} clearance record(s) carry no verdict;` : ''}` +
+              `${rootCauseNeedsCorrection ? ` rootCauses: ${rootCauseProblems.length} problem(s), ${unclustered.length} unclustered shared-line group(s), ${coveredMembers.length} covered concern(s) sharing an origin;` : ''}` +
+              ' asking once.',
+          );
+          for (const c of noVerdict) log(`  no verdict · "${c.claim ?? '?'}"`);
           logRootCauses();
         }
-        const problemLines = rootCauseProblems.map((pr) => {
-          switch (pr.problem) {
-            case 'unfiled-member':
-              return `  · cluster "${pr.title}": member "${pr.detail}" is not in \`findings\` and was not already reported — file it (own file, line, body, basis) or drop it from the cluster.`;
-            case 'citation-not-found':
-              return `  · cluster "${pr.title}": sharedMechanism does not match the PR head (${pr.detail}) — cite the exact path:LINE and line text you read.`;
-            case 'missing-next-symptom':
-              return `  · cluster "${pr.title}": no nextSymptom — name what this line would still produce after every member is fixed in place, or drop the cluster.`;
-            default:
-              return `  · cluster "${pr.title}": ${pr.problem}${pr.detail ? ` (${pr.detail})` : ''}.`;
-          }
-        });
-        const groupLines = unclustered.map((g) => `  · ${g.line} is the origin of ${g.titles.map((t) => `"${t}"`).join(', ')} — put them in one \`rootCauses\` cluster, or correct the citations if they do not share that origin.`);
-        const coveredLines = coveredMembers.map(
-          (c) =>
-            `  · "${c.title}" was set aside as covered, but its origin ${c.line} is also the origin of ${c.sharedWith.map((t) => `"${t}"`).join(', ')} — it is not covered, it is a MEMBER: file it in \`findings\` (own file, line, body, basis), mark it \`filed\` in the scan, and add it to that cluster.`,
-        );
+        const sections = [];
+        if (scanMissing) {
+          sections.push(
+            'SCAN — `rootCauseScan` is required: give every filed and already-reported finding its `failsAt` and `originatesAt` lines, ' +
+              'then put every group of entries sharing one origin in `rootCauses`.',
+          );
+        }
+        if (noVerdict.length) {
+          sections.push(
+            'VERDICTS — these `confirmSuppressed` records have no `verdict`, so nothing has decided them:\n' +
+              noVerdict.map((c) => `  · "${c.claim ?? '?'}"`).join('\n') +
+              '\nFor EACH one, re-check the five steps and set `verdict` to `cleared-all-five-passed` ONLY if every step holds — a cited enforcing line, ' +
+              'coverage of THIS path, and an attempted counterexample. If any step fails, set `is-a-bug-moved-to-findings` and add it to `findings`.',
+          );
+        }
+        if (rootCauseNeedsCorrection) sections.push(renderRootCauseCorrection({ problems: rootCauseProblems, unclustered, coveredMembers }));
         clearUserBreakpoints();
         messages.push({
           role: 'user',
@@ -644,12 +635,12 @@ export async function runReviewAgent({ client, config, system, userMessage, root
               is_error: true,
               content:
                 u.id === submit.id
-                  ? 'submit_findings rejected: `rootCauses` / `rootCauseScan` need one correction pass:\n' +
-                    [...problemLines, ...groupLines, ...coveredLines].join('\n') +
-                    '\nA cluster is in ADDITION to its findings, never a replacement. Answer from what you have ALREADY read; do not call any other tool. Then call submit_findings again.'
+                  ? 'submit_findings rejected — one correction pass, every section at once:\n\n' +
+                    sections.join('\n\n') +
+                    '\n\nAnswer from what you have ALREADY read; do not call any other tool. Then call submit_findings again.'
                   : 'Not run — submit_findings was rejected.',
             })),
-            { type: 'text', text: '[root-cause] Correct the clusters, then submit.', cache_control: { type: 'ephemeral' } },
+            { type: 'text', text: '[correction] Fix every section above, then submit.', cache_control: { type: 'ephemeral' } },
           ],
         });
         continue;
@@ -659,7 +650,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         auditReported = true;
       }
       if (Array.isArray(submittedConfirm)) confirmSuppressed = submittedConfirm;
-      if (Array.isArray(submittedRootCauses)) rootCauses = keptRootCauses;
+      if (Array.isArray(submittedRootCauses)) {
+        rootCauses = keptRootCauses;
+        if (rootCausesRejected) bankedRootCauses = null;
+      }
       logRootCauses();
       if (Array.isArray(submittedFindings)) {
         submitted = true;

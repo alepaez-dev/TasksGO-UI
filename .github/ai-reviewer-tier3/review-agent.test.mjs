@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { touchesFrontend, renderCiChecksBlock, trustedCheckRuns, renderCoveredStub, corroborateCoverage, buildRootCausePosts, anthropicClientOptions } from './review-agent.mjs';
+import { touchesFrontend, renderCiChecksBlock, trustedCheckRuns, renderCoveredStub, corroborateCoverage, buildRootCausePosts, anthropicClientOptions, fixedStatusByFp } from './review-agent.mjs';
 
 test('touchesFrontend detects frontend files and ignores CI-only changes', () => {
   assert.equal(touchesFrontend([{ filename: 'src/components/Button/Button.tsx' }]), true);
@@ -201,4 +201,37 @@ test('anthropicClientOptions sends the workspace header only when ANTHROPIC_WORK
     defaultHeaders: { 'anthropic-workspace-id': 'wrkspc_1' },
   });
   assert.deepEqual(anthropicClientOptions({ ANTHROPIC_API_KEY: 'k', ANTHROPIC_WORKSPACE_ID: '  ' }), { apiKey: 'k' });
+});
+
+
+test('fixedStatusByFp reads the latest verify reply per finding from trusted comments only', () => {
+  const bot = { login: 'github-actions[bot]', type: 'Bot' };
+  const comments = [
+    { user: bot, body: 'x <!-- ai-reviewer-tier3-verify v1 {"fp":"aaa","status":"still_present","sha":"111"} -->' },
+    { user: bot, body: 'y <!-- ai-reviewer-tier3-verify v1 {"fp":"aaa","status":"fixed","sha":"222"} -->' },
+    { user: bot, body: 'z <!-- ai-reviewer-tier3-verify v1 {"fp":"bbb","status":"unsure","sha":"333"} -->' },
+    { user: { login: 'mallory', type: 'User' }, body: '<!-- ai-reviewer-tier3-verify v1 {"fp":"ccc","status":"fixed","sha":"444"} -->' },
+  ];
+  const map = fixedStatusByFp(comments, 'ai-reviewer-tier3', (c) => c.user.type === 'Bot');
+  assert.deepEqual(map.get('aaa'), { status: 'fixed', sha: '222' });
+  assert.deepEqual(map.get('bbb'), { status: 'unsure', sha: '333' });
+  assert.equal(map.has('ccc'), false);
+});
+
+test('buildRootCausePosts carries the fixed flag of prior members into the post', () => {
+  const rootCauses = [{ title: 't', sharedMechanism: 'h.ts:1 x', members: [{ title: 'A', how: 'h' }, { title: 'B', how: 'h' }], recommendation: 'r', nextSymptom: 'n' }];
+  const priorMarkers = [{ file: 'a', title: 'A', fp: 'fpA', fixed: true }, { file: 'b', title: 'B', fp: 'fpB', fixed: false }];
+  const { create } = buildRootCausePosts({ rootCauses, findings: [], priorMarkers, priorRootCauses: [] });
+  assert.deepEqual(create[0].members.map((m) => m.fixed), [true, false]);
+});
+
+
+test('buildRootCausePosts does not resolve a member whose finding was not posted', () => {
+  const rootCauses = [{ title: 't', sharedMechanism: 'h.ts:1 x', members: [{ title: 'A', how: 'h' }, { title: 'B', how: 'h' }], recommendation: 'r', nextSymptom: 'n' }];
+  const findings = [{ file: 'a', title: 'A', fp: 'fpA' }, { file: 'b', title: 'B', fp: 'fpB' }];
+  const ok = buildRootCausePosts({ rootCauses, findings, priorMarkers: [], priorRootCauses: [] });
+  assert.equal(ok.create.length, 1);
+  const held = buildRootCausePosts({ rootCauses, findings, priorMarkers: [], priorRootCauses: [], unpostedTitles: ['B'] });
+  assert.equal(held.create.length, 0);
+  assert.deepEqual(held.unresolved.map((u) => u.title), ['t']);
 });

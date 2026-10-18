@@ -180,10 +180,11 @@ const SUBMIT_FINDINGS_SCHEMA = {
           title: { type: 'string', description: 'The EXACT finding title (from `findings` or the already-reported list), or a short title for a concern you set aside as covered.' },
           status: {
             type: 'string',
-            enum: ['filed', 'already-reported', 'dismissed-as-covered'],
+            enum: ['filed', 'already-reported', 'dismissed-as-covered', 'duplicate-of-reported'],
             description:
-              '`filed` = in your `findings`; `already-reported` = in the already-reported list; `dismissed-as-covered` = a concern you set aside because an existing finding seemed to cover it. ' +
-              'A covered concern that shares an origin with another entry is not covered — it is a new member and must be filed.',
+              '`filed` = in your `findings`; `already-reported` = in the already-reported list; `dismissed-as-covered` = a concern you set aside because an existing finding seemed to cover it; ' +
+              '`duplicate-of-reported` = the SAME defect as an already-reported finding — the same failing path AND the same trigger, not a relative of it. ' +
+              'A covered concern that shares an origin with another entry is not covered — it is a new member and must be filed. Only a true duplicate is exempt.',
           },
           failsAt: { type: 'string', description: '`path/to/file.ext:LINE` followed by the line verbatim — where the symptom is produced, or where it is now guarded.' },
           originatesAt: {

@@ -423,7 +423,8 @@ test('rootCauseScan and rootCauses are required; a cluster needs two traced memb
   assert.ok(submit.input_schema.required.includes('rootCauseScan'), 'the scan is answered on every submit');
   assert.ok(submit.input_schema.required.includes('rootCauses'), 'the cluster decision is answered on every submit');
   assert.deepEqual(props.rootCauseScan.items.required, ['title', 'status', 'failsAt', 'originatesAt']);
-  assert.deepEqual(props.rootCauseScan.items.properties.status.enum, ['filed', 'already-reported', 'dismissed-as-covered']);
+  assert.deepEqual(props.rootCauseScan.items.properties.status.enum, ['filed', 'already-reported', 'dismissed-as-covered', 'duplicate-of-reported']);
+  assert.match(props.rootCauseScan.items.properties.status.description, /same failing path/i, 'duplicate is defined by the de-dup rule, not left to taste');
   assert.match(props.rootCauseScan.items.properties.originatesAt.description, /upstream|guard/i);
   assert.match(props.rootCauseScan.items.properties.status.description, /covered/i);
   const rc = props.rootCauses.items;
