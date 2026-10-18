@@ -186,7 +186,7 @@ async function streamRoundWithRetry({ client, models, startIdx, maxRetries, base
   throw lastErr;
 }
 
-export async function runReviewAgent({ client, config, system, userMessage, root, log }) {
+export async function runReviewAgent({ client, config, system, userMessage, root, log, initialInputTokens = 0 }) {
   const { run: runTool, servedFiles } = makeToolRunner({ root, config });
   const governor = createGovernor({ config });
   const tools = TOOL_DEFS;
@@ -308,7 +308,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
 
   const canAffordBounce = () => !governor.wouldExceed(governor.projectTerminalTurnUsd(lastUsage, models[modelIdx]));
   const canAffordColdRound = (model, tokens) => !governor.wouldExceed(governor.projectColdRoundUsd(tokens, model));
-  const nextRoundContext = () => contextTokens(lastUsage) + (lastUsage?.output_tokens ?? 0);
+  const nextRoundContext = () => Math.max(initialInputTokens, contextTokens(lastUsage) + (lastUsage?.output_tokens ?? 0));
   const canSwitchTo = (model) => canAffordColdRound(model, nextRoundContext());
 
   while (true) {

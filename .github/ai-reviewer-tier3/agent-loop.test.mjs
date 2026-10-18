@@ -798,6 +798,15 @@ test('an API error does not fall back when a cold-cache round on the fallback wo
   assert.ok(out.costUsd <= nearCeiling.costCeilingUsd, `spent ${out.costUsd} over the ${nearCeiling.costCeilingUsd} ceiling`);
 });
 
+test('an API error on the first request does not fall back when the prompt alone would cross the ceiling', async () => {
+  const { client, calls } = scriptedClient([overloaded(), submitMsg()]);
+  await assert.rejects(
+    runReviewAgent({ client, config: nearCeiling, system: 'sys', userMessage: 'r', root, log: () => {}, initialInputTokens: 300000 }),
+    /Overloaded/,
+  );
+  assert.equal(calls.length, 1);
+});
+
 test('every request re-sends the previous history unchanged and only appends to it', async () => {
   const toolRound = {
     content: [

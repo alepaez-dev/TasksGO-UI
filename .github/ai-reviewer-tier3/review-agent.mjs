@@ -517,7 +517,7 @@ async function main() {
   }
 
   // Run the autonomous agentic review. Tool reads happen against the read-only head checkout.
-  const result = await runReviewAgent({ client, config, system, userMessage, root: headDir, log: (m) => core.info(m) });
+  const result = await runReviewAgent({ client, config, system, userMessage, root: headDir, log: (m) => core.info(m), initialInputTokens: inputTokens ?? 0 });
   const reviewCostUsd = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
   core.info(
     `Agentic review: ${result.rounds} round(s) · ${formatUsage(result.usage)}` +
