@@ -22,6 +22,7 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     size: { control: 'inline-radio', options: ['sm', 'md'] },
+    variant: { control: 'inline-radio', options: ['toggle', 'filter'] },
     value: { control: false },
     onValueChange: { control: false },
   },
@@ -36,7 +37,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A controlled pill toggle for switching between two views of the same content (e.g. Write/Preview). Built on the WAI-ARIA tablist pattern with roving tabindex and arrow-key navigation. Pair it with tabpanels via `idPrefix` + `getSegmentPanelId`.',
+          'A controlled pill toggle for switching between two views of the same content (e.g. Write/Preview). Built on the WAI-ARIA tablist pattern with roving tabindex and arrow-key navigation. Pair it with tabpanels via `idPrefix` + `getSegmentPanelId`. The `filter` variant restyles it for a filter bar — sentence-case labels, an optional `count` per option, and one fixed height (`size` applies to the `toggle` variant only).',
       },
     },
   },
@@ -67,4 +68,48 @@ export const WithDisabledOption: Story = {
     ],
   },
   render: (args) => <Controlled {...args} />,
+};
+
+export const ActivityFilter: Story = {
+  args: {
+    variant: 'filter',
+    value: 'all',
+    'aria-label': 'Filter activity',
+    options: [
+      { value: 'all', label: 'All', count: 28 },
+      { value: 'comments', label: 'Comments & Asks', count: 4 },
+      { value: 'system', label: 'System', count: 24 },
+    ],
+  },
+  render: (args) => <Controlled {...args} />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The `filter` variant: sentence-case labels with a count per segment. Counts are plain text inside the button, so a segment announces as "All 28".',
+      },
+    },
+  },
+};
+
+export const EmptyCounts: Story = {
+  args: {
+    variant: 'filter',
+    value: 'all',
+    'aria-label': 'Filter activity',
+    options: [
+      { value: 'all', label: 'All', count: 0 },
+      { value: 'comments', label: 'Comments & Asks', count: 0 },
+      { value: 'system', label: 'System', count: 0 },
+    ],
+  },
+  render: (args) => <Controlled {...args} />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A zero shows as `0` and stays selectable — choosing an empty filter is how a consumer reaches its empty state.',
+      },
+    },
+  },
 };

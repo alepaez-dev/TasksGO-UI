@@ -218,3 +218,111 @@ describe('SegmentedControl', () => {
     expect(screen.getByRole('tablist')).toHaveClass('custom');
   });
 });
+
+describe('SegmentedControl counts', () => {
+  const counted: readonly SegmentedControlOption[] = [
+    { value: 'all', label: 'All', count: 28 },
+    { value: 'comments', label: 'Comments & Asks', count: 4 },
+    { value: 'system', label: 'System', count: 24 },
+  ];
+
+  it('reads the count as part of the segment name', () => {
+    render(
+      <SegmentedControl
+        options={counted}
+        value="all"
+        onValueChange={vi.fn()}
+        aria-label="Filter"
+      />,
+    );
+    expect(screen.getByRole('tab', { name: 'All 28' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', { name: 'Comments & Asks 4' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows a zero and leaves the segment selectable', async () => {
+    const onValueChange = vi.fn();
+    render(
+      <SegmentedControl
+        options={[
+          { value: 'all', label: 'All', count: 0 },
+          { value: 'comments', label: 'Comments & Asks', count: 0 },
+        ]}
+        value="all"
+        onValueChange={onValueChange}
+        aria-label="Filter"
+      />,
+    );
+    const empty = screen.getByRole('tab', { name: 'Comments & Asks 0' });
+    expect(empty).toBeEnabled();
+    fireEvent.click(empty);
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith('comments');
+  });
+
+  it('renders no number when an option carries no count', () => {
+    render(
+      <SegmentedControl
+        options={options}
+        value="write"
+        onValueChange={vi.fn()}
+        aria-label="Mode"
+      />,
+    );
+    expect(screen.getByRole('tab', { name: 'Write' })).toBeInTheDocument();
+  });
+});
+
+describe('SegmentedControl variants', () => {
+  it('defaults to the toggle variant', () => {
+    render(
+      <SegmentedControl
+        options={options}
+        value="write"
+        onValueChange={vi.fn()}
+        aria-label="Mode"
+      />,
+    );
+    expect(screen.getByRole('tab', { name: 'Write' })).toHaveClass('toggle');
+  });
+
+  it('stamps the size class on the toggle variant only, since filter has one height', () => {
+    const { rerender } = render(
+      <SegmentedControl
+        options={options}
+        value="write"
+        size="md"
+        onValueChange={vi.fn()}
+        aria-label="Mode"
+      />,
+    );
+    expect(screen.getByRole('tablist')).toHaveClass('md');
+
+    rerender(
+      <SegmentedControl
+        options={options}
+        value="write"
+        size="md"
+        variant="filter"
+        onValueChange={vi.fn()}
+        aria-label="Filter"
+      />,
+    );
+    expect(screen.getByRole('tablist')).not.toHaveClass('md');
+  });
+
+  it('applies the filter variant when asked', () => {
+    render(
+      <SegmentedControl
+        options={options}
+        value="write"
+        variant="filter"
+        onValueChange={vi.fn()}
+        aria-label="Filter"
+      />,
+    );
+    const tab = screen.getByRole('tab', { name: 'Write' });
+    expect(tab).toHaveClass('filter');
+    expect(tab).not.toHaveClass('toggle');
+  });
+});

@@ -362,6 +362,22 @@ export const typographyScale = {
     textTransform: 'none',
     lineHeight: DEFAULT_LINE_HEIGHT,
   },
+  segmentedControlFilter: {
+    fontSize: '12.5px',
+    fontFamily: fontFamilies.sans,
+    fontWeight: fontWeights.medium,
+    letterSpacing: 'normal',
+    textTransform: 'none',
+    lineHeight: DEFAULT_LINE_HEIGHT,
+  },
+  segmentedControlCount: {
+    fontSize: '10px',
+    fontFamily: fontFamilies.mono,
+    fontWeight: fontWeights.regular,
+    letterSpacing: 'normal',
+    textTransform: 'none',
+    lineHeight: DEFAULT_LINE_HEIGHT,
+  },
   reactionChip: bodyRegularSans12,
   reactionCount: {
     fontSize: '10px',
