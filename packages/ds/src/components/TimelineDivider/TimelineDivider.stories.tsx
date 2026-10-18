@@ -57,6 +57,7 @@ const meta = {
     type: 'dayDivider',
     at: YESTERDAY,
     relative: 'yesterday',
+    durationMs: 4 * 60 * 60 * 1000,
   },
   decorators: [
     (Story) => (
