@@ -96,3 +96,27 @@ test('the prompt names the five confirmSuppressed fields it now depends on', () 
   }
 });
 
+
+test('the root-cause rule is additive: grouping never removes a finding', () => {
+  const p = REVIEW_AGENT_SYSTEM_PROMPT;
+  const start = p.indexOf('- SHARED ROOT CAUSE');
+  assert.ok(start > 0, 'the rule must have its own bullet');
+  const section = p.slice(start, start + 1800);
+  assert.match(section, /rootCauses/, 'the rule must name the field');
+  assert.match(section, /still (goes|belongs) in `findings`|in addition to|never a reason to leave/i, 'grouping must be stated as additive');
+  assert.match(section, /mechanism/i, 'grouping is by shared mechanism');
+  assert.doesNotMatch(section, /instead of reporting|rather than reporting/i, 'no wording may read as replacing findings with a cluster');
+});
+
+test('the root-cause rule treats "same mechanism as an already-reported finding" as a member, not a duplicate, and ranks the cluster as important', () => {
+  const p = REVIEW_AGENT_SYSTEM_PROMPT;
+  const start = p.indexOf('- SHARED ROOT CAUSE');
+  assert.ok(start > 0, 'the rule must have its own bullet');
+  const section = p.slice(start, start + 1800);
+  assert.match(section, /not a duplicate/i, 'a same-mechanism concern is a new member');
+  assert.match(section, /already-reported/i, 'already-reported findings alone can form the cluster');
+  assert.match(section, /most important|highest-value|matters more/i, 'the cluster must be framed as the most important output when it exists');
+  assert.match(section, /never a reason to (leave|drop|skip)/i);
+  const dedup = p.slice(p.indexOf('TRUST & SAFETY'), p.indexOf('OUTPUT DISCIPLINE'));
+  assert.match(dedup, /rootCauses/, 'the de-dup rule must point at rootCauses for the same-mechanism case');
+});

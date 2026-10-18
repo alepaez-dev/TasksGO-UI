@@ -65,7 +65,8 @@ test('submit_findings schema exposes an OPTIONAL dismissed array (not required)'
   assert.ok(submit, 'submit_findings tool exists');
   assert.ok(submit.input_schema.properties.dismissed, 'dismissed property present');
   assert.equal(submit.input_schema.properties.dismissed.type, 'array');
-  assert.deepEqual(submit.input_schema.required, ['findings', 'callSiteAudit', 'confirmSuppressed']); // callSiteAudit + confirmSuppressed; dismissed stays optional
+  assert.deepEqual(submit.input_schema.required, ['findings', 'callSiteAudit', 'confirmSuppressed', 'rootCauseScan', 'rootCauses']);
+  assert.ok(!submit.input_schema.required.includes('dismissed'), 'dismissed stays optional');
   const item = submit.input_schema.properties.dismissed.items;
   assert.deepEqual(item.required, ['title', 'why']);
 });

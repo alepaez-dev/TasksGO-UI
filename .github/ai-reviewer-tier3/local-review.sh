@@ -13,6 +13,8 @@ re-run — no merge to main needed). The PR diff + head are pulled from GitHub.
 
 Required env:
   ANTHROPIC_API_KEY   your Anthropic key (used for the real model calls)
+  ANTHROPIC_WORKSPACE_ID  only for an organization-level key that is not scoped to a
+                      workspace — sent as the anthropic-workspace-id header
   GITHUB_TOKEN        a token with READ access to the repo (or GH_TOKEN, or a
                       working `gh auth token`)
 
