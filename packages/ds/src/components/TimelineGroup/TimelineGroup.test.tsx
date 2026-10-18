@@ -234,7 +234,7 @@ describe('TimelineGroup', () => {
   });
 
   it('rejects a cap label with no handler behind it', () => {
-    const illegal = (
+    render(
       <ul>
         {/* @ts-expect-error the cap props come as a set */}
         <TimelineGroup
@@ -248,9 +248,11 @@ describe('TimelineGroup', () => {
             y
           </TimelineEvent>
         </TimelineGroup>
-      </ul>
+      </ul>,
     );
-    expect(illegal).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Show 5 more' }),
+    ).not.toHaveAttribute('aria-expanded');
   });
 
   it('forwards ref to the list item', () => {

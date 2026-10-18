@@ -68,6 +68,7 @@ export const TimelineGroup = forwardRef<HTMLLIElement, TimelineGroupProps>(
 
     return (
       <li ref={ref} className={cn(styles.group, className)} {...rest}>
+        <span className={styles.marker} aria-hidden="true" />
         <button
           ref={toggleRef}
           type="button"

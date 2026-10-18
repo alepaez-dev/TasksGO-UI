@@ -6,6 +6,12 @@
   font-family: var(--ds-font-family-sans);
 }
 
+.marker {
+  composes: timelineMarker from '../_internal/timeline.module.css';
+  grid-row: 1;
+  align-self: start;
+}
+
 .toggle {
   grid-column: 2;
   display: inline-flex;
