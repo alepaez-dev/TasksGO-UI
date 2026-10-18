@@ -12,6 +12,10 @@ import { runReviewAgent } from './agent-loop.mjs';
 import { changedRatio, deletedLinesByHeadLine, renderWholeFileBlock, sizeBand } from './diff-payload.mjs';
 import { TOOL_DEFS } from './tools.mjs';
 import {
+  parseRootCauseMarkers, renderRootCauseComment, planRootCausePosts, resolveRootCauseMembers,
+  extractFindingBody, renderAlreadyReported, renderPriorRootCausesBlock,
+} from './root-causes.mjs';
+import {
   parseProgressComment, validateProgress, renderBankedRecordsBlock,
   buildProgressPayload, renderProgressComment, renderProgressCompleteComment, extractCitedPaths,
   mergeRecordsPreferNew, clearanceKey, auditKey, coverageHeadMoved, dropClearancesRefiledAsFindings,
@@ -41,6 +45,7 @@ import {
   confineToRepo,
   verifyAndResolveThreads,
   writeJobSummary,
+  fingerprint,
 } from '../ai-reviewer/review.mjs';
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
@@ -50,6 +55,31 @@ const FRONTEND_EXTS = new Set(['.ts', '.tsx', '.js', '.jsx', '.css']);
 
 export function touchesFrontend(files) {
   return (files ?? []).some((f) => FRONTEND_EXTS.has(extname(f?.filename ?? '')));
+}
+
+const titleKey = (t) => String(t ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+
+// Turns the loop's clusters (member = finding TITLE) into posts (member = fp/title/file).
+export function buildRootCausePosts({ rootCauses, findings, priorMarkers, priorRootCauses }) {
+  const byTitle = new Map();
+  for (const m of priorMarkers ?? []) if (m?.title && m?.fp) byTitle.set(titleKey(m.title), { fp: m.fp, title: m.title, file: m.file });
+  for (const f of findings ?? []) if (f?.title && f?.fp) byTitle.set(titleKey(f.title), { fp: f.fp, title: f.title, file: f.file });
+  const resolved = [];
+  const unresolved = [];
+  for (const rc of rootCauses ?? []) {
+    const hit = resolveRootCauseMembers(rc, (key) => byTitle.get(key));
+    if (!hit) {
+      unresolved.push(rc);
+      continue;
+    }
+    resolved.push({ ...hit, fp: fingerprint('rootcause', rc.title) });
+  }
+  return { ...planRootCausePosts(priorRootCauses ?? [], resolved), unresolved };
+}
+
+export function anthropicClientOptions(env = process.env) {
+  const workspaceId = String(env.ANTHROPIC_WORKSPACE_ID ?? '').trim();
+  return workspaceId ? { apiKey: env.ANTHROPIC_API_KEY, defaultHeaders: { 'anthropic-workspace-id': workspaceId } } : { apiKey: env.ANTHROPIC_API_KEY };
 }
 
 const MAX_CI_CHECKS = 30;
@@ -328,10 +358,20 @@ async function main() {
   if (expandedWhole.length) core.info(`Sent whole-file instead of patch for: ${expandedWhole.join(', ')}`);
   const verifyView = coveredByPath.size ? buildDiffContext(files, config) : { diffText, skippedForSize, truncated };
 
+  // An inline comment carries exactly one finding, so its text IS that finding's body; summary
+  // comments bundle several, so those markers stay title-only.
   const priorMarkers = [
-    ...reviewComments.filter(trusted).flatMap((c) => parseMarkers(c.body, markerPrefix).map((m) => ({ ...m, sha: c.original_commit_id }))),
+    ...reviewComments.filter(trusted).flatMap((c) => {
+      const markers = parseMarkers(c.body, markerPrefix);
+      const body = markers.length === 1 ? extractFindingBody(c.body) : '';
+      return markers.map((m) => ({ ...m, sha: c.original_commit_id, body }));
+    }),
     ...issueComments.filter(trusted).flatMap((c) => parseMarkers(c.body, markerPrefix)),
   ];
+  const priorRootCauses = issueComments
+    .filter(trusted)
+    .flatMap((c) => parseRootCauseMarkers(c.body, markerPrefix).map((p) => ({ ...p, id: c.id })));
+  if (priorRootCauses.length) core.info(`Found ${priorRootCauses.length} shared root cause(s) already posted.`);
   const seenFingerprints = new Set(priorMarkers.map((m) => m.fp).filter(Boolean));
   core.info(`Found ${seenFingerprints.size} previously reported tier-3 finding(s) to de-duplicate against.`);
 
@@ -357,7 +397,7 @@ async function main() {
     }
   };
 
-  const client = new Anthropic({ apiKey });
+  const client = new Anthropic(anthropicClientOptions());
   const allowResolve = config.resolveOnlyForTrustedAuthors === false || isTrustedAuthor(pr.authorAssociation);
   const idempotent = config.skipIfHeadUnchanged !== false;
   const needVerify = config.verifyResolutions && (!idempotent || lastVerifiedSha !== pr.headSha);
@@ -469,9 +509,8 @@ async function main() {
   const userMessage = [
     `PR #${pull_number}: ${sanitizeText(pr.title, 300)}`,
     pr.body ? `Description:\n${sanitizeText(pr.body, 4000)}` : '',
-    priorMarkers.length
-      ? `Already reported (for de-duplication ONLY — do NOT repeat these; untrusted text). Where the commit it was reported at is known, it is shown:\n${priorMarkers.map((m) => `- ${m.file}: ${m.title}${m.sha ? ` (reported at ${String(m.sha).slice(0, 7)})` : ''}`).join('\n')}`
-      : '',
+    renderAlreadyReported(priorMarkers.map((m) => ({ ...m, title: sanitizeText(m.title, 200), body: sanitizeText(m.body, 700) }))),
+    renderPriorRootCausesBlock(priorRootCauses),
     validProgress
       ? renderBankedRecordsBlock(validProgress, progressHeadShort, { headMoved: coverageHeadMoved(validProgress.covered, pr.headSha) })
       : '',
@@ -514,7 +553,10 @@ async function main() {
   }
 
   // Run the autonomous agentic review. Tool reads happen against the read-only head checkout.
-  const result = await runReviewAgent({ client, config, system, userMessage, root: headDir, log: (m) => core.info(m) });
+  const result = await runReviewAgent({
+    client, config, system, userMessage, root: headDir, log: (m) => core.info(m),
+    priorTitles: priorMarkers.map((m) => m.title),
+  });
   const reviewCostUsd = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
   core.info(
     `Agentic review: ${result.rounds} round(s) · ${formatUsage(result.usage)}` +
@@ -661,7 +703,31 @@ async function main() {
     await upsert(renderProgressComment(payload));
   };
 
+  const postRootCauses = async () => {
+    if (!result.rootCauses?.length) return;
+    const { create, update, unchanged, unresolved } = buildRootCausePosts({ rootCauses: result.rootCauses, findings, priorMarkers, priorRootCauses });
+    for (const rc of unresolved) core.info(`[root-cause] not posted — member(s) not resolvable to a posted finding: "${rc.title}" (${(rc.members ?? []).join(' | ')})`);
+    for (const u of unchanged) core.info(`[root-cause] already posted, no new members: "${u.rootCause.title}"`);
+    for (const rc of create) {
+      try {
+        await octokit.rest.issues.createComment({ owner, repo, issue_number: pull_number, body: renderRootCauseComment(rc, markerPrefix) });
+        core.info(`[root-cause] posted "${rc.title}" (${rc.members.length} members) — ${rc.sharedMechanism}`);
+      } catch (err) {
+        core.warning(`Could not post the shared root cause "${rc.title}": ${err.message}`);
+      }
+    }
+    for (const { id, rootCause } of update) {
+      try {
+        await octokit.rest.issues.updateComment({ owner, repo, comment_id: id, body: renderRootCauseComment(rootCause, markerPrefix) });
+        core.info(`[root-cause] extended "${rootCause.title}" to ${rootCause.members.length} members`);
+      } catch (err) {
+        core.warning(`Could not extend the shared root cause "${rootCause.title}": ${err.message}`);
+      }
+    }
+  };
+
   if (findings.length === 0) {
+    await postRootCauses();
     await writeProgressComment({ fullySurfaced: true });
     core.info('No new tier-3 issues to post. Done.');
     const reviewedSha = reviewComplete ? pr.headSha : lastReviewedSha;
@@ -718,6 +784,7 @@ async function main() {
   }
 
   core.info(`Posted ${postedInline} inline comment(s)${postedGeneral ? ` and ${postedGeneral} finding(s) in a summary comment` : ''}.`);
+  await postRootCauses();
 
   const fullySurfaced = reviewFullySurfaced({ postSummaryComment: config.postSummaryComment, generalCount: general.length, postedGeneral, failedInline });
   await writeProgressComment({ fullySurfaced, unposted });

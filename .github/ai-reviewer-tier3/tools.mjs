@@ -164,10 +164,85 @@ const SUBMIT_FINDINGS_SCHEMA = {
         '`findings` or `confirmSuppressed`, and you are done with them. Used to resume an interrupted review without ' +
         're-paying for finished work. Never list a file you did not finish or only skimmed.',
     },
+    rootCauseScan: {
+      type: 'array',
+      description:
+        'REQUIRED. One entry per finding you are filing, per finding in the already-reported list, AND per concern you set aside as "covered by", "overlapping", "a variation of" or "the same mechanism as" one of those. ' +
+        'Each entry carries TWO citations from code you actually read. `failsAt`: the line where the symptom is produced, or where a guard now prevents it. ' +
+        '`originatesAt`: the UPSTREAM line in this repo whose behaviour makes that guard necessary — the line that, if it did the right thing, would make the guard pointless; repeat `failsAt` only when nothing upstream exists. ' +
+        'This is a record of mechanisms, not symptoms: three findings guarded in three consumers that all exist because of one shared line cite THAT line as origin. ' +
+        'Two or more entries with one origin ARE a shared root cause and must appear together in `rootCauses`; a dismissed-as-covered entry whose origin another entry cites is a MEMBER and must be filed. ' +
+        'Empty array only when there is no finding at all, filed or already reported.',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          title: { type: 'string', description: 'The EXACT finding title (from `findings` or the already-reported list), or a short title for a concern you set aside as covered.' },
+          status: {
+            type: 'string',
+            enum: ['filed', 'already-reported', 'dismissed-as-covered'],
+            description:
+              '`filed` = in your `findings`; `already-reported` = in the already-reported list; `dismissed-as-covered` = a concern you set aside because an existing finding seemed to cover it. ' +
+              'A covered concern that shares an origin with another entry is not covered — it is a new member and must be filed.',
+          },
+          failsAt: { type: 'string', description: '`path/to/file.ext:LINE` followed by the line verbatim — where the symptom is produced, or where it is now guarded.' },
+          originatesAt: {
+            type: 'string',
+            description:
+              '`path/to/file.ext:LINE` followed by the line verbatim — the upstream line whose behaviour makes the guard at `failsAt` necessary. Clusters are derived from this field.',
+          },
+        },
+        required: ['title', 'status', 'failsAt', 'originatesAt'],
+      },
+    },
+    rootCauses: {
+      type: 'array',
+      description:
+        'REQUIRED — the most important thing you can report. Every group of `rootCauseScan` entries that share ONE `originatesAt` line is a cluster here: ' +
+        'the mechanism, the exact member titles, how each member\'s failure passes through that line, the symptom it will produce NEXT if left as is, and the fix at the source. ' +
+        'ADDITIVE: every member is still reported as its own finding, and grouping is never a reason to leave a finding out of `findings`. ' +
+        'A cluster whose member is not filed or already reported, whose citation is not at the PR head, or that cannot name a next symptom is rejected. ' +
+        'Sharing a FILE, a FUNCTION, or a SHAPE is not sharing a mechanism. Empty array only when no two scan entries cite one line.',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          title: { type: 'string', description: 'Short name of the shared root cause (the mechanism, not the symptoms).' },
+          sharedMechanism: {
+            type: 'string',
+            description: '`path/to/file.ext:LINE` followed by the line verbatim, from code you actually read — the one line every member traces to. Checked against the PR head.',
+          },
+          members: {
+            type: 'array',
+            minItems: 2,
+            description: 'At least two. Each is a finding this mechanism explains — from your `findings` or from the already-reported list.',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                title: { type: 'string', description: 'The EXACT `title` of the finding.' },
+                how: { type: 'string', description: 'One line: how THIS finding\'s failure passes through the shared line.' },
+              },
+              required: ['title', 'how'],
+            },
+          },
+          recommendation: {
+            type: 'string',
+            description: 'The fix at the source, in 1-3 sentences: what the shared code should own so that each consumer no longer has to work around it.',
+          },
+          nextSymptom: {
+            type: 'string',
+            description:
+              'A symptom this mechanism would STILL produce after every member above is fixed in place. If you cannot name one, these are a coincidence, not a root cause — drop the cluster.',
+          },
+        },
+        required: ['title', 'sharedMechanism', 'members', 'recommendation', 'nextSymptom'],
+      },
+    },
     // Last on purpose. The model has already thought about the suppressed concerns and callSiteAudit, so the response should be richer (structured CoT)
     findings: TIER3_FINDINGS,
   },
-  required: [...FINDINGS_SCHEMA.required, 'callSiteAudit', 'confirmSuppressed'],
+  required: [...FINDINGS_SCHEMA.required, 'callSiteAudit', 'confirmSuppressed', 'rootCauseScan', 'rootCauses'],
 };
 
 export const TOOL_DEFS = [

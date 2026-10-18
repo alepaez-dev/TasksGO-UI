@@ -415,3 +415,24 @@ test('the tool runner records served files on successful reads only', async () =
   await run('grep', { pattern: 'secret' });
   assert.deepEqual([...servedFiles], ['src/a.ts'], 'only successful read_file paths are served');
 });
+
+test('rootCauseScan and rootCauses are required; a cluster needs two traced members and a nextSymptom', () => {
+  const submit = TOOL_DEFS.find((t) => t.name === 'submit_findings');
+  const props = submit.input_schema.properties;
+  assert.ok(props.rootCauseScan && props.rootCauses);
+  assert.ok(submit.input_schema.required.includes('rootCauseScan'), 'the scan is answered on every submit');
+  assert.ok(submit.input_schema.required.includes('rootCauses'), 'the cluster decision is answered on every submit');
+  assert.deepEqual(props.rootCauseScan.items.required, ['title', 'status', 'failsAt', 'originatesAt']);
+  assert.deepEqual(props.rootCauseScan.items.properties.status.enum, ['filed', 'already-reported', 'dismissed-as-covered']);
+  assert.match(props.rootCauseScan.items.properties.originatesAt.description, /upstream|guard/i);
+  assert.match(props.rootCauseScan.items.properties.status.description, /covered/i);
+  const rc = props.rootCauses.items;
+  for (const f of ['title', 'sharedMechanism', 'members', 'recommendation', 'nextSymptom']) assert.ok(rc.required.includes(f), `${f} must be required`);
+  assert.equal(rc.properties.members.minItems, 2);
+  assert.deepEqual(rc.properties.members.items.required, ['title', 'how']);
+  assert.match(props.rootCauses.description, /never a reason to leave a finding out|still reported/i);
+  assert.match(props.rootCauseScan.description, /already-reported/i, 'the scan covers prior findings, not only new ones');
+  const keys = Object.keys(props);
+  assert.ok(keys.indexOf('rootCauseScan') < keys.indexOf('rootCauses'), 'the scan is written before the clusters it feeds');
+  assert.ok(keys.indexOf('rootCauses') < keys.indexOf('findings'));
+});

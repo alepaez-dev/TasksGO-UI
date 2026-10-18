@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runReviewAgent, describeToolUse, summarizeToolResult, budgetGuidance, budgetPhase, isTransientError, findHedges } from './agent-loop.mjs';
@@ -1398,4 +1398,151 @@ test('the wind-down message asks for coveredFiles', async () => {
   };
   await runReviewAgent({ client: spyClient, config: tight, system: 'sys', userMessage: 'review', root, log: () => {} });
   assert.match(windDownText, /coveredFiles/, 'the wind-down turn must ask for the coverage declaration');
+});
+
+const rcRoot = mkdtempSync(join(tmpdir(), 't3rc-'));
+writeFileSync(join(rcRoot, 'useOverlayLifecycle.ts'), 'x\n  return { shouldRender: open || isClosing };\n');
+const rcFound = [
+  { file: 'a.tsx', line: 1, severity: 'low', confidence: 'high', category: 'frontend', title: 'blanks during close fade', body: 'b', suggestion: 's' },
+  { file: 'b.css', line: 2, severity: 'low', confidence: 'high', category: 'accessibility', title: 'clickable during close fade', body: 'b', suggestion: 's' },
+];
+const rcScan = [
+  { title: 'blanks during close fade', status: 'filed', failsAt: 'a.tsx:1 files', originatesAt: 'useOverlayLifecycle.ts:2 return { shouldRender: open || isClosing };' },
+  { title: 'clickable during close fade', status: 'filed', failsAt: 'b.css:2 pointer-events', originatesAt: 'useOverlayLifecycle.ts:2 shouldRender' },
+];
+const rcCluster = {
+  title: 'shell leaves the exit window to consumers',
+  sharedMechanism: 'useOverlayLifecycle.ts:2 return { shouldRender: open || isClosing };',
+  members: [
+    { title: 'blanks during close fade', how: 'content derived from open dies first' },
+    { title: 'clickable during close fade', how: 'pointer-events keyed on open' },
+  ],
+  recommendation: 'shell owns the exit window',
+  nextSymptom: 'the next consumer gets the interval wrong its own way',
+};
+const base = { callSiteAudit: [], confirmSuppressed: [], rootCauseScan: rcScan, rootCauses: [rcCluster] };
+const u = { input_tokens: 100, output_tokens: 10 };
+const sub = (id, input) => ({ content: [{ type: 'tool_use', id, name: 'submit_findings', input }], usage: u });
+
+test('rootCauses survive a hedge bounce whose resubmit omits them', async () => {
+  const client = stubClient([
+    { content: [{ type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' }, { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { ...base, findings: rcFound } }], usage: u },
+    sub('tu_2', { ...base, rootCauseScan: [], rootCauses: [], findings: rcFound }),
+  ]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root: rcRoot, log: () => {} });
+  assert.equal(out.rounds, 2);
+  assert.equal(out.rootCauses.length, 1);
+  assert.equal(out.rootCauses[0].title, rcCluster.title);
+});
+
+test('a cluster naming a member that is not filed is bounced once with the member named', async () => {
+  const client = stubClient([
+    sub('tu_1', { ...base, rootCauseScan: [rcScan[0]], findings: [rcFound[0]] }),
+    sub('tu_2', { ...base, findings: rcFound }),
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root: rcRoot, log: (l) => lines.push(l) });
+  assert.equal(out.rounds, 2);
+  assert.match(lines.join('\n'), /clickable during close fade/);
+  assert.equal(out.findings.length, 2);
+  assert.equal(out.rootCauses.length, 1);
+});
+
+test('a member that is already reported on the PR counts as filed', async () => {
+  const client = stubClient([sub('tu_1', { ...base, findings: [rcFound[0]] })]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root: rcRoot, log: () => {}, priorTitles: ['Clickable during close fade'] });
+  assert.equal(out.rounds, 1);
+  assert.equal(out.rootCauses.length, 1);
+});
+
+test('a cluster whose cited mechanism is not at the PR head is bounced once with the reason', async () => {
+  const bad = { ...rcCluster, sharedMechanism: 'useOverlayLifecycle.ts:2 return { somethingElse }' };
+  const client = stubClient([
+    sub('tu_1', { ...base, rootCauses: [bad], findings: rcFound }),
+    sub('tu_2', { ...base, findings: rcFound }),
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root: rcRoot, log: (l) => lines.push(l) });
+  assert.equal(out.rounds, 2);
+  assert.match(lines.join('\n'), /citation|not found|does not match/i);
+  assert.equal(out.rootCauses.length, 1);
+});
+
+test('two scan entries citing one line with no cluster are bounced once asking for the cluster', async () => {
+  const client = stubClient([
+    sub('tu_1', { ...base, rootCauses: [], findings: rcFound }),
+    sub('tu_2', { ...base, findings: rcFound }),
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root: rcRoot, log: (l) => lines.push(l) });
+  assert.equal(out.rounds, 2);
+  assert.match(lines.join('\n'), /useOverlayLifecycle\.ts:2/, 'the bounce names the shared line');
+  assert.match(lines.join('\n'), /blanks during close fade.*clickable during close fade|clickable during close fade.*blanks during close fade/s);
+  assert.equal(out.rootCauses.length, 1);
+});
+
+test('a submit without rootCauseScan is bounced by the completeness gate when there is something to scan', async () => {
+  const { rootCauseScan: _omit, ...noScan } = base;
+  const client = stubClient([sub('tu_1', { ...noScan, rootCauses: [], findings: rcFound }), sub('tu_2', { ...base, findings: rcFound })]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root: rcRoot, log: (l) => lines.push(l) });
+  assert.equal(out.rounds, 2);
+  assert.match(lines.join('\n'), /missing.*rootCauseScan/);
+  assert.equal(out.submitted, true);
+  assert.equal(out.rootCauses.length, 1);
+});
+
+test('a submit without rootCauseScan is accepted when there is nothing to scan', async () => {
+  const client = stubClient([sub('tu_1', { callSiteAudit: [], confirmSuppressed: [], findings: [] })]);
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root: rcRoot, log: () => {} });
+  assert.equal(out.rounds, 1);
+});
+
+test('every submit logs what rootCauses it carried, including an interrupted one', async () => {
+  const usage = { input_tokens: 200000, output_tokens: 8000 };
+  const cfg = { ...config, costCeilingUsd: 2, pricing: { 'claude-opus-4-8': { input: 5, output: 25 } }, model: 'claude-opus-4-8' };
+  const client = stubClient([
+    { content: [{ type: 'text', text: 'thinking' }], usage },
+    { content: [{ type: 'thinking', thinking: 'that one is harmless so I am leaving it out.' }, { type: 'tool_use', id: 'tu_1', name: 'submit_findings', input: { ...base, findings: [rcFound[0]] } }], usage },
+    sub('tu_2', { ...base, findings: rcFound }),
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config: cfg, system: 'sys', userMessage: 'r', root: rcRoot, log: (l) => lines.push(l) });
+  assert.equal(out.rounds, 2, 'the hedge bounce is unaffordable, so the run stops interrupted');
+  assert.equal(out.interruptedReason, 'budget');
+  const joined = lines.join('\n');
+  assert.match(joined, /rootCauses · submitted 1 · kept 0/, 'the interrupted submit still reports its clusters');
+  assert.match(joined, /unfiled-member.*clickable during close fade/);
+  assert.match(joined, /scan · 2 entr/);
+  assert.deepEqual(out.rootCauses, []);
+});
+
+
+test('a concern dismissed as covered that shares an origin with a finding is bounced once, asking for it to be filed as a member', async () => {
+  const covered = { title: 'focus restored mid-fade', status: 'dismissed-as-covered', failsAt: 'useFocusTrap.ts:9 focus()', originatesAt: 'useOverlayLifecycle.ts:2 shouldRender' };
+  const filedLater = { file: 'c.ts', line: 9, severity: 'low', confidence: 'high', category: 'accessibility', title: 'focus restored mid-fade', body: 'b', suggestion: 's' };
+  const client = stubClient([
+    sub('tu_1', { ...base, rootCauseScan: [...rcScan, covered], findings: rcFound }),
+    sub('tu_2', {
+      ...base,
+      rootCauseScan: [...rcScan, { ...covered, status: 'filed' }],
+      rootCauses: [{ ...rcCluster, members: [...rcCluster.members, { title: 'focus restored mid-fade', how: 'trap keyed on open' }] }],
+      findings: [...rcFound, filedLater],
+    }),
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root: rcRoot, log: (l) => lines.push(l) });
+  assert.equal(out.rounds, 2);
+  assert.match(lines.join('\n'), /focus restored mid-fade.*(member|file)/i, 'the bounce names the covered concern');
+  assert.equal(out.findings.length, 3);
+  assert.equal(out.rootCauses[0].members.length, 3);
+});
+
+test('every scan entry is logged with its status and both citations', async () => {
+  const client = stubClient([sub('tu_1', { ...base, findings: rcFound })]);
+  const lines = [];
+  await runReviewAgent({ client, config, system: 'sys', userMessage: 'r', root: rcRoot, log: (l) => lines.push(l) });
+  const joined = lines.join('\n');
+  assert.match(joined, /scan entry · \[filed\] "blanks during close fade" → fails a\.tsx:1 files · origin useOverlayLifecycle\.ts:2/);
+  assert.match(joined, /scan entry · \[filed\] "clickable during close fade"/);
 });

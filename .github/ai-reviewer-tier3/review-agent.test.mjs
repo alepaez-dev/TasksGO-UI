@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { touchesFrontend, renderCiChecksBlock, trustedCheckRuns, renderCoveredStub, corroborateCoverage } from './review-agent.mjs';
+import { touchesFrontend, renderCiChecksBlock, trustedCheckRuns, renderCoveredStub, corroborateCoverage, buildRootCausePosts, anthropicClientOptions } from './review-agent.mjs';
 
 test('touchesFrontend detects frontend files and ignores CI-only changes', () => {
   assert.equal(touchesFrontend([{ filename: 'src/components/Button/Button.tsx' }]), true);
@@ -157,4 +157,48 @@ test('corroborateCoverage accepts citation-based corroboration from records', ()
     promptedPaths: new Set(['src/hooks/useX.ts']),
   });
   assert.deepEqual(out.banked, ['src/hooks/useX.ts']);
+});
+
+
+test('buildRootCausePosts resolves members from this run and from prior markers, and drops a cluster it cannot resolve', () => {
+  const rootCauses = [
+    { title: 'shell exit window', sharedMechanism: 'h.ts:97 x', members: [{ title: 'Blanks during fade', how: 'h' }, { title: 'clickable during fade', how: 'h' }], recommendation: 'r', nextSymptom: 'n' },
+    { title: 'ghost', sharedMechanism: 'h.ts:1 y', members: [{ title: 'Blanks during fade', how: 'h' }, { title: 'never filed', how: 'h' }], recommendation: 'r', nextSymptom: 'n' },
+  ];
+  const findings = [{ file: 'a.tsx', line: 1, title: 'Blanks during fade', fp: 'fpA' }];
+  const priorMarkers = [{ file: 'b.css', title: 'Clickable during fade', fp: 'fpB' }];
+  const { create, update, unchanged, unresolved } = buildRootCausePosts({ rootCauses, findings, priorMarkers, priorRootCauses: [] });
+  assert.equal(create.length, 1);
+  assert.deepEqual(create[0].members.map((m) => m.fp), ['fpA', 'fpB']);
+  assert.equal(create[0].members[1].file, 'b.css');
+  assert.equal(create[0].members[1].how, 'h', 'the per-member trace survives resolution');
+  assert.equal(typeof create[0].fp, 'string');
+  assert.equal(update.length, 0);
+  assert.equal(unchanged.length, 0);
+  assert.deepEqual(unresolved.map((u) => u.title), ['ghost']);
+});
+
+test('buildRootCausePosts merges into a prior cluster that shares a member', () => {
+  const rootCauses = [{ title: 'shell exit window', sharedMechanism: 'h.ts:97 x', members: [{ title: 'Blanks during fade', how: 'h' }, { title: 'Clickable during fade', how: 'h' }], recommendation: 'r', nextSymptom: 'n' }];
+  const priorMarkers = [
+    { file: 'a.tsx', title: 'Blanks during fade', fp: 'fpA' },
+    { file: 'b.css', title: 'Clickable during fade', fp: 'fpB' },
+  ];
+  const priorRootCauses = [{ id: 7, fp: 'rc-old', title: 'old', mechanism: 'h.ts:97', members: [{ fp: 'fpA', title: 'Blanks during fade', file: 'a.tsx' }] }];
+  const { create, update } = buildRootCausePosts({ rootCauses, findings: [], priorMarkers, priorRootCauses });
+  assert.equal(create.length, 0);
+  assert.equal(update.length, 1);
+  assert.equal(update[0].id, 7);
+  assert.equal(update[0].rootCause.fp, 'rc-old');
+  assert.deepEqual(update[0].rootCause.members.map((m) => m.fp), ['fpA', 'fpB']);
+});
+
+
+test('anthropicClientOptions sends the workspace header only when ANTHROPIC_WORKSPACE_ID is set', () => {
+  assert.deepEqual(anthropicClientOptions({ ANTHROPIC_API_KEY: 'k' }), { apiKey: 'k' });
+  assert.deepEqual(anthropicClientOptions({ ANTHROPIC_API_KEY: 'k', ANTHROPIC_WORKSPACE_ID: 'wrkspc_1' }), {
+    apiKey: 'k',
+    defaultHeaders: { 'anthropic-workspace-id': 'wrkspc_1' },
+  });
+  assert.deepEqual(anthropicClientOptions({ ANTHROPIC_API_KEY: 'k', ANTHROPIC_WORKSPACE_ID: '  ' }), { apiKey: 'k' });
 });
