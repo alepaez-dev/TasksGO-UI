@@ -8,7 +8,7 @@ required work, guards derived from incomplete data, state advanced on an error/s
 
 - **Label:** `ai-reviewer-tier3` (new, separate from Tier 2's `ai-reviewer`).
 - **CI gate:** the review only runs once `guard`, `validate`, `a11y` and `e2e` succeed at the head (a red, cancelled, or slow CI skips it at zero cost, with a sticky "review skipped" comment on the PR). On stacked PRs — where ci.yml does not run at all (`branches: [main]`) — checks that never appear are dropped after a 3-minute grace and the gate rides on `guard` alone. Add `ai-reviewer-tier3-force` to bypass the gate for the current head — e.g. to review a PR whose CI is red on purpose, or one with stale cancelled checks. Remove it afterwards: while present, every push bypasses the gate.
-- **Model:** `claude-opus-5` (1M context), falls back to `claude-opus-4-8` on transient API errors (429/5xx/network), `effort: high` (bump to `max` with the `ai-reviewer-tier3-max` label), adaptive thinking.
+- **Model:** `claude-opus-5-5` (1M context), falls back to `claude-opus-5` on transient API errors (429/5xx/network) and on safety refusals (except `reasoning_extraction`) when a cold-cache round there still fits under the cost ceiling — otherwise the run stops, `effort: high` (bump to `max` with the `ai-reviewer-tier3-max` label), adaptive thinking.
 - **Budget:** **hard ceiling $2** — enforced deterministically (see below); the `ai-reviewer-tier3-max` label raises it to **$3** for a deep pass on large/important PRs.
 
 ## How it works
@@ -46,15 +46,16 @@ Three layers, plus a loud interrupt:
 **Scope of the ceiling:** `costCeilingUsd` bounds the **findings loop** only. The verify/auto-resolve
 pass runs *after* the loop and is **not** gated by the ceiling — it is bounded instead by
 `maxVerifyThreads` (≤ 20) plus its own `maxInputTokens` pre-flight gate, so it adds a bounded amount
-(roughly $0.30–1.00) on top. That amount **is** included in the reported total (sticky PR comment + job
+(roughly $0.05–0.30) on top. That amount **is** included in the reported total (sticky PR comment + job
 summary), so the spend you see is accurate — only the deterministic abort excludes it, so a run's true
 total can land somewhat above `costCeilingUsd`. (If verify ever runs too hot, it can be folded into the
 budget — see the `TODO(budget)` in `review-agent.mjs`.)
 
 Caching is load-bearing: the loop keeps a cache-stable prefix (system + diff + accumulated reads) so
-re-reads bill at 0.1×, which is what keeps ~1.5M cumulative tokens near $2 instead of $7.50. The model
-id is `claude-opus-5` — **never** `claude-opus-5[1m]` (that's a session label, not an API id); its
-context window is already 1M, and a single request is hard-capped at 1M input tokens.
+re-reads bill at 0.05× on `claude-opus-5-5` (0.1× on most other models), which is what keeps ~1.5M
+cumulative tokens near $1.40 instead of $6. The model id is `claude-opus-5-5` — **never**
+`claude-opus-5-5[1m]` (that's a session label, not an API id); its context window is already 1M, and a
+single request is hard-capped at 1M input tokens.
 
 **When a run is cut short for budget** (or hits `maxRounds`), it is flagged **loudly** so it is never
 mistaken for a clean pass:
@@ -126,6 +127,7 @@ repo-confined (reuse `confineToRepo`), with no shell and no network, so secrets 
 | `effort` | `"high"` | Thinking/agentic depth. Bump to `"max"` per-run with the `ai-reviewer-tier3-max` label. |
 | `costCeilingUsd` | `2` | Hard per-run spend ceiling (deterministic abort); the `ai-reviewer-tier3-max` label raises it to `3`. |
 | `costWarnUsd` | `1.5` | Warn when a run exceeds this. |
+| `pricing` | per model | $/MTok the governor bills with: `input`, `output`, and `cacheRead` when cache reads are not 0.1× input (`claude-opus-5-5`: `0.2`). Every model in `model` / `fallbackModel` needs an entry. |
 | `taskBudgetTokens` | `1200000` | Cumulative-token budget the model self-moderates against (≥ 20000). |
 | `maxInputTokens` | `1000000` | Per-request hard cap on the **initial** prompt (graceful skip, not truncation). |
 | `maxRounds` / `maxToolCalls` | `40` / `120` | Loop backstops. |
