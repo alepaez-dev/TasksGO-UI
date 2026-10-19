@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { Icon } from '../Icon';
 import { Badge } from './Badge';
 import styles from './Badge.module.css';
 
@@ -62,7 +63,7 @@ export const StatusChange: Story = {
       }}
     >
       changed status <Badge variant="previous">To Do</Badge>{' '}
-      <span aria-hidden="true">→</span>
+      <Icon name="arrow_forward" size="xs" />
       <span className={styles.srOnly}>to</span>{' '}
       <Badge variant="progress">In Progress</Badge>
     </span>
