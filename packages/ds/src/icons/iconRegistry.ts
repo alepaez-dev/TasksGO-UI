@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from 'react';
 import { AddIcon } from './add';
+import { ArrowForwardIcon } from './arrowForward';
 import { AttachFileIcon } from './attachFile';
 import { AttachmentIcon } from './attachment';
 import { AutoAwesomeIcon } from './autoAwesome';
@@ -54,6 +55,7 @@ import { WarningIcon } from './warning';
 
 export const iconRegistry = {
   add: AddIcon,
+  arrow_forward: ArrowForwardIcon,
   attach_file: AttachFileIcon,
   attachment: AttachmentIcon,
   auto_awesome: AutoAwesomeIcon,

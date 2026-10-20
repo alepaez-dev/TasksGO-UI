@@ -7,6 +7,7 @@ export { IconButton, type IconButtonProps } from './components/IconButton';
 export { Fab, type FabProps } from './components/Fab';
 export {
   AddIcon,
+  ArrowForwardIcon,
   AttachFileIcon,
   AttachmentIcon,
   AutoAwesomeIcon,

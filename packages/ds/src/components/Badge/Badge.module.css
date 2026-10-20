@@ -83,3 +83,22 @@
   letter-spacing: normal;
   text-transform: none;
 }
+
+.previous {
+  background-color: var(--ds-color-badge-previous-background);
+  color: var(--ds-color-badge-previous-text);
+  border-color: var(--ds-color-badge-previous-border);
+  text-decoration: line-through;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

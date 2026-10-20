@@ -24,6 +24,21 @@ describe('Badge', () => {
     expect(screen.getByText('v4.1.0-alpha')).toHaveClass('reference');
   });
 
+  it('applies the previous variant class', () => {
+    render(<Badge variant="previous">To Do</Badge>);
+    expect(screen.getByText(/To Do/)).toHaveClass('previous');
+  });
+
+  it('tells assistive tech the value is a previous one', () => {
+    render(<Badge variant="previous">To Do</Badge>);
+    expect(screen.getByText(/To Do/)).toHaveTextContent('was To Do');
+  });
+
+  it('does not prefix "was" on non-previous variants', () => {
+    render(<Badge variant="progress">In Progress</Badge>);
+    expect(screen.getByText('In Progress')).toHaveTextContent(/^In Progress$/);
+  });
+
   it('applies the waived variant class', () => {
     render(<Badge variant="waived">Waived</Badge>);
     expect(screen.getByText('Waived')).toHaveClass('waived');

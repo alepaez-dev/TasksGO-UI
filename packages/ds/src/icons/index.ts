@@ -1,5 +1,6 @@
 export { iconRegistry, type IconName } from './iconRegistry';
 export { AddIcon } from './add';
+export { ArrowForwardIcon } from './arrowForward';
 export { AttachFileIcon } from './attachFile';
 export { AttachmentIcon } from './attachment';
 export { AutoAwesomeIcon } from './autoAwesome';

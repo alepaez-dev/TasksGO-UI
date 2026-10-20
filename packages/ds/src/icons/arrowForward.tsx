@@ -1,0 +1,6 @@
+import { createIcon } from './createIcon';
+
+export const ArrowForwardIcon = createIcon(
+  'M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z',
+  'ArrowForwardIcon',
+);
