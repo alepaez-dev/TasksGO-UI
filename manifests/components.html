@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">6/66 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">66/66 infos</a><span class="filter-pill ok" aria-disabled="true">321 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">6/66 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">66/66 infos</a><span class="filter-pill ok" aria-disabled="true">324 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -1414,7 +1414,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
       <div class="badges">
         <label for="c-4-components-badge-props" class="badge ok as-toggle">1 prop type</label>
         <label for="c-4-components-badge-info" class="badge info as-toggle">1 info</label>
-        <label for="c-4-components-badge-stories" class="badge ok as-toggle">11 stories</label>
+        <label for="c-4-components-badge-stories" class="badge ok as-toggle">13 stories</label>
         
       </div>
     </div>
@@ -1459,7 +1459,8 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
 | &#39;success&#39;
 | &#39;waived&#39;
 | &#39;reference&#39;
-| &#39;count&#39; = &#39;default&#39;</code></pre>
+| &#39;count&#39;
+| &#39;previous&#39; = &#39;default&#39;</code></pre>
           </div>
         </div>
     
@@ -1471,7 +1472,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
                 <div class="row">
                   <span class="ex-name">Imports</span>
                 </div>
-                <pre><code>import { Badge } from "@all3hp/tasksgo-ui";</code></pre>
+                <pre><code>import { Badge, Icon } from "@all3hp/tasksgo-ui";</code></pre>
               </div>
           
           
@@ -1483,6 +1484,40 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
               
               
               <pre><code>const Default = () =&gt; &lt;Badge&gt;v4.1.0-alpha&lt;/Badge&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Previous</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Previous = () =&gt; &lt;Badge variant=&quot;previous&quot;&gt;To Do&lt;/Badge&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Status Change</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const StatusChange = () =&gt; (
+  &lt;span
+    style={{
+      display: &#39;inline-flex&#39;,
+      alignItems: &#39;center&#39;,
+      gap: &#39;var(--ds-space-scale-sm)&#39;,
+      fontFamily: &#39;var(--ds-font-family-sans)&#39;,
+      fontSize: &#39;var(--ds-text-timeline-event-font-size)&#39;,
+      color: &#39;var(--ds-color-text-secondary)&#39;,
+    }}
+  &gt;
+    changed status &lt;Badge variant=&quot;previous&quot;&gt;To Do&lt;/Badge&gt;{&#39; &#39;}
+    &lt;Icon name=&quot;arrow_forward&quot; size=&quot;xs&quot; /&gt;
+    &lt;span className={styles.srOnly}&gt;to&lt;/span&gt;{&#39; &#39;}
+    &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+  &lt;/span&gt;
+);</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -1605,6 +1640,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     &lt;Badge variant=&quot;reference&quot;&gt;v4.1.0-alpha&lt;/Badge&gt;
     &lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;
     &lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;
+    &lt;Badge variant=&quot;previous&quot;&gt;To Do&lt;/Badge&gt;
   &lt;/div&gt;
 );</code></pre>
             </div>
@@ -11548,7 +11584,7 @@ titleEditing?: any = false</code></pre>
       <div class="badges">
         <label for="c-62-components-timelinedivider-err" class="badge err as-toggle">prop type error</label>
         <label for="c-62-components-timelinedivider-info" class="badge info as-toggle">1 info</label>
-        <label for="c-62-components-timelinedivider-stories" class="badge ok as-toggle">6 stories</label>
+        <label for="c-62-components-timelinedivider-stories" class="badge ok as-toggle">7 stories</label>
         
       </div>
     </div>
@@ -11574,13 +11610,13 @@ titleEditing?: any = false</code></pre>
       <div class="note-body"><pre><code>No component file found for the &quot;TimelineDivider as unknown as (
   props: TimelineDividerStoryArgs,
 ) =&gt; ReactNode&quot; component.
-  21 | const FEED_PADDING = 24;
-  22 |
-&gt; 23 | const meta = {
+  23 | const FEED_PADDING = 24;
+  24 |
+&gt; 25 | const meta = {
      | ^
-  24 |   title: &#39;Components/TimelineDivider&#39;,
-  25 |   component: TimelineDivider as unknown as (
-  26 |     props: TimelineDividerStoryArgs,
+  26 |   title: &#39;Components/TimelineDivider&#39;,
+  27 |   component: TimelineDivider as unknown as (
+  28 |     props: TimelineDividerStoryArgs,
 
 ./src/components/TimelineDivider/TimelineDivider.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -11594,6 +11630,7 @@ interface TimelineDividerStoryArgs {
   type: &#39;dayDivider&#39; | &#39;gapDivider&#39;;
   at?: string;
   relative?: &#39;today&#39; | &#39;yesterday&#39; | null;
+  sameYear?: boolean;
   durationMs?: number;
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   locale?: string;
@@ -11602,6 +11639,7 @@ interface TimelineDividerStoryArgs {
 const YESTERDAY = &#39;2026-01-13T09:12:00.000Z&#39;;
 const TODAY = &#39;2026-01-14T08:30:00.000Z&#39;;
 const LAST_WEEK = &#39;2026-01-06T15:45:00.000Z&#39;;
+const LAST_YEAR = &#39;2025-11-02T10:20:00.000Z&#39;;
 
 const FEED_PADDING = 24;
 
@@ -11631,6 +11669,7 @@ const meta = {
         &#39;none (older)&#39;: null,
       },
     },
+    sameYear: { control: &#39;boolean&#39; },
     durationMs: { control: &#39;number&#39; },
     headingLevel: { control: &#39;inline-radio&#39;, options: [2, 3, 4, 5, 6] },
     locale: {
@@ -11681,6 +11720,18 @@ export const EarlierDate: Story = {
       description: {
         story:
           &#39;Anything older than yesterday has no relative name, so the date stands alone — no trailing separator with nothing after it.&#39;,
+      },
+    },
+  },
+};
+
+export const PreviousYear: Story = {
+  args: { at: LAST_YEAR, relative: null, sameYear: false },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Once a day falls outside the current year the heading names it, because `relative` is null this far back and two &quot;Jan 13&quot;s a year apart would otherwise be identical. `withDividers` decides this and reports it as `sameYear` — the component never reads the clock.&#39;,
       },
     },
   },
@@ -11871,6 +11922,22 @@ export const InAFeed: Story = {
     at={LAST_WEEK}
     relative={null}
     durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Previous Year</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const PreviousYear = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={LAST_YEAR}
+    relative={null}
+    durationMs={4 * 60 * 60 * 1000}
+    sameYear={false} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -13154,7 +13221,7 @@ export const CustomLeading: Story = {
       <div class="badges">
         <label for="c-error-1-components-timelinedivider-err" class="badge err as-toggle">prop type error</label>
         <label for="c-error-1-components-timelinedivider-info" class="badge info as-toggle">1 info</label>
-        <label for="c-error-1-components-timelinedivider-stories" class="badge ok as-toggle">6 stories</label>
+        <label for="c-error-1-components-timelinedivider-stories" class="badge ok as-toggle">7 stories</label>
         
       </div>
     </div>
@@ -13180,13 +13247,13 @@ export const CustomLeading: Story = {
       <div class="note-body"><pre><code>No component file found for the &quot;TimelineDivider as unknown as (
   props: TimelineDividerStoryArgs,
 ) =&gt; ReactNode&quot; component.
-  21 | const FEED_PADDING = 24;
-  22 |
-&gt; 23 | const meta = {
+  23 | const FEED_PADDING = 24;
+  24 |
+&gt; 25 | const meta = {
      | ^
-  24 |   title: &#39;Components/TimelineDivider&#39;,
-  25 |   component: TimelineDivider as unknown as (
-  26 |     props: TimelineDividerStoryArgs,
+  26 |   title: &#39;Components/TimelineDivider&#39;,
+  27 |   component: TimelineDivider as unknown as (
+  28 |     props: TimelineDividerStoryArgs,
 
 ./src/components/TimelineDivider/TimelineDivider.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -13200,6 +13267,7 @@ interface TimelineDividerStoryArgs {
   type: &#39;dayDivider&#39; | &#39;gapDivider&#39;;
   at?: string;
   relative?: &#39;today&#39; | &#39;yesterday&#39; | null;
+  sameYear?: boolean;
   durationMs?: number;
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   locale?: string;
@@ -13208,6 +13276,7 @@ interface TimelineDividerStoryArgs {
 const YESTERDAY = &#39;2026-01-13T09:12:00.000Z&#39;;
 const TODAY = &#39;2026-01-14T08:30:00.000Z&#39;;
 const LAST_WEEK = &#39;2026-01-06T15:45:00.000Z&#39;;
+const LAST_YEAR = &#39;2025-11-02T10:20:00.000Z&#39;;
 
 const FEED_PADDING = 24;
 
@@ -13237,6 +13306,7 @@ const meta = {
         &#39;none (older)&#39;: null,
       },
     },
+    sameYear: { control: &#39;boolean&#39; },
     durationMs: { control: &#39;number&#39; },
     headingLevel: { control: &#39;inline-radio&#39;, options: [2, 3, 4, 5, 6] },
     locale: {
@@ -13287,6 +13357,18 @@ export const EarlierDate: Story = {
       description: {
         story:
           &#39;Anything older than yesterday has no relative name, so the date stands alone — no trailing separator with nothing after it.&#39;,
+      },
+    },
+  },
+};
+
+export const PreviousYear: Story = {
+  args: { at: LAST_YEAR, relative: null, sameYear: false },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Once a day falls outside the current year the heading names it, because `relative` is null this far back and two &quot;Jan 13&quot;s a year apart would otherwise be identical. `withDividers` decides this and reports it as `sameYear` — the component never reads the clock.&#39;,
       },
     },
   },
@@ -13477,6 +13559,22 @@ export const InAFeed: Story = {
     at={LAST_WEEK}
     relative={null}
     durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Previous Year</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const PreviousYear = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={LAST_YEAR}
+    relative={null}
+    durationMs={4 * 60 * 60 * 1000}
+    sameYear={false} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
