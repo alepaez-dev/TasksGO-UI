@@ -164,15 +164,25 @@ function neutralizeWritesForDryRun(octokit) {
 // Plain-text note for an over-budget / over-rounds interrupt (writeJobSummary wraps it as `> ⚠️ …`;
 // the PR comments prepend it as a `> ⚠️ …` banner). Null when the run finished normally.
 export function interruptNote(result, config) {
-  if (!result.interruptedReason && result.windDownReason && result.submitted) {
-    const spent = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
-    const limit = result.windDownReason === 'max_rounds' ? `${config.maxRounds}-round limit` : `$${config.costCeilingUsd} budget ceiling`;
-    return (
-      `Tier 3 reached its ${limit}${spent != null ? ` (≈ $${spent.toFixed(2)})` : ''} and submitted from what it had confirmed. ` +
-      `Scope was capped by budget, not by the change — a larger PR gets fewer rounds of investigation.`
-    );
+  if (!result.interruptedReason) {
+    const notes = [];
+    if (result.windDownReason && result.submitted) {
+      const spent = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
+      const limit = result.windDownReason === 'max_rounds' ? `${config.maxRounds}-round limit` : `$${config.costCeilingUsd} budget ceiling`;
+      notes.push(
+        `Tier 3 reached its ${limit}${spent != null ? ` (≈ $${spent.toFixed(2)})` : ''} and submitted from what it had confirmed. ` +
+          `Scope was capped by budget, not by the change — a larger PR gets fewer rounds of investigation.`,
+      );
+    }
+    if (result.hedgeGateRefused) {
+      const { category, handWaves } = result.hedgeGateRefused;
+      notes.push(
+        `Tier 3 submitted its review, but the model declined a follow-up check (refusal: ${category}), so ${handWaves} concern(s) ` +
+          `it set aside as low-impact were not re-checked; see the run log.`,
+      );
+    }
+    return notes.join(' ') || null;
   }
-  if (!result.interruptedReason) return null;
   const spent = result.costUsd ?? estimateCostUsd(result.usage, config.model, config.pricing);
   const spend = `≈ ${formatUsage(result.usage)}${spent != null ? ` (≈ $${spent.toFixed(2)})` : ''}`;
   if (result.interruptedReason === 'budget') {
@@ -185,7 +195,7 @@ export function interruptNote(result, config) {
     return `Tier 3 stopped early — a model request failed mid-review (after ${spend}). Findings may be incomplete; see the run log.`;
   }
   if (result.interruptedReason === 'refusal') {
-    return `Tier 3 stopped early — the model declined the request (safety refusal) after ${spend}. Findings may be incomplete; see the run log.`;
+    return `Tier 3 stopped early — the model declined the request (refusal: ${result.refusalCategory ?? 'uncategorized'}) after ${spend}. Findings may be incomplete; see the run log.`;
   }
   return `Tier 3 stopped early — hit the maxRounds limit (${config.maxRounds}) after ${spend}. Findings may be incomplete.`;
 }
@@ -551,7 +561,9 @@ async function main() {
   } else if (result.interruptedReason === 'error') {
     core.warning('Tier 3 stopped early after a model API error; findings may be incomplete (see the run log).');
   } else if (result.interruptedReason === 'refusal') {
-    core.warning('Tier 3 stopped early: the model declined the request (safety refusal); findings may be incomplete (see the run log).');
+    core.warning(`Tier 3 stopped early: the model declined the request (refusal: ${result.refusalCategory ?? 'uncategorized'}); findings may be incomplete (see the run log).`);
+  } else if (result.hedgeGateRefused) {
+    core.warning(`Tier 3 submitted, but the model declined the hand-wave re-ask (refusal: ${result.hedgeGateRefused.category}); ${result.hedgeGateRefused.handWaves} hand-wave(s) went ungated (see the run log).`);
   }
   if (result.toolBudgetExhausted) {
     core.warning(`Tier 3 hit the tool-call budget (maxToolCalls=${config.maxToolCalls}); the model was asked to wrap up, so exploration may be incomplete.`);

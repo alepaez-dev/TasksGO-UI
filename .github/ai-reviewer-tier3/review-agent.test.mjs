@@ -9,6 +9,24 @@ test('a refusal interrupt is reported as a declined request, not as the maxRound
   assert.doesNotMatch(note, /maxRounds/);
 });
 
+test('a refusal interrupt names the refusal category', () => {
+  const config = { model: 'claude-opus-5-5', maxRounds: 40, costCeilingUsd: 2, pricing: {} };
+  const note = interruptNote({ interruptedReason: 'refusal', refusalCategory: 'reasoning_extraction', usage: { input_tokens: 1000, output_tokens: 10 }, costUsd: 0.5 }, config);
+  assert.match(note, /refusal: reasoning_extraction/);
+});
+
+test('a refused hand-wave re-ask is noted on a submitted run, alongside a wind-down note', () => {
+  const config = { model: 'claude-opus-5-5', maxRounds: 40, costCeilingUsd: 2, pricing: {} };
+  const refused = { category: 'reasoning_extraction', handWaves: 2 };
+  const alone = interruptNote({ submitted: true, hedgeGateRefused: refused, usage: {}, costUsd: 0.4 }, config);
+  assert.match(alone, /refusal: reasoning_extraction/);
+  assert.match(alone, /2 concern\(s\)/);
+  const both = interruptNote({ submitted: true, windDownReason: 'budget', hedgeGateRefused: refused, usage: {}, costUsd: 1.9 }, config);
+  assert.match(both, /budget ceiling/);
+  assert.match(both, /refusal: reasoning_extraction/);
+  assert.equal(interruptNote({ submitted: true, usage: {}, costUsd: 0.4 }, config), null);
+});
+
 test('touchesFrontend detects frontend files and ignores CI-only changes', () => {
   assert.equal(touchesFrontend([{ filename: 'src/components/Button/Button.tsx' }]), true);
   assert.equal(touchesFrontend([{ filename: 'src/tokens/colors.ts' }]), true);

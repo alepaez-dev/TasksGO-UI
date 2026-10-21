@@ -77,6 +77,24 @@ export function findHedges(text, cap = 5) {
   return [...text.matchAll(HEDGE_RE)].map((m) => m[0].trim()).slice(0, cap);
 }
 
+const asList = (v) => (Array.isArray(v) ? v : []);
+const countMoved = (rows) => rows.filter((c) => c?.verdict === 'is-a-bug-moved-to-findings').length;
+const signed = (n) => (n >= 0 ? `+${n}` : `${n}`);
+
+export function describeReaskEffect(baseline, findings, confirmSuppressed) {
+  const beforeFindings = asList(baseline?.findings);
+  const beforeConfirm = asList(baseline?.confirmSuppressed);
+  const afterFindings = asList(findings);
+  const afterConfirm = asList(confirmSuppressed);
+  const unchanged =
+    JSON.stringify(beforeFindings) === JSON.stringify(afterFindings) && JSON.stringify(beforeConfirm) === JSON.stringify(afterConfirm);
+  return (
+    `re-ask · findings ${beforeFindings.length}→${afterFindings.length} (${signed(afterFindings.length - beforeFindings.length)}) · ` +
+    `confirmSuppressed ${beforeConfirm.length}→${afterConfirm.length} (${signed(afterConfirm.length - beforeConfirm.length)}, ` +
+    `moved ${signed(countMoved(afterConfirm) - countMoved(beforeConfirm))}) · unchanged=${unchanged}`
+  );
+}
+
 // The exact guidance sentence handed to the model each round (thresholds live in budgetPhase).
 export function budgetGuidance(frac, softFraction = 0.75) {
   return BUDGET_GUIDANCE[budgetPhase(frac, softFraction)];
@@ -216,6 +234,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
   let auditReported = false;
   let auditRejected = false;
   let hedgeRejected = false;
+  let hedgeReask = null;
+  let hedgeBaseline = null;
+  let hedgeGateRefused = null;
+  let refusalCategoryName = null;
   let reasoningSoFar = '';
   let callSiteAudit = [];
   let confirmSuppressed = [];
@@ -260,6 +282,23 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     if (bankedDismissed && !dismissed?.length) dismissed = bankedDismissed;
     if (bankedCoveredFiles && !coveredFiles?.length) coveredFiles = bankedCoveredFiles;
     dropClearancesForFiledConcerns();
+  };
+
+  const acceptSubmission = (input) => {
+    if (Array.isArray(input?.callSiteAudit)) {
+      callSiteAudit = input.callSiteAudit;
+      auditReported = true;
+    }
+    if (Array.isArray(input?.confirmSuppressed)) confirmSuppressed = input.confirmSuppressed;
+    if (Array.isArray(input?.findings)) {
+      submitted = true;
+      findings = input.findings;
+    } else {
+      findings = [];
+    }
+    if (Array.isArray(input?.dismissed)) dismissed = input.dismissed;
+    if (Array.isArray(input?.coveredFiles)) coveredFiles = input.coveredFiles;
+    restoreBanked();
   };
 
   let findingsLogged = false;
@@ -422,11 +461,26 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         modelIdx += 1;
         continue;
       }
+      if (hedgeReask) {
+        hedgeGateRefused = { category, handWaves: hedgeReask.hedges.length };
+        log(
+          `round ${rounds + 1}/${config.maxRounds}: ${models[modelIdx]} declined the hand-wave re-ask (refusal: ${category}) — ${notRetried}; ` +
+            `accepting the submission it was asked to revisit, with ${hedgeReask.hedges.length} hand-wave(s) left ungated.`,
+        );
+        if (logLevel !== 'quiet') for (const h of hedgeReask.hedges) log(`  hand-wave (ungated) · "${h}"`);
+        acceptSubmission(hedgeReask.input);
+        if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
+        logFindings();
+        logRecords();
+        break;
+      }
+      refusalCategoryName = category;
       governor.interrupt('refusal');
       log(`round ${rounds + 1}/${config.maxRounds}: ${models[modelIdx]} declined the request (refusal: ${category}) — ${notRetried}; stopping with what is banked.`);
       findings = findings ?? [];
       break;
     }
+    hedgeReask = null;
     rounds += 1;
     lastUsage = msg.usage || null;
     governor.record(msg.usage, models[modelIdx]);
@@ -530,8 +584,13 @@ export async function runReviewAgent({ client, config, system, userMessage, root
       }
       if (needsHedgeGate) {
         hedgeRejected = true;
+        hedgeReask = { input: submit.input, hedges };
+        hedgeBaseline = submit.input;
         bankSubmission();
-        if (logLevel !== 'quiet') log(`round ${rounds}/${config.maxRounds}: reasoning hand-waved ${hedges.length} concern(s) — asking once for each to enter confirmSuppressed.`);
+        if (logLevel !== 'quiet') {
+          log(`round ${rounds}/${config.maxRounds}: reasoning hand-waved ${hedges.length} concern(s) — asking once for each to enter confirmSuppressed.`);
+          for (const h of hedges) log(`  hand-wave · "${h}"`);
+        }
         clearUserBreakpoints();
         messages.push({
           role: 'user',
@@ -542,12 +601,11 @@ export async function runReviewAgent({ client, config, system, userMessage, root
               is_error: true,
               content:
                 u.id === submit.id
-                  ? 'submit_findings rejected: your reasoning dismissed concerns with impact hand-waves instead of the five-step gate:\n' +
-                    hedges.map((h) => `  · "${h}"`).join('\n') +
-                    '\nEach names a concern you formed. "Acceptable", "best-effort", "cosmetic", "harmless" and "not a real bug" are SEVERITY ' +
-                    'judgements, never clearances. For EACH one: put it in `confirmSuppressed` with all five steps (a cited enforcing line is ' +
-                    'required), or move it to `findings` with severity `low`. If it is already recorded, say so and resubmit unchanged. ' +
-                    'Answer from what you have ALREADY read; do not call any other tool.'
+                  ? 'submit_findings rejected: before submitting, route every concern about this change that you set aside on impact ' +
+                    'grounds ("acceptable", "best-effort", "cosmetic", "harmless", "fine since", "not a real bug", "not worth reporting"). ' +
+                    'Those are SEVERITY judgements, never clearances. For EACH such concern: put it in `confirmSuppressed` with all five ' +
+                    'steps (a cited enforcing line is required), or move it to `findings` with severity `low`. If every such concern is ' +
+                    'already recorded, resubmit unchanged. Answer from what you have ALREADY read; do not call any other tool.'
                   : 'Not run — submit_findings was rejected.',
             })),
             { type: 'text', text: '[hand-wave] Route each dismissed concern through the gate, then submit.', cache_control: { type: 'ephemeral' } },
@@ -555,25 +613,10 @@ export async function runReviewAgent({ client, config, system, userMessage, root
         });
         continue;
       }
-      if (Array.isArray(submittedAudit)) {
-        callSiteAudit = submittedAudit;
-        auditReported = true;
-      }
-      if (Array.isArray(submittedConfirm)) confirmSuppressed = submittedConfirm;
-      if (Array.isArray(submittedFindings)) {
-        submitted = true;
-        findings = submittedFindings;
-      } else {
-        findings = [];
-      }
-      if (Array.isArray(submittedDismissed)) dismissed = submittedDismissed;
-      if (Array.isArray(submittedCovered)) coveredFiles = submittedCovered;
-      // Restore BEFORE the log block on purpose: the count below reports what will actually be
-      // published, and logRecords() a few lines down is post-restore too. Moving it after the log
-      // makes the run say "→ 0 finding(s)" on a run that posts one.
-      restoreBanked();
+      acceptSubmission(submit.input);
       if (logLevel !== 'quiet') {
         log(`round ${rounds}/${config.maxRounds} · submit_findings → ${findings.length} finding(s) · spent $${governor.spentUsd().toFixed(2)}`);
+        if (hedgeBaseline) log(describeReaskEffect(hedgeBaseline, findings, confirmSuppressed));
         surfaceReasoning(log, msg.content);
       }
       logFindings();
@@ -644,6 +687,8 @@ export async function runReviewAgent({ client, config, system, userMessage, root
     costUsd: governor.spentUsd(),
     usedFallback: modelIdx > 0,
     interruptedReason: governor.interruptedReason,
+    refusalCategory: refusalCategoryName,
+    hedgeGateRefused,
     windDownReason,
     rounds,
     toolBudgetExhausted,

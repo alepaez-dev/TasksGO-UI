@@ -753,6 +753,7 @@ test('a reasoning_extraction refusal is not retried on the fallback model', asyn
   const { client, calls } = scriptedClient([refusalMsg('reasoning_extraction'), submitMsg()]);
   const out = await runReviewAgent({ client, config: fast({ fallbackModel: 'claude-opus-4-7' }), system: 'sys', userMessage: 'r', root, log: () => {} });
   assert.equal(out.interruptedReason, 'refusal');
+  assert.equal(out.refusalCategory, 'reasoning_extraction');
   assert.equal(calls.length, 1);
 });
 
@@ -763,6 +764,77 @@ test('findings banked before a refusal are still returned', async () => {
   const out = await runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: () => {} });
   assert.equal(out.interruptedReason, 'refusal');
   assert.deepEqual(out.findings, [finding]);
+});
+
+const hedgedSubmit = (input) => ({
+  content: [
+    { type: 'thinking', thinking: 'the sr-only span has no positioned ancestor, which is probably fine since it is out of flow.' },
+    { type: 'tool_use', id: 'th', name: 'submit_findings', input },
+  ],
+  usage: { input_tokens: 100, output_tokens: 10 },
+});
+
+test('a refusal of the hand-wave re-ask accepts the submission it was asked to revisit', async () => {
+  const finding = { file: 'a.ts', line: 1, severity: 'low', confidence: 'high', category: 'logic', title: 'real one', body: 'b', suggestion: 's' };
+  const audit = [{ file: 'a.ts', quotedLine: 'fn(x)', verdict: 'passes', why: 'supplies the field' }];
+  const confirm = [{ claim: 'c', predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' }];
+  const covered = ['a.ts'];
+  const { client, calls } = scriptedClient([
+    hedgedSubmit({ findings: [finding], callSiteAudit: audit, confirmSuppressed: confirm, coveredFiles: covered }),
+    refusalMsg('reasoning_extraction'),
+  ]);
+  const lines = [];
+  const out = await runReviewAgent({ client, config: fast({ fallbackModel: 'claude-opus-4-7' }), system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  assert.equal(calls.length, 2);
+  assert.equal(out.interruptedReason, null, 'a finished review must not be reported as interrupted');
+  assert.equal(out.submitted, true, 'the review checkpoint advances only on a submitted run');
+  assert.deepEqual(out.findings, [finding]);
+  assert.deepEqual(out.callSiteAudit, audit);
+  assert.deepEqual(out.confirmSuppressed, confirm);
+  assert.deepEqual(out.coveredFiles, covered);
+  assert.deepEqual(out.hedgeGateRefused, { category: 'reasoning_extraction', handWaves: 1 });
+  assert.match(lines.join('\n'), /hand-wave \(ungated\) · "the sr-only span has no positioned ancestor, which is probably fine since it is out of flow\."/);
+});
+
+test('a refusal after the re-ask round has completed still interrupts the run', async () => {
+  const { client } = scriptedClient([
+    hedgedSubmit({ findings: [], callSiteAudit: [], confirmSuppressed: [] }),
+    grepMsg(),
+    refusalMsg('reasoning_extraction'),
+  ]);
+  const out = await runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: () => {} });
+  assert.equal(out.interruptedReason, 'refusal');
+  assert.equal(out.submitted, false);
+  assert.equal(out.hedgeGateRefused, null);
+});
+
+test('the hand-wave re-ask logs what the resubmit changed', async () => {
+  const kept = { claim: 'tokens exist', predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' };
+  const routed = { ...kept, claim: 'sr-only span has no positioned ancestor' };
+  const resubmit = { content: [{ type: 'tool_use', id: 'tr', name: 'submit_findings', input: { findings: [], callSiteAudit: [], confirmSuppressed: [kept, routed] } }], usage: { input_tokens: 100, output_tokens: 10 } };
+  const { client } = scriptedClient([hedgedSubmit({ findings: [], callSiteAudit: [], confirmSuppressed: [kept] }), resubmit]);
+  const lines = [];
+  await runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  assert.ok(lines.includes('re-ask · findings 0→0 (+0) · confirmSuppressed 1→2 (+1, moved +0) · unchanged=false'), lines.join('\n'));
+});
+
+test('the hand-wave re-ask logs an unchanged resubmit as unchanged', async () => {
+  const kept = { claim: 'tokens exist', predictedFailure: 'p', invariant: 'i', enforcingCode: 'a.ts:1', coversThisPath: 'x', counterexample: 'y', verdict: 'cleared-all-five-passed' };
+  const input = { findings: [], callSiteAudit: [], confirmSuppressed: [kept] };
+  const resubmit = { content: [{ type: 'tool_use', id: 'tr', name: 'submit_findings', input }], usage: { input_tokens: 100, output_tokens: 10 } };
+  const { client } = scriptedClient([hedgedSubmit(input), resubmit]);
+  const lines = [];
+  await runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: (l) => lines.push(l) });
+  assert.ok(lines.includes('re-ask · findings 0→0 (+0) · confirmSuppressed 1→1 (+0, moved +0) · unchanged=true'), lines.join('\n'));
+});
+
+test('the hand-wave re-ask never quotes the reasoning it scanned', async () => {
+  const { client, calls } = scriptedClient([hedgedSubmit({ findings: [], callSiteAudit: [], confirmSuppressed: [] }), submitMsg()]);
+  await runReviewAgent({ client, config: fast(), system: 'sys', userMessage: 'r', root, log: () => {} });
+  const reask = JSON.stringify(calls[1].messages.at(-1));
+  assert.match(reask, /confirmSuppressed/);
+  assert.doesNotMatch(reask, /positioned ancestor|out of flow/, 'thinking text must not be sent back to the model');
+  assert.doesNotMatch(reask, /your reasoning|your thinking/i);
 });
 
 const nearCeiling = fast({
