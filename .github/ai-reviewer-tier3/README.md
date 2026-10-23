@@ -8,7 +8,7 @@ required work, guards derived from incomplete data, state advanced on an error/s
 
 - **Label:** `ai-reviewer-tier3` (new, separate from Tier 2's `ai-reviewer`).
 - **CI gate:** the review only runs once `guard`, `validate`, `a11y` and `e2e` succeed at the head (a red, cancelled, or slow CI skips it at zero cost, with a sticky "review skipped" comment on the PR). On stacked PRs — where ci.yml does not run at all (`branches: [main]`) — checks that never appear are dropped after a 3-minute grace and the gate rides on `guard` alone. Add `ai-reviewer-tier3-force` to bypass the gate for the current head — e.g. to review a PR whose CI is red on purpose, or one with stale cancelled checks. Remove it afterwards: while present, every push bypasses the gate.
-- **Model:** `claude-opus-5-5` (1M context), falls back to `claude-opus-5` on transient API errors (429/5xx/network) and on safety refusals (except `reasoning_extraction`) when a cold-cache round there still fits under the cost ceiling — otherwise the run stops, `effort: high` (bump to `max` with the `ai-reviewer-tier3-max` label), adaptive thinking.
+- **Model:** `claude-opus-5-5` (1M context), falls back to `claude-opus-5` on transient API errors (429/5xx/network) and on safety refusals (except `reasoning_extraction`) when a cold-cache round there still fits under the cost ceiling — otherwise the run stops, except that a refusal of the hand-wave re-ask keeps the submission it was asked to revisit, `effort: high` (bump to `max` with the `ai-reviewer-tier3-max` label), adaptive thinking.
 - **Budget:** **hard ceiling $2** — enforced deterministically (see below); the `ai-reviewer-tier3-max` label raises it to **$3** for a deep pass on large/important PRs.
 
 ## How it works
