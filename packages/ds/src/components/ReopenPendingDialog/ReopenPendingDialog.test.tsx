@@ -73,6 +73,34 @@ describe('ReopenPendingDialog', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
+  it('explains the placeholder only when a previous value exists', () => {
+    const caption = /Previous value shown as placeholder/;
+    const { rerender } = render(<ReopenPendingDialog {...base} open />);
+    expect(screen.queryByText(caption)).not.toBeInTheDocument();
+
+    rerender(
+      <ReopenPendingDialog
+        {...base}
+        open
+        actualResultPlaceholder="Zero 5xx responses during failover."
+      />,
+    );
+    expect(screen.getByText(caption)).toBeInTheDocument();
+  });
+
+  it('describes the field by its placeholder caption', () => {
+    render(
+      <ReopenPendingDialog
+        {...base}
+        open
+        actualResultPlaceholder="Zero 5xx responses during failover."
+      />,
+    );
+    expect(screen.getByLabelText('Actual Result')).toHaveAccessibleDescription(
+      /Previous value shown as placeholder/,
+    );
+  });
+
   it('calls onCancel on Escape', () => {
     const onCancel = vi.fn();
     render(<ReopenPendingDialog {...base} open onCancel={onCancel} />);

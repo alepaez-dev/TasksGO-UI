@@ -46,6 +46,71 @@ describe('useFocusTrap', () => {
     document.body.removeChild(trigger);
   });
 
+  it('falls back to restoreTo when the trigger was removed while open', () => {
+    const trigger = document.createElement('button');
+    const survivor = document.createElement('button');
+    document.body.append(trigger, survivor);
+    trigger.focus();
+
+    const container = createContainer();
+    const ref = { current: container };
+    const { unmount } = renderHook(() =>
+      useFocusTrap(ref, true, { restoreTo: () => survivor }),
+    );
+    trigger.remove();
+    unmount();
+    expect(document.activeElement).toBe(survivor);
+    expect(document.activeElement).not.toBe(document.body);
+
+    document.body.removeChild(container);
+    document.body.removeChild(survivor);
+  });
+
+  it('resolves restoreTo when focus is restored, not when the trap opened', () => {
+    const trigger = document.createElement('button');
+    const early = document.createElement('button');
+    document.body.append(trigger, early);
+    trigger.focus();
+
+    let target: HTMLElement | null = early;
+    const container = createContainer();
+    const ref = { current: container };
+    const { unmount } = renderHook(() =>
+      useFocusTrap(ref, true, { restoreTo: () => target }),
+    );
+
+    const later = document.createElement('button');
+    document.body.append(later);
+    early.remove();
+    target = later;
+    trigger.remove();
+    unmount();
+
+    expect(document.activeElement).toBe(later);
+
+    document.body.removeChild(container);
+    document.body.removeChild(later);
+  });
+
+  it('prefers the still-connected trigger over restoreTo', () => {
+    const trigger = document.createElement('button');
+    const survivor = document.createElement('button');
+    document.body.append(trigger, survivor);
+    trigger.focus();
+
+    const container = createContainer();
+    const ref = { current: container };
+    const { unmount } = renderHook(() =>
+      useFocusTrap(ref, true, { restoreTo: () => survivor }),
+    );
+    unmount();
+    expect(document.activeElement).toBe(trigger);
+
+    document.body.removeChild(container);
+    document.body.removeChild(trigger);
+    document.body.removeChild(survivor);
+  });
+
   it('wraps focus forward from last to first element', () => {
     const container = createContainer();
     const ref = { current: container };

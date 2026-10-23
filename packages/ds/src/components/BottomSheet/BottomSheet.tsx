@@ -24,6 +24,7 @@ export type BottomSheetProps = BottomSheetLabelProps &
     forceMount?: boolean;
     onOpened?: () => void;
     onClosed?: () => void;
+    restoreFocusTo?: () => HTMLElement | null;
   };
 
 export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
@@ -36,6 +37,7 @@ export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
       forceMount,
       onOpened,
       onClosed,
+      restoreFocusTo,
       children,
       className,
       style,
@@ -45,7 +47,10 @@ export const BottomSheet = forwardRef<HTMLDivElement, BottomSheetProps>(
   ) => {
     const panelRef = useRef<HTMLDivElement>(null);
 
-    useFocusTrap(panelRef, open, { autoFocus: false });
+    useFocusTrap(panelRef, open, {
+      autoFocus: false,
+      restoreTo: restoreFocusTo,
+    });
 
     const { dragY, handlers } = useDragToDismiss({
       onDismiss: onClose,
