@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">3/63 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">63/63 infos</a><span class="filter-pill ok" aria-disabled="true">300 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">6/66 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">66/66 infos</a><span class="filter-pill ok" aria-disabled="true">324 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -630,13 +630,13 @@
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>No component file found for the &quot;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&quot; component.
-  15 | }
-  16 |
-&gt; 17 | const meta = {
+  17 | }
+  18 |
+&gt; 19 | const meta = {
      | ^
-  18 |   title: &#39;Components/ActivityRow&#39;,
-  19 |   component: ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode,
-  20 |   tags: [&#39;autodocs&#39;],
+  20 |   title: &#39;Components/ActivityRow&#39;,
+  21 |   component: ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode,
+  22 |   tags: [&#39;autodocs&#39;],
 
 ./src/components/ActivityRow/ActivityRow.stories.tsx:
 import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
@@ -644,7 +644,9 @@ import type { ReactNode } from &#39;react&#39;;
 import { ActivityRow } from &#39;./ActivityRow&#39;;
 import { ExternalLink } from &#39;../ExternalLink&#39;;
 import { Badge } from &#39;../Badge&#39;;
-import type { IconName } from &#39;../../icons&#39;;
+import { iconRegistry, type IconName } from &#39;../../icons&#39;;
+
+const iconNames = Object.keys(iconRegistry) as IconName[];
 
 interface ActivityRowStoryArgs {
   icon?: IconName;
@@ -683,7 +685,7 @@ const meta = {
     ),
   ],
   argTypes: {
-    icon: { control: &#39;text&#39; },
+    icon: { control: &#39;select&#39;, options: iconNames },
     tone: {
       control: &#39;inline-radio&#39;,
       options: [&#39;neutral&#39;, &#39;info&#39;, &#39;success&#39;, &#39;warning&#39;, &#39;danger&#39;],
@@ -1414,7 +1416,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
       <div class="badges">
         <label for="c-4-components-badge-props" class="badge ok as-toggle">1 prop type</label>
         <label for="c-4-components-badge-info" class="badge info as-toggle">1 info</label>
-        <label for="c-4-components-badge-stories" class="badge ok as-toggle">11 stories</label>
+        <label for="c-4-components-badge-stories" class="badge ok as-toggle">13 stories</label>
         
       </div>
     </div>
@@ -1459,7 +1461,8 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
 | &#39;success&#39;
 | &#39;waived&#39;
 | &#39;reference&#39;
-| &#39;count&#39; = &#39;default&#39;</code></pre>
+| &#39;count&#39;
+| &#39;previous&#39; = &#39;default&#39;</code></pre>
           </div>
         </div>
     
@@ -1471,7 +1474,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
                 <div class="row">
                   <span class="ex-name">Imports</span>
                 </div>
-                <pre><code>import { Badge } from "@all3hp/tasksgo-ui";</code></pre>
+                <pre><code>import { Badge, Icon } from "@all3hp/tasksgo-ui";</code></pre>
               </div>
           
           
@@ -1483,6 +1486,40 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
               
               
               <pre><code>const Default = () =&gt; &lt;Badge&gt;v4.1.0-alpha&lt;/Badge&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Previous</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Previous = () =&gt; &lt;Badge variant=&quot;previous&quot;&gt;To Do&lt;/Badge&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Status Change</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const StatusChange = () =&gt; (
+  &lt;span
+    style={{
+      display: &#39;inline-flex&#39;,
+      alignItems: &#39;center&#39;,
+      gap: &#39;var(--ds-space-scale-sm)&#39;,
+      fontFamily: &#39;var(--ds-font-family-sans)&#39;,
+      fontSize: &#39;var(--ds-text-timeline-event-font-size)&#39;,
+      color: &#39;var(--ds-color-text-secondary)&#39;,
+    }}
+  &gt;
+    changed status &lt;Badge variant=&quot;previous&quot;&gt;To Do&lt;/Badge&gt;{&#39; &#39;}
+    &lt;Icon name=&quot;arrow_forward&quot; size=&quot;xs&quot; /&gt;
+    &lt;span className={styles.srOnly}&gt;to&lt;/span&gt;{&#39; &#39;}
+    &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+  &lt;/span&gt;
+);</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -1605,6 +1642,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     &lt;Badge variant=&quot;reference&quot;&gt;v4.1.0-alpha&lt;/Badge&gt;
     &lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;
     &lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;
+    &lt;Badge variant=&quot;previous&quot;&gt;To Do&lt;/Badge&gt;
   &lt;/div&gt;
 );</code></pre>
             </div>
@@ -2777,7 +2815,7 @@ status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> CollapsibleCard</h2>
       <div class="badges">
-        <label for="c-13-components-collapsiblecard-props" class="badge ok as-toggle">3 prop types</label>
+        <label for="c-13-components-collapsiblecard-props" class="badge ok as-toggle">5 prop types</label>
         <label for="c-13-components-collapsiblecard-info" class="badge info as-toggle">1 info</label>
         <label for="c-13-components-collapsiblecard-stories" class="badge ok as-toggle">6 stories</label>
         
@@ -2811,13 +2849,17 @@ status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">3 prop types</span>
+              <span class="badge ok">5 prop types</span>
             </div>
             <pre><code>Component: src/components/CollapsibleCard/CollapsibleCard.tsx::CollapsibleCard</code></pre>
             <pre><code>Props:</code></pre>
             <pre><code>defaultOpen?: boolean
 
 header: ReactNode
+
+onOpenChange?: (open: boolean) =&gt; void
+
+open?: boolean
 
 variant?: &#39;default&#39; | &#39;subtle&#39; = &#39;default&#39;</code></pre>
           </div>
@@ -4179,7 +4221,7 @@ size?: &#39;sm&#39; | &#39;md&#39; = &#39;md&#39;</code></pre>
               </div>
               
               
-              <pre><code>const Extended = () =&gt; &lt;Fab label=&quot;Add scenario&quot; /&gt;;</code></pre>
+              <pre><code>const Extended = () =&gt; &lt;Fab icon=&quot;add&quot; aria-label={undefined} label=&quot;Add scenario&quot; /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -10391,13 +10433,13 @@ waiveReason?: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  764 | }
-  765 |
-&gt; 766 | const meta: Meta = {
+  778 | }
+  779 |
+&gt; 780 | const meta: Meta = {
       | ^
-  767 |   title: &#39;Pages/Ticket&#39;,
-  768 |   parameters: {
-  769 |     layout: &#39;fullscreen&#39;,
+  781 |   title: &#39;Pages/Ticket&#39;,
+  782 |   parameters: {
+  783 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
@@ -10561,6 +10603,8 @@ function TicketOverviewRender({
     taskDrawerTitle,
     taskSelectors,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
     addScenarioOpen,
     scenarioDraft,
     setScenarioDraft,
@@ -10569,6 +10613,10 @@ function TicketOverviewRender({
     confirmAddScenario,
     updateScenario,
     editingSectionsById,
+    stepsExpandedById,
+    setStepsExpanded,
+    evidenceExpandedById,
+    setEvidenceExpanded,
     setScenarioEditingSections,
     expandedScenarioId,
     toggleScenario,
@@ -10585,6 +10633,8 @@ function TicketOverviewRender({
     confirmStatusChange,
     cancelStatusChange,
     evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
     setEvidencePreviewIndex,
@@ -10790,7 +10840,8 @@ function TicketOverviewRender({
                           &lt;/span&gt;
                         &lt;/div&gt;
                         &lt;CollapsibleCard
-                          defaultOpen
+                          open={qaSummaryOpen}
+                          onOpenChange={setQaSummaryOpen}
                           header={
                             &lt;span className={styles.qaCardHeader}&gt;
                               &lt;span className={styles.qaCardTitle}&gt;
@@ -10901,6 +10952,10 @@ function TicketOverviewRender({
                       statusSelectScenarioId={statusSelectScenarioId}
                       onStatusSelectOpenChange={setStatusSelectOpen}
                       editingSectionsById={editingSectionsById}
+                      stepsExpandedById={stepsExpandedById}
+                      onStepsExpandedChange={setStepsExpanded}
+                      evidenceExpandedById={evidenceExpandedById}
+                      onEvidenceExpandedChange={setEvidenceExpanded}
                       onEditingSectionsChange={setScenarioEditingSections}
                       onOpenEvidence={openEvidencePreview}
                       pendingStatusChange={pendingStatusChange}
@@ -11151,10 +11206,11 @@ function TicketOverviewRender({
 
       &lt;FilePreviewOverlay
         files={previewScenario?.evidence ?? []}
-        open={evidencePreview != null}
+        open={evidencePreviewOpen}
         activeIndex={evidencePreview?.index ?? 0}
         onActiveIndexChange={setEvidencePreviewIndex}
         onClose={closeEvidencePreview}
+        onClosed={clearEvidencePreview}
         downloadAllName={
           previewScenario != null
             ? `${previewScenario.id}-evidence.zip`
@@ -11532,6 +11588,1189 @@ titleEditing?: any = false</code></pre>
 </article>
 <article
   class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode</h2>
+      <div class="badges">
+        <label for="c-62-components-timelinedivider-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-62-components-timelinedivider-info" class="badge info as-toggle">1 info</label>
+        <label for="c-62-components-timelinedivider-stories" class="badge ok as-toggle">7 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/TimelineDivider/TimelineDivider.stories.tsx">components-timelinedivider · ./src/components/TimelineDivider/TimelineDivider.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-62-components-timelinedivider-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-62-components-timelinedivider-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-62-components-timelinedivider-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode&quot; component.
+  23 | const FEED_PADDING = 24;
+  24 |
+&gt; 25 | const meta = {
+     | ^
+  26 |   title: &#39;Components/TimelineDivider&#39;,
+  27 |   component: TimelineDivider as unknown as (
+  28 |     props: TimelineDividerStoryArgs,
+
+./src/components/TimelineDivider/TimelineDivider.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import { useState, type ReactNode } from &#39;react&#39;;
+import { TimelineDivider } from &#39;./TimelineDivider&#39;;
+import { TimelineEvent } from &#39;../TimelineEvent&#39;;
+import { TimelineGroup } from &#39;../TimelineGroup&#39;;
+import { Badge } from &#39;../Badge&#39;;
+
+interface TimelineDividerStoryArgs {
+  type: &#39;dayDivider&#39; | &#39;gapDivider&#39;;
+  at?: string;
+  relative?: &#39;today&#39; | &#39;yesterday&#39; | null;
+  sameYear?: boolean;
+  durationMs?: number;
+  headingLevel?: 2 | 3 | 4 | 5 | 6;
+  locale?: string;
+}
+
+const YESTERDAY = &#39;2026-01-13T09:12:00.000Z&#39;;
+const TODAY = &#39;2026-01-14T08:30:00.000Z&#39;;
+const LAST_WEEK = &#39;2026-01-06T15:45:00.000Z&#39;;
+const LAST_YEAR = &#39;2025-11-02T10:20:00.000Z&#39;;
+
+const FEED_PADDING = 24;
+
+const meta = {
+  title: &#39;Components/TimelineDivider&#39;,
+  component: TimelineDivider as unknown as (
+    props: TimelineDividerStoryArgs,
+  ) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;Marks a break in the activity feed. Renders an `&lt;li&gt;`, so it drops straight into the feed’s `&lt;ul&gt;` alongside `TimelineEvent` and `TimelineGroup`. Its props mirror the divider nodes `withDividers` emits, so a page can spread one in: `&lt;TimelineDivider {...node} /&gt;`. A day divider reads &quot;Jan 13 · Yesterday&quot;, falling back to the date alone once a day is older than yesterday. A gap divider reports the time skipped and is worded without direction — dividers are recomputed for the active sort, so &quot;later&quot; would be wrong under newest-first. The hairline uses `border-default`, one step lighter than the `border-strong` spine and markers: the spine has to read as one continuous thread, a rule only terminates a label.&#39;,
+      },
+    },
+  },
+  argTypes: {
+    type: { control: &#39;inline-radio&#39;, options: [&#39;dayDivider&#39;, &#39;gapDivider&#39;] },
+    at: { control: &#39;text&#39; },
+    relative: {
+      control: &#39;select&#39;,
+      options: [&#39;today&#39;, &#39;yesterday&#39;, &#39;none (older)&#39;],
+      mapping: {
+        today: &#39;today&#39;,
+        yesterday: &#39;yesterday&#39;,
+        &#39;none (older)&#39;: null,
+      },
+    },
+    sameYear: { control: &#39;boolean&#39; },
+    durationMs: { control: &#39;number&#39; },
+    headingLevel: { control: &#39;inline-radio&#39;, options: [2, 3, 4, 5, 6] },
+    locale: {
+      control: &#39;select&#39;,
+      options: [&#39;en-US&#39;, &#39;en-GB&#39;, &#39;de-DE&#39;, &#39;ja-JP&#39;],
+    },
+  },
+  args: {
+    type: &#39;dayDivider&#39;,
+    at: YESTERDAY,
+    relative: &#39;yesterday&#39;,
+    durationMs: 4 * 60 * 60 * 1000,
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          position: &#39;relative&#39;,
+          listStyle: &#39;none&#39;,
+          margin: 0,
+          background: &#39;var(--ds-color-surface-secondary)&#39;,
+          padding: FEED_PADDING,
+          width: 620,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+          gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+} satisfies Meta&lt;TimelineDividerStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+export const Yesterday: Story = {};
+
+export const Today: Story = {
+  args: { at: TODAY, relative: &#39;today&#39; },
+};
+
+export const EarlierDate: Story = {
+  args: { at: LAST_WEEK, relative: null },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Anything older than yesterday has no relative name, so the date stands alone — no trailing separator with nothing after it.&#39;,
+      },
+    },
+  },
+};
+
+export const PreviousYear: Story = {
+  args: { at: LAST_YEAR, relative: null, sameYear: false },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Once a day falls outside the current year the heading names it, because `relative` is null this far back and two &quot;Jan 13&quot;s a year apart would otherwise be identical. `withDividers` decides this and reports it as `sameYear` — the component never reads the clock.&#39;,
+      },
+    },
+  },
+};
+
+export const Gap: Story = {
+  args: { type: &#39;gapDivider&#39;, durationMs: 4 * 60 * 60 * 1000 },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Emitted when consecutive nodes sit `gapMs` apart within the same day — across a day the day divider already marks the break. The unit is attributive, so it stays singular: &quot;4 hour gap&quot;, not &quot;4 hours gap&quot;.&#39;,
+      },
+    },
+  },
+};
+
+export const ShortGap: Story = {
+  args: { type: &#39;gapDivider&#39;, durationMs: 45 * 60 * 1000 },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;`GAP_DIVIDER_MS` defaults to four hours, but `withDividers` takes a `gapMs` override, so sub-hour gaps reach this component in real feeds.&#39;,
+      },
+    },
+  },
+};
+
+const RUNS = [
+  {
+    id: &#39;a&#39;,
+    count: 8,
+    summary: &#39;Jordan D. performed 8 updates&#39;,
+    meta: &#39;· status, description, labels · 1d 8h ago&#39;,
+  },
+  {
+    id: &#39;b&#39;,
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· labels, sprint · 1d 2h ago&#39;,
+  },
+  {
+    id: &#39;c&#39;,
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· status, description · 23h ago&#39;,
+  },
+] as const;
+
+function RichFeed() {
+  const [openId, setOpenId] = useState&lt;string | null&gt;(null);
+  const renderRun = (runData: (typeof RUNS)[number]) =&gt; {
+    return (
+      &lt;TimelineGroup
+        count={runData.count}
+        summary={
+          &lt;&gt;
+            &lt;b&gt;Jordan D.&lt;/b&gt; performed {runData.count} updates
+          &lt;/&gt;
+        }
+        meta={runData.meta}
+        open={openId === runData.id}
+        onOpenChange={(next) =&gt; setOpenId(next ? runData.id : null)}
+      &gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
+          &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;edit&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          updated the description
+        &lt;/TimelineEvent&gt;
+      &lt;/TimelineGroup&gt;
+    );
+  };
+
+  return (
+    &lt;&gt;
+      &lt;li
+        aria-hidden=&quot;true&quot;
+        style={{
+          position: &#39;absolute&#39;,
+          left: `calc(${FEED_PADDING}px + var(--ds-space-timeline-event-gutter) / 2)`,
+          transform: &#39;translateX(-50%)&#39;,
+          top: FEED_PADDING,
+          bottom: FEED_PADDING,
+          width: 1,
+          background: &#39;var(--ds-color-border-strong)&#39;,
+        }}
+      /&gt;
+      &lt;TimelineDivider type=&quot;dayDivider&quot; at={YESTERDAY} relative=&quot;yesterday&quot; /&gt;
+      {renderRun(RUNS[0])}
+      &lt;TimelineDivider type=&quot;gapDivider&quot; durationMs={6 * 60 * 60 * 1000} /&gt;
+      {renderRun(RUNS[1])}
+      {renderRun(RUNS[2])}
+      &lt;TimelineEvent icon=&quot;person&quot; timestamp=&quot;22h ago&quot;&gt;
+        &lt;b&gt;Alex M.&lt;/b&gt; assigned ticket to &lt;b&gt;Jordan D.&lt;/b&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent icon=&quot;tag&quot; timestamp=&quot;21h ago&quot;&gt;
+        &lt;b&gt;Jordan D.&lt;/b&gt; added label{&#39; &#39;}
+        &lt;Badge variant=&quot;progress&quot;&gt;edge-cache&lt;/Badge&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineDivider type=&quot;dayDivider&quot; at={TODAY} relative=&quot;today&quot; /&gt;
+      &lt;TimelineEvent icon=&quot;comment_filled&quot; timestamp=&quot;4h ago&quot;&gt;
+        &lt;b&gt;Jordan D.&lt;/b&gt; commented
+      &lt;/TimelineEvent&gt;
+    &lt;/&gt;
+  );
+}
+
+export const InAFeed: Story = {
+  render: () =&gt; &lt;RichFeed /&gt;,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;A day heading anchors left; a gap sits centred between two rules, because it names a distance rather than a place. The runs are collapsed — click one to open it. The alignment contract is visible here too: every divider label, row icon and group pill shares one 50px column.&#39;,
+      },
+    },
+  },
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { Badge, TimelineDivider, TimelineEvent, TimelineGroup } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Yesterday</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Yesterday = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={YESTERDAY}
+    relative=&quot;yesterday&quot;
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Today</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Today = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={TODAY}
+    relative=&quot;today&quot;
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Earlier Date</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const EarlierDate = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={LAST_WEEK}
+    relative={null}
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Previous Year</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const PreviousYear = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={LAST_YEAR}
+    relative={null}
+    durationMs={4 * 60 * 60 * 1000}
+    sameYear={false} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Gap</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Gap = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;gapDivider&quot;
+    at={YESTERDAY}
+    relative=&quot;yesterday&quot;
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Short Gap</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const ShortGap = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;gapDivider&quot;
+    at={YESTERDAY}
+    relative=&quot;yesterday&quot;
+    durationMs={45 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">In A Feed</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const InAFeed = () =&gt; &lt;RichFeed /&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode</h2>
+      <div class="badges">
+        <label for="c-63-components-timelineevent-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-63-components-timelineevent-info" class="badge info as-toggle">1 info</label>
+        <label for="c-63-components-timelineevent-stories" class="badge ok as-toggle">8 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/TimelineEvent/TimelineEvent.stories.tsx">components-timelineevent · ./src/components/TimelineEvent/TimelineEvent.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-63-components-timelineevent-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-63-components-timelineevent-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-63-components-timelineevent-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&quot; component.
+  17 | }
+  18 |
+&gt; 19 | const meta = {
+     | ^
+  20 |   title: &#39;Components/TimelineEvent&#39;,
+  21 |   component: TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode,
+  22 |   tags: [&#39;autodocs&#39;],
+
+./src/components/TimelineEvent/TimelineEvent.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import type { ReactNode } from &#39;react&#39;;
+import { TimelineEvent } from &#39;./TimelineEvent&#39;;
+import { Badge } from &#39;../Badge&#39;;
+import { iconRegistry, type IconName } from &#39;../../icons&#39;;
+
+const iconNames = Object.keys(iconRegistry) as IconName[];
+
+interface TimelineEventStoryArgs {
+  icon: IconName;
+  timestamp: ReactNode;
+  variant?: &#39;standalone&#39; | &#39;nested&#39;;
+  muted?: boolean;
+  pinned?: boolean;
+  onPin?: () =&gt; void;
+  children: ReactNode;
+}
+
+const meta = {
+  title: &#39;Components/TimelineEvent&#39;,
+  component: TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;A single event row in an activity timeline. Renders an `&lt;li&gt;` — wrap rows in a `&lt;ul&gt;`, which owns the spacing between them via `gap`; the row adds no margin of its own. `standalone` (default) draws the spine marker and reserves the left gutter; `nested` omits both and must sit inside a group container that supplies the indent, so it renders flush left on its own. Pass `onPin` to render the pin button — its presence is the trigger. `pinned` draws the highlight ring and is mutually exclusive with `onPin`: a pinned row carries no control, because unpinning happens in the feed’s &quot;Clear pin&quot; banner. The pin button unmounts once the row is pinned, so the consumer must focus the pinned row through its `ref` after it renders as pinned, e.g. in an effect keyed on the pinned id.&#39;,
+      },
+    },
+  },
+  argTypes: {
+    icon: { control: &#39;select&#39;, options: iconNames },
+    variant: { control: &#39;inline-radio&#39;, options: [&#39;standalone&#39;, &#39;nested&#39;] },
+    muted: { control: &#39;boolean&#39; },
+    pinned: { control: &#39;boolean&#39; },
+  },
+  args: {
+    icon: &#39;schedule&#39;,
+    timestamp: &#39;22h ago&#39;,
+    children: &#39;changed status&#39;,
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          listStyle: &#39;none&#39;,
+          margin: 0,
+          padding: 0,
+          width: 560,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+          gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+} satisfies Meta&lt;TimelineEventStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+export const Default: Story = {};
+
+export const WithChangeChips: Story = {
+  args: {
+    children: (
+      &lt;&gt;
+        changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
+        &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+      &lt;/&gt;
+    ),
+  },
+};
+
+export const Nested: Story = {
+  args: { variant: &#39;nested&#39;, timestamp: &#39;1d 8h ago&#39; },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Shown flush left on purpose: a nested row carries no indent of its own. TimelineGroup supplies it, so this sits 50px left of a standalone row here. See ComposedRun for the assembled shape.&#39;,
+      },
+    },
+  },
+};
+
+export const Muted: Story = {
+  args: {
+    variant: &#39;nested&#39;,
+    muted: true,
+    icon: &#39;task_alt&#39;,
+    children: &#39;Build #1847 triggered automatically&#39;,
+    timestamp: &#39;1d 8h ago&#39;,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;De-emphasis via italic and a smaller size, keeping `text-secondary`. Used in the activity feed for automated events that happened inside a person’s run: present for context, but not one of their updates.&#39;,
+      },
+    },
+  },
+};
+
+export const Pinnable: Story = {
+  args: { icon: &#39;tag&#39;, children: &#39;added label&#39;, onPin: () =&gt; {} },
+};
+
+export const Pinned: Story = {
+  args: { icon: &#39;tag&#39;, children: &#39;added label&#39;, pinned: true },
+};
+
+export const ComposedRun: Story = {
+  render: () =&gt; (
+    &lt;&gt;
+      &lt;TimelineEvent icon=&quot;person&quot; timestamp=&quot;22h ago&quot;&gt;
+        &lt;b&gt;Alex M.&lt;/b&gt; assigned this ticket to &lt;b&gt;Jordan D.&lt;/b&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;li style={{ listStyle: &#39;none&#39; }}&gt;
+        &lt;ul
+          style={{
+            listStyle: &#39;none&#39;,
+            margin: 0,
+            padding: 0,
+            display: &#39;flex&#39;,
+            flexDirection: &#39;column&#39;,
+            gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+            paddingLeft:
+              &#39;calc(var(--ds-space-timeline-event-gutter) + var(--ds-space-timeline-event-content-indent))&#39;,
+          }}
+        &gt;
+          &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+            changed status
+          &lt;/TimelineEvent&gt;
+          &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;tag&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+            added label
+          &lt;/TimelineEvent&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/&gt;
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;The alignment contract: a nested row carries no indent of its own, so its icon must land in the same column as a standalone row’s. Nothing asserts this — it is only visible here.&#39;,
+      },
+    },
+  },
+};
+
+export const LongContentWraps: Story = {
+  args: {
+    icon: &#39;person&#39;,
+    children:
+      &#39;assigned this ticket to Jordan D. and added Mike R., Alex M. and three others as watchers&#39;,
+  },
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { Badge, TimelineEvent } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Default</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Default = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;schedule&quot; timestamp=&quot;22h ago&quot;&gt;changed status&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">With Change Chips</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithChangeChips = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;schedule&quot; timestamp=&quot;22h ago&quot;&gt;(&lt;&gt;changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt;→{&#39; &#39;}
+      &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+    &lt;/&gt;)&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Nested</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Nested = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot; variant=&quot;nested&quot;&gt;changed status&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Muted</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Muted = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;task_alt&quot; timestamp=&quot;1d 8h ago&quot; variant=&quot;nested&quot; muted&gt;Build #1847 triggered automatically&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Pinnable</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Pinnable = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;tag&quot; timestamp=&quot;22h ago&quot; onPin={() =&gt; {}}&gt;added label&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Pinned</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Pinned = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;tag&quot; timestamp=&quot;22h ago&quot; pinned&gt;added label&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Composed Run</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const ComposedRun = () =&gt; (
+  &lt;&gt;
+    &lt;TimelineEvent icon=&quot;person&quot; timestamp=&quot;22h ago&quot;&gt;
+      &lt;b&gt;Alex M.&lt;/b&gt; assigned this ticket to &lt;b&gt;Jordan D.&lt;/b&gt;
+    &lt;/TimelineEvent&gt;
+    &lt;li style={{ listStyle: &#39;none&#39; }}&gt;
+      &lt;ul
+        style={{
+          listStyle: &#39;none&#39;,
+          margin: 0,
+          padding: 0,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+          gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+          paddingLeft:
+            &#39;calc(var(--ds-space-timeline-event-gutter) + var(--ds-space-timeline-event-content-indent))&#39;,
+        }}
+      &gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          changed status
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;tag&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          added label
+        &lt;/TimelineEvent&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Long Content Wraps</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const LongContentWraps = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;person&quot; timestamp=&quot;22h ago&quot;&gt;assigned this ticket to Jordan D. and added Mike R., Alex M. and three others as watchers&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TimelineGroup as unknown as (
+  props: TimelineGroupStoryArgs,
+) =&gt; ReactNode">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> TimelineGroup as unknown as (
+  props: TimelineGroupStoryArgs,
+) =&gt; ReactNode</h2>
+      <div class="badges">
+        <label for="c-64-components-timelinegroup-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-64-components-timelinegroup-info" class="badge info as-toggle">1 info</label>
+        <label for="c-64-components-timelinegroup-stories" class="badge ok as-toggle">7 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/TimelineGroup/TimelineGroup.stories.tsx">components-timelinegroup · ./src/components/TimelineGroup/TimelineGroup.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-64-components-timelinegroup-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-64-components-timelinegroup-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-64-components-timelinegroup-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;TimelineGroup as unknown as (
+  props: TimelineGroupStoryArgs,
+) =&gt; ReactNode&quot; component.
+  15 | }
+  16 |
+&gt; 17 | const meta = {
+     | ^
+  18 |   title: &#39;Components/TimelineGroup&#39;,
+  19 |   component: TimelineGroup as unknown as (
+  20 |     props: TimelineGroupStoryArgs,
+
+./src/components/TimelineGroup/TimelineGroup.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import { useState, type ReactNode } from &#39;react&#39;;
+import { TimelineGroup } from &#39;./TimelineGroup&#39;;
+import { TimelineEvent } from &#39;../TimelineEvent&#39;;
+import { Badge } from &#39;../Badge&#39;;
+
+interface TimelineGroupStoryArgs {
+  count: number;
+  summary: ReactNode;
+  meta?: ReactNode;
+  open: boolean;
+  matchLabel?: ReactNode;
+  moreLabel?: ReactNode;
+  children: ReactNode;
+}
+
+const meta = {
+  title: &#39;Components/TimelineGroup&#39;,
+  component: TimelineGroup as unknown as (
+    props: TimelineGroupStoryArgs,
+  ) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  render: (args) =&gt; &lt;Interactive key={String(args.open)} {...args} /&gt;,
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;A collapsed run of consecutive events by one person, or of automated events with no person behind them. Renders an `&lt;li&gt;` — wrap it in the feed’s `&lt;ul&gt;`. Takes `TimelineEvent` rows as children rather than data, so the page decides which are muted, pinned or highlighted. `count` is the actions belonging to whoever the run is attributed to — use `countActions(group)`. For a person that excludes system extras, so eight updates plus an automated build reads &quot;8 updates&quot; over nine rows; a run with no person behind it counts every row, reading &quot;4 system events&quot;. Rows are unmounted while collapsed, not hidden. Long runs are capped by the page, which passes `moreLabel` and `onMoreToggle`.&#39;,
+      },
+    },
+  },
+  argTypes: {
+    count: { control: { type: &#39;number&#39;, min: 1 } },
+    summary: { control: &#39;text&#39; },
+    meta: { control: &#39;text&#39; },
+    open: { control: &#39;boolean&#39; },
+    matchLabel: { control: &#39;text&#39; },
+    moreLabel: { control: &#39;text&#39; },
+    children: { control: false },
+  },
+  args: {
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· labels, sprint · 1d 2h ago&#39;,
+    open: false,
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          listStyle: &#39;none&#39;,
+          margin: 0,
+          background: &#39;var(--ds-color-surface-secondary)&#39;,
+          padding: 24,
+          width: 620,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+          gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+} satisfies Meta&lt;TimelineGroupStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+const twoRows: ReactNode = (
+  &lt;&gt;
+    &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;tag&quot; timestamp=&quot;1d 2h ago&quot;&gt;
+      added label &lt;Badge variant=&quot;progress&quot;&gt;needs-qa&lt;/Badge&gt;
+    &lt;/TimelineEvent&gt;
+    &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 2h ago&quot;&gt;
+      set sprint to &lt;Badge variant=&quot;progress&quot;&gt;Q1-W4-INFRA&lt;/Badge&gt;
+    &lt;/TimelineEvent&gt;
+  &lt;/&gt;
+);
+
+function Interactive({ moreLabel, ...args }: TimelineGroupStoryArgs) {
+  const [open, setOpen] = useState(args.open);
+  const [showAll, setShowAll] = useState(false);
+  const more =
+    moreLabel === undefined
+      ? {}
+      : {
+          moreLabel: showAll ? &#39;Show less&#39; : moreLabel,
+          onMoreToggle: () =&gt; setShowAll((v) =&gt; !v),
+          moreExpanded: showAll,
+        };
+
+  return (
+    &lt;TimelineGroup {...args} {...more} open={open} onOpenChange={setOpen}&gt;
+      {args.children}
+      {showAll &amp;&amp; (
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;person&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          added &lt;b&gt;Mike R.&lt;/b&gt; as a watcher
+        &lt;/TimelineEvent&gt;
+      )}
+    &lt;/TimelineGroup&gt;
+  );
+}
+
+export const Collapsed: Story = {
+  args: { children: twoRows },
+  parameters: {
+    docs: {
+      description: {
+        story: &#39;The default resting state: a run stays closed until asked.&#39;,
+      },
+    },
+  },
+};
+
+export const Open: Story = {
+  args: { open: true, children: twoRows },
+};
+
+export const WithSystemExtra: Story = {
+  args: {
+    open: true,
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· status, description · 1d 8h ago&#39;,
+    children: (
+      &lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
+          &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent
+          variant=&quot;nested&quot;
+          muted
+          icon=&quot;task_alt&quot;
+          timestamp=&quot;1d 8h ago&quot;
+        &gt;
+          Build #1847 triggered automatically
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;edit&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          updated the description
+        &lt;/TimelineEvent&gt;
+      &lt;/&gt;
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;The count says 2, not 3. The automated build happened inside Jordan’s run and is shown for context, but it is not one of his updates — matching the mockup, whose pill reads &quot;8 updates&quot; over nine rows.&#39;,
+      },
+    },
+  },
+};
+
+export const Capped: Story = {
+  args: {
+    open: true,
+    count: 9,
+    summary: &#39;Jordan D. performed 9 updates&#39;,
+    meta: &#39;· status, description, labels · 1d 8h ago&#39;,
+    moreLabel: &#39;Show 5 more&#39;,
+    children: twoRows,
+  },
+};
+
+export const Matching: Story = {
+  args: {
+    open: true,
+    matchLabel: &#39;1 of 2 match&#39;,
+    children: twoRows,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;While a search is active, a group holding a match expands and reports how many of its rows matched.&#39;,
+      },
+    },
+  },
+};
+
+export const LongSummary: Story = {
+  args: {
+    open: false,
+    summary: &#39;Bartholomew Featherstonehaugh-Wellesley performed 14 updates&#39;,
+    meta: &#39;· status, description, labels, sprint, priority · 1d 8h ago&#39;,
+    children: twoRows,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Both slots truncate rather than wrap: the pill is a stadium and only reads as one on a single line. The meta gives way before the actor and the action do, and the count, chevron and match chip never shrink.&#39;,
+      },
+    },
+  },
+};
+
+export const SystemOnly: Story = {
+  args: {
+    open: true,
+    count: 4,
+    summary: &#39;4 system events&#39;,
+    meta: &#39;· CI, deploys, QA runs · 20m ago&#39;,
+    children: (
+      &lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;task_alt&quot; timestamp=&quot;34m ago&quot;&gt;
+          Build &lt;b&gt;#1847&lt;/b&gt; passed on &lt;b&gt;QA-01&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;science&quot; timestamp=&quot;28m ago&quot;&gt;
+          QA scenario &lt;b&gt;TC-412&lt;/b&gt; marked Failed
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;file_upload&quot; timestamp=&quot;24m ago&quot;&gt;
+          Deployed &lt;b&gt;edge-gateway-service&lt;/b&gt; to &lt;b&gt;QA-02&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;image&quot; timestamp=&quot;20m ago&quot;&gt;
+          Evidence &lt;b&gt;rate_429.png&lt;/b&gt; attached to TC-412
+        &lt;/TimelineEvent&gt;
+      &lt;/&gt;
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;A run with no person behind it is never attributed to one: it reads &quot;4 system events&quot;, not a bot’s name. `ActivityGroup.actor` holds whichever bot happened to be first, so naming it would credit a deploy to CI.&#39;,
+      },
+    },
+  },
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { Badge, TimelineEvent, TimelineGroup } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Collapsed</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Collapsed = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open={false}&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Open</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Open = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">With System Extra</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithSystemExtra = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· status, description · 1d 8h ago&quot;
+    open&gt;&lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt;→{&#39; &#39;}
+            &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; muted icon=&quot;task_alt&quot; timestamp=&quot;1d 8h ago&quot;&gt;Build #1847 triggered automatically
+                    &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;edit&quot; timestamp=&quot;1d 8h ago&quot;&gt;updated the description
+                    &lt;/TimelineEvent&gt;
+    &lt;/&gt;&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Capped</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Capped = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={9}
+    summary=&quot;Jordan D. performed 9 updates&quot;
+    meta=&quot;· status, description, labels · 1d 8h ago&quot;
+    open
+    moreLabel=&quot;Show 5 more&quot;&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Matching</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Matching = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open
+    matchLabel=&quot;1 of 2 match&quot;&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Long Summary</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const LongSummary = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Bartholomew Featherstonehaugh-Wellesley performed 14 updates&quot;
+    meta=&quot;· status, description, labels, sprint, priority · 1d 8h ago&quot;
+    open={false}&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">System Only</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const SystemOnly = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={4}
+    summary=&quot;4 system events&quot;
+    meta=&quot;· CI, deploys, QA runs · 20m ago&quot;
+    open&gt;&lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;task_alt&quot; timestamp=&quot;34m ago&quot;&gt;Build &lt;b&gt;#1847&lt;/b&gt;passed on &lt;b&gt;QA-01&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;science&quot; timestamp=&quot;28m ago&quot;&gt;QA scenario &lt;b&gt;TC-412&lt;/b&gt;marked Failed
+                    &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;file_upload&quot; timestamp=&quot;24m ago&quot;&gt;Deployed &lt;b&gt;edge-gateway-service&lt;/b&gt;to &lt;b&gt;QA-02&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;image&quot; timestamp=&quot;20m ago&quot;&gt;Evidence &lt;b&gt;rate_429.png&lt;/b&gt;attached to TC-412
+                    &lt;/TimelineEvent&gt;
+    &lt;/&gt;&lt;/Interactive&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
   no-error 
   has-info 
   no-story-error
@@ -11542,9 +12781,9 @@ titleEditing?: any = false</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> WaiveScenarioDialog</h2>
       <div class="badges">
-        <label for="c-62-components-waivescenariodialog-props" class="badge ok as-toggle">4 prop types</label>
-        <label for="c-62-components-waivescenariodialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-62-components-waivescenariodialog-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-65-components-waivescenariodialog-props" class="badge ok as-toggle">4 prop types</label>
+        <label for="c-65-components-waivescenariodialog-info" class="badge info as-toggle">1 info</label>
+        <label for="c-65-components-waivescenariodialog-stories" class="badge ok as-toggle">3 stories</label>
         
       </div>
     </div>
@@ -11556,10 +12795,10 @@ titleEditing?: any = false</code></pre>
 
   <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
   
-  <input id="c-62-components-waivescenariodialog-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-62-components-waivescenariodialog-stories" class="tg tg-stories" type="checkbox" hidden />
+  <input id="c-65-components-waivescenariodialog-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-65-components-waivescenariodialog-stories" class="tg tg-stories" type="checkbox" hidden />
   
-  <input id="c-62-components-waivescenariodialog-props" class="tg tg-props" type="checkbox" hidden />
+  <input id="c-65-components-waivescenariodialog-props" class="tg tg-props" type="checkbox" hidden />
 
   <div class="panels">
     
@@ -11637,6 +12876,1538 @@ scenarioTitle: string</code></pre>
 </article>
     </div>
     <div class="error-groups" role="region" aria-label="Prop type error groups">
+        <section class="group">
+          <input id="no-component-import-found-toggle" class="group-tg" type="checkbox" hidden />
+          <label for="no-component-import-found-toggle" class="group-header">
+            <span class="caret">▸</span>
+            <span class="group-title">No component import found</span>
+            <span class="group-count">4</span>
+          </label>
+          <div class="group-cards">
+<article
+  class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode</h2>
+      <div class="badges">
+        <label for="c-error-0-components-activityrow-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-error-0-components-activityrow-info" class="badge info as-toggle">1 info</label>
+        <label for="c-error-0-components-activityrow-stories" class="badge ok as-toggle">7 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/ActivityRow/ActivityRow.stories.tsx">components-activityrow · ./src/components/ActivityRow/ActivityRow.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-error-0-components-activityrow-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-error-0-components-activityrow-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-error-0-components-activityrow-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&quot; component.
+  17 | }
+  18 |
+&gt; 19 | const meta = {
+     | ^
+  20 |   title: &#39;Components/ActivityRow&#39;,
+  21 |   component: ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode,
+  22 |   tags: [&#39;autodocs&#39;],
+
+./src/components/ActivityRow/ActivityRow.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import type { ReactNode } from &#39;react&#39;;
+import { ActivityRow } from &#39;./ActivityRow&#39;;
+import { ExternalLink } from &#39;../ExternalLink&#39;;
+import { Badge } from &#39;../Badge&#39;;
+import { iconRegistry, type IconName } from &#39;../../icons&#39;;
+
+const iconNames = Object.keys(iconRegistry) as IconName[];
+
+interface ActivityRowStoryArgs {
+  icon?: IconName;
+  tone?: &#39;neutral&#39; | &#39;info&#39; | &#39;success&#39; | &#39;warning&#39; | &#39;danger&#39;;
+  leading?: ReactNode;
+  meta?: readonly ReactNode[];
+  trailing?: ReactNode;
+  children: ReactNode;
+}
+
+const meta = {
+  title: &#39;Components/ActivityRow&#39;,
+  component: ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;A flexible two-line list row for dev activity (pull requests, commits, deployments). Slots take DS primitives directly: an ExternalLink title, a mono meta line, and trailing Badge(s). Renders an `&lt;li&gt;` — wrap rows in a `&lt;ul&gt;`. The `tone` prop tints the leading icon as visual reinforcement only (the icon is `aria-hidden`); pair danger/warning with a Badge or text so status is never conveyed by color alone.&#39;,
+      },
+    },
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          margin: 0,
+          padding: 0,
+          maxWidth: 420,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+  argTypes: {
+    icon: { control: &#39;select&#39;, options: iconNames },
+    tone: {
+      control: &#39;inline-radio&#39;,
+      options: [&#39;neutral&#39;, &#39;info&#39;, &#39;success&#39;, &#39;warning&#39;, &#39;danger&#39;],
+      description:
+        &#39;Tints the leading icon. Visual reinforcement only — the icon is aria-hidden, so pair danger/warning with a Badge or text so status is not color-only (WCAG 1.4.1).&#39;,
+    },
+  },
+  args: {
+    icon: &#39;call_merge&#39;,
+    children: &#39;Add dark-mode toggle&#39;,
+  },
+} satisfies Meta&lt;ActivityRowStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+export const PullRequest: Story = {
+  args: {
+    icon: &#39;call_merge&#39;,
+    tone: &#39;success&#39;,
+    meta: [&#39;#142&#39;, &#39;alex&#39;, &#39;2h ago&#39;],
+    trailing: &lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;,
+    children: (
+      &lt;ExternalLink href=&quot;https://github.com/example/pr/142&quot;&gt;
+        Add dark-mode toggle
+      &lt;/ExternalLink&gt;
+    ),
+  },
+};
+
+export const Commit: Story = {
+  args: {
+    icon: &#39;code&#39;,
+    meta: [&#39;a1b9f2c&#39;, &#39;sam&#39;, &#39;5h ago&#39;],
+    children: (
+      &lt;ExternalLink href=&quot;https://github.com/example/commit/a1b9f2c&quot;&gt;
+        Fix flaky viewport test
+      &lt;/ExternalLink&gt;
+    ),
+  },
+};
+
+export const Deployment: Story = {
+  args: {
+    icon: &#39;check_circle&#39;,
+    tone: &#39;danger&#39;,
+    meta: [&#39;production&#39;, &#39;ci-bot&#39;, &#39;1d ago&#39;],
+    trailing: &lt;Badge variant=&quot;critical&quot;&gt;Failed&lt;/Badge&gt;,
+    children: &#39;Deploy v4.1.0&#39;,
+  },
+};
+
+export const Minimal: Story = {
+  args: {
+    icon: &#39;code&#39;,
+    children: &#39;A row with no meta and no trailing&#39;,
+  },
+};
+
+export const TruncatedTitle: Story = {
+  args: {
+    icon: &#39;call_merge&#39;,
+    tone: &#39;info&#39;,
+    meta: [&#39;#88&#39;, &#39;jordan&#39;, &#39;3d ago&#39;],
+    trailing: &lt;Badge variant=&quot;progress&quot;&gt;Open&lt;/Badge&gt;,
+    children: (
+      &lt;ExternalLink href=&quot;https://github.com/example/pr/88&quot;&gt;
+        feat: dynamic edge caching for API gateway responses across all regions
+      &lt;/ExternalLink&gt;
+    ),
+  },
+};
+
+export const AllTones: Story = {
+  parameters: { controls: { disable: true } },
+  render: () =&gt; (
+    &lt;&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;neutral&quot; meta={[&#39;neutral&#39;]}&gt;
+        Neutral tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;info&quot; meta={[&#39;info&#39;]}&gt;
+        Info tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;success&quot; meta={[&#39;success&#39;]}&gt;
+        Success tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;warning&quot; meta={[&#39;warning&#39;]}&gt;
+        Warning tone
+      &lt;/ActivityRow&gt;
+      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;danger&quot; meta={[&#39;danger&#39;]}&gt;
+        Danger tone
+      &lt;/ActivityRow&gt;
+    &lt;/&gt;
+  ),
+};
+
+export const CustomLeading: Story = {
+  parameters: { controls: { disable: true } },
+  render: () =&gt; (
+    &lt;ActivityRow
+      leading={&lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;}
+      meta={[&#39;on this branch&#39;]}
+      trailing={
+        &lt;ExternalLink href=&quot;https://example.com/commits&quot;&gt;View all&lt;/ExternalLink&gt;
+      }
+    &gt;
+      37 commits
+    &lt;/ActivityRow&gt;
+  ),
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { ActivityRow, Badge, ExternalLink } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Pull Request</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const PullRequest = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
+    icon=&quot;call_merge&quot;
+    tone=&quot;success&quot;
+    meta={[&#39;#142&#39;, &#39;alex&#39;, &#39;2h ago&#39;]}
+    trailing={&lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/pr/142&quot;&gt;Add dark-mode toggle
+            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Commit</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Commit = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode icon=&quot;code&quot; meta={[&#39;a1b9f2c&#39;, &#39;sam&#39;, &#39;5h ago&#39;]}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/commit/a1b9f2c&quot;&gt;Fix flaky viewport test
+            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Deployment</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Deployment = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
+    icon=&quot;check_circle&quot;
+    tone=&quot;danger&quot;
+    meta={[&#39;production&#39;, &#39;ci-bot&#39;, &#39;1d ago&#39;]}
+    trailing={&lt;Badge variant=&quot;critical&quot;&gt;Failed&lt;/Badge&gt;}&gt;Deploy v4.1.0&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Minimal</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Minimal = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode icon=&quot;code&quot;&gt;A row with no meta and no trailing&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Truncated Title</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const TruncatedTitle = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
+    icon=&quot;call_merge&quot;
+    tone=&quot;info&quot;
+    meta={[&#39;#88&#39;, &#39;jordan&#39;, &#39;3d ago&#39;]}
+    trailing={&lt;Badge variant=&quot;progress&quot;&gt;Open&lt;/Badge&gt;}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/pr/88&quot;&gt;feat: dynamic edge caching for API gateway responses across all regions
+            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">All Tones</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const AllTones = () =&gt; (
+  &lt;&gt;
+    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;neutral&quot; meta={[&#39;neutral&#39;]}&gt;
+      Neutral tone
+    &lt;/ActivityRow&gt;
+    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;info&quot; meta={[&#39;info&#39;]}&gt;
+      Info tone
+    &lt;/ActivityRow&gt;
+    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;success&quot; meta={[&#39;success&#39;]}&gt;
+      Success tone
+    &lt;/ActivityRow&gt;
+    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;warning&quot; meta={[&#39;warning&#39;]}&gt;
+      Warning tone
+    &lt;/ActivityRow&gt;
+    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;danger&quot; meta={[&#39;danger&#39;]}&gt;
+      Danger tone
+    &lt;/ActivityRow&gt;
+  &lt;/&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Custom Leading</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const CustomLeading = () =&gt; (
+  &lt;ActivityRow
+    leading={&lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;}
+    meta={[&#39;on this branch&#39;]}
+    trailing={
+      &lt;ExternalLink href=&quot;https://example.com/commits&quot;&gt;View all&lt;/ExternalLink&gt;
+    }
+  &gt;
+    37 commits
+  &lt;/ActivityRow&gt;
+);</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode</h2>
+      <div class="badges">
+        <label for="c-error-1-components-timelinedivider-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-error-1-components-timelinedivider-info" class="badge info as-toggle">1 info</label>
+        <label for="c-error-1-components-timelinedivider-stories" class="badge ok as-toggle">7 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/TimelineDivider/TimelineDivider.stories.tsx">components-timelinedivider · ./src/components/TimelineDivider/TimelineDivider.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-error-1-components-timelinedivider-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-error-1-components-timelinedivider-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-error-1-components-timelinedivider-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode&quot; component.
+  23 | const FEED_PADDING = 24;
+  24 |
+&gt; 25 | const meta = {
+     | ^
+  26 |   title: &#39;Components/TimelineDivider&#39;,
+  27 |   component: TimelineDivider as unknown as (
+  28 |     props: TimelineDividerStoryArgs,
+
+./src/components/TimelineDivider/TimelineDivider.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import { useState, type ReactNode } from &#39;react&#39;;
+import { TimelineDivider } from &#39;./TimelineDivider&#39;;
+import { TimelineEvent } from &#39;../TimelineEvent&#39;;
+import { TimelineGroup } from &#39;../TimelineGroup&#39;;
+import { Badge } from &#39;../Badge&#39;;
+
+interface TimelineDividerStoryArgs {
+  type: &#39;dayDivider&#39; | &#39;gapDivider&#39;;
+  at?: string;
+  relative?: &#39;today&#39; | &#39;yesterday&#39; | null;
+  sameYear?: boolean;
+  durationMs?: number;
+  headingLevel?: 2 | 3 | 4 | 5 | 6;
+  locale?: string;
+}
+
+const YESTERDAY = &#39;2026-01-13T09:12:00.000Z&#39;;
+const TODAY = &#39;2026-01-14T08:30:00.000Z&#39;;
+const LAST_WEEK = &#39;2026-01-06T15:45:00.000Z&#39;;
+const LAST_YEAR = &#39;2025-11-02T10:20:00.000Z&#39;;
+
+const FEED_PADDING = 24;
+
+const meta = {
+  title: &#39;Components/TimelineDivider&#39;,
+  component: TimelineDivider as unknown as (
+    props: TimelineDividerStoryArgs,
+  ) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;Marks a break in the activity feed. Renders an `&lt;li&gt;`, so it drops straight into the feed’s `&lt;ul&gt;` alongside `TimelineEvent` and `TimelineGroup`. Its props mirror the divider nodes `withDividers` emits, so a page can spread one in: `&lt;TimelineDivider {...node} /&gt;`. A day divider reads &quot;Jan 13 · Yesterday&quot;, falling back to the date alone once a day is older than yesterday. A gap divider reports the time skipped and is worded without direction — dividers are recomputed for the active sort, so &quot;later&quot; would be wrong under newest-first. The hairline uses `border-default`, one step lighter than the `border-strong` spine and markers: the spine has to read as one continuous thread, a rule only terminates a label.&#39;,
+      },
+    },
+  },
+  argTypes: {
+    type: { control: &#39;inline-radio&#39;, options: [&#39;dayDivider&#39;, &#39;gapDivider&#39;] },
+    at: { control: &#39;text&#39; },
+    relative: {
+      control: &#39;select&#39;,
+      options: [&#39;today&#39;, &#39;yesterday&#39;, &#39;none (older)&#39;],
+      mapping: {
+        today: &#39;today&#39;,
+        yesterday: &#39;yesterday&#39;,
+        &#39;none (older)&#39;: null,
+      },
+    },
+    sameYear: { control: &#39;boolean&#39; },
+    durationMs: { control: &#39;number&#39; },
+    headingLevel: { control: &#39;inline-radio&#39;, options: [2, 3, 4, 5, 6] },
+    locale: {
+      control: &#39;select&#39;,
+      options: [&#39;en-US&#39;, &#39;en-GB&#39;, &#39;de-DE&#39;, &#39;ja-JP&#39;],
+    },
+  },
+  args: {
+    type: &#39;dayDivider&#39;,
+    at: YESTERDAY,
+    relative: &#39;yesterday&#39;,
+    durationMs: 4 * 60 * 60 * 1000,
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          position: &#39;relative&#39;,
+          listStyle: &#39;none&#39;,
+          margin: 0,
+          background: &#39;var(--ds-color-surface-secondary)&#39;,
+          padding: FEED_PADDING,
+          width: 620,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+          gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+} satisfies Meta&lt;TimelineDividerStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+export const Yesterday: Story = {};
+
+export const Today: Story = {
+  args: { at: TODAY, relative: &#39;today&#39; },
+};
+
+export const EarlierDate: Story = {
+  args: { at: LAST_WEEK, relative: null },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Anything older than yesterday has no relative name, so the date stands alone — no trailing separator with nothing after it.&#39;,
+      },
+    },
+  },
+};
+
+export const PreviousYear: Story = {
+  args: { at: LAST_YEAR, relative: null, sameYear: false },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Once a day falls outside the current year the heading names it, because `relative` is null this far back and two &quot;Jan 13&quot;s a year apart would otherwise be identical. `withDividers` decides this and reports it as `sameYear` — the component never reads the clock.&#39;,
+      },
+    },
+  },
+};
+
+export const Gap: Story = {
+  args: { type: &#39;gapDivider&#39;, durationMs: 4 * 60 * 60 * 1000 },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Emitted when consecutive nodes sit `gapMs` apart within the same day — across a day the day divider already marks the break. The unit is attributive, so it stays singular: &quot;4 hour gap&quot;, not &quot;4 hours gap&quot;.&#39;,
+      },
+    },
+  },
+};
+
+export const ShortGap: Story = {
+  args: { type: &#39;gapDivider&#39;, durationMs: 45 * 60 * 1000 },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;`GAP_DIVIDER_MS` defaults to four hours, but `withDividers` takes a `gapMs` override, so sub-hour gaps reach this component in real feeds.&#39;,
+      },
+    },
+  },
+};
+
+const RUNS = [
+  {
+    id: &#39;a&#39;,
+    count: 8,
+    summary: &#39;Jordan D. performed 8 updates&#39;,
+    meta: &#39;· status, description, labels · 1d 8h ago&#39;,
+  },
+  {
+    id: &#39;b&#39;,
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· labels, sprint · 1d 2h ago&#39;,
+  },
+  {
+    id: &#39;c&#39;,
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· status, description · 23h ago&#39;,
+  },
+] as const;
+
+function RichFeed() {
+  const [openId, setOpenId] = useState&lt;string | null&gt;(null);
+  const renderRun = (runData: (typeof RUNS)[number]) =&gt; {
+    return (
+      &lt;TimelineGroup
+        count={runData.count}
+        summary={
+          &lt;&gt;
+            &lt;b&gt;Jordan D.&lt;/b&gt; performed {runData.count} updates
+          &lt;/&gt;
+        }
+        meta={runData.meta}
+        open={openId === runData.id}
+        onOpenChange={(next) =&gt; setOpenId(next ? runData.id : null)}
+      &gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
+          &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;edit&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          updated the description
+        &lt;/TimelineEvent&gt;
+      &lt;/TimelineGroup&gt;
+    );
+  };
+
+  return (
+    &lt;&gt;
+      &lt;li
+        aria-hidden=&quot;true&quot;
+        style={{
+          position: &#39;absolute&#39;,
+          left: `calc(${FEED_PADDING}px + var(--ds-space-timeline-event-gutter) / 2)`,
+          transform: &#39;translateX(-50%)&#39;,
+          top: FEED_PADDING,
+          bottom: FEED_PADDING,
+          width: 1,
+          background: &#39;var(--ds-color-border-strong)&#39;,
+        }}
+      /&gt;
+      &lt;TimelineDivider type=&quot;dayDivider&quot; at={YESTERDAY} relative=&quot;yesterday&quot; /&gt;
+      {renderRun(RUNS[0])}
+      &lt;TimelineDivider type=&quot;gapDivider&quot; durationMs={6 * 60 * 60 * 1000} /&gt;
+      {renderRun(RUNS[1])}
+      {renderRun(RUNS[2])}
+      &lt;TimelineEvent icon=&quot;person&quot; timestamp=&quot;22h ago&quot;&gt;
+        &lt;b&gt;Alex M.&lt;/b&gt; assigned ticket to &lt;b&gt;Jordan D.&lt;/b&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineEvent icon=&quot;tag&quot; timestamp=&quot;21h ago&quot;&gt;
+        &lt;b&gt;Jordan D.&lt;/b&gt; added label{&#39; &#39;}
+        &lt;Badge variant=&quot;progress&quot;&gt;edge-cache&lt;/Badge&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;TimelineDivider type=&quot;dayDivider&quot; at={TODAY} relative=&quot;today&quot; /&gt;
+      &lt;TimelineEvent icon=&quot;comment_filled&quot; timestamp=&quot;4h ago&quot;&gt;
+        &lt;b&gt;Jordan D.&lt;/b&gt; commented
+      &lt;/TimelineEvent&gt;
+    &lt;/&gt;
+  );
+}
+
+export const InAFeed: Story = {
+  render: () =&gt; &lt;RichFeed /&gt;,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;A day heading anchors left; a gap sits centred between two rules, because it names a distance rather than a place. The runs are collapsed — click one to open it. The alignment contract is visible here too: every divider label, row icon and group pill shares one 50px column.&#39;,
+      },
+    },
+  },
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { Badge, TimelineDivider, TimelineEvent, TimelineGroup } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Yesterday</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Yesterday = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={YESTERDAY}
+    relative=&quot;yesterday&quot;
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Today</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Today = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={TODAY}
+    relative=&quot;today&quot;
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Earlier Date</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const EarlierDate = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={LAST_WEEK}
+    relative={null}
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Previous Year</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const PreviousYear = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={LAST_YEAR}
+    relative={null}
+    durationMs={4 * 60 * 60 * 1000}
+    sameYear={false} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Gap</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Gap = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;gapDivider&quot;
+    at={YESTERDAY}
+    relative=&quot;yesterday&quot;
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Short Gap</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const ShortGap = () =&gt; &lt;TimelineDivider as unknown as (
+  props: TimelineDividerStoryArgs,
+) =&gt; ReactNode
+    type=&quot;gapDivider&quot;
+    at={YESTERDAY}
+    relative=&quot;yesterday&quot;
+    durationMs={45 * 60 * 1000} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">In A Feed</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const InAFeed = () =&gt; &lt;RichFeed /&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode</h2>
+      <div class="badges">
+        <label for="c-error-2-components-timelineevent-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-error-2-components-timelineevent-info" class="badge info as-toggle">1 info</label>
+        <label for="c-error-2-components-timelineevent-stories" class="badge ok as-toggle">8 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/TimelineEvent/TimelineEvent.stories.tsx">components-timelineevent · ./src/components/TimelineEvent/TimelineEvent.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-error-2-components-timelineevent-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-error-2-components-timelineevent-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-error-2-components-timelineevent-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&quot; component.
+  17 | }
+  18 |
+&gt; 19 | const meta = {
+     | ^
+  20 |   title: &#39;Components/TimelineEvent&#39;,
+  21 |   component: TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode,
+  22 |   tags: [&#39;autodocs&#39;],
+
+./src/components/TimelineEvent/TimelineEvent.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import type { ReactNode } from &#39;react&#39;;
+import { TimelineEvent } from &#39;./TimelineEvent&#39;;
+import { Badge } from &#39;../Badge&#39;;
+import { iconRegistry, type IconName } from &#39;../../icons&#39;;
+
+const iconNames = Object.keys(iconRegistry) as IconName[];
+
+interface TimelineEventStoryArgs {
+  icon: IconName;
+  timestamp: ReactNode;
+  variant?: &#39;standalone&#39; | &#39;nested&#39;;
+  muted?: boolean;
+  pinned?: boolean;
+  onPin?: () =&gt; void;
+  children: ReactNode;
+}
+
+const meta = {
+  title: &#39;Components/TimelineEvent&#39;,
+  component: TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;A single event row in an activity timeline. Renders an `&lt;li&gt;` — wrap rows in a `&lt;ul&gt;`, which owns the spacing between them via `gap`; the row adds no margin of its own. `standalone` (default) draws the spine marker and reserves the left gutter; `nested` omits both and must sit inside a group container that supplies the indent, so it renders flush left on its own. Pass `onPin` to render the pin button — its presence is the trigger. `pinned` draws the highlight ring and is mutually exclusive with `onPin`: a pinned row carries no control, because unpinning happens in the feed’s &quot;Clear pin&quot; banner. The pin button unmounts once the row is pinned, so the consumer must focus the pinned row through its `ref` after it renders as pinned, e.g. in an effect keyed on the pinned id.&#39;,
+      },
+    },
+  },
+  argTypes: {
+    icon: { control: &#39;select&#39;, options: iconNames },
+    variant: { control: &#39;inline-radio&#39;, options: [&#39;standalone&#39;, &#39;nested&#39;] },
+    muted: { control: &#39;boolean&#39; },
+    pinned: { control: &#39;boolean&#39; },
+  },
+  args: {
+    icon: &#39;schedule&#39;,
+    timestamp: &#39;22h ago&#39;,
+    children: &#39;changed status&#39;,
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          listStyle: &#39;none&#39;,
+          margin: 0,
+          padding: 0,
+          width: 560,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+          gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+} satisfies Meta&lt;TimelineEventStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+export const Default: Story = {};
+
+export const WithChangeChips: Story = {
+  args: {
+    children: (
+      &lt;&gt;
+        changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
+        &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+      &lt;/&gt;
+    ),
+  },
+};
+
+export const Nested: Story = {
+  args: { variant: &#39;nested&#39;, timestamp: &#39;1d 8h ago&#39; },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Shown flush left on purpose: a nested row carries no indent of its own. TimelineGroup supplies it, so this sits 50px left of a standalone row here. See ComposedRun for the assembled shape.&#39;,
+      },
+    },
+  },
+};
+
+export const Muted: Story = {
+  args: {
+    variant: &#39;nested&#39;,
+    muted: true,
+    icon: &#39;task_alt&#39;,
+    children: &#39;Build #1847 triggered automatically&#39;,
+    timestamp: &#39;1d 8h ago&#39;,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;De-emphasis via italic and a smaller size, keeping `text-secondary`. Used in the activity feed for automated events that happened inside a person’s run: present for context, but not one of their updates.&#39;,
+      },
+    },
+  },
+};
+
+export const Pinnable: Story = {
+  args: { icon: &#39;tag&#39;, children: &#39;added label&#39;, onPin: () =&gt; {} },
+};
+
+export const Pinned: Story = {
+  args: { icon: &#39;tag&#39;, children: &#39;added label&#39;, pinned: true },
+};
+
+export const ComposedRun: Story = {
+  render: () =&gt; (
+    &lt;&gt;
+      &lt;TimelineEvent icon=&quot;person&quot; timestamp=&quot;22h ago&quot;&gt;
+        &lt;b&gt;Alex M.&lt;/b&gt; assigned this ticket to &lt;b&gt;Jordan D.&lt;/b&gt;
+      &lt;/TimelineEvent&gt;
+      &lt;li style={{ listStyle: &#39;none&#39; }}&gt;
+        &lt;ul
+          style={{
+            listStyle: &#39;none&#39;,
+            margin: 0,
+            padding: 0,
+            display: &#39;flex&#39;,
+            flexDirection: &#39;column&#39;,
+            gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+            paddingLeft:
+              &#39;calc(var(--ds-space-timeline-event-gutter) + var(--ds-space-timeline-event-content-indent))&#39;,
+          }}
+        &gt;
+          &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+            changed status
+          &lt;/TimelineEvent&gt;
+          &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;tag&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+            added label
+          &lt;/TimelineEvent&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/&gt;
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;The alignment contract: a nested row carries no indent of its own, so its icon must land in the same column as a standalone row’s. Nothing asserts this — it is only visible here.&#39;,
+      },
+    },
+  },
+};
+
+export const LongContentWraps: Story = {
+  args: {
+    icon: &#39;person&#39;,
+    children:
+      &#39;assigned this ticket to Jordan D. and added Mike R., Alex M. and three others as watchers&#39;,
+  },
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { Badge, TimelineEvent } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Default</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Default = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;schedule&quot; timestamp=&quot;22h ago&quot;&gt;changed status&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">With Change Chips</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithChangeChips = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;schedule&quot; timestamp=&quot;22h ago&quot;&gt;(&lt;&gt;changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt;→{&#39; &#39;}
+      &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+    &lt;/&gt;)&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Nested</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Nested = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot; variant=&quot;nested&quot;&gt;changed status&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Muted</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Muted = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;task_alt&quot; timestamp=&quot;1d 8h ago&quot; variant=&quot;nested&quot; muted&gt;Build #1847 triggered automatically&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Pinnable</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Pinnable = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;tag&quot; timestamp=&quot;22h ago&quot; onPin={() =&gt; {}}&gt;added label&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Pinned</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Pinned = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;tag&quot; timestamp=&quot;22h ago&quot; pinned&gt;added label&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Composed Run</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const ComposedRun = () =&gt; (
+  &lt;&gt;
+    &lt;TimelineEvent icon=&quot;person&quot; timestamp=&quot;22h ago&quot;&gt;
+      &lt;b&gt;Alex M.&lt;/b&gt; assigned this ticket to &lt;b&gt;Jordan D.&lt;/b&gt;
+    &lt;/TimelineEvent&gt;
+    &lt;li style={{ listStyle: &#39;none&#39; }}&gt;
+      &lt;ul
+        style={{
+          listStyle: &#39;none&#39;,
+          margin: 0,
+          padding: 0,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+          gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+          paddingLeft:
+            &#39;calc(var(--ds-space-timeline-event-gutter) + var(--ds-space-timeline-event-content-indent))&#39;,
+        }}
+      &gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          changed status
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;tag&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          added label
+        &lt;/TimelineEvent&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Long Content Wraps</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const LongContentWraps = () =&gt; &lt;TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode icon=&quot;person&quot; timestamp=&quot;22h ago&quot;&gt;assigned this ticket to Jordan D. and added Mike R., Alex M. and three others as watchers&lt;/TimelineEvent as (props: TimelineEventStoryArgs) =&gt; ReactNode&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article>
+<article
+  class="card 
+  has-error 
+  has-info 
+  no-story-error
+  no-doc-error"
+  role="listitem"
+  aria-label="TimelineGroup as unknown as (
+  props: TimelineGroupStoryArgs,
+) =&gt; ReactNode">
+  <div class="head">
+    <div class="title">
+      <h2><span class="status-dot dot-err"></span> TimelineGroup as unknown as (
+  props: TimelineGroupStoryArgs,
+) =&gt; ReactNode</h2>
+      <div class="badges">
+        <label for="c-error-3-components-timelinegroup-err" class="badge err as-toggle">prop type error</label>
+        <label for="c-error-3-components-timelinegroup-info" class="badge info as-toggle">1 info</label>
+        <label for="c-error-3-components-timelinegroup-stories" class="badge ok as-toggle">7 stories</label>
+        
+      </div>
+    </div>
+    <div class="meta" title="./src/components/TimelineGroup/TimelineGroup.stories.tsx">components-timelinegroup · ./src/components/TimelineGroup/TimelineGroup.stories.tsx</div>
+    
+    
+    
+  </div>
+
+  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
+  <input id="c-error-3-components-timelinegroup-err" class="tg tg-err" type="checkbox" hidden />
+  <input id="c-error-3-components-timelinegroup-info" class="tg tg-info" type="checkbox" hidden />
+  <input id="c-error-3-components-timelinegroup-stories" class="tg tg-stories" type="checkbox" hidden />
+  
+  
+
+  <div class="panels">
+    
+        <div class="panel panel-err">
+          
+    <div class="note err">
+      <div class="note-title">Prop type error</div>
+      <div class="note-body"><pre><code>No component file found for the &quot;TimelineGroup as unknown as (
+  props: TimelineGroupStoryArgs,
+) =&gt; ReactNode&quot; component.
+  15 | }
+  16 |
+&gt; 17 | const meta = {
+     | ^
+  18 |   title: &#39;Components/TimelineGroup&#39;,
+  19 |   component: TimelineGroup as unknown as (
+  20 |     props: TimelineGroupStoryArgs,
+
+./src/components/TimelineGroup/TimelineGroup.stories.tsx:
+import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
+import { useState, type ReactNode } from &#39;react&#39;;
+import { TimelineGroup } from &#39;./TimelineGroup&#39;;
+import { TimelineEvent } from &#39;../TimelineEvent&#39;;
+import { Badge } from &#39;../Badge&#39;;
+
+interface TimelineGroupStoryArgs {
+  count: number;
+  summary: ReactNode;
+  meta?: ReactNode;
+  open: boolean;
+  matchLabel?: ReactNode;
+  moreLabel?: ReactNode;
+  children: ReactNode;
+}
+
+const meta = {
+  title: &#39;Components/TimelineGroup&#39;,
+  component: TimelineGroup as unknown as (
+    props: TimelineGroupStoryArgs,
+  ) =&gt; ReactNode,
+  tags: [&#39;autodocs&#39;],
+  render: (args) =&gt; &lt;Interactive key={String(args.open)} {...args} /&gt;,
+  parameters: {
+    docs: {
+      description: {
+        component:
+          &#39;A collapsed run of consecutive events by one person, or of automated events with no person behind them. Renders an `&lt;li&gt;` — wrap it in the feed’s `&lt;ul&gt;`. Takes `TimelineEvent` rows as children rather than data, so the page decides which are muted, pinned or highlighted. `count` is the actions belonging to whoever the run is attributed to — use `countActions(group)`. For a person that excludes system extras, so eight updates plus an automated build reads &quot;8 updates&quot; over nine rows; a run with no person behind it counts every row, reading &quot;4 system events&quot;. Rows are unmounted while collapsed, not hidden. Long runs are capped by the page, which passes `moreLabel` and `onMoreToggle`.&#39;,
+      },
+    },
+  },
+  argTypes: {
+    count: { control: { type: &#39;number&#39;, min: 1 } },
+    summary: { control: &#39;text&#39; },
+    meta: { control: &#39;text&#39; },
+    open: { control: &#39;boolean&#39; },
+    matchLabel: { control: &#39;text&#39; },
+    moreLabel: { control: &#39;text&#39; },
+    children: { control: false },
+  },
+  args: {
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· labels, sprint · 1d 2h ago&#39;,
+    open: false,
+  },
+  decorators: [
+    (Story) =&gt; (
+      &lt;ul
+        style={{
+          listStyle: &#39;none&#39;,
+          margin: 0,
+          background: &#39;var(--ds-color-surface-secondary)&#39;,
+          padding: 24,
+          width: 620,
+          display: &#39;flex&#39;,
+          flexDirection: &#39;column&#39;,
+          gap: &#39;var(--ds-space-timeline-event-row-gap)&#39;,
+        }}
+      &gt;
+        &lt;Story /&gt;
+      &lt;/ul&gt;
+    ),
+  ],
+} satisfies Meta&lt;TimelineGroupStoryArgs&gt;;
+
+export default meta;
+type Story = StoryObj&lt;typeof meta&gt;;
+
+const twoRows: ReactNode = (
+  &lt;&gt;
+    &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;tag&quot; timestamp=&quot;1d 2h ago&quot;&gt;
+      added label &lt;Badge variant=&quot;progress&quot;&gt;needs-qa&lt;/Badge&gt;
+    &lt;/TimelineEvent&gt;
+    &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 2h ago&quot;&gt;
+      set sprint to &lt;Badge variant=&quot;progress&quot;&gt;Q1-W4-INFRA&lt;/Badge&gt;
+    &lt;/TimelineEvent&gt;
+  &lt;/&gt;
+);
+
+function Interactive({ moreLabel, ...args }: TimelineGroupStoryArgs) {
+  const [open, setOpen] = useState(args.open);
+  const [showAll, setShowAll] = useState(false);
+  const more =
+    moreLabel === undefined
+      ? {}
+      : {
+          moreLabel: showAll ? &#39;Show less&#39; : moreLabel,
+          onMoreToggle: () =&gt; setShowAll((v) =&gt; !v),
+          moreExpanded: showAll,
+        };
+
+  return (
+    &lt;TimelineGroup {...args} {...more} open={open} onOpenChange={setOpen}&gt;
+      {args.children}
+      {showAll &amp;&amp; (
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;person&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          added &lt;b&gt;Mike R.&lt;/b&gt; as a watcher
+        &lt;/TimelineEvent&gt;
+      )}
+    &lt;/TimelineGroup&gt;
+  );
+}
+
+export const Collapsed: Story = {
+  args: { children: twoRows },
+  parameters: {
+    docs: {
+      description: {
+        story: &#39;The default resting state: a run stays closed until asked.&#39;,
+      },
+    },
+  },
+};
+
+export const Open: Story = {
+  args: { open: true, children: twoRows },
+};
+
+export const WithSystemExtra: Story = {
+  args: {
+    open: true,
+    count: 2,
+    summary: &#39;Jordan D. performed 2 updates&#39;,
+    meta: &#39;· status, description · 1d 8h ago&#39;,
+    children: (
+      &lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt; →{&#39; &#39;}
+          &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent
+          variant=&quot;nested&quot;
+          muted
+          icon=&quot;task_alt&quot;
+          timestamp=&quot;1d 8h ago&quot;
+        &gt;
+          Build #1847 triggered automatically
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;edit&quot; timestamp=&quot;1d 8h ago&quot;&gt;
+          updated the description
+        &lt;/TimelineEvent&gt;
+      &lt;/&gt;
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;The count says 2, not 3. The automated build happened inside Jordan’s run and is shown for context, but it is not one of his updates — matching the mockup, whose pill reads &quot;8 updates&quot; over nine rows.&#39;,
+      },
+    },
+  },
+};
+
+export const Capped: Story = {
+  args: {
+    open: true,
+    count: 9,
+    summary: &#39;Jordan D. performed 9 updates&#39;,
+    meta: &#39;· status, description, labels · 1d 8h ago&#39;,
+    moreLabel: &#39;Show 5 more&#39;,
+    children: twoRows,
+  },
+};
+
+export const Matching: Story = {
+  args: {
+    open: true,
+    matchLabel: &#39;1 of 2 match&#39;,
+    children: twoRows,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;While a search is active, a group holding a match expands and reports how many of its rows matched.&#39;,
+      },
+    },
+  },
+};
+
+export const LongSummary: Story = {
+  args: {
+    open: false,
+    summary: &#39;Bartholomew Featherstonehaugh-Wellesley performed 14 updates&#39;,
+    meta: &#39;· status, description, labels, sprint, priority · 1d 8h ago&#39;,
+    children: twoRows,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;Both slots truncate rather than wrap: the pill is a stadium and only reads as one on a single line. The meta gives way before the actor and the action do, and the count, chevron and match chip never shrink.&#39;,
+      },
+    },
+  },
+};
+
+export const SystemOnly: Story = {
+  args: {
+    open: true,
+    count: 4,
+    summary: &#39;4 system events&#39;,
+    meta: &#39;· CI, deploys, QA runs · 20m ago&#39;,
+    children: (
+      &lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;task_alt&quot; timestamp=&quot;34m ago&quot;&gt;
+          Build &lt;b&gt;#1847&lt;/b&gt; passed on &lt;b&gt;QA-01&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;science&quot; timestamp=&quot;28m ago&quot;&gt;
+          QA scenario &lt;b&gt;TC-412&lt;/b&gt; marked Failed
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;file_upload&quot; timestamp=&quot;24m ago&quot;&gt;
+          Deployed &lt;b&gt;edge-gateway-service&lt;/b&gt; to &lt;b&gt;QA-02&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;image&quot; timestamp=&quot;20m ago&quot;&gt;
+          Evidence &lt;b&gt;rate_429.png&lt;/b&gt; attached to TC-412
+        &lt;/TimelineEvent&gt;
+      &lt;/&gt;
+    ),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          &#39;A run with no person behind it is never attributed to one: it reads &quot;4 system events&quot;, not a bot’s name. `ActivityGroup.actor` holds whichever bot happened to be first, so naming it would credit a deploy to CI.&#39;,
+      },
+    },
+  },
+};
+</code></pre></div>
+    </div>
+        </div>
+    
+        <div class="panel panel-info">
+          
+    <div class="note info">
+      <div class="note-title">Info</div>
+      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
+    </div>
+        </div>
+    
+    
+        <div class="panel panel-stories">
+          
+          
+          
+          <div class="note ok">
+                <div class="row">
+                  <span class="ex-name">Imports</span>
+                </div>
+                <pre><code>import { Badge, TimelineEvent, TimelineGroup } from "@all3hp/tasksgo-ui";</code></pre>
+              </div>
+          
+          
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Collapsed</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Collapsed = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open={false}&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Open</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Open = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">With System Extra</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithSystemExtra = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· status, description · 1d 8h ago&quot;
+    open&gt;&lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;schedule&quot; timestamp=&quot;1d 8h ago&quot;&gt;changed status &lt;Badge variant=&quot;todo&quot;&gt;To Do&lt;/Badge&gt;→{&#39; &#39;}
+            &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; muted icon=&quot;task_alt&quot; timestamp=&quot;1d 8h ago&quot;&gt;Build #1847 triggered automatically
+                    &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;edit&quot; timestamp=&quot;1d 8h ago&quot;&gt;updated the description
+                    &lt;/TimelineEvent&gt;
+    &lt;/&gt;&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Capped</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Capped = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={9}
+    summary=&quot;Jordan D. performed 9 updates&quot;
+    meta=&quot;· status, description, labels · 1d 8h ago&quot;
+    open
+    moreLabel=&quot;Show 5 more&quot;&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Matching</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Matching = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Jordan D. performed 2 updates&quot;
+    meta=&quot;· labels, sprint · 1d 2h ago&quot;
+    open
+    matchLabel=&quot;1 of 2 match&quot;&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Long Summary</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const LongSummary = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={2}
+    summary=&quot;Bartholomew Featherstonehaugh-Wellesley performed 14 updates&quot;
+    meta=&quot;· status, description, labels, sprint, priority · 1d 8h ago&quot;
+    open={false}&gt;{twoRows}&lt;/Interactive&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">System Only</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const SystemOnly = () =&gt; &lt;Interactive
+    key={String(args.open)}
+    count={4}
+    summary=&quot;4 system events&quot;
+    meta=&quot;· CI, deploys, QA runs · 20m ago&quot;
+    open&gt;&lt;&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;task_alt&quot; timestamp=&quot;34m ago&quot;&gt;Build &lt;b&gt;#1847&lt;/b&gt;passed on &lt;b&gt;QA-01&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;science&quot; timestamp=&quot;28m ago&quot;&gt;QA scenario &lt;b&gt;TC-412&lt;/b&gt;marked Failed
+                    &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;file_upload&quot; timestamp=&quot;24m ago&quot;&gt;Deployed &lt;b&gt;edge-gateway-service&lt;/b&gt;to &lt;b&gt;QA-02&lt;/b&gt;
+        &lt;/TimelineEvent&gt;
+        &lt;TimelineEvent variant=&quot;nested&quot; icon=&quot;image&quot; timestamp=&quot;20m ago&quot;&gt;Evidence &lt;b&gt;rate_429.png&lt;/b&gt;attached to TC-412
+                    &lt;/TimelineEvent&gt;
+    &lt;/&gt;&lt;/Interactive&gt;;</code></pre>
+            </div>
+        </div>
+    
+  </div>
+</article></div>
+        </section>
+      
         <section class="group">
           <input id="no-component-found-toggle" class="group-tg" type="checkbox" hidden />
           <label for="no-component-found-toggle" class="group-header">
@@ -12374,13 +15145,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  764 | }
-  765 |
-&gt; 766 | const meta: Meta = {
+  778 | }
+  779 |
+&gt; 780 | const meta: Meta = {
       | ^
-  767 |   title: &#39;Pages/Ticket&#39;,
-  768 |   parameters: {
-  769 |     layout: &#39;fullscreen&#39;,
+  781 |   title: &#39;Pages/Ticket&#39;,
+  782 |   parameters: {
+  783 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
@@ -12544,6 +15315,8 @@ function TicketOverviewRender({
     taskDrawerTitle,
     taskSelectors,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
     addScenarioOpen,
     scenarioDraft,
     setScenarioDraft,
@@ -12552,6 +15325,10 @@ function TicketOverviewRender({
     confirmAddScenario,
     updateScenario,
     editingSectionsById,
+    stepsExpandedById,
+    setStepsExpanded,
+    evidenceExpandedById,
+    setEvidenceExpanded,
     setScenarioEditingSections,
     expandedScenarioId,
     toggleScenario,
@@ -12568,6 +15345,8 @@ function TicketOverviewRender({
     confirmStatusChange,
     cancelStatusChange,
     evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
     setEvidencePreviewIndex,
@@ -12773,7 +15552,8 @@ function TicketOverviewRender({
                           &lt;/span&gt;
                         &lt;/div&gt;
                         &lt;CollapsibleCard
-                          defaultOpen
+                          open={qaSummaryOpen}
+                          onOpenChange={setQaSummaryOpen}
                           header={
                             &lt;span className={styles.qaCardHeader}&gt;
                               &lt;span className={styles.qaCardTitle}&gt;
@@ -12884,6 +15664,10 @@ function TicketOverviewRender({
                       statusSelectScenarioId={statusSelectScenarioId}
                       onStatusSelectOpenChange={setStatusSelectOpen}
                       editingSectionsById={editingSectionsById}
+                      stepsExpandedById={stepsExpandedById}
+                      onStepsExpandedChange={setStepsExpanded}
+                      evidenceExpandedById={evidenceExpandedById}
+                      onEvidenceExpandedChange={setEvidenceExpanded}
                       onEditingSectionsChange={setScenarioEditingSections}
                       onOpenEvidence={openEvidencePreview}
                       pendingStatusChange={pendingStatusChange}
@@ -13134,10 +15918,11 @@ function TicketOverviewRender({
 
       &lt;FilePreviewOverlay
         files={previewScenario?.evidence ?? []}
-        open={evidencePreview != null}
+        open={evidencePreviewOpen}
         activeIndex={evidencePreview?.index ?? 0}
         onActiveIndexChange={setEvidencePreviewIndex}
         onClose={closeEvidencePreview}
+        onClosed={clearEvidencePreview}
         downloadAllName={
           previewScenario != null
             ? `${previewScenario.id}-evidence.zip`
@@ -13254,353 +16039,6 @@ export const Qa: Story = {
               
               
               <pre><code>const Qa = () =&gt; &lt;TicketOverviewRender initialActiveTab=&quot;qa&quot; /&gt;;</code></pre>
-            </div>
-        </div>
-    
-  </div>
-</article></div>
-        </section>
-      
-        <section class="group">
-          <input id="no-component-import-found-toggle" class="group-tg" type="checkbox" hidden />
-          <label for="no-component-import-found-toggle" class="group-header">
-            <span class="caret">▸</span>
-            <span class="group-title">No component import found</span>
-            <span class="group-count">1</span>
-          </label>
-          <div class="group-cards">
-<article
-  class="card 
-  has-error 
-  has-info 
-  no-story-error
-  no-doc-error"
-  role="listitem"
-  aria-label="ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode">
-  <div class="head">
-    <div class="title">
-      <h2><span class="status-dot dot-err"></span> ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode</h2>
-      <div class="badges">
-        <label for="c-error-0-components-activityrow-err" class="badge err as-toggle">prop type error</label>
-        <label for="c-error-0-components-activityrow-info" class="badge info as-toggle">1 info</label>
-        <label for="c-error-0-components-activityrow-stories" class="badge ok as-toggle">7 stories</label>
-        
-      </div>
-    </div>
-    <div class="meta" title="./src/components/ActivityRow/ActivityRow.stories.tsx">components-activityrow · ./src/components/ActivityRow/ActivityRow.stories.tsx</div>
-    
-    
-    
-  </div>
-
-  <!-- ⬇️ Hidden toggles must be siblings BEFORE .panels -->
-  <input id="c-error-0-components-activityrow-err" class="tg tg-err" type="checkbox" hidden />
-  <input id="c-error-0-components-activityrow-info" class="tg tg-info" type="checkbox" hidden />
-  <input id="c-error-0-components-activityrow-stories" class="tg tg-stories" type="checkbox" hidden />
-  
-  
-
-  <div class="panels">
-    
-        <div class="panel panel-err">
-          
-    <div class="note err">
-      <div class="note-title">Prop type error</div>
-      <div class="note-body"><pre><code>No component file found for the &quot;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&quot; component.
-  15 | }
-  16 |
-&gt; 17 | const meta = {
-     | ^
-  18 |   title: &#39;Components/ActivityRow&#39;,
-  19 |   component: ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode,
-  20 |   tags: [&#39;autodocs&#39;],
-
-./src/components/ActivityRow/ActivityRow.stories.tsx:
-import type { Meta, StoryObj } from &#39;@storybook/react&#39;;
-import type { ReactNode } from &#39;react&#39;;
-import { ActivityRow } from &#39;./ActivityRow&#39;;
-import { ExternalLink } from &#39;../ExternalLink&#39;;
-import { Badge } from &#39;../Badge&#39;;
-import type { IconName } from &#39;../../icons&#39;;
-
-interface ActivityRowStoryArgs {
-  icon?: IconName;
-  tone?: &#39;neutral&#39; | &#39;info&#39; | &#39;success&#39; | &#39;warning&#39; | &#39;danger&#39;;
-  leading?: ReactNode;
-  meta?: readonly ReactNode[];
-  trailing?: ReactNode;
-  children: ReactNode;
-}
-
-const meta = {
-  title: &#39;Components/ActivityRow&#39;,
-  component: ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode,
-  tags: [&#39;autodocs&#39;],
-  parameters: {
-    docs: {
-      description: {
-        component:
-          &#39;A flexible two-line list row for dev activity (pull requests, commits, deployments). Slots take DS primitives directly: an ExternalLink title, a mono meta line, and trailing Badge(s). Renders an `&lt;li&gt;` — wrap rows in a `&lt;ul&gt;`. The `tone` prop tints the leading icon as visual reinforcement only (the icon is `aria-hidden`); pair danger/warning with a Badge or text so status is never conveyed by color alone.&#39;,
-      },
-    },
-  },
-  decorators: [
-    (Story) =&gt; (
-      &lt;ul
-        style={{
-          margin: 0,
-          padding: 0,
-          maxWidth: 420,
-          display: &#39;flex&#39;,
-          flexDirection: &#39;column&#39;,
-        }}
-      &gt;
-        &lt;Story /&gt;
-      &lt;/ul&gt;
-    ),
-  ],
-  argTypes: {
-    icon: { control: &#39;text&#39; },
-    tone: {
-      control: &#39;inline-radio&#39;,
-      options: [&#39;neutral&#39;, &#39;info&#39;, &#39;success&#39;, &#39;warning&#39;, &#39;danger&#39;],
-      description:
-        &#39;Tints the leading icon. Visual reinforcement only — the icon is aria-hidden, so pair danger/warning with a Badge or text so status is not color-only (WCAG 1.4.1).&#39;,
-    },
-  },
-  args: {
-    icon: &#39;call_merge&#39;,
-    children: &#39;Add dark-mode toggle&#39;,
-  },
-} satisfies Meta&lt;ActivityRowStoryArgs&gt;;
-
-export default meta;
-type Story = StoryObj&lt;typeof meta&gt;;
-
-export const PullRequest: Story = {
-  args: {
-    icon: &#39;call_merge&#39;,
-    tone: &#39;success&#39;,
-    meta: [&#39;#142&#39;, &#39;alex&#39;, &#39;2h ago&#39;],
-    trailing: &lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;,
-    children: (
-      &lt;ExternalLink href=&quot;https://github.com/example/pr/142&quot;&gt;
-        Add dark-mode toggle
-      &lt;/ExternalLink&gt;
-    ),
-  },
-};
-
-export const Commit: Story = {
-  args: {
-    icon: &#39;code&#39;,
-    meta: [&#39;a1b9f2c&#39;, &#39;sam&#39;, &#39;5h ago&#39;],
-    children: (
-      &lt;ExternalLink href=&quot;https://github.com/example/commit/a1b9f2c&quot;&gt;
-        Fix flaky viewport test
-      &lt;/ExternalLink&gt;
-    ),
-  },
-};
-
-export const Deployment: Story = {
-  args: {
-    icon: &#39;check_circle&#39;,
-    tone: &#39;danger&#39;,
-    meta: [&#39;production&#39;, &#39;ci-bot&#39;, &#39;1d ago&#39;],
-    trailing: &lt;Badge variant=&quot;critical&quot;&gt;Failed&lt;/Badge&gt;,
-    children: &#39;Deploy v4.1.0&#39;,
-  },
-};
-
-export const Minimal: Story = {
-  args: {
-    icon: &#39;code&#39;,
-    children: &#39;A row with no meta and no trailing&#39;,
-  },
-};
-
-export const TruncatedTitle: Story = {
-  args: {
-    icon: &#39;call_merge&#39;,
-    tone: &#39;info&#39;,
-    meta: [&#39;#88&#39;, &#39;jordan&#39;, &#39;3d ago&#39;],
-    trailing: &lt;Badge variant=&quot;progress&quot;&gt;Open&lt;/Badge&gt;,
-    children: (
-      &lt;ExternalLink href=&quot;https://github.com/example/pr/88&quot;&gt;
-        feat: dynamic edge caching for API gateway responses across all regions
-      &lt;/ExternalLink&gt;
-    ),
-  },
-};
-
-export const AllTones: Story = {
-  parameters: { controls: { disable: true } },
-  render: () =&gt; (
-    &lt;&gt;
-      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;neutral&quot; meta={[&#39;neutral&#39;]}&gt;
-        Neutral tone
-      &lt;/ActivityRow&gt;
-      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;info&quot; meta={[&#39;info&#39;]}&gt;
-        Info tone
-      &lt;/ActivityRow&gt;
-      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;success&quot; meta={[&#39;success&#39;]}&gt;
-        Success tone
-      &lt;/ActivityRow&gt;
-      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;warning&quot; meta={[&#39;warning&#39;]}&gt;
-        Warning tone
-      &lt;/ActivityRow&gt;
-      &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;danger&quot; meta={[&#39;danger&#39;]}&gt;
-        Danger tone
-      &lt;/ActivityRow&gt;
-    &lt;/&gt;
-  ),
-};
-
-export const CustomLeading: Story = {
-  parameters: { controls: { disable: true } },
-  render: () =&gt; (
-    &lt;ActivityRow
-      leading={&lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;}
-      meta={[&#39;on this branch&#39;]}
-      trailing={
-        &lt;ExternalLink href=&quot;https://example.com/commits&quot;&gt;View all&lt;/ExternalLink&gt;
-      }
-    &gt;
-      37 commits
-    &lt;/ActivityRow&gt;
-  ),
-};
-</code></pre></div>
-    </div>
-        </div>
-    
-        <div class="panel panel-info">
-          
-    <div class="note info">
-      <div class="note-title">Info</div>
-      <div class="note-body">No description found. Write a jsdoc comment such as /** Component description */.</div>
-    </div>
-        </div>
-    
-    
-        <div class="panel panel-stories">
-          
-          
-          
-          <div class="note ok">
-                <div class="row">
-                  <span class="ex-name">Imports</span>
-                </div>
-                <pre><code>import { ActivityRow, Badge, ExternalLink } from "@all3hp/tasksgo-ui";</code></pre>
-              </div>
-          
-          
-            <div class="note ok">
-              <div class="row">
-                <span class="ex-name">Pull Request</span>
-                <span class="badge ok">story ok</span>
-              </div>
-              
-              
-              <pre><code>const PullRequest = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
-    icon=&quot;call_merge&quot;
-    tone=&quot;success&quot;
-    meta={[&#39;#142&#39;, &#39;alex&#39;, &#39;2h ago&#39;]}
-    trailing={&lt;Badge variant=&quot;count&quot;&gt;2/13&lt;/Badge&gt;}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/pr/142&quot;&gt;Add dark-mode toggle
-            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
-            </div>
-            <div class="note ok">
-              <div class="row">
-                <span class="ex-name">Commit</span>
-                <span class="badge ok">story ok</span>
-              </div>
-              
-              
-              <pre><code>const Commit = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode icon=&quot;code&quot; meta={[&#39;a1b9f2c&#39;, &#39;sam&#39;, &#39;5h ago&#39;]}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/commit/a1b9f2c&quot;&gt;Fix flaky viewport test
-            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
-            </div>
-            <div class="note ok">
-              <div class="row">
-                <span class="ex-name">Deployment</span>
-                <span class="badge ok">story ok</span>
-              </div>
-              
-              
-              <pre><code>const Deployment = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
-    icon=&quot;check_circle&quot;
-    tone=&quot;danger&quot;
-    meta={[&#39;production&#39;, &#39;ci-bot&#39;, &#39;1d ago&#39;]}
-    trailing={&lt;Badge variant=&quot;critical&quot;&gt;Failed&lt;/Badge&gt;}&gt;Deploy v4.1.0&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
-            </div>
-            <div class="note ok">
-              <div class="row">
-                <span class="ex-name">Minimal</span>
-                <span class="badge ok">story ok</span>
-              </div>
-              
-              
-              <pre><code>const Minimal = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode icon=&quot;code&quot;&gt;A row with no meta and no trailing&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
-            </div>
-            <div class="note ok">
-              <div class="row">
-                <span class="ex-name">Truncated Title</span>
-                <span class="badge ok">story ok</span>
-              </div>
-              
-              
-              <pre><code>const TruncatedTitle = () =&gt; &lt;ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode
-    icon=&quot;call_merge&quot;
-    tone=&quot;info&quot;
-    meta={[&#39;#88&#39;, &#39;jordan&#39;, &#39;3d ago&#39;]}
-    trailing={&lt;Badge variant=&quot;progress&quot;&gt;Open&lt;/Badge&gt;}&gt;(&lt;ExternalLink href=&quot;https://github.com/example/pr/88&quot;&gt;feat: dynamic edge caching for API gateway responses across all regions
-            &lt;/ExternalLink&gt;)&lt;/ActivityRow as (props: ActivityRowStoryArgs) =&gt; ReactNode&gt;;</code></pre>
-            </div>
-            <div class="note ok">
-              <div class="row">
-                <span class="ex-name">All Tones</span>
-                <span class="badge ok">story ok</span>
-              </div>
-              
-              
-              <pre><code>const AllTones = () =&gt; (
-  &lt;&gt;
-    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;neutral&quot; meta={[&#39;neutral&#39;]}&gt;
-      Neutral tone
-    &lt;/ActivityRow&gt;
-    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;info&quot; meta={[&#39;info&#39;]}&gt;
-      Info tone
-    &lt;/ActivityRow&gt;
-    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;success&quot; meta={[&#39;success&#39;]}&gt;
-      Success tone
-    &lt;/ActivityRow&gt;
-    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;warning&quot; meta={[&#39;warning&#39;]}&gt;
-      Warning tone
-    &lt;/ActivityRow&gt;
-    &lt;ActivityRow icon=&quot;call_merge&quot; tone=&quot;danger&quot; meta={[&#39;danger&#39;]}&gt;
-      Danger tone
-    &lt;/ActivityRow&gt;
-  &lt;/&gt;
-);</code></pre>
-            </div>
-            <div class="note ok">
-              <div class="row">
-                <span class="ex-name">Custom Leading</span>
-                <span class="badge ok">story ok</span>
-              </div>
-              
-              
-              <pre><code>const CustomLeading = () =&gt; (
-  &lt;ActivityRow
-    leading={&lt;Badge variant=&quot;count&quot;&gt;37&lt;/Badge&gt;}
-    meta={[&#39;on this branch&#39;]}
-    trailing={
-      &lt;ExternalLink href=&quot;https://example.com/commits&quot;&gt;View all&lt;/ExternalLink&gt;
-    }
-  &gt;
-    37 commits
-  &lt;/ActivityRow&gt;
-);</code></pre>
             </div>
         </div>
     
