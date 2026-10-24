@@ -559,7 +559,7 @@ export async function runReviewAgent({ client, config, system, userMessage, root
                     is_error: true,
                     content:
                       `submit_findings rejected: ${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} required — follow each field's description. ` +
-                      'For `confirmSuppressed`, resolve the concerns you were about to leave out BEFORE deciding what goes in `findings`; ' +
+                      'For `confirmSuppressed`, resolve each defect candidate you examined that is not in `findings`, cleared or not, BEFORE deciding what goes in `findings`; ' +
                       'anything that turns out to be real belongs in `findings`, not only in the record. ' +
                       'Answer from what you have ALREADY read; do not call any other tool. Then call submit_findings again.',
                   }
@@ -601,14 +601,14 @@ export async function runReviewAgent({ client, config, system, userMessage, root
               is_error: true,
               content:
                 u.id === submit.id
-                  ? 'submit_findings rejected: before submitting, route every concern about this change that you set aside on impact ' +
-                    'grounds ("acceptable", "best-effort", "cosmetic", "harmless", "fine since", "not a real bug", "not worth reporting"). ' +
-                    'Those are SEVERITY judgements, never clearances. For EACH such concern: put it in `confirmSuppressed` with all five ' +
-                    'steps (a cited enforcing line is required), or move it to `findings` with severity `low`. If every such concern is ' +
+                  ? 'submit_findings rejected: before submitting, route every defect candidate in this change that is not in `findings` ' +
+                    'and was cleared on impact grounds ("acceptable", "best-effort", "cosmetic", "harmless", "fine since", "not a real bug", "not worth reporting"). ' +
+                    'Those are SEVERITY judgements, never clearances. For EACH such candidate: put it in `confirmSuppressed` with all five ' +
+                    'steps (a cited enforcing line is required), or move it to `findings` with severity `low`. If every such candidate is ' +
                     'already recorded, resubmit unchanged. Answer from what you have ALREADY read; do not call any other tool.'
                   : 'Not run — submit_findings was rejected.',
             })),
-            { type: 'text', text: '[hand-wave] Route each dismissed concern through the gate, then submit.', cache_control: { type: 'ephemeral' } },
+            { type: 'text', text: '[hand-wave] Route each such defect candidate through the gate, then submit.', cache_control: { type: 'ephemeral' } },
           ],
         });
         continue;
