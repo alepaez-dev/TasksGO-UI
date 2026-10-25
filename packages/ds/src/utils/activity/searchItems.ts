@@ -1,3 +1,4 @@
+import { parseSearchTerms } from '../searchTerms';
 import type { ActivityItem } from './types';
 
 export interface ActivitySearchIndex {
@@ -45,7 +46,7 @@ export function matchesQuery(
   index: ActivitySearchIndex,
   query: string,
 ): boolean {
-  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const terms = parseSearchTerms(query);
   if (terms.length === 0) return true;
   const haystack = `${index.discussion}\n${index.fields}\n${index.artifacts}`;
   return terms.every((term) => haystack.includes(term));

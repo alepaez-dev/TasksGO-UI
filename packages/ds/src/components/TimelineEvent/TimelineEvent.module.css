@@ -62,7 +62,7 @@
 
 .pinned {
   border-radius: var(--ds-radius-md);
-  outline: 2px solid var(--ds-color-accent-warm-text);
+  outline: 2px solid var(--ds-color-status-high);
   outline-offset: var(--ds-space-scale-xs);
 }
 

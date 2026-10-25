@@ -14,6 +14,11 @@ const text = {
   inverse: '#ffffff',
 } as const;
 
+const highlight = {
+  background: '#ebdad2',
+  text: text.primary,
+} as const;
+
 const border = {
   default: '#f0f0f0',
   strong: '#c8c8c8',
@@ -60,6 +65,8 @@ export const colors = {
   focus,
 
   status,
+
+  highlight,
 
   badge: {
     progress: {
