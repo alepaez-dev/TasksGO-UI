@@ -280,6 +280,16 @@ describe('useTicketOverviewState — status gating', () => {
     expect(result.current.statusPromptOpen).toBe(false);
   });
 
+  it('ignores a confirm that arrives after cancel', () => {
+    const { result } = renderHook(() => useTicketOverviewState());
+    act(() => result.current.requestScenarioStatus('TC-402', 'waived'));
+    act(() => result.current.setStatusDraft('changed my mind'));
+    act(() => result.current.cancelStatusChange());
+    act(() => result.current.confirmStatusChange());
+
+    expect(statusOf(result, 'TC-402')).toBe('passed');
+  });
+
   it('keeps the prompt content while it closes, then reseeds on reopen', () => {
     const { result } = renderHook(() => useTicketOverviewState());
     act(() => result.current.requestScenarioStatus('TC-402', 'waived'));

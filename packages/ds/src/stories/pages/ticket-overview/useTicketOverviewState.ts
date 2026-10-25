@@ -527,7 +527,7 @@ export function useTicketOverviewState(
   }, []);
 
   const confirmStatusChange = useCallback(() => {
-    if (!pendingStatusChange) return;
+    if (!statusPromptOpen || !pendingStatusChange) return;
     const { scenarioId, kind } = pendingStatusChange;
     const value = statusDraft.trim();
     if (!value) return;
@@ -538,7 +538,7 @@ export function useTicketOverviewState(
         : statusPatch('pending', { actual: value }),
     );
     setStatusPromptOpen(false);
-  }, [pendingStatusChange, statusDraft, updateScenario]);
+  }, [statusPromptOpen, pendingStatusChange, statusDraft, updateScenario]);
 
   const [evidencePreview, setEvidencePreview] = useState<{
     scenarioId: string;

@@ -111,6 +111,23 @@ describe('useFocusTrap', () => {
     document.body.removeChild(survivor);
   });
 
+  it('falls back to restoreTo when nothing was focused at open', () => {
+    const survivor = document.createElement('button');
+    document.body.append(survivor);
+    (document.activeElement as HTMLElement | null)?.blur();
+
+    const container = createContainer();
+    const ref = { current: container };
+    const { unmount } = renderHook(() =>
+      useFocusTrap(ref, true, { restoreTo: () => survivor }),
+    );
+    unmount();
+    expect(document.activeElement).toBe(survivor);
+
+    document.body.removeChild(container);
+    document.body.removeChild(survivor);
+  });
+
   it('wraps focus forward from last to first element', () => {
     const container = createContainer();
     const ref = { current: container };

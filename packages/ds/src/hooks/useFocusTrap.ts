@@ -76,9 +76,9 @@ export function useFocusTrap(
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       const previous = previouslyFocused.current;
-      const target = previous?.isConnected
-        ? previous
-        : (restoreToRef.current?.() ?? null);
+      const usable =
+        previous != null && previous !== document.body && previous.isConnected;
+      const target = usable ? previous : (restoreToRef.current?.() ?? null);
       target?.focus();
     };
   }, [active, ref, autoFocus]);
