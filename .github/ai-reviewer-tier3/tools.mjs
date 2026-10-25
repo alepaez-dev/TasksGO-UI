@@ -91,16 +91,16 @@ const SUBMIT_FINDINGS_SCHEMA = {
     confirmSuppressed: {
       type: 'array',
       description:
-        'REQUIRED, and resolve it BEFORE you decide what goes in `findings`. List EVERY concern you formed and are NOT reporting — ' +
-        'not a chosen few, and not only the ones that still worry you. Each entry must complete the FIVE-STEP CLEARANCE GATE in order. ' +
+        'REQUIRED, and resolve it BEFORE you decide what goes in `findings`. List EACH defect candidate you examined that is not in `findings` — ' +
+        'every one, cleared or not, not a chosen few. Each entry must complete the FIVE-STEP CLEARANCE GATE in order. ' +
         'All five must succeed; if any one fails, the verdict is `is-a-bug-moved-to-findings` and the concern goes in `findings`. ' +
         'There is no third option and no "minor"/"cosmetic"/"unlikely" exemption — severity belongs on the finding, not on the decision to report it. ' +
-        'Empty array ONLY on a change so trivial you formed no concern at all.',
+        'Empty array ONLY on a change so trivial there was no defect candidate at all.',
       items: {
         type: 'object',
         additionalProperties: false,
         properties: {
-          claim: { type: 'string', description: 'The defect you were about to leave out.' },
+          claim: { type: 'string', description: 'The candidate defect.' },
           predictedFailure: {
             type: 'string',
             description: 'STEP 1. The concrete failure you predicted: the inputs or state, and the wrong outcome they produce. An outcome, not a topic.',
