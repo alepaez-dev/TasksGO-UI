@@ -10,6 +10,10 @@ const meta = {
       control: 'select',
       options: ['critical', 'high', 'medium', 'low'],
     },
+    appearance: {
+      control: 'select',
+      options: ['text', 'icon-text', 'icon'],
+    },
   },
   args: {
     priority: 'high',
@@ -50,6 +54,40 @@ export const AllPriorities: Story = {
       <PriorityLabel priority="high" />
       <PriorityLabel priority="medium" />
       <PriorityLabel priority="low" />
+    </div>
+  ),
+};
+
+export const WithIcon: Story = {
+  render: () => (
+    <div
+      style={{
+        display: 'flex',
+        gap: 'var(--ds-space-scale-md)',
+        alignItems: 'center',
+      }}
+    >
+      <PriorityLabel priority="critical" appearance="icon-text" />
+      <PriorityLabel priority="high" appearance="icon-text" />
+      <PriorityLabel priority="medium" appearance="icon-text" />
+      <PriorityLabel priority="low" appearance="icon-text" />
+    </div>
+  ),
+};
+
+export const IconOnly: Story = {
+  render: () => (
+    <div
+      style={{
+        display: 'flex',
+        gap: 'var(--ds-space-scale-md)',
+        alignItems: 'center',
+      }}
+    >
+      <PriorityLabel priority="critical" appearance="icon" />
+      <PriorityLabel priority="high" appearance="icon" />
+      <PriorityLabel priority="medium" appearance="icon" />
+      <PriorityLabel priority="low" appearance="icon" />
     </div>
   ),
 };

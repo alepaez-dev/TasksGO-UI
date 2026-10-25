@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { StatusIcon } from '../StatusIcon';
 import { NavItem } from './NavItem';
 
 const meta = {
@@ -122,5 +123,61 @@ export const AllStates: Story = {
       <NavItem icon="settings" label="Settings" href="#" size="sm" />
       <NavItem icon="help" label="Support" href="#" size="sm" />
     </div>
+  ),
+};
+
+export const WithCount: Story = {
+  render: () => (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--ds-space-nav-list-gap)',
+        width: 'var(--ds-space-layout-sidebar-width)',
+      }}
+    >
+      <NavItem icon="task_alt" label="Tasks" href="#" count={5} />
+      <NavItem
+        icon="confirmation_number"
+        label="Tickets"
+        href="#"
+        count={24}
+        active
+      />
+      <NavItem icon="description" label="Docs" href="#" count={6} />
+    </div>
+  ),
+};
+
+export const AsButtonList: Story = {
+  render: () => (
+    <nav
+      aria-label="Ticket status"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--ds-space-nav-list-gap)',
+        width: 'var(--ds-space-layout-sidebar-width)',
+      }}
+    >
+      <NavItem icon="menu" label="All open" count={24} active />
+      <NavItem
+        leading={<StatusIcon status="backlog" label="Backlog" size="sm" />}
+        label="Backlog"
+        count={5}
+      />
+      <NavItem
+        leading={
+          <StatusIcon status="in-progress" label="In progress" size="sm" />
+        }
+        label="In progress"
+        count={4}
+      />
+      <NavItem
+        leading={<StatusIcon status="in-review" label="In review" size="sm" />}
+        label="In review"
+        count={0}
+      />
+    </nav>
   ),
 };

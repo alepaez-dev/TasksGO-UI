@@ -1,0 +1,6 @@
+import { createIcon } from './createIcon';
+
+export const OpenInFullIcon = createIcon(
+  'M120-120v-320h80v184l504-504H520v-80h320v320h-80v-184L256-200h184v80H120Z',
+  'OpenInFullIcon',
+);

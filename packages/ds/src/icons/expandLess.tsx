@@ -1,0 +1,6 @@
+import { createIcon } from './createIcon';
+
+export const ExpandLessIcon = createIcon(
+  'm296-345-56-56 240-240 240 240-56 56-184-184-184 184Z',
+  'ExpandLessIcon',
+);

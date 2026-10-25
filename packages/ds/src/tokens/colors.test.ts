@@ -19,6 +19,7 @@ function contrast(a: string, b: string): number {
 
 // Avatar initials are 9-13px, so WCAG AA large-text (3:1) never applies.
 const AA_NORMAL_TEXT = 4.5;
+const NON_TEXT_MIN = 3;
 
 describe('avatarTone palette', () => {
   it('draws profile initials in dark and project initials in white', () => {
@@ -49,4 +50,21 @@ describe('avatarTone palette', () => {
     const project: string[] = Object.values(colors.avatarTone.project);
     expect(profile.filter((tint) => project.includes(tint))).toEqual([]);
   });
+});
+
+describe('statusIcon palette', () => {
+  const surfaces = [
+    colors.surface.primary,
+    colors.surface.secondary,
+    colors.surface.hover,
+  ];
+
+  it.each(Object.entries(colors.statusIcon))(
+    'status icon %s keeps 3:1 against every surface it sits on',
+    (_name, tint) => {
+      for (const surface of surfaces) {
+        expect(contrast(tint, surface)).toBeGreaterThanOrEqual(NON_TEXT_MIN);
+      }
+    },
+  );
 });

@@ -1,0 +1,40 @@
+.track {
+  display: inline-block;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--ds-radius-full);
+  background-color: var(--ds-color-surface-muted);
+}
+
+.fill {
+  display: block;
+  width: var(--ds-progress-bar-fill);
+  height: 100%;
+  border-radius: inherit;
+}
+
+.sm {
+  width: var(--ds-space-progress-bar-width-sm);
+  height: var(--ds-space-progress-bar-height-sm);
+}
+
+.md {
+  width: var(--ds-space-progress-bar-width-md);
+  height: var(--ds-space-progress-bar-height-md);
+}
+
+.neutral .fill {
+  background-color: var(--ds-color-text-secondary);
+}
+
+.success .fill {
+  background-color: var(--ds-color-status-active);
+}
+
+.warning .fill {
+  background-color: var(--ds-color-status-high);
+}
+
+.critical .fill {
+  background-color: var(--ds-color-status-critical);
+}

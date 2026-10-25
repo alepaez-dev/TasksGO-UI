@@ -61,6 +61,16 @@ export const spacing = {
   statusDot: {
     size: '6px',
   },
+  statusIcon: {
+    sizeSm: '14px',
+    sizeMd: '18px',
+  },
+  progressBar: {
+    widthSm: '28px',
+    heightSm: '3px',
+    widthMd: '6rem',
+    heightMd: '4px',
+  },
   stepList: {
     markerSize: '20px',
   },

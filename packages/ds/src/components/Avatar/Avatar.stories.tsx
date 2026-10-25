@@ -7,7 +7,7 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     initial: { control: 'text' },
-    variant: { control: 'select', options: ['project', 'profile'] },
+    variant: { control: 'select', options: ['project', 'profile', 'empty'] },
     tint: { control: 'color' },
     'aria-label': { control: 'text' },
   },
@@ -37,6 +37,22 @@ export const AllVariants: Story = {
       <Avatar initial="H" aria-label="Project H" />
       <Avatar initial="AP" variant="profile" aria-label="Alejandra Paez" />
       <Avatar initial="CP" variant="profile" aria-label="Cleo Paez" />
+      <Avatar variant="empty" aria-label="Unassigned" />
+    </div>
+  ),
+};
+
+export const Empty: Story = {
+  render: () => (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--ds-space-scale-sm)',
+      }}
+    >
+      <Avatar variant="empty" aria-label="Unassigned" />
+      <Avatar variant="empty" size="sm" aria-label="Unassigned" />
     </div>
   ),
 };

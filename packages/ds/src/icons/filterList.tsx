@@ -1,0 +1,6 @@
+import { createIcon } from './createIcon';
+
+export const FilterListIcon = createIcon(
+  'M400-240v-80h160v80H400ZM240-440v-80h480v80H240ZM120-640v-80h720v80H120Z',
+  'FilterListIcon',
+);

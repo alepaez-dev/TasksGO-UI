@@ -13,7 +13,10 @@ interface TicketTitleBlockBaseProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   badges?: readonly TicketTitleBlockBadge[];
   avatar?: ReactNode;
+  headingLevel?: 1 | 2 | 3;
 }
+
+const HEADING_TAG = { 1: 'h1', 2: 'h2', 3: 'h3' } as const;
 
 type TicketTitleEditProps =
   | {
@@ -39,6 +42,7 @@ export const TicketTitleBlock = forwardRef<
       title,
       badges,
       avatar,
+      headingLevel = 1,
       onTitleChange,
       titleEditing = false,
       onTitleEditingChange,
@@ -47,6 +51,7 @@ export const TicketTitleBlock = forwardRef<
     },
     ref,
   ) => {
+    const HeadingTag = HEADING_TAG[headingLevel];
     const hasMeta = (badges && badges.length > 0) || avatar != null;
     const editable = onTitleChange != null && onTitleEditingChange != null;
 
@@ -68,7 +73,7 @@ export const TicketTitleBlock = forwardRef<
         )}
         {editable ? (
           <EditableTitle
-            as="h1"
+            as={HeadingTag}
             fullWidth
             editButton="hover"
             clickToEdit
@@ -80,7 +85,7 @@ export const TicketTitleBlock = forwardRef<
             onChange={onTitleChange}
           />
         ) : (
-          <h1 className={styles.title}>{title}</h1>
+          <HeadingTag className={styles.title}>{title}</HeadingTag>
         )}
       </div>
     );

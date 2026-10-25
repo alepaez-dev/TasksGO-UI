@@ -33,4 +33,48 @@ describe('PriorityLabel', () => {
     render(<PriorityLabel priority="high" className="custom" />);
     expect(screen.getByText('high')).toHaveClass('custom');
   });
+
+  it('shows only the word by default', () => {
+    const { container } = render(<PriorityLabel priority="high" />);
+    expect(container.querySelector('svg')).toBeNull();
+  });
+
+  it.each([
+    ['critical', 'warning'],
+    ['high', 'signal_cellular_alt'],
+    ['medium', 'signal_cellular_alt_2_bar'],
+    ['low', 'signal_cellular_alt_1_bar'],
+  ] as const)(
+    'shows the %s glyph before the word in icon-text',
+    (priority, icon) => {
+      const { container } = render(
+        <PriorityLabel priority={priority} appearance="icon-text" />,
+      );
+      expect(
+        container.querySelector(`[data-icon-name="${icon}"]`),
+      ).toBeInTheDocument();
+      expect(screen.getByText(priority)).toBeInTheDocument();
+    },
+  );
+
+  it('keeps the word for screen readers in the icon appearance', () => {
+    const { container } = render(
+      <PriorityLabel priority="low" appearance="icon" />,
+    );
+    expect(
+      container.querySelector('[data-icon-name="signal_cellular_alt_1_bar"]'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('low')).toHaveClass('srOnly');
+  });
+
+  it('puts critical in a chip only in icon-text', () => {
+    const { rerender, container } = render(
+      <PriorityLabel priority="critical" appearance="icon-text" />,
+    );
+    expect(container.firstChild).toHaveClass('chip');
+    rerender(<PriorityLabel priority="high" appearance="icon-text" />);
+    expect(container.firstChild).not.toHaveClass('chip');
+    rerender(<PriorityLabel priority="critical" />);
+    expect(container.firstChild).not.toHaveClass('chip');
+  });
 });

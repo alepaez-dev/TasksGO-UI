@@ -22,8 +22,10 @@ import { DescriptionFilledIcon } from './descriptionFilled';
 import { DownloadIcon } from './download';
 import { DragIndicatorIcon } from './dragIndicator';
 import { EditIcon } from './edit';
+import { ExpandLessIcon } from './expandLess';
 import { ExpandMoreIcon } from './expandMore';
 import { FileUploadIcon } from './fileUpload';
+import { FilterListIcon } from './filterList';
 import { FlagIcon } from './flag';
 import { FolderZipIcon } from './folderZip';
 import { ForkRightIcon } from './forkRight';
@@ -39,6 +41,7 @@ import { LockIcon } from './lock';
 import { MenuIcon } from './menu';
 import { MoodIcon } from './mood';
 import { MoreHorizIcon } from './moreHoriz';
+import { OpenInFullIcon } from './openInFull';
 import { OpenInNewIcon } from './openInNew';
 import { PersonIcon } from './person';
 import { PushPinFilledIcon } from './pushPinFilled';
@@ -48,9 +51,12 @@ import { ScienceIcon } from './science';
 import { SearchIcon } from './search';
 import { SettingsIcon } from './settings';
 import { SignalCellularAltIcon } from './signalCellularAlt';
+import { SignalCellularAlt1BarIcon } from './signalCellularAlt1Bar';
+import { SignalCellularAlt2BarIcon } from './signalCellularAlt2Bar';
 import { TagIcon } from './tag';
 import { TaskAltIcon } from './taskAlt';
 import { UnfoldMoreIcon } from './unfoldMore';
+import { ViewKanbanIcon } from './viewKanban';
 import { WarningIcon } from './warning';
 
 export const iconRegistry = {
@@ -77,8 +83,10 @@ export const iconRegistry = {
   download: DownloadIcon,
   drag_indicator: DragIndicatorIcon,
   edit: EditIcon,
+  expand_less: ExpandLessIcon,
   expand_more: ExpandMoreIcon,
   file_upload: FileUploadIcon,
+  filter_list: FilterListIcon,
   flag: FlagIcon,
   folder_zip: FolderZipIcon,
   fork_right: ForkRightIcon,
@@ -94,6 +102,7 @@ export const iconRegistry = {
   menu: MenuIcon,
   mood: MoodIcon,
   more_horiz: MoreHorizIcon,
+  open_in_full: OpenInFullIcon,
   open_in_new: OpenInNewIcon,
   person: PersonIcon,
   push_pin_filled: PushPinFilledIcon,
@@ -103,9 +112,12 @@ export const iconRegistry = {
   search: SearchIcon,
   settings: SettingsIcon,
   signal_cellular_alt: SignalCellularAltIcon,
+  signal_cellular_alt_1_bar: SignalCellularAlt1BarIcon,
+  signal_cellular_alt_2_bar: SignalCellularAlt2BarIcon,
   tag: TagIcon,
   task_alt: TaskAltIcon,
   unfold_more: UnfoldMoreIcon,
+  view_kanban: ViewKanbanIcon,
   warning: WarningIcon,
 } as const satisfies Record<string, ComponentType<SVGProps<SVGSVGElement>>>;
 

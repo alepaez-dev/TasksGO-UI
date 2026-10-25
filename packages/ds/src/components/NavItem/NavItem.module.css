@@ -1,3 +1,11 @@
+.button {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+}
+
 .navItem {
   display: flex;
   align-items: center;
@@ -79,4 +87,21 @@
 .vertical.active:focus-visible {
   background-color: transparent;
   color: var(--ds-color-nav-active-text);
+}
+
+.leading {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.count {
+  margin-left: auto;
+  font-family: var(--ds-font-family-mono);
+  font-size: var(--ds-text-metadata-font-size);
+  color: var(--ds-color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.zero .glyph {
+  opacity: var(--ds-effect-faded-opacity);
 }
