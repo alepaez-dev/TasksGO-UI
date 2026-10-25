@@ -16,22 +16,24 @@ function matchRanges(text: string, query: string): MatchRange[] {
   const terms = parseSearchTerms(query);
   if (terms.length === 0) return [];
 
-  const chars: string[] = [];
-  const origin: number[] = [];
-  for (let i = 0; i < text.length; i += 1) {
-    for (const ch of text[i].toLowerCase()) {
-      chars.push(ch);
-      origin.push(i);
+  const lower = text.toLowerCase();
+  const starts: number[] = [];
+  const ends: number[] = [];
+  let i = 0;
+  for (const ch of text) {
+    for (let k = 0; k < ch.toLowerCase().length; k += 1) {
+      starts.push(i);
+      ends.push(i + ch.length);
     }
+    i += ch.length;
   }
-  const lower = chars.join('');
 
   const found: MatchRange[] = [];
   for (const term of terms) {
     let at = lower.indexOf(term);
     while (at !== -1) {
-      found.push({ start: origin[at], end: origin[at + term.length - 1] + 1 });
-      at = lower.indexOf(term, at + term.length);
+      found.push({ start: starts[at], end: ends[at + term.length - 1] });
+      at = lower.indexOf(term, at + 1);
     }
   }
 

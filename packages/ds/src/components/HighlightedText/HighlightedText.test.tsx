@@ -64,11 +64,28 @@ describe('HighlightedText', () => {
     expect(marks(container)).toEqual(['K']);
   });
 
+  it('agrees with the filter on a word-final sigma', () => {
+    const { container } = render(<HighlightedText text="ΟΔΟΣ" query="οδος" />);
+    expect(marks(container)).toEqual(['ΟΔΟΣ']);
+  });
+
+  it('agrees with the filter on a cased letter outside the BMP', () => {
+    const { container } = render(<HighlightedText text="𞤀dlam" query="𞤀" />);
+    expect(marks(container)).toEqual(['𞤀']);
+  });
+
   it('merges overlapping terms into one mark', () => {
     const { container } = render(
       <HighlightedText text="abcd" query="abc bcd" />,
     );
     expect(marks(container)).toEqual(['abcd']);
+  });
+
+  it('marks overlapping occurrences of one term', () => {
+    const { container } = render(
+      <HighlightedText text="Mississippi" query="issi" />,
+    );
+    expect(marks(container)).toEqual(['ississi']);
   });
 
   it('renders plain text when the query is empty', () => {
