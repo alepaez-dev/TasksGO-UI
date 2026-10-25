@@ -943,7 +943,7 @@ export const CustomLeading: Story = {
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> AddScenarioDialog</h2>
       <div class="badges">
-        <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">18 prop types</label>
+        <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">19 prop types</label>
         <label for="c-1-components-addscenariodialog-info" class="badge info as-toggle">1 info</label>
         <label for="c-1-components-addscenariodialog-stories" class="badge ok as-toggle">7 stories</label>
         
@@ -977,7 +977,7 @@ export const CustomLeading: Story = {
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">18 prop types</span>
+              <span class="badge ok">19 prop types</span>
             </div>
             <pre><code>Component: src/components/AddScenarioDialog/AddScenarioDialog.tsx::AddScenarioDialog</code></pre>
             <pre><code>Props:</code></pre>
@@ -1021,6 +1021,8 @@ onValueChange: (next: NewScenarioDraft) =&gt; void
 open: boolean
 
 presentation?: &#39;dialog&#39; | &#39;sheet&#39;
+
+restoreFocusTo?: () =&gt; HTMLElement | null
 
 value: NewScenarioDraft</code></pre>
           </div>
@@ -1660,7 +1662,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> BottomSheet</h2>
       <div class="badges">
-        <label for="c-5-components-bottomsheet-props" class="badge ok as-toggle">7 prop types</label>
+        <label for="c-5-components-bottomsheet-props" class="badge ok as-toggle">8 prop types</label>
         <label for="c-5-components-bottomsheet-info" class="badge info as-toggle">1 info</label>
         <label for="c-5-components-bottomsheet-stories" class="badge ok as-toggle">5 stories</label>
         
@@ -1694,7 +1696,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">7 prop types</span>
+              <span class="badge ok">8 prop types</span>
             </div>
             <pre><code>Component: src/components/BottomSheet/BottomSheet.tsx::BottomSheet</code></pre>
             <pre><code>Props:</code></pre>
@@ -1710,7 +1712,9 @@ onClosed?: () =&gt; void
 
 onOpened?: () =&gt; void
 
-open: boolean</code></pre>
+open: boolean
+
+restoreFocusTo?: () =&gt; HTMLElement | null</code></pre>
           </div>
         </div>
     
@@ -3096,7 +3100,7 @@ variant?: &#39;default&#39; | &#39;subtle&#39; = &#39;default&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> ConfirmDialog</h2>
       <div class="badges">
-        <label for="c-14-components-confirmdialog-props" class="badge ok as-toggle">15 prop types</label>
+        <label for="c-14-components-confirmdialog-props" class="badge ok as-toggle">16 prop types</label>
         <label for="c-14-components-confirmdialog-info" class="badge info as-toggle">1 info</label>
         <label for="c-14-components-confirmdialog-stories" class="badge ok as-toggle">5 stories</label>
         
@@ -3130,7 +3134,7 @@ variant?: &#39;default&#39; | &#39;subtle&#39; = &#39;default&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">15 prop types</span>
+              <span class="badge ok">16 prop types</span>
             </div>
             <pre><code>Component: src/components/ConfirmDialog/ConfirmDialog.tsx::ConfirmDialog</code></pre>
             <pre><code>Props:</code></pre>
@@ -3167,6 +3171,8 @@ onOpened?: () =&gt; void
 open: boolean
 
 presentation?: &#39;dialog&#39; | &#39;sheet&#39;
+
+restoreFocusTo?: () =&gt; HTMLElement | null
 
 title: string</code></pre>
           </div>
@@ -10427,13 +10433,13 @@ waiveReason?: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  764 | }
-  765 |
-&gt; 766 | const meta: Meta = {
+  778 | }
+  779 |
+&gt; 780 | const meta: Meta = {
       | ^
-  767 |   title: &#39;Pages/Ticket&#39;,
-  768 |   parameters: {
-  769 |     layout: &#39;fullscreen&#39;,
+  781 |   title: &#39;Pages/Ticket&#39;,
+  782 |   parameters: {
+  783 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
@@ -10619,6 +10625,13 @@ function TicketOverviewRender({
     envSelector,
     statusSelectScenarioId,
     setStatusSelectOpen,
+    pendingStatusChange,
+    statusPromptOpen,
+    statusDraft,
+    setStatusDraft,
+    requestScenarioStatus,
+    confirmStatusChange,
+    cancelStatusChange,
     evidencePreview,
     evidencePreviewOpen,
     clearEvidencePreview,
@@ -10945,6 +10958,13 @@ function TicketOverviewRender({
                       onEvidenceExpandedChange={setEvidenceExpanded}
                       onEditingSectionsChange={setScenarioEditingSections}
                       onOpenEvidence={openEvidencePreview}
+                      pendingStatusChange={pendingStatusChange}
+                      statusPromptOpen={statusPromptOpen}
+                      statusDraft={statusDraft}
+                      onStatusDraftChange={setStatusDraft}
+                      onRequestScenarioStatus={requestScenarioStatus}
+                      onConfirmStatusChange={confirmStatusChange}
+                      onCancelStatusChange={cancelStatusChange}
                     /&gt;
                   &lt;/TicketTabPanel&gt;
                 )}
@@ -15125,13 +15145,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  764 | }
-  765 |
-&gt; 766 | const meta: Meta = {
+  778 | }
+  779 |
+&gt; 780 | const meta: Meta = {
       | ^
-  767 |   title: &#39;Pages/Ticket&#39;,
-  768 |   parameters: {
-  769 |     layout: &#39;fullscreen&#39;,
+  781 |   title: &#39;Pages/Ticket&#39;,
+  782 |   parameters: {
+  783 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
@@ -15317,6 +15337,13 @@ function TicketOverviewRender({
     envSelector,
     statusSelectScenarioId,
     setStatusSelectOpen,
+    pendingStatusChange,
+    statusPromptOpen,
+    statusDraft,
+    setStatusDraft,
+    requestScenarioStatus,
+    confirmStatusChange,
+    cancelStatusChange,
     evidencePreview,
     evidencePreviewOpen,
     clearEvidencePreview,
@@ -15643,6 +15670,13 @@ function TicketOverviewRender({
                       onEvidenceExpandedChange={setEvidenceExpanded}
                       onEditingSectionsChange={setScenarioEditingSections}
                       onOpenEvidence={openEvidencePreview}
+                      pendingStatusChange={pendingStatusChange}
+                      statusPromptOpen={statusPromptOpen}
+                      statusDraft={statusDraft}
+                      onStatusDraftChange={setStatusDraft}
+                      onRequestScenarioStatus={requestScenarioStatus}
+                      onConfirmStatusChange={confirmStatusChange}
+                      onCancelStatusChange={cancelStatusChange}
                     /&gt;
                   &lt;/TicketTabPanel&gt;
                 )}
