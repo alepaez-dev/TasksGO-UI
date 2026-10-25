@@ -22,9 +22,12 @@ function toGroup(events: readonly ActivityEvent[]): ActivityNode {
   const owner =
     events.find((event) => event.actor.kind === 'human')?.actor ??
     events[0].actor;
+  const earliest = events.reduce((a, b) =>
+    Date.parse(a.at) <= Date.parse(b.at) ? a : b,
+  );
   return {
     type: 'group',
-    id: `group-${events[0].id}`,
+    id: `group-${earliest.id}`,
     actor: owner,
     items: events,
     fields: changedFields(events),

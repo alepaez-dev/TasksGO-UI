@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { TimelineEvent } from './TimelineEvent';
 import { Badge } from '../Badge';
 import { iconRegistry, type IconName } from '../../icons';
+import feedStyles from '../../stories/helpers/timelineFeed.module.css';
 
 const iconNames = Object.keys(iconRegistry) as IconName[];
 
@@ -41,17 +42,8 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <ul
-        style={{
-          listStyle: 'none',
-          margin: 0,
-          padding: 0,
-          width: 560,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--ds-space-timeline-event-row-gap)',
-        }}
-      >
+      <ul className={feedStyles.timelineFeed} style={{ width: 560 }}>
+        <li className={feedStyles.spine} aria-hidden="true" />
         <Story />
       </ul>
     ),

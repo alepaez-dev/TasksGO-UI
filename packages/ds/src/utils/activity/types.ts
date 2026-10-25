@@ -24,10 +24,17 @@ export interface ActivityRef {
   readonly href?: string;
 }
 
+export interface ActivityReactor {
+  readonly id: string;
+  readonly name: string;
+}
+
 export interface ActivityReaction {
   readonly emoji: string;
   readonly count: number;
   readonly reactedByViewer: boolean;
+  /** Who reacted. May be shorter than `count` when the source truncates it. */
+  readonly actors: readonly ActivityReactor[];
 }
 
 export interface ActivityReply {

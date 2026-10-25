@@ -4,6 +4,7 @@ import { TimelineDivider } from './TimelineDivider';
 import { TimelineEvent } from '../TimelineEvent';
 import { TimelineGroup } from '../TimelineGroup';
 import { Badge } from '../Badge';
+import feedStyles from '../../stories/helpers/timelineFeed.module.css';
 
 interface TimelineDividerStoryArgs {
   type: 'dayDivider' | 'gapDivider';
@@ -20,8 +21,6 @@ const TODAY = '2026-01-14T08:30:00.000Z';
 const LAST_WEEK = '2026-01-06T15:45:00.000Z';
 const LAST_YEAR = '2025-11-02T10:20:00.000Z';
 
-const FEED_PADDING = 24;
-
 const meta = {
   title: 'Components/TimelineDivider',
   component: TimelineDivider as unknown as (
@@ -32,7 +31,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Marks a break in the activity feed. Renders an `<li>`, so it drops straight into the feed’s `<ul>` alongside `TimelineEvent` and `TimelineGroup`. Its props mirror the divider nodes `withDividers` emits, so a page can spread one in: `<TimelineDivider {...node} />`. A day divider reads "Jan 13 · Yesterday", falling back to the date alone once a day is older than yesterday. A gap divider reports the time skipped and is worded without direction — dividers are recomputed for the active sort, so "later" would be wrong under newest-first. The hairline uses `border-default`, one step lighter than the `border-strong` spine and markers: the spine has to read as one continuous thread, a rule only terminates a label.',
+          'Marks a break in the activity feed. Renders an `<li>`, so it drops straight into the feed’s `<ul>` alongside `TimelineEvent` and `TimelineGroup`. Its props mirror the divider nodes `withDividers` emits, so a page can spread one in: `<TimelineDivider {...node} />`. A day divider reads "Jan 13 · Yesterday", falling back to the date alone once a day is older than yesterday. A gap divider reports the time skipped and is worded without direction — dividers are recomputed for the active sort, so "later" would be wrong under newest-first. The hairline and the spine use `border-default`; the markers sit one step up on `border-medium`. The feed reads as one thread because the spine is continuous, and the markers punctuate it without the line itself having to carry weight.',
       },
     },
   },
@@ -64,18 +63,10 @@ const meta = {
   decorators: [
     (Story) => (
       <ul
-        style={{
-          position: 'relative',
-          listStyle: 'none',
-          margin: 0,
-          background: 'var(--ds-color-surface-secondary)',
-          padding: FEED_PADDING,
-          width: 620,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--ds-space-timeline-event-row-gap)',
-        }}
+        className={`${feedStyles.timelineFeed} ${feedStyles.boxed}`}
+        style={{ width: 620 }}
       >
+        <li className={feedStyles.spine} aria-hidden="true" />
         <Story />
       </ul>
     ),
@@ -188,18 +179,6 @@ function RichFeed() {
 
   return (
     <>
-      <li
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          left: `calc(${FEED_PADDING}px + var(--ds-space-timeline-event-gutter) / 2)`,
-          transform: 'translateX(-50%)',
-          top: FEED_PADDING,
-          bottom: FEED_PADDING,
-          width: 1,
-          background: 'var(--ds-color-border-strong)',
-        }}
-      />
       <TimelineDivider type="dayDivider" at={YESTERDAY} relative="yesterday" />
       {renderRun(RUNS[0])}
       <TimelineDivider type="gapDivider" durationMs={6 * 60 * 60 * 1000} />

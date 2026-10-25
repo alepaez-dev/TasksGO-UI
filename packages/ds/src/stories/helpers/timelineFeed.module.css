@@ -1,0 +1,20 @@
+.timelineFeed {
+  composes: timelineTrack from '../../components/_internal/timeline.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-timeline-event-row-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.boxed {
+  --timeline-spine-inset-x: var(--ds-space-scale-lg);
+  --timeline-spine-inset-y: var(--ds-space-scale-lg);
+  padding: var(--ds-space-scale-lg);
+  background: var(--ds-color-surface-secondary);
+}
+
+.spine {
+  composes: timelineSpine from '../../components/_internal/timeline.module.css';
+}

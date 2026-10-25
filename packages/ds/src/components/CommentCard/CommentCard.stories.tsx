@@ -1,23 +1,32 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
-import { CommentCard } from './CommentCard';
+import { CommentCard, type CommentCardReply } from './CommentCard';
 import type {
   ActivityActor,
   ActivityAttachment,
   ActivityReaction,
-  ActivityReply,
 } from '../../utils/activity';
-import { ALEX, JORDAN, MIKE, reply } from '../../utils/activity/testFixtures';
+import { ALEX, JORDAN, MIKE } from '../../utils/activity/testFixtures';
 
 const reactions: readonly ActivityReaction[] = [
-  { emoji: '👍', count: 2, reactedByViewer: true },
+  {
+    emoji: '👍',
+    count: 2,
+    reactedByViewer: true,
+    actors: [
+      { id: 'ap', name: 'Ale P.' },
+      { id: 'sk', name: 'Sam K.' },
+    ],
+  },
 ];
 
-const replies: readonly ActivityReply[] = [
-  reply(JORDAN, 60, {
-    at: '1h ago',
+const replies: readonly CommentCardReply[] = [
+  {
+    id: 'r1',
+    actor: JORDAN,
+    timestamp: '1h ago',
     body: "Good point — let's go with fan-out. I'll update the specs to reflect an SNS topic that fans out to SQS queues for the cache-invalidation workers.",
-  }),
+  },
 ];
 
 interface CommentCardStoryArgs {
@@ -29,14 +38,14 @@ interface CommentCardStoryArgs {
   mentions?: readonly string[];
   attachments?: readonly ActivityAttachment[];
   onOpenAttachment?: (index: number) => void;
-  replies?: readonly ActivityReply[];
+  replies?: readonly CommentCardReply[];
   reactions?: readonly ActivityReaction[];
   answeredBy?: ActivityActor;
   pinned?: boolean;
   onReply?: () => void;
   onMarkAnswered?: () => void;
   onToggleReaction?: (emoji: string) => void;
-  onAddReaction?: () => void;
+  onPickerOpenChange?: (open: boolean) => void;
   onMore?: () => void;
   onPin?: () => void;
 }
@@ -81,7 +90,7 @@ export const Default: Story = {
   args: {
     reactions,
     onReply: () => {},
-    onAddReaction: () => {},
+    onPickerOpenChange: () => {},
     onMore: () => {},
   },
 };

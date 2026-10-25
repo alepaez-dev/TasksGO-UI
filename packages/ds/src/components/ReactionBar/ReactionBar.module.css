@@ -48,3 +48,38 @@
 .add:hover {
   color: var(--ds-color-text-primary);
 }
+
+.picker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-reaction-bar-gap);
+  padding: var(--ds-space-reaction-bar-picker-padding);
+  border-radius: var(--ds-radius-full);
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-space-reaction-bar-choice-size);
+  height: var(--ds-space-reaction-bar-choice-size);
+  border: 0;
+  border-radius: var(--ds-radius-full);
+  background: transparent;
+  font-size: var(--ds-text-reaction-choice-font-size);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.choice:hover {
+  background: var(--ds-color-surface-hover);
+}
+
+.choice:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.choiceOn {
+  background: var(--ds-color-badge-progress-background);
+}

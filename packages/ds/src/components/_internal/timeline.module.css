@@ -6,6 +6,22 @@
   height: var(--ds-space-timeline-event-marker-size);
   border-radius: var(--ds-radius-full);
   background-color: var(--ds-color-surface-primary);
-  border: 2px solid var(--ds-color-border-strong);
+  border: 2px solid var(--ds-color-border-medium);
   box-sizing: border-box;
+}
+
+.timelineTrack {
+  position: relative;
+}
+
+.timelineSpine {
+  position: absolute;
+  left: calc(
+    var(--timeline-spine-inset-x, 0px) + var(--ds-space-timeline-event-gutter) /
+      2
+  );
+  top: var(--timeline-spine-inset-y, 0px);
+  bottom: var(--timeline-spine-inset-y, 0px);
+  width: 1px;
+  background: var(--ds-color-border-default);
 }

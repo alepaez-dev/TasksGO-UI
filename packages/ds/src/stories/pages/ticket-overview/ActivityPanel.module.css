@@ -1,0 +1,155 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-activity-panel-gap);
+  padding-top: var(--ds-space-activity-panel-padding-top);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ds-space-activity-panel-toolbar-gap);
+  row-gap: var(--ds-space-activity-panel-toolbar-row-gap);
+}
+
+.search {
+  box-sizing: border-box;
+  margin-left: auto;
+  flex: 1 1 var(--ds-space-activity-panel-search-basis);
+  min-width: 0;
+  height: var(--ds-space-activity-panel-control-height);
+  padding: 0 var(--ds-space-activity-panel-search-padding-x);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-primary);
+}
+
+.search:focus-within {
+  border-color: var(--ds-color-accent-primary);
+}
+
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-activity-panel-sort-gap);
+  height: var(--ds-space-activity-panel-control-height);
+  flex-shrink: 0;
+  padding: 0 var(--ds-space-activity-panel-sort-padding-x);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-surface-primary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-activity-panel-control-font-size);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-secondary);
+  cursor: pointer;
+}
+
+.sort:hover {
+  background: var(--ds-color-surface-hover);
+  color: var(--ds-color-text-primary);
+}
+
+.sort:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ds-space-activity-panel-banner-gap);
+  padding: var(--ds-space-activity-panel-banner-padding-y)
+    var(--ds-space-activity-panel-banner-padding-x);
+  border: 1px solid var(--ds-color-activity-panel-banner-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-color-activity-panel-banner-background);
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-family-sans);
+  font-size: var(--ds-text-activity-panel-control-font-size);
+}
+
+.banner svg {
+  color: var(--ds-color-status-high);
+}
+
+.banner b {
+  color: var(--ds-color-text-primary);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.bannerText {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bannerAction {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--ds-text-activity-panel-action-font-size);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-secondary);
+  cursor: pointer;
+}
+
+.bannerAction:hover {
+  color: var(--ds-color-text-primary);
+  text-decoration: underline;
+}
+
+.bannerAction:focus-visible {
+  outline: var(--ds-focus-ring-width) solid transparent;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.feed {
+  composes: timelineTrack from '../../../components/_internal/timeline.module.css';
+  --timeline-spine-inset-x: var(--ds-space-activity-panel-feed-inset);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-activity-panel-feed-gap);
+  margin: 0;
+  padding: 0 0 0 var(--ds-space-activity-panel-feed-inset);
+  list-style: none;
+}
+
+.spine {
+  composes: timelineSpine from '../../../components/_internal/timeline.module.css';
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-activity-panel-empty-gap);
+  padding: var(--ds-space-activity-panel-empty-padding-y)
+    var(--ds-space-activity-panel-empty-padding-x);
+  text-align: center;
+}
+
+.emptyIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-space-activity-panel-empty-icon-size);
+  height: var(--ds-space-activity-panel-empty-icon-size);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-color-surface-primary);
+  color: var(--ds-color-text-disabled);
+}
+
+.emptyTitle {
+  font-size: var(--ds-text-activity-panel-empty-title-font-size);
+  font-weight: var(--ds-font-weight-semibold);
+  color: var(--ds-color-text-primary);
+}
+
+.emptyHint {
+  font-size: var(--ds-text-activity-panel-control-font-size);
+  color: var(--ds-color-text-secondary);
+}

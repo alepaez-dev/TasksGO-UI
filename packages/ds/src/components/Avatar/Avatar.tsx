@@ -1,6 +1,12 @@
 import { forwardRef, type CSSProperties, type HTMLAttributes } from 'react';
 import { cn } from '../../utils/cn';
+import { readableTextOn, type ReadableText } from '../../utils/readableTextOn';
 import styles from './Avatar.module.css';
+
+const TINT_TEXT: Record<ReadableText, string> = {
+  light: 'var(--ds-color-avatar-tint-text-light)',
+  dark: 'var(--ds-color-avatar-tint-text-dark)',
+};
 
 type AvatarVariant = 'project' | 'profile';
 type AvatarSize = 'sm' | 'md' | 'lg';
@@ -28,9 +34,16 @@ export const Avatar = forwardRef<HTMLSpanElement, AvatarProps>(
     ref,
   ) => {
     const classes = cn(styles.avatar, styles[variant], styles[size], className);
-    const mergedStyle: CSSProperties | undefined = tint
-      ? ({ ...style, '--ds-color-avatar-tint': tint } as CSSProperties)
-      : style;
+    const readable = tint === undefined ? null : readableTextOn(tint);
+    const tintStyle: Record<string, string> = {};
+    if (tint !== undefined) tintStyle['--ds-color-avatar-tint'] = tint;
+    if (readable !== null) {
+      tintStyle['--ds-color-avatar-tint-text'] = TINT_TEXT[readable];
+    }
+    const mergedStyle: CSSProperties | undefined =
+      tint === undefined
+        ? style
+        : ({ ...style, ...tintStyle } as CSSProperties);
 
     return (
       <span

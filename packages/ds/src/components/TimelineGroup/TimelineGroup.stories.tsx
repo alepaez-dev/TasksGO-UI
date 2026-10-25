@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { TimelineGroup } from './TimelineGroup';
 import { TimelineEvent } from '../TimelineEvent';
 import { Badge } from '../Badge';
+import feedStyles from '../../stories/helpers/timelineFeed.module.css';
 
 interface TimelineGroupStoryArgs {
   count: number;
@@ -47,17 +48,10 @@ const meta = {
   decorators: [
     (Story) => (
       <ul
-        style={{
-          listStyle: 'none',
-          margin: 0,
-          background: 'var(--ds-color-surface-secondary)',
-          padding: 24,
-          width: 620,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--ds-space-timeline-event-row-gap)',
-        }}
+        className={`${feedStyles.timelineFeed} ${feedStyles.boxed}`}
+        style={{ width: 620 }}
       >
+        <li className={feedStyles.spine} aria-hidden="true" />
         <Story />
       </ul>
     ),

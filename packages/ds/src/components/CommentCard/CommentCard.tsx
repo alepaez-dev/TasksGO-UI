@@ -3,13 +3,13 @@ import { Avatar } from '../Avatar';
 import { Icon } from '../Icon';
 import { Markdown } from '../Markdown';
 import { ReactionBar } from '../ReactionBar';
+import { HighlightedText } from '../HighlightedText';
 import { FileChip } from '../_internal/FileChip';
 import { cn } from '../../utils/cn';
 import type {
   ActivityActor,
   ActivityAttachment,
   ActivityReaction,
-  ActivityReply,
 } from '../../utils/activity';
 import styles from './CommentCard.module.css';
 
@@ -47,13 +47,22 @@ export type CommentCardProps = CommentCardKindState &
     mentions?: readonly string[];
     attachments?: readonly ActivityAttachment[];
     onOpenAttachment?: (id: string) => void;
-    replies?: readonly ActivityReply[];
+    replies?: readonly CommentCardReply[];
     reactions?: readonly ActivityReaction[];
     onReply?: () => void;
     onToggleReaction?: (emoji: string) => void;
-    onAddReaction?: () => void;
+    pickerOpen?: boolean;
+    onPickerOpenChange?: (open: boolean) => void;
+    onPickReaction?: (emoji: string) => void;
     onMore?: () => void;
   };
+
+export interface CommentCardReply {
+  readonly id: string;
+  readonly actor: ActivityActor;
+  readonly body: string;
+  readonly timestamp: ReactNode;
+}
 
 export const CommentCard = forwardRef<HTMLLIElement, CommentCardProps>(
   (
@@ -73,7 +82,9 @@ export const CommentCard = forwardRef<HTMLLIElement, CommentCardProps>(
       onReply,
       onMarkAnswered,
       onToggleReaction,
-      onAddReaction,
+      pickerOpen,
+      onPickerOpenChange,
+      onPickReaction,
       onMore,
       onPin,
       className,
@@ -101,7 +112,9 @@ export const CommentCard = forwardRef<HTMLLIElement, CommentCardProps>(
         />
         <div className={styles.main}>
           <div className={styles.head}>
-            <span className={styles.author}>{actor.name}</span>
+            <span className={styles.author}>
+              <HighlightedText text={actor.name} query={query} />
+            </span>
             <span className={cn(styles.chip, chipClass[kind])}>
               <Icon
                 name={kind === 'ask' ? 'help' : 'comment_filled'}
@@ -182,7 +195,8 @@ export const CommentCard = forwardRef<HTMLLIElement, CommentCardProps>(
             {answered && (
               <span className={cn(styles.footBtn, styles.solved)}>
                 <Icon name="check_circle" size="xs" />
-                Answered by {answeredBy.name}
+                Answered by{' '}
+                <HighlightedText text={answeredBy.name} query={query} />
               </span>
             )}
             {kind === 'ask' && !answered && onMarkAnswered && (
@@ -198,7 +212,9 @@ export const CommentCard = forwardRef<HTMLLIElement, CommentCardProps>(
             <ReactionBar
               reactions={reactions}
               onToggleReaction={onToggleReaction}
-              onAddReaction={onAddReaction}
+              pickerOpen={pickerOpen}
+              onPickerOpenChange={onPickerOpenChange}
+              onPickReaction={onPickReaction}
             />
           </div>
 
@@ -215,9 +231,12 @@ export const CommentCard = forwardRef<HTMLLIElement, CommentCardProps>(
                   <div>
                     <div className={styles.replyHead}>
                       <span className={styles.replyAuthor}>
-                        {reply.actor.name}
+                        <HighlightedText
+                          text={reply.actor.name}
+                          query={query}
+                        />
                       </span>
-                      <span className={styles.time}>{reply.at}</span>
+                      <span className={styles.time}>{reply.timestamp}</span>
                     </div>
                     <Markdown
                       source={reply.body}

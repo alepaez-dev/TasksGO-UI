@@ -14,6 +14,7 @@ export type {
   ActivityItem,
   ActivityNode,
   ActivityReaction,
+  ActivityReactor,
   ActivityRef,
   ActivityRefType,
   ActivityRelativeDay,
@@ -29,6 +30,7 @@ export {
 } from './searchItems';
 export { groupItems, GROUP_GAP_MS, type GroupItemsOptions } from './groupItems';
 export { countActions } from './countActions';
+export { toggleReaction } from './toggleReaction';
 export {
   withDividers,
   GAP_DIVIDER_MS,

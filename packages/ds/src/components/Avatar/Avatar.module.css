@@ -16,7 +16,7 @@
     --ds-color-avatar-tint,
     var(--ds-color-avatar-background)
   );
-  color: var(--ds-color-avatar-text);
+  color: var(--ds-color-avatar-tint-text, var(--ds-color-avatar-text));
   border-radius: var(--ds-radius-md);
 }
 
@@ -27,7 +27,7 @@
     --ds-color-avatar-tint,
     var(--ds-color-avatar-profile-background)
   );
-  color: var(--ds-color-avatar-profile-text);
+  color: var(--ds-color-avatar-tint-text, var(--ds-color-avatar-profile-text));
   border: 1px solid var(--ds-color-avatar-profile-border);
   border-radius: var(--ds-radius-full);
 }

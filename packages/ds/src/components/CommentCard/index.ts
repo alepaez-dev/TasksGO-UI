@@ -1,1 +1,5 @@
-export { CommentCard, type CommentCardProps } from './CommentCard';
+export {
+  CommentCard,
+  type CommentCardProps,
+  type CommentCardReply,
+} from './CommentCard';

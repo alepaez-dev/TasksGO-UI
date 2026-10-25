@@ -131,6 +131,13 @@
     var(--ds-space-scale-sm);
 }
 
+.activityTabPanel {
+  composes: tabPanel;
+  padding-top: var(--ds-space-scale-sm);
+  padding-right: var(--ds-space-scale-md);
+  padding-left: var(--ds-space-scale-md);
+}
+
 .devScratchpad {
   --ds-scratchpad-toolbar-inset: var(--ds-space-ticket-content-padding-x);
 }
