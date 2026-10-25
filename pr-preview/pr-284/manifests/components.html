@@ -576,7 +576,7 @@
 <header>
   <div class="wrap">
     <h1>Manifest Debugger</h1>
-    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">6/67 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">67/67 infos</a><span class="filter-pill ok" aria-disabled="true">318 stories ok</span></div>
+    <div class="summary"><a class="filter-pill all" data-k="all" href="#filter-all">All</a><a class="filter-pill err" data-k="errors" href="#filter-errors">6/67 prop type errors</a><a class="filter-pill info" data-k="infos" href="#filter-infos">67/67 infos</a><span class="filter-pill ok" aria-disabled="true">331 stories ok</span></div>
   </div>
 </header>
 <main>
@@ -943,9 +943,9 @@ export const CustomLeading: Story = {
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> AddScenarioDialog</h2>
       <div class="badges">
-        <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">17 prop types</label>
+        <label for="c-1-components-addscenariodialog-props" class="badge ok as-toggle">19 prop types</label>
         <label for="c-1-components-addscenariodialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-1-components-addscenariodialog-stories" class="badge ok as-toggle">6 stories</label>
+        <label for="c-1-components-addscenariodialog-stories" class="badge ok as-toggle">7 stories</label>
         
       </div>
     </div>
@@ -977,7 +977,7 @@ export const CustomLeading: Story = {
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">17 prop types</span>
+              <span class="badge ok">19 prop types</span>
             </div>
             <pre><code>Component: src/components/AddScenarioDialog/AddScenarioDialog.tsx::AddScenarioDialog</code></pre>
             <pre><code>Props:</code></pre>
@@ -1019,6 +1019,10 @@ onOpenEvidence?: (index: number) =&gt; void
 onValueChange: (next: NewScenarioDraft) =&gt; void
 
 open: boolean
+
+presentation?: &#39;dialog&#39; | &#39;sheet&#39;
+
+restoreFocusTo?: () =&gt; HTMLElement | null
 
 value: NewScenarioDraft</code></pre>
           </div>
@@ -1075,6 +1079,15 @@ value: NewScenarioDraft</code></pre>
     initial={{ ...FILLED, actual: &#39;Response carried X-Cache: MISS twice.&#39; }}
   /&gt;
 );</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Sheet</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Sheet = () =&gt; &lt;Controlled presentation=&quot;sheet&quot; initial={FILLED} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -1461,7 +1474,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
                 <div class="row">
                   <span class="ex-name">Imports</span>
                 </div>
-                <pre><code>import { Badge } from "@all3hp/tasksgo-ui";</code></pre>
+                <pre><code>import { Badge, Icon } from "@all3hp/tasksgo-ui";</code></pre>
               </div>
           
           
@@ -1502,7 +1515,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     }}
   &gt;
     changed status &lt;Badge variant=&quot;previous&quot;&gt;To Do&lt;/Badge&gt;{&#39; &#39;}
-    &lt;span aria-hidden=&quot;true&quot;&gt;→&lt;/span&gt;
+    &lt;Icon name=&quot;arrow_forward&quot; size=&quot;xs&quot; /&gt;
     &lt;span className={styles.srOnly}&gt;to&lt;/span&gt;{&#39; &#39;}
     &lt;Badge variant=&quot;progress&quot;&gt;In Progress&lt;/Badge&gt;
   &lt;/span&gt;
@@ -1649,7 +1662,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> BottomSheet</h2>
       <div class="badges">
-        <label for="c-5-components-bottomsheet-props" class="badge ok as-toggle">7 prop types</label>
+        <label for="c-5-components-bottomsheet-props" class="badge ok as-toggle">8 prop types</label>
         <label for="c-5-components-bottomsheet-info" class="badge info as-toggle">1 info</label>
         <label for="c-5-components-bottomsheet-stories" class="badge ok as-toggle">5 stories</label>
         
@@ -1683,7 +1696,7 @@ variant?: &#39;project&#39; | &#39;profile&#39; = &#39;project&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">7 prop types</span>
+              <span class="badge ok">8 prop types</span>
             </div>
             <pre><code>Component: src/components/BottomSheet/BottomSheet.tsx::BottomSheet</code></pre>
             <pre><code>Props:</code></pre>
@@ -1699,7 +1712,9 @@ onClosed?: () =&gt; void
 
 onOpened?: () =&gt; void
 
-open: boolean</code></pre>
+open: boolean
+
+restoreFocusTo?: () =&gt; HTMLElement | null</code></pre>
           </div>
         </div>
     
@@ -2800,7 +2815,7 @@ status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> CollapsibleCard</h2>
       <div class="badges">
-        <label for="c-13-components-collapsiblecard-props" class="badge ok as-toggle">3 prop types</label>
+        <label for="c-13-components-collapsiblecard-props" class="badge ok as-toggle">5 prop types</label>
         <label for="c-13-components-collapsiblecard-info" class="badge info as-toggle">1 info</label>
         <label for="c-13-components-collapsiblecard-stories" class="badge ok as-toggle">6 stories</label>
         
@@ -2834,13 +2849,17 @@ status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">3 prop types</span>
+              <span class="badge ok">5 prop types</span>
             </div>
             <pre><code>Component: src/components/CollapsibleCard/CollapsibleCard.tsx::CollapsibleCard</code></pre>
             <pre><code>Props:</code></pre>
             <pre><code>defaultOpen?: boolean
 
 header: ReactNode
+
+onOpenChange?: (open: boolean) =&gt; void
+
+open?: boolean
 
 variant?: &#39;default&#39; | &#39;subtle&#39; = &#39;default&#39;</code></pre>
           </div>
@@ -3081,9 +3100,9 @@ variant?: &#39;default&#39; | &#39;subtle&#39; = &#39;default&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> ConfirmDialog</h2>
       <div class="badges">
-        <label for="c-14-components-confirmdialog-props" class="badge ok as-toggle">14 prop types</label>
+        <label for="c-14-components-confirmdialog-props" class="badge ok as-toggle">16 prop types</label>
         <label for="c-14-components-confirmdialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-14-components-confirmdialog-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-14-components-confirmdialog-stories" class="badge ok as-toggle">5 stories</label>
         
       </div>
     </div>
@@ -3115,7 +3134,7 @@ variant?: &#39;default&#39; | &#39;subtle&#39; = &#39;default&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">14 prop types</span>
+              <span class="badge ok">16 prop types</span>
             </div>
             <pre><code>Component: src/components/ConfirmDialog/ConfirmDialog.tsx::ConfirmDialog</code></pre>
             <pre><code>Props:</code></pre>
@@ -3131,8 +3150,14 @@ field?: ConfirmDialogField
 
 forceMount?: boolean
 
+/**
+ * Dialog presentation only — sheets render no icon badge.
+ */
 icon: ReactNode
 
+/**
+ * Dialog presentation only.
+ */
 iconTone?: &#39;neutral&#39; | &#39;warning&#39;
 
 onCancel: () =&gt; void
@@ -3144,6 +3169,10 @@ onConfirm: () =&gt; void
 onOpened?: () =&gt; void
 
 open: boolean
+
+presentation?: &#39;dialog&#39; | &#39;sheet&#39;
+
+restoreFocusTo?: () =&gt; HTMLElement | null
 
 title: string</code></pre>
           </div>
@@ -3180,6 +3209,50 @@ title: string</code></pre>
               <pre><code>const WithRequiredField = () =&gt; (
   &lt;Controlled
     triggerLabel=&quot;Re-open as pending&quot;
+    fieldLabel=&quot;Actual Result&quot;
+    fieldRequired
+    fieldPlaceholder=&quot;Describe what actually happened&quot;
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Sheet</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Sheet = () =&gt; (
+  &lt;Controlled
+    triggerLabel=&quot;Re-open as pending&quot;
+    presentation=&quot;sheet&quot;
+    fieldLabel=&quot;Actual Result&quot;
+    fieldRequired
+    fieldPlaceholder=&quot;Describe what actually happened&quot;
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Overflowing (panel scrolls, stays in viewport)</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Overflowing = () =&gt; (
+  &lt;Controlled
+    triggerLabel=&quot;Re-open as pending&quot;
+    description={
+      &lt;&gt;
+        {LONG_DESCRIPTION.map((paragraph, index) =&gt; (
+          &lt;span key={index}&gt;
+            {paragraph}
+            &lt;br /&gt;
+            &lt;br /&gt;
+          &lt;/span&gt;
+        ))}
+      &lt;/&gt;
+    }
     fieldLabel=&quot;Actual Result&quot;
     fieldRequired
     fieldPlaceholder=&quot;Describe what actually happened&quot;
@@ -3640,7 +3713,12 @@ clickToEdit?: boolean = false
 
 doneLabel?: string
 
-editButton?: &#39;none&#39; | &#39;hover&#39; | &#39;always&#39; = &#39;hover&#39;
+/**
+ * Edit-button presentation. `always-icon` is `always` with the label dropped
+ * to an accessible name — one prop, so &quot;no button&quot; and &quot;icon-only button&quot;
+ * cannot be asked for at the same time.
+ */
+editButton?: &#39;none&#39; | &#39;hover&#39; | &#39;always&#39; | &#39;always-icon&#39; = &#39;hover&#39;
 
 editing: boolean
 
@@ -3752,7 +3830,7 @@ value: string</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> EditToggle</h2>
       <div class="badges">
-        <label for="c-19-components-edittoggle-props" class="badge ok as-toggle">4 prop types</label>
+        <label for="c-19-components-edittoggle-props" class="badge ok as-toggle">5 prop types</label>
         <label for="c-19-components-edittoggle-info" class="badge info as-toggle">1 info</label>
         <label for="c-19-components-edittoggle-stories" class="badge ok as-toggle">3 stories</label>
         
@@ -3786,7 +3864,7 @@ value: string</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">4 prop types</span>
+              <span class="badge ok">5 prop types</span>
             </div>
             <pre><code>Component: src/components/EditToggle/EditToggle.tsx::EditToggle</code></pre>
             <pre><code>Props:</code></pre>
@@ -3795,6 +3873,8 @@ value: string</code></pre>
 editing: boolean
 
 editLabel?: string = &#39;Edit&#39;
+
+iconOnly?: boolean = false
 
 onEditingChange: (editing: boolean) =&gt; void</code></pre>
           </div>
@@ -4053,9 +4133,9 @@ size?: &#39;sm&#39; | &#39;md&#39; = &#39;md&#39;</code></pre>
     <div class="title">
       <h2><span class="status-dot dot-ok"></span> Fab</h2>
       <div class="badges">
-        <label for="c-21-components-fab-props" class="badge ok as-toggle">2 prop types</label>
+        <label for="c-21-components-fab-props" class="badge ok as-toggle">1 prop type</label>
         <label for="c-21-components-fab-info" class="badge info as-toggle">1 info</label>
-        <label for="c-21-components-fab-stories" class="badge ok as-toggle">3 stories</label>
+        <label for="c-21-components-fab-stories" class="badge ok as-toggle">6 stories</label>
         
       </div>
     </div>
@@ -4087,13 +4167,11 @@ size?: &#39;sm&#39; | &#39;md&#39; = &#39;md&#39;</code></pre>
           <div class="note ok">
             <div class="row">
               <span class="ex-name">Prop types <small>(react-docgen)</small></span>
-              <span class="badge ok">2 prop types</span>
+              <span class="badge ok">1 prop type</span>
             </div>
             <pre><code>Component: src/components/Fab/Fab.tsx::Fab</code></pre>
             <pre><code>Props:</code></pre>
-            <pre><code>aria-label: string
-
-icon?: unknown = &#39;add&#39;</code></pre>
+            <pre><code>icon?: unknown = &#39;add&#39;</code></pre>
           </div>
         </div>
     
@@ -4105,7 +4183,7 @@ icon?: unknown = &#39;add&#39;</code></pre>
                 <div class="row">
                   <span class="ex-name">Imports</span>
                 </div>
-                <pre><code>import { Fab } from "@all3hp/tasksgo-ui";</code></pre>
+                <pre><code>import { BottomTabBar, Fab, NavItem } from "@all3hp/tasksgo-ui";</code></pre>
               </div>
           
           
@@ -4136,6 +4214,54 @@ icon?: unknown = &#39;add&#39;</code></pre>
               
               <pre><code>const Disabled = () =&gt; &lt;Fab icon=&quot;add&quot; aria-label=&quot;New task&quot; disabled /&gt;;</code></pre>
             </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Extended</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Extended = () =&gt; &lt;Fab icon=&quot;add&quot; aria-label={undefined} label=&quot;Add scenario&quot; /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Extended (label longer than the viewport)</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const ExtendedLongLabel = () =&gt; &lt;Fab label=&quot;Add a regression scenario for the gateway&quot; /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Extended Above Tab Bar</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const ExtendedAboveTabBar = () =&gt; (
+  &lt;div style={{ minHeight: &#39;100vh&#39;, ...fabOffsetOverride }}&gt;
+    &lt;Fab label=&quot;Add scenario&quot; /&gt;
+    &lt;BottomTabBar aria-label=&quot;Main navigation&quot;&gt;
+      &lt;NavItem
+        icon=&quot;task_alt&quot;
+        activeIcon=&quot;check_circle&quot;
+        label=&quot;Tasks&quot;
+        href=&quot;#tasks&quot;
+        orientation=&quot;vertical&quot;
+      /&gt;
+      &lt;NavItem
+        icon=&quot;confirmation_number&quot;
+        activeIcon=&quot;confirmation_number_filled&quot;
+        label=&quot;Tickets&quot;
+        href=&quot;#tickets&quot;
+        orientation=&quot;vertical&quot;
+        active
+      /&gt;
+    &lt;/BottomTabBar&gt;
+  &lt;/div&gt;
+);</code></pre>
+            </div>
         </div>
     
   </div>
@@ -4154,7 +4280,7 @@ icon?: unknown = &#39;add&#39;</code></pre>
       <div class="badges">
         <label for="c-22-components-filepreviewoverlay-props" class="badge ok as-toggle">10 prop types</label>
         <label for="c-22-components-filepreviewoverlay-info" class="badge info as-toggle">1 info</label>
-        <label for="c-22-components-filepreviewoverlay-stories" class="badge ok as-toggle">6 stories</label>
+        <label for="c-22-components-filepreviewoverlay-stories" class="badge ok as-toggle">8 stories</label>
         
       </div>
     </div>
@@ -4243,7 +4369,7 @@ open: boolean</code></pre>
               <pre><code>const JsonPreview = () =&gt; (
   &lt;Controlled
     files={SIX_FILES}
-    initialIndex={indexOf(&#39;cache_metrics.json&#39;)}
+    initialIndex={indexOf(SIX_FILES, &#39;cache_metrics.json&#39;)}
   /&gt;
 );</code></pre>
             </div>
@@ -4255,7 +4381,10 @@ open: boolean</code></pre>
               
               
               <pre><code>const MarkdownPreview = () =&gt; (
-  &lt;Controlled files={SIX_FILES} initialIndex={indexOf(&#39;notes.md&#39;)} /&gt;
+  &lt;Controlled
+    files={SIX_FILES}
+    initialIndex={indexOf(SIX_FILES, &#39;notes.md&#39;)}
+  /&gt;
 );</code></pre>
             </div>
             <div class="note ok">
@@ -4266,7 +4395,10 @@ open: boolean</code></pre>
               
               
               <pre><code>const TextPreview = () =&gt; (
-  &lt;Controlled files={SIX_FILES} initialIndex={indexOf(&#39;thread_dump.txt&#39;)} /&gt;
+  &lt;Controlled
+    files={SIX_FILES}
+    initialIndex={indexOf(SIX_FILES, &#39;thread_dump.txt&#39;)}
+  /&gt;
 );</code></pre>
             </div>
             <div class="note ok">
@@ -4277,7 +4409,10 @@ open: boolean</code></pre>
               
               
               <pre><code>const NoPreview = () =&gt; (
-  &lt;Controlled files={SIX_FILES} initialIndex={indexOf(&#39;trace.zip&#39;)} /&gt;
+  &lt;Controlled
+    files={SIX_FILES}
+    initialIndex={indexOf(SIX_FILES, &#39;trace.zip&#39;)}
+  /&gt;
 );</code></pre>
             </div>
             <div class="note ok">
@@ -4288,6 +4423,29 @@ open: boolean</code></pre>
               
               
               <pre><code>const SingleFile = () =&gt; &lt;Controlled files={[SIX_FILES[0]]} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Mobile</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Mobile = () =&gt; &lt;Controlled files={MOBILE_FILES} /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Mobile (no inline preview)</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const MobileNoPreview = () =&gt; (
+  &lt;Controlled
+    files={MOBILE_FILES}
+    initialIndex={indexOf(MOBILE_FILES, &#39;trace.zip&#39;)}
+  /&gt;
+);</code></pre>
             </div>
         </div>
     
@@ -5843,7 +6001,7 @@ size?: &#39;sm&#39; | &#39;md&#39; = &#39;md&#39;</code></pre>
       <div class="badges">
         <label for="c-34-components-optionlist-props" class="badge ok as-toggle">9 prop types</label>
         <label for="c-34-components-optionlist-info" class="badge info as-toggle">1 info</label>
-        <label for="c-34-components-optionlist-stories" class="badge ok as-toggle">6 stories</label>
+        <label for="c-34-components-optionlist-stories" class="badge ok as-toggle">7 stories</label>
         
       </div>
     </div>
@@ -5913,7 +6071,7 @@ value?: string</code></pre>
                 <div class="row">
                   <span class="ex-name">Imports</span>
                 </div>
-                <pre><code>import { OptionList, SearchInput } from "@all3hp/tasksgo-ui";</code></pre>
+                <pre><code>import { OptionList, SearchInput, StatusDot } from "@all3hp/tasksgo-ui";</code></pre>
               </div>
           
           
@@ -5961,6 +6119,15 @@ value?: string</code></pre>
               
               
               <pre><code>const WithMeta = () =&gt; &lt;WithMetaRender /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">With Descriptions</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const WithDescriptions = () =&gt; &lt;WithDescriptionsRender /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -7182,7 +7349,7 @@ value: string</code></pre>
       <div class="badges">
         <label for="c-44-components-reopenpendingdialog-props" class="badge ok as-toggle">4 prop types</label>
         <label for="c-44-components-reopenpendingdialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-44-components-reopenpendingdialog-stories" class="badge ok as-toggle">1 story</label>
+        <label for="c-44-components-reopenpendingdialog-stories" class="badge ok as-toggle">2 stories</label>
         
       </div>
     </div>
@@ -7248,6 +7415,15 @@ scenarioTitle: string</code></pre>
               
               
               <pre><code>const Default = () =&gt; &lt;Controlled /&gt;;</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Sheet</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Sheet = () =&gt; &lt;Controlled presentation=&quot;sheet&quot; /&gt;;</code></pre>
             </div>
         </div>
     
@@ -9907,7 +10083,7 @@ trailing?: ReactNode</code></pre>
       <div class="badges">
         <label for="c-59-components-testscenariocard-props" class="badge ok as-toggle">37 prop types</label>
         <label for="c-59-components-testscenariocard-info" class="badge info as-toggle">1 info</label>
-        <label for="c-59-components-testscenariocard-stories" class="badge ok as-toggle">8 stories</label>
+        <label for="c-59-components-testscenariocard-stories" class="badge ok as-toggle">10 stories</label>
         
       </div>
     </div>
@@ -9991,7 +10167,7 @@ onRemoveEvidence?: (index: number) =&gt; void
 
 onStatusChange?: (status: TestScenarioStatus) =&gt; void
 
-onStatusSelectOpenChange?: (open: boolean) =&gt; void
+onStatusSelectOpenChange: (open: boolean) =&gt; void
 
 onStepsChange?: (steps: readonly string[]) =&gt; void
 
@@ -10010,7 +10186,7 @@ position?: | &#39;standalone&#39;
 
 status: &#39;passed&#39; | &#39;failed&#39; | &#39;pending&#39; | &#39;waived&#39;
 
-statusSelectOpen?: boolean = false
+statusSelectOpen: boolean
 
 steps?: unknown = []
 
@@ -10116,7 +10292,7 @@ waiveReason?: string</code></pre>
       &#39;Monitor cache TTL expiration logs in Datadog&#39;,
     ]}
     evidence={ALL_EVIDENCE}
-    maxEvidence={6}
+    maxEvidence={7}
     expected=&quot;Connection re-established within 500ms with the original session context intact.&quot;
     actual=&quot;Session context dropped on reconnect; client forced to re-authenticate.&quot;
     open
@@ -10178,7 +10354,7 @@ waiveReason?: string</code></pre>
       { label: &#39;network.har&#39;, kind: &#39;file&#39; },
       { label: &#39;trace.json&#39;, kind: &#39;file&#39; },
     ]}
-    maxEvidence={6}
+    maxEvidence={7}
     expected=&quot;Connection should recover within 2 seconds without session state loss.&quot;
     actual=&quot;Not run — scenario waived before execution.&quot;
     open
@@ -10297,6 +10473,61 @@ waiveReason?: string</code></pre>
   /&gt;
 );</code></pre>
             </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Mobile</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Mobile = () =&gt; (
+  &lt;Controlled
+    caseId=&quot;TC-409&quot;
+    title=&quot;WebSocket Connection Persistence&quot;
+    status=&quot;failed&quot;
+    byline=&quot;Failed by Jordan D. · 5m ago&quot;
+    assigneeInitial=&quot;JD&quot;
+    assigneeLabel=&quot;Jordan D.&quot;
+    assigneeColor=&quot;var(--ds-color-avatar-tone-profile-sage)&quot;
+    description=&quot;WebSocket connections automatically reconnect after a network interruption of &lt; 500ms without dropping session context.&quot;
+    steps={[
+      &#39;Deploy recent build to `QA-01` environment&#39;,
+      &#39;Trigger concurrent updates via `/api/v1/sync` endpoint&#39;,
+      &#39;Monitor cache TTL expiration logs in Datadog&#39;,
+    ]}
+    evidence={ALL_EVIDENCE}
+    maxEvidence={7}
+    expected=&quot;Connection re-established within 500ms with the original session context intact.&quot;
+    actual=&quot;Session context dropped on reconnect; client forced to re-authenticate.&quot;
+    open
+  /&gt;
+);</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Mobile (waived)</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const MobileWaived = () =&gt; (
+  &lt;Controlled
+    caseId=&quot;TC-409&quot;
+    title=&quot;WebSocket Connection Persistence&quot;
+    status=&quot;waived&quot;
+    byline=&quot;Waived by Alex T. · 1d ago&quot;
+    assigneeInitial=&quot;AT&quot;
+    assigneeLabel=&quot;Alex T.&quot;
+    assigneeColor=&quot;var(--ds-color-avatar-tone-profile-plum)&quot;
+    description=&quot;Ensure WebSocket connections reconnect after a network interruption.&quot;
+    waiveReason=&quot;Dev confirmed out of scope for this ticket; tracked separately under `ENG-2871`.&quot;
+    steps={[&#39;Deploy recent build to `QA-01` environment&#39;]}
+    expected=&quot;Connection should recover within 2 seconds without session state loss.&quot;
+    actual=&quot;Not run — scenario waived before execution.&quot;
+    open
+  /&gt;
+);</code></pre>
+            </div>
         </div>
     
   </div>
@@ -10339,13 +10570,13 @@ waiveReason?: string</code></pre>
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  750 | }
-  751 |
-&gt; 752 | const meta: Meta = {
+  778 | }
+  779 |
+&gt; 780 | const meta: Meta = {
       | ^
-  753 |   title: &#39;Pages/Ticket&#39;,
-  754 |   parameters: {
-  755 |     layout: &#39;fullscreen&#39;,
+  781 |   title: &#39;Pages/Ticket&#39;,
+  782 |   parameters: {
+  783 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
@@ -10509,6 +10740,8 @@ function TicketOverviewRender({
     taskDrawerTitle,
     taskSelectors,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
     addScenarioOpen,
     scenarioDraft,
     setScenarioDraft,
@@ -10517,6 +10750,10 @@ function TicketOverviewRender({
     confirmAddScenario,
     updateScenario,
     editingSectionsById,
+    stepsExpandedById,
+    setStepsExpanded,
+    evidenceExpandedById,
+    setEvidenceExpanded,
     setScenarioEditingSections,
     expandedScenarioId,
     toggleScenario,
@@ -10525,7 +10762,16 @@ function TicketOverviewRender({
     envSelector,
     statusSelectScenarioId,
     setStatusSelectOpen,
+    pendingStatusChange,
+    statusPromptOpen,
+    statusDraft,
+    setStatusDraft,
+    requestScenarioStatus,
+    confirmStatusChange,
+    cancelStatusChange,
     evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
     setEvidencePreviewIndex,
@@ -10731,7 +10977,8 @@ function TicketOverviewRender({
                           &lt;/span&gt;
                         &lt;/div&gt;
                         &lt;CollapsibleCard
-                          defaultOpen
+                          open={qaSummaryOpen}
+                          onOpenChange={setQaSummaryOpen}
                           header={
                             &lt;span className={styles.qaCardHeader}&gt;
                               &lt;span className={styles.qaCardTitle}&gt;
@@ -10842,8 +11089,19 @@ function TicketOverviewRender({
                       statusSelectScenarioId={statusSelectScenarioId}
                       onStatusSelectOpenChange={setStatusSelectOpen}
                       editingSectionsById={editingSectionsById}
+                      stepsExpandedById={stepsExpandedById}
+                      onStepsExpandedChange={setStepsExpanded}
+                      evidenceExpandedById={evidenceExpandedById}
+                      onEvidenceExpandedChange={setEvidenceExpanded}
                       onEditingSectionsChange={setScenarioEditingSections}
                       onOpenEvidence={openEvidencePreview}
+                      pendingStatusChange={pendingStatusChange}
+                      statusPromptOpen={statusPromptOpen}
+                      statusDraft={statusDraft}
+                      onStatusDraftChange={setStatusDraft}
+                      onRequestScenarioStatus={requestScenarioStatus}
+                      onConfirmStatusChange={confirmStatusChange}
+                      onCancelStatusChange={cancelStatusChange}
                     /&gt;
                   &lt;/TicketTabPanel&gt;
                 )}
@@ -11085,10 +11343,11 @@ function TicketOverviewRender({
 
       &lt;FilePreviewOverlay
         files={previewScenario?.evidence ?? []}
-        open={evidencePreview != null}
+        open={evidencePreviewOpen}
         activeIndex={evidencePreview?.index ?? 0}
         onActiveIndexChange={setEvidencePreviewIndex}
         onClose={closeEvidencePreview}
+        onClosed={clearEvidencePreview}
         downloadAllName={
           previewScenario != null
             ? `${previewScenario.id}-evidence.zip`
@@ -11579,6 +11838,7 @@ const meta = {
     type: &#39;dayDivider&#39;,
     at: YESTERDAY,
     relative: &#39;yesterday&#39;,
+    durationMs: 4 * 60 * 60 * 1000,
   },
   decorators: [
     (Story) =&gt; (
@@ -11784,7 +12044,11 @@ export const InAFeed: Story = {
               
               <pre><code>const Yesterday = () =&gt; &lt;TimelineDivider as unknown as (
   props: TimelineDividerStoryArgs,
-) =&gt; ReactNode type=&quot;dayDivider&quot; at={YESTERDAY} relative=&quot;yesterday&quot; /&gt;;</code></pre>
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={YESTERDAY}
+    relative=&quot;yesterday&quot;
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -11795,7 +12059,11 @@ export const InAFeed: Story = {
               
               <pre><code>const Today = () =&gt; &lt;TimelineDivider as unknown as (
   props: TimelineDividerStoryArgs,
-) =&gt; ReactNode type=&quot;dayDivider&quot; at={TODAY} relative=&quot;today&quot; /&gt;;</code></pre>
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={TODAY}
+    relative=&quot;today&quot;
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -11806,7 +12074,11 @@ export const InAFeed: Story = {
               
               <pre><code>const EarlierDate = () =&gt; &lt;TimelineDivider as unknown as (
   props: TimelineDividerStoryArgs,
-) =&gt; ReactNode type=&quot;dayDivider&quot; at={LAST_WEEK} relative={null} /&gt;;</code></pre>
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={LAST_WEEK}
+    relative={null}
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -11817,7 +12089,12 @@ export const InAFeed: Story = {
               
               <pre><code>const PreviousYear = () =&gt; &lt;TimelineDivider as unknown as (
   props: TimelineDividerStoryArgs,
-) =&gt; ReactNode type=&quot;dayDivider&quot; at={LAST_YEAR} relative={null} sameYear={false} /&gt;;</code></pre>
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={LAST_YEAR}
+    relative={null}
+    durationMs={4 * 60 * 60 * 1000}
+    sameYear={false} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -11935,7 +12212,7 @@ const meta = {
     docs: {
       description: {
         component:
-          &#39;A single event row in an activity timeline. Renders an `&lt;li&gt;` — wrap rows in a `&lt;ul&gt;`, which owns the spacing between them via `gap`; the row adds no margin of its own. `standalone` (default) draws the spine marker and reserves the left gutter; `nested` omits both and must sit inside a group container that supplies the indent, so it renders flush left on its own. Pass `onPin` to render the pin button — its presence is the trigger. `pinned` draws the highlight ring and is mutually exclusive with `onPin`: a pinned row carries no control, because unpinning happens in the feed’s &quot;Clear pin&quot; banner.&#39;,
+          &#39;A single event row in an activity timeline. Renders an `&lt;li&gt;` — wrap rows in a `&lt;ul&gt;`, which owns the spacing between them via `gap`; the row adds no margin of its own. `standalone` (default) draws the spine marker and reserves the left gutter; `nested` omits both and must sit inside a group container that supplies the indent, so it renders flush left on its own. Pass `onPin` to render the pin button — its presence is the trigger. `pinned` draws the highlight ring and is mutually exclusive with `onPin`: a pinned row carries no control, because unpinning happens in the feed’s &quot;Clear pin&quot; banner. The pin button unmounts once the row is pinned, so the consumer must focus the pinned row through its `ref` after it renders as pinned, e.g. in an effect keyed on the pinned id.&#39;,
       },
     },
   },
@@ -12643,7 +12920,7 @@ export const SystemOnly: Story = {
       <div class="badges">
         <label for="c-66-components-waivescenariodialog-props" class="badge ok as-toggle">4 prop types</label>
         <label for="c-66-components-waivescenariodialog-info" class="badge info as-toggle">1 info</label>
-        <label for="c-66-components-waivescenariodialog-stories" class="badge ok as-toggle">2 stories</label>
+        <label for="c-66-components-waivescenariodialog-stories" class="badge ok as-toggle">3 stories</label>
         
       </div>
     </div>
@@ -12720,6 +12997,15 @@ scenarioTitle: string</code></pre>
               <pre><code>const Prefilled = () =&gt; (
   &lt;Controlled initialReason=&quot;Dev confirmed out of scope for this ticket; tracked separately under ENG-2871.&quot; /&gt;
 );</code></pre>
+            </div>
+            <div class="note ok">
+              <div class="row">
+                <span class="ex-name">Sheet</span>
+                <span class="badge ok">story ok</span>
+              </div>
+              
+              
+              <pre><code>const Sheet = () =&gt; &lt;Controlled presentation=&quot;sheet&quot; /&gt;;</code></pre>
             </div>
         </div>
     
@@ -13189,6 +13475,7 @@ const meta = {
     type: &#39;dayDivider&#39;,
     at: YESTERDAY,
     relative: &#39;yesterday&#39;,
+    durationMs: 4 * 60 * 60 * 1000,
   },
   decorators: [
     (Story) =&gt; (
@@ -13394,7 +13681,11 @@ export const InAFeed: Story = {
               
               <pre><code>const Yesterday = () =&gt; &lt;TimelineDivider as unknown as (
   props: TimelineDividerStoryArgs,
-) =&gt; ReactNode type=&quot;dayDivider&quot; at={YESTERDAY} relative=&quot;yesterday&quot; /&gt;;</code></pre>
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={YESTERDAY}
+    relative=&quot;yesterday&quot;
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -13405,7 +13696,11 @@ export const InAFeed: Story = {
               
               <pre><code>const Today = () =&gt; &lt;TimelineDivider as unknown as (
   props: TimelineDividerStoryArgs,
-) =&gt; ReactNode type=&quot;dayDivider&quot; at={TODAY} relative=&quot;today&quot; /&gt;;</code></pre>
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={TODAY}
+    relative=&quot;today&quot;
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -13416,7 +13711,11 @@ export const InAFeed: Story = {
               
               <pre><code>const EarlierDate = () =&gt; &lt;TimelineDivider as unknown as (
   props: TimelineDividerStoryArgs,
-) =&gt; ReactNode type=&quot;dayDivider&quot; at={LAST_WEEK} relative={null} /&gt;;</code></pre>
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={LAST_WEEK}
+    relative={null}
+    durationMs={4 * 60 * 60 * 1000} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -13427,7 +13726,12 @@ export const InAFeed: Story = {
               
               <pre><code>const PreviousYear = () =&gt; &lt;TimelineDivider as unknown as (
   props: TimelineDividerStoryArgs,
-) =&gt; ReactNode type=&quot;dayDivider&quot; at={LAST_YEAR} relative={null} sameYear={false} /&gt;;</code></pre>
+) =&gt; ReactNode
+    type=&quot;dayDivider&quot;
+    at={LAST_YEAR}
+    relative={null}
+    durationMs={4 * 60 * 60 * 1000}
+    sameYear={false} /&gt;;</code></pre>
             </div>
             <div class="note ok">
               <div class="row">
@@ -13545,7 +13849,7 @@ const meta = {
     docs: {
       description: {
         component:
-          &#39;A single event row in an activity timeline. Renders an `&lt;li&gt;` — wrap rows in a `&lt;ul&gt;`, which owns the spacing between them via `gap`; the row adds no margin of its own. `standalone` (default) draws the spine marker and reserves the left gutter; `nested` omits both and must sit inside a group container that supplies the indent, so it renders flush left on its own. Pass `onPin` to render the pin button — its presence is the trigger. `pinned` draws the highlight ring and is mutually exclusive with `onPin`: a pinned row carries no control, because unpinning happens in the feed’s &quot;Clear pin&quot; banner.&#39;,
+          &#39;A single event row in an activity timeline. Renders an `&lt;li&gt;` — wrap rows in a `&lt;ul&gt;`, which owns the spacing between them via `gap`; the row adds no margin of its own. `standalone` (default) draws the spine marker and reserves the left gutter; `nested` omits both and must sit inside a group container that supplies the indent, so it renders flush left on its own. Pass `onPin` to render the pin button — its presence is the trigger. `pinned` draws the highlight ring and is mutually exclusive with `onPin`: a pinned row carries no control, because unpinning happens in the feed’s &quot;Clear pin&quot; banner. The pin button unmounts once the row is pinned, so the consumer must focus the pinned row through its `ref` after it renders as pinned, e.g. in an effect keyed on the pinned id.&#39;,
       },
     },
   },
@@ -14978,13 +15282,13 @@ export const EmptyState: Story = {
     <div class="note err">
       <div class="note-title">Prop type error</div>
       <div class="note-body"><pre><code>We could not detect the component from your story file. Specify meta.component.
-  750 | }
-  751 |
-&gt; 752 | const meta: Meta = {
+  778 | }
+  779 |
+&gt; 780 | const meta: Meta = {
       | ^
-  753 |   title: &#39;Pages/Ticket&#39;,
-  754 |   parameters: {
-  755 |     layout: &#39;fullscreen&#39;,
+  781 |   title: &#39;Pages/Ticket&#39;,
+  782 |   parameters: {
+  783 |     layout: &#39;fullscreen&#39;,
 
 ./src/stories/pages/ticket-overview/TicketOverviewDesktop.stories.tsx:
 import { useEffect, useRef, type ReactNode } from &#39;react&#39;;
@@ -15148,6 +15452,8 @@ function TicketOverviewRender({
     taskDrawerTitle,
     taskSelectors,
     qaFailedCount,
+    qaSummaryOpen,
+    setQaSummaryOpen,
     addScenarioOpen,
     scenarioDraft,
     setScenarioDraft,
@@ -15156,6 +15462,10 @@ function TicketOverviewRender({
     confirmAddScenario,
     updateScenario,
     editingSectionsById,
+    stepsExpandedById,
+    setStepsExpanded,
+    evidenceExpandedById,
+    setEvidenceExpanded,
     setScenarioEditingSections,
     expandedScenarioId,
     toggleScenario,
@@ -15164,7 +15474,16 @@ function TicketOverviewRender({
     envSelector,
     statusSelectScenarioId,
     setStatusSelectOpen,
+    pendingStatusChange,
+    statusPromptOpen,
+    statusDraft,
+    setStatusDraft,
+    requestScenarioStatus,
+    confirmStatusChange,
+    cancelStatusChange,
     evidencePreview,
+    evidencePreviewOpen,
+    clearEvidencePreview,
     openEvidencePreview,
     closeEvidencePreview,
     setEvidencePreviewIndex,
@@ -15370,7 +15689,8 @@ function TicketOverviewRender({
                           &lt;/span&gt;
                         &lt;/div&gt;
                         &lt;CollapsibleCard
-                          defaultOpen
+                          open={qaSummaryOpen}
+                          onOpenChange={setQaSummaryOpen}
                           header={
                             &lt;span className={styles.qaCardHeader}&gt;
                               &lt;span className={styles.qaCardTitle}&gt;
@@ -15481,8 +15801,19 @@ function TicketOverviewRender({
                       statusSelectScenarioId={statusSelectScenarioId}
                       onStatusSelectOpenChange={setStatusSelectOpen}
                       editingSectionsById={editingSectionsById}
+                      stepsExpandedById={stepsExpandedById}
+                      onStepsExpandedChange={setStepsExpanded}
+                      evidenceExpandedById={evidenceExpandedById}
+                      onEvidenceExpandedChange={setEvidenceExpanded}
                       onEditingSectionsChange={setScenarioEditingSections}
                       onOpenEvidence={openEvidencePreview}
+                      pendingStatusChange={pendingStatusChange}
+                      statusPromptOpen={statusPromptOpen}
+                      statusDraft={statusDraft}
+                      onStatusDraftChange={setStatusDraft}
+                      onRequestScenarioStatus={requestScenarioStatus}
+                      onConfirmStatusChange={confirmStatusChange}
+                      onCancelStatusChange={cancelStatusChange}
                     /&gt;
                   &lt;/TicketTabPanel&gt;
                 )}
@@ -15724,10 +16055,11 @@ function TicketOverviewRender({
 
       &lt;FilePreviewOverlay
         files={previewScenario?.evidence ?? []}
-        open={evidencePreview != null}
+        open={evidencePreviewOpen}
         activeIndex={evidencePreview?.index ?? 0}
         onActiveIndexChange={setEvidencePreviewIndex}
         onClose={closeEvidencePreview}
+        onClosed={clearEvidencePreview}
         downloadAllName={
           previewScenario != null
             ? `${previewScenario.id}-evidence.zip`
