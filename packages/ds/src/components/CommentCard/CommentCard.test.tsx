@@ -4,7 +4,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { CommentCard } from './CommentCard';
 import { ALEX, JORDAN, reply } from '../../utils/activity/testFixtures';
 
-const replies = [reply(ALEX, 30, { body: 'Go with fan-out.' })];
+const replies = [
+  { ...reply(ALEX, 30, { body: 'Go with fan-out.' }), timestamp: '1h ago' },
+];
 
 const base = {
   actor: JORDAN,
@@ -30,6 +32,14 @@ describe('CommentCard', () => {
       <CommentCard kind="comment" {...base} query="caching" />,
     );
     expect(container.querySelector('mark')).toHaveTextContent('caching');
+  });
+
+  it('highlights a search term in the author name', () => {
+    render(<CommentCard kind="comment" {...base} query="jordan" />);
+    const marks = screen.getAllByText(
+      (_, el) => el?.tagName === 'MARK' && /jordan/i.test(el.textContent ?? ''),
+    );
+    expect(marks.length).toBeGreaterThan(0);
   });
 
   it('labels a comment and an ask differently', () => {
@@ -85,6 +95,13 @@ describe('CommentCard', () => {
     expect(within(thread).getByText('Go with fan-out.')).toBeInTheDocument();
   });
 
+  it('shows the reply time the caller formatted, never a raw timestamp', () => {
+    render(<CommentCard kind="comment" {...base} replies={replies} />);
+    const thread = screen.getByRole('list', { name: 'Replies' });
+    expect(within(thread).getByText('1h ago')).toBeInTheDocument();
+    expect(within(thread).queryByText(/\d{4}-\d{2}-\d{2}T/)).toBeNull();
+  });
+
   it('renders no thread when there are no replies', () => {
     render(<CommentCard kind="comment" {...base} />);
     expect(
@@ -98,7 +115,17 @@ describe('CommentCard', () => {
       <CommentCard
         kind="comment"
         {...base}
-        reactions={[{ emoji: '👍', count: 2, reactedByViewer: false }]}
+        reactions={[
+          {
+            emoji: '👍',
+            count: 2,
+            reactedByViewer: false,
+            actors: [
+              { id: 'sk', name: 'Sam K.' },
+              { id: 'am', name: 'Alex M.' },
+            ],
+          },
+        ]}
         onToggleReaction={onToggleReaction}
       />,
     );

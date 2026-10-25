@@ -73,7 +73,10 @@ export const TimelineGroup = forwardRef<HTMLLIElement, TimelineGroupProps>(
         <button
           ref={toggleRef}
           type="button"
-          className={cn(styles.toggle, open && styles.toggleOpen)}
+          className={cn(
+            styles.toggle,
+            open ? styles.toggleOpen : styles.toggleCollapsed,
+          )}
           onClick={() => onOpenChange(!open)}
           aria-expanded={open}
           aria-controls={itemsId}

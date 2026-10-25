@@ -9,18 +9,32 @@ const meta = {
     docs: {
       description: {
         component:
-          'The emoji reactions under an activity comment. Each chip is a toggle button carrying `aria-pressed`, so the viewer’s own reaction is announced and not signalled by colour alone. Pass `onAddReaction` to offer the add-reaction button — its presence is the trigger. With no reactions and no `onAddReaction`, the bar renders nothing rather than an empty row.',
+          'The emoji reactions under an activity comment. Each chip is a toggle button carrying `aria-pressed`, so the viewer’s own reaction is announced and not signalled by colour alone. Pass `onPickerOpenChange` to offer the add-reaction button — its presence is the trigger. The picker itself is a `Popover` the caller opens via `pickerOpen`, so the bar stays stateless. With no reactions and no `onPickerOpenChange`, the bar renders nothing rather than an empty row.',
       },
     },
   },
   argTypes: {
     onToggleReaction: { action: 'react' },
-    onAddReaction: { action: 'add' },
+    onPickerOpenChange: { action: 'pickerOpenChange' },
+    onPickReaction: { action: 'pick' },
   },
   args: {
     reactions: [
-      { emoji: '👍', count: 2, reactedByViewer: true },
-      { emoji: '🎉', count: 1, reactedByViewer: false },
+      {
+        emoji: '👍',
+        count: 2,
+        reactedByViewer: true,
+        actors: [
+          { id: 'ap', name: 'Ale P.' },
+          { id: 'sk', name: 'Sam K.' },
+        ],
+      },
+      {
+        emoji: '🎉',
+        count: 1,
+        reactedByViewer: false,
+        actors: [{ id: 'am', name: 'Alex M.' }],
+      },
     ],
   },
 } satisfies Meta<typeof ReactionBar>;
@@ -31,11 +45,11 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const WithAddButton: Story = {
-  args: { onAddReaction: () => {} },
+  args: { onPickerOpenChange: () => {} },
 };
 
 export const NoneYet: Story = {
-  args: { reactions: [], onAddReaction: () => {} },
+  args: { reactions: [], onPickerOpenChange: () => {} },
   parameters: {
     docs: {
       description: {
@@ -46,7 +60,7 @@ export const NoneYet: Story = {
 };
 
 export const Empty: Story = {
-  args: { reactions: [], onAddReaction: undefined },
+  args: { reactions: [], onPickerOpenChange: undefined },
   parameters: {
     docs: {
       description: {

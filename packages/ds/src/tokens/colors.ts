@@ -21,6 +21,7 @@ const highlight = {
 
 const border = {
   default: '#f0f0f0',
+  medium: '#dcdcdc',
   strong: '#c8c8c8',
 } as const;
 
@@ -68,6 +69,13 @@ export const colors = {
 
   highlight,
 
+  timelineEvent: {
+    pinHoverBackground: 'rgba(180, 83, 9, 0.06)',
+  },
+  activityPanel: {
+    bannerBackground: '#fdf6ec',
+    bannerBorder: 'rgba(180, 83, 9, 0.22)',
+  },
   activityComposer: {
     askTabBackground: 'rgba(180, 83, 9, 0.09)',
     attachActiveBackground: 'rgba(79, 111, 143, 0.08)',
@@ -147,6 +155,8 @@ export const colors = {
     profileBackground: surface.muted,
     profileText: text.primary,
     profileBorder: border.default,
+    tintTextLight: surface.primary,
+    tintTextDark: text.primary,
   },
   avatarTone: {
     profile: {

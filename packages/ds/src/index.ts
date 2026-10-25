@@ -91,7 +91,11 @@ export {
   type ActivityComposerMode,
   type ActivityComposerAttachment,
 } from './components/ActivityComposer';
-export { CommentCard, type CommentCardProps } from './components/CommentCard';
+export {
+  CommentCard,
+  type CommentCardProps,
+  type CommentCardReply,
+} from './components/CommentCard';
 export { ReactionBar, type ReactionBarProps } from './components/ReactionBar';
 export {
   TimelineEvent,
@@ -312,6 +316,7 @@ export {
   type ActivityItem,
   type ActivityNode,
   type ActivityReaction,
+  type ActivityReactor,
   type ActivityRef,
   type ActivityRefType,
   type ActivityRelativeDay,

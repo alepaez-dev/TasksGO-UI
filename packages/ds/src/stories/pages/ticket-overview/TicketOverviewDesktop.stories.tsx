@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { desktopViewports } from '../../../../.storybook/preview';
 import { Sidebar } from '../../../components/Sidebar';
@@ -37,6 +37,15 @@ import { useMarkdownEditor } from '../../../hooks/useMarkdownEditor';
 import { useTicketOverviewState } from './useTicketOverviewState';
 import { DevDetailsPanel } from './DevDetailsPanel';
 import { QaPanel } from './QaPanel';
+import { ActivityPanel } from './ActivityPanel';
+import { useActivityState } from './useActivityState';
+import {
+  ACTIVITY_MENTIONS,
+  ACTIVITY_NOW,
+  ACTIVITY_VIEWER,
+  ACTIVITY_VIEWER_ACTOR,
+  activityItems,
+} from './activityFixture';
 import { DevDetailsCard } from './DevDetailsCard';
 import {
   devScratchpadTask,
@@ -180,6 +189,22 @@ function TicketOverviewRender({
     closeEvidencePreview,
     setEvidencePreviewIndex,
   } = useTicketOverviewState(undefined, initialActiveTab);
+
+  const activity = useActivityState({
+    items: activityItems,
+    now: ACTIVITY_NOW,
+    viewer: ACTIVITY_VIEWER,
+  });
+  const [composerMode, setComposerMode] = useState<'comment' | 'ask'>(
+    'comment',
+  );
+  const [composerDraft, setComposerDraft] = useState('');
+  const postedCount = useRef(0);
+  const composerEditor = useMarkdownEditor({
+    value: composerDraft,
+    setValue: setComposerDraft,
+  });
+
   const activeProject = getProject(project);
   const activeAssignee = getPerson(assignee);
   const activeReporter = getPerson(reporter);
@@ -472,9 +497,38 @@ function TicketOverviewRender({
                 {activeTab === 'activity' && (
                   <TicketTabPanel
                     value="activity"
-                    className={styles.tabPanelEmpty}
+                    className={styles.activityTabPanel}
                   >
-                    Nothing here yet.
+                    <ActivityPanel
+                      activity={activity}
+                      now={ACTIVITY_NOW}
+                      mentions={ACTIVITY_MENTIONS}
+                      composer={{
+                        actor: ACTIVITY_VIEWER_ACTOR,
+                        mode: composerMode,
+                        value: composerDraft,
+                        textareaRef: composerEditor.textareaRef,
+                        onModeChange: setComposerMode,
+                        onChange: setComposerDraft,
+                        onAction: composerEditor.applyAction,
+                        onSubmit: () => {
+                          const body = composerDraft.trim();
+                          if (body === '') return;
+                          activity.addItem({
+                            kind: composerMode,
+                            id: `posted-${postedCount.current++}`,
+                            at: ACTIVITY_NOW,
+                            actor: ACTIVITY_VIEWER_ACTOR,
+                            body,
+                            reactions: [],
+                            replies: [],
+                            attachments: [],
+                          });
+                          setComposerDraft('');
+                        },
+                        onAttach: () => {},
+                      }}
+                    />
                   </TicketTabPanel>
                 )}
 

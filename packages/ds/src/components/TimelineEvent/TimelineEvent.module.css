@@ -35,6 +35,11 @@
   color: var(--ds-color-text-secondary);
 }
 
+.body b {
+  color: var(--ds-color-text-primary);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
 .icon {
   color: var(--ds-color-text-disabled);
   margin-right: var(--ds-space-timeline-event-inline-gap);
@@ -60,6 +65,11 @@
   font-size: var(--ds-text-timeline-event-meta-font-size);
 }
 
+.muted .body b {
+  color: var(--ds-color-text-secondary);
+  font-weight: var(--ds-font-weight-medium);
+}
+
 .pinned {
   border-radius: var(--ds-radius-md);
   outline: 2px solid var(--ds-color-status-high);
@@ -70,17 +80,24 @@
   display: inline-flex;
   align-items: center;
   gap: var(--ds-space-scale-xs);
-  padding: 0;
+  height: var(--ds-space-timeline-event-pin-height);
+  padding: 0 var(--ds-space-timeline-event-pin-padding-x);
   border: 0;
+  border-radius: var(--ds-radius-sm);
   background: none;
   color: var(--ds-color-text-secondary);
   font: inherit;
   font-size: var(--ds-text-timeline-event-meta-font-size);
+  font-weight: var(--ds-font-weight-medium);
   cursor: pointer;
+  transition:
+    color var(--ds-transition-duration-fast) ease,
+    background var(--ds-transition-duration-fast) ease;
 }
 
 .pin:hover {
-  color: var(--ds-color-accent-warm-text);
+  background: var(--ds-color-timeline-event-pin-hover-background);
+  color: var(--ds-color-status-high);
 }
 
 .pin:focus-visible {

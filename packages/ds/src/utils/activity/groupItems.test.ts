@@ -254,3 +254,25 @@ describe('groupItems — shape and edge cases', () => {
     ]);
   });
 });
+
+describe('groupItems — a group keeps its identity when the order flips', () => {
+  const run = [
+    event(JORDAN, 0, { id: 'e-status' }),
+    event(JORDAN, 2, { id: 'e-desc' }),
+    event(JORDAN, 4, { id: 'e-label' }),
+  ];
+
+  const idOf = (items: readonly ReturnType<typeof event>[]) => {
+    const [node] = groupItems(items);
+    if (node.type !== 'group') throw new Error('expected a group');
+    return node.id;
+  };
+
+  it('names the group after its earliest event, not its first in array order', () => {
+    expect(idOf(run)).toBe('group-e-status');
+  });
+
+  it('gives the reversed run the same id, so sorting cannot collapse it', () => {
+    expect(idOf([...run].reverse())).toBe(idOf(run));
+  });
+});
