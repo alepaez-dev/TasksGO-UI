@@ -1,0 +1,1 @@
+const i={id:"jd",name:"Jordan D.",initial:"JD",kind:"human",tint:"#4F6F8F"},n={id:"am",name:"Alex M.",initial:"AM",kind:"human",tint:"#856D4A"},a={id:"mr",name:"Mike R.",initial:"MR",kind:"human",tint:"#7560C2"};export{n as A,i as J,a as M};
