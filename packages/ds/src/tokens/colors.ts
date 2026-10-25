@@ -252,6 +252,17 @@ export const colors = {
   tabs: {
     activeBorder: status.info,
   },
+
+  statusIcon: {
+    backlog: '#888888',
+    todo: '#6b7280',
+    inProgress: status.info,
+    inReview: status.medium,
+    readyForQa: status.high,
+    inQa: status.high,
+    blocked: status.critical,
+    done: '#6b7280',
+  },
 } as const;
 
 export type ColorGroup = keyof typeof colors;

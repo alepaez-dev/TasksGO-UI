@@ -8,6 +8,12 @@ const meta: Meta<typeof TicketTitleBlock> = {
   title: 'Components/TicketTitleBlock',
   component: TicketTitleBlock,
   tags: ['autodocs'],
+  argTypes: {
+    headingLevel: {
+      control: 'select',
+      options: [1, 2, 3],
+    },
+  },
   parameters: {
     docs: {
       description: {

@@ -1,1 +1,5 @@
-export { PriorityLabel, type PriorityLabelProps } from './PriorityLabel';
+export {
+  PriorityLabel,
+  type PriorityLabelProps,
+  type PriorityLabelAppearance,
+} from './PriorityLabel';

@@ -1,0 +1,73 @@
+.statusIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+}
+
+.sm {
+  width: var(--ds-space-status-icon-size-sm);
+  height: var(--ds-space-status-icon-size-sm);
+}
+
+.md {
+  width: var(--ds-space-status-icon-size-md);
+  height: var(--ds-space-status-icon-size-md);
+}
+
+.ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+
+.dashed {
+  stroke-dasharray: 2.2 2.2;
+}
+
+.fill {
+  fill: currentColor;
+}
+
+.check {
+  fill: none;
+  stroke: var(--ds-color-surface-primary);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.backlog {
+  color: var(--ds-color-status-icon-backlog);
+}
+
+.todo {
+  color: var(--ds-color-status-icon-todo);
+}
+
+.inProgress {
+  color: var(--ds-color-status-icon-in-progress);
+}
+
+.inReview {
+  color: var(--ds-color-status-icon-in-review);
+}
+
+.readyForQa {
+  color: var(--ds-color-status-icon-ready-for-qa);
+}
+
+.inQa {
+  color: var(--ds-color-status-icon-in-qa);
+}
+
+.blocked {
+  color: var(--ds-color-status-icon-blocked);
+}
+
+.done {
+  color: var(--ds-color-status-icon-done);
+}

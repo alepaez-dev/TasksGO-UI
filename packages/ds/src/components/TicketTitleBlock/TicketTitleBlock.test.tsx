@@ -116,4 +116,26 @@ describe('TicketTitleBlock', () => {
     );
     expect(onTitleChange).toHaveBeenCalledWith('OldX');
   });
+
+  it('renders the title at the requested heading level', () => {
+    render(<TicketTitleBlock title="Edge caching" headingLevel={2} />);
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Edge caching' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull();
+  });
+
+  it('keeps the heading level when editable', () => {
+    render(
+      <TicketTitleBlock
+        title="Edge caching"
+        headingLevel={2}
+        onTitleChange={() => {}}
+        onTitleEditingChange={() => {}}
+      />,
+    );
+    expect(
+      screen.getByRole('heading', { level: 2, name: /edge caching/i }),
+    ).toBeInTheDocument();
+  });
 });

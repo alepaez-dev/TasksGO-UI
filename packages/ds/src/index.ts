@@ -29,8 +29,10 @@ export {
   DownloadIcon,
   DragIndicatorIcon,
   EditIcon,
+  ExpandLessIcon,
   ExpandMoreIcon,
   FileUploadIcon,
+  FilterListIcon,
   FlagIcon,
   FolderZipIcon,
   ForkRightIcon,
@@ -46,6 +48,7 @@ export {
   MenuIcon,
   MoodIcon,
   MoreHorizIcon,
+  OpenInFullIcon,
   OpenInNewIcon,
   PersonIcon,
   PushPinFilledIcon,
@@ -55,9 +58,12 @@ export {
   SearchIcon,
   SettingsIcon,
   SignalCellularAltIcon,
+  SignalCellularAlt1BarIcon,
+  SignalCellularAlt2BarIcon,
   TagIcon,
   TaskAltIcon,
   UnfoldMoreIcon,
+  ViewKanbanIcon,
   WarningIcon,
   iconRegistry,
 } from './icons';
@@ -68,6 +74,11 @@ export {
   type ChecklistRowProps,
 } from './components/ChecklistRow';
 export { StatusDot, type StatusDotProps } from './components/StatusDot';
+export {
+  StatusIcon,
+  type StatusIconProps,
+  type TicketStatus,
+} from './components/StatusIcon';
 export { StepList, type StepListProps } from './components/StepList';
 export { Badge, type BadgeProps } from './components/Badge';
 export { NavItem, type NavItemProps } from './components/NavItem';
@@ -100,6 +111,7 @@ export {
 export {
   PriorityLabel,
   type PriorityLabelProps,
+  type PriorityLabelAppearance,
 } from './components/PriorityLabel';
 export {
   Breadcrumb,
@@ -253,6 +265,7 @@ export {
   type RecentTaskListProps,
   type RecentTaskItem,
 } from './components/RecentTaskList';
+export { ProgressBar, type ProgressBarProps } from './components/ProgressBar';
 export { Markdown, type MarkdownProps } from './components/Markdown';
 export {
   SegmentedControl,

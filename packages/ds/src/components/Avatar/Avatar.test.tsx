@@ -43,4 +43,29 @@ describe('Avatar', () => {
       screen.getByRole('img').style.getPropertyValue('--ds-color-avatar-tint'),
     ).toBe('#7D9B84');
   });
+
+  it('renders the empty variant with a name and no initial', () => {
+    render(<Avatar variant="empty" aria-label="Unassigned" />);
+    const el = screen.getByRole('img', { name: 'Unassigned' });
+    expect(el).toHaveClass('empty');
+    expect(el).toHaveTextContent(/^$/);
+  });
+
+  it('sizes the empty variant', () => {
+    render(<Avatar variant="empty" size="sm" aria-label="Unassigned" />);
+    expect(screen.getByRole('img')).toHaveClass('sm');
+  });
+
+  it('ignores an initial and tint passed to the empty variant', () => {
+    render(
+      <Avatar
+        variant="empty"
+        aria-label="Unassigned"
+        {...({ initial: 'P', tint: '#7D9B84' } as object)}
+      />,
+    );
+    const el = screen.getByRole('img', { name: 'Unassigned' });
+    expect(el).toHaveTextContent(/^$/);
+    expect(el.style.getPropertyValue('--ds-color-avatar-tint')).toBe('');
+  });
 });

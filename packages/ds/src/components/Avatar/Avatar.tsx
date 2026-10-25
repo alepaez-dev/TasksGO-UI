@@ -2,17 +2,27 @@ import { forwardRef, type CSSProperties, type HTMLAttributes } from 'react';
 import { cn } from '../../utils/cn';
 import styles from './Avatar.module.css';
 
-type AvatarVariant = 'project' | 'profile';
 type AvatarSize = 'sm' | 'md';
 
-export interface AvatarProps extends HTMLAttributes<HTMLSpanElement> {
-  initial: string;
-  variant?: AvatarVariant;
+interface AvatarBaseProps extends HTMLAttributes<HTMLSpanElement> {
   size?: AvatarSize;
-  /** Any CSS color string (hex, rgb, hsl, named). Overrides the variant's default background. */
-  tint?: string;
   'aria-label': string;
 }
+
+type AvatarVariantProps =
+  | {
+      variant?: 'project' | 'profile';
+      initial: string;
+      /** Any CSS color string (hex, rgb, hsl, named). Overrides the variant's default background. */
+      tint?: string;
+    }
+  | {
+      variant: 'empty';
+      initial?: never;
+      tint?: never;
+    };
+
+export type AvatarProps = AvatarBaseProps & AvatarVariantProps;
 
 export const Avatar = forwardRef<HTMLSpanElement, AvatarProps>(
   (
@@ -27,10 +37,12 @@ export const Avatar = forwardRef<HTMLSpanElement, AvatarProps>(
     },
     ref,
   ) => {
+    const isEmpty = variant === 'empty';
     const classes = cn(styles.avatar, styles[variant], styles[size], className);
-    const mergedStyle: CSSProperties | undefined = tint
-      ? ({ ...style, '--ds-color-avatar-tint': tint } as CSSProperties)
-      : style;
+    const mergedStyle: CSSProperties | undefined =
+      tint && !isEmpty
+        ? ({ ...style, '--ds-color-avatar-tint': tint } as CSSProperties)
+        : style;
 
     return (
       <span
@@ -40,7 +52,7 @@ export const Avatar = forwardRef<HTMLSpanElement, AvatarProps>(
         style={mergedStyle}
         {...rest}
       >
-        {initial}
+        {isEmpty ? null : initial}
       </span>
     );
   },
