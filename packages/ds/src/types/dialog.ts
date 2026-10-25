@@ -20,4 +20,5 @@ export interface DialogLifecycleProps extends Omit<
   forceMount?: boolean;
   onOpened?: () => void;
   onClosed?: () => void;
+  restoreFocusTo?: () => HTMLElement | null;
 }

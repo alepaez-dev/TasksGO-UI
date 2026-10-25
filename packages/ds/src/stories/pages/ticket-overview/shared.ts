@@ -442,6 +442,7 @@ export const ticket: TicketMeta = {
         description:
           'A second request for the same asset within the TTL window is served from the edge cache.',
         expected: 'Response carries `X-Cache: HIT` and TTFB drops below 40ms.',
+        actual: 'Second request served `X-Cache: HIT` at 31ms TTFB.',
       },
       {
         id: 'TC-418',
@@ -520,6 +521,8 @@ export const ticket: TicketMeta = {
         description:
           'An SNS publish purges the matching edge cache keys within 5 seconds.',
         expected: 'Subsequent request is a `MISS` then repopulates.',
+        actual:
+          'Purge landed in 3.2s; next request was a `MISS`, then repopulated.',
       },
     ],
   },
