@@ -18,7 +18,9 @@ export function highlightRenderRule(
 ): ReactNode | undefined {
   if (!isTextRunNode(node)) return undefined;
 
-  const nodeRanges = plan.byNode.get(node) ?? plan.byText.get(node.text);
+  const nodeRanges = plan.inTree.has(node)
+    ? plan.byNode.get(node)
+    : plan.byText.get(node.text);
   if (nodeRanges === undefined || nodeRanges.length === 0) return undefined;
 
   const marked = <HighlightedText text={node.text} ranges={nodeRanges} />;

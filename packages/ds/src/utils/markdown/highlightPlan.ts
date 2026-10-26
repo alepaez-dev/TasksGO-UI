@@ -4,6 +4,7 @@ import { textRunLayout } from './textRuns';
 export interface HighlightPlan {
   byNode: WeakMap<object, MatchRange[]>;
   byText: Map<string, MatchRange[]>;
+  inTree: WeakSet<object>;
 }
 
 function slice(
@@ -26,11 +27,16 @@ export function buildHighlightPlan(
   query: string,
 ): { ast: unknown; plan: HighlightPlan } {
   const { runs, offsets, nodes, detached, joined, ast } = textRunLayout(source);
-  const plan: HighlightPlan = { byNode: new WeakMap(), byText: new Map() };
+  const plan: HighlightPlan = {
+    byNode: new WeakMap(),
+    byText: new Map(),
+    inTree: new WeakSet(),
+  };
   if (query === '') return { ast, plan };
 
   const global = matchRanges(joined, query);
   runs.forEach((text, index) => {
+    plan.inTree.add(nodes[index]);
     const local = slice(global, offsets[index], text.length);
     if (local.length > 0) plan.byNode.set(nodes[index], local);
   });

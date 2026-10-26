@@ -193,6 +193,20 @@ describe('Markdown query highlighting', () => {
     expect(marks(container)).toEqual(['SQS']);
   });
 
+  it('does not mark a body word that only matches inside a footnote', () => {
+    const source = 'no **cache** here[^1]\n\n[^1]: edge-**cache**';
+    const { container } = render(
+      <Markdown source={source} query="edge-cache" />,
+    );
+    const body = container.querySelector('p');
+    const footer = container.querySelector('footer');
+    if (!(body instanceof HTMLElement) || !(footer instanceof HTMLElement)) {
+      throw new Error('expected a body paragraph and a footnote footer');
+    }
+    expect(marks(body)).toEqual([]);
+    expect(marks(footer)).toEqual(['edge-', 'cache']);
+  });
+
   it('does not mark across the boundary into footnote text', () => {
     const source = 'body ends here[^1].\n\n[^1]: starts the note';
     const { container } = render(
