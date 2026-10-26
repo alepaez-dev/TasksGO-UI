@@ -15,6 +15,7 @@ import {
   type ActivityEvent,
   type ActivityGroup,
   type ActivityItem,
+  type ActivityNode,
   type ActivitySegment,
   type ActivitySortDirection,
 } from '../../../utils/activity';
@@ -42,6 +43,8 @@ export interface UseActivityState extends UseActivityReactions {
   matchCount: number;
   isEmpty: boolean;
   addItem: (item: ActivityItem) => void;
+  grouped: boolean;
+  setGrouped: (grouped: boolean) => void;
   isGroupOpen: (groupId: string) => boolean;
   visibleRowsOf: (group: ActivityGroup) => readonly ActivityEvent[];
   matchLabelOf: (group: ActivityGroup) => string | null;
@@ -78,6 +81,7 @@ export function useActivityState({
   const [sort, setSort] = useState<ActivitySortDirection>('oldest');
   const [query, setQuery] = useState('');
   const [pinnedId, setPinnedId] = useState<string | null>(null);
+  const [grouped, setGrouped] = useState(true);
   const [groupOverrides, setGroupOverrides] = useState<
     ReadonlyMap<string, boolean>
   >(() => new Map());
@@ -115,17 +119,20 @@ export function useActivityState({
   }, [indexed, query]);
 
   const feed = useMemo(() => {
-    const grouped = groupItems(sortItems(filterItems(allItems, segment), sort));
+    const ordered = sortItems(filterItems(allItems, segment), sort);
+    const nodes: readonly ActivityNode[] = grouped
+      ? groupItems(ordered)
+      : ordered.map((item) => ({ type: 'item', item }) as const);
     const kept =
       matched === null
-        ? grouped
-        : grouped.filter((node) =>
+        ? nodes
+        : nodes.filter((node) =>
             node.type === 'group'
               ? node.items.some((item) => matched.has(item.id))
               : matched.has(node.item.id),
           );
     return withDividers(kept, { now });
-  }, [allItems, segment, matched, sort, now]);
+  }, [allItems, segment, matched, sort, now, grouped]);
 
   const visibleIds = useMemo(() => idsOf(feed, matched), [feed, matched]);
 
@@ -143,12 +150,24 @@ export function useActivityState({
     return ids;
   }, [feed, matched]);
 
+  const pinnedGroupId = useMemo(() => {
+    if (pinnedId === null) return null;
+    const holder = feed.find(
+      (node) =>
+        node.type === 'group' &&
+        node.items.some((item) => item.id === pinnedId),
+    );
+    return holder?.type === 'group' ? holder.id : null;
+  }, [feed, pinnedId]);
+
   const isGroupOpen = useCallback(
     (groupId: string) => {
       const chosen = groupOverrides.get(groupId);
-      return chosen ?? matchedGroupIds.has(groupId);
+      return (
+        chosen ?? (matchedGroupIds.has(groupId) || pinnedGroupId === groupId)
+      );
     },
-    [groupOverrides, matchedGroupIds],
+    [groupOverrides, matchedGroupIds, pinnedGroupId],
   );
 
   const visibleRowsOf = useCallback(
@@ -180,20 +199,10 @@ export function useActivityState({
     setSort((current) => (current === 'oldest' ? 'newest' : 'oldest'));
   }, []);
 
-  const pin = useCallback(
-    (id: string) => {
-      const holder = feed.find(
-        (node) =>
-          node.type === 'group' && node.items.some((item) => item.id === id),
-      );
-      if (holder?.type === 'group') {
-        setGroupOverrides((current) => new Map(current).set(holder.id, true));
-      }
-      setPinnedId(id);
-      setQuery('');
-    },
-    [feed],
-  );
+  const pin = useCallback((id: string) => {
+    setPinnedId(id);
+    setQuery('');
+  }, []);
 
   const clearPin = useCallback(() => setPinnedId(null), []);
 
@@ -202,6 +211,8 @@ export function useActivityState({
     sort,
     query,
     pinnedId,
+    grouped,
+    setGrouped,
     counts,
     feed,
     visibleIds,

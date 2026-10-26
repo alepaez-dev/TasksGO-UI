@@ -11,7 +11,7 @@ export interface SegmentedControlOption {
 }
 
 type SegmentedControlSize = 'sm' | 'md';
-type SegmentedControlVariant = 'toggle' | 'filter';
+type SegmentedControlVariant = 'toggle' | 'filter' | 'filter-compact';
 
 export interface SegmentedControlProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
@@ -36,6 +36,11 @@ const variantClasses = {
     list: styles.filterList,
     segment: styles.filter,
     selected: styles.filterSelected,
+  },
+  'filter-compact': {
+    list: styles.chipList,
+    segment: styles.chip,
+    selected: styles.chipSelected,
   },
 } as const;
 

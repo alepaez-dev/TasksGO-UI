@@ -69,6 +69,11 @@ export const colors = {
 
   highlight,
 
+  segmentedControl: {
+    chipSelectedBackground: text.primary,
+    chipSelectedText: surface.primary,
+    chipSelectedCount: 'rgba(255, 255, 255, 0.6)',
+  },
   timelineEvent: {
     pinHoverBackground: 'rgba(180, 83, 9, 0.06)',
   },

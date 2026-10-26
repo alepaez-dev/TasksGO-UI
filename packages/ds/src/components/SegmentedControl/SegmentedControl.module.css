@@ -100,3 +100,47 @@
   color: var(--ds-color-text-disabled);
   cursor: not-allowed;
 }
+
+.chipList {
+  display: flex;
+  gap: var(--ds-space-segmented-control-chip-gap);
+  max-width: 100%;
+  padding: var(--ds-focus-ring-width);
+  padding-inline-end: var(--ds-space-segmented-control-chip-fade-width);
+  margin: calc(-1 * var(--ds-focus-ring-width));
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(
+    90deg,
+    #000 calc(100% - var(--ds-space-segmented-control-chip-fade-width)),
+    transparent
+  );
+}
+
+.chipList::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex-shrink: 0;
+  height: var(--ds-space-segmented-control-chip-segment-height);
+  padding: 0 var(--ds-space-segmented-control-chip-segment-padding-x);
+  border: 1px solid var(--ds-color-border-default);
+  border-radius: var(--ds-radius-full);
+  background: var(--ds-color-surface-primary);
+  white-space: nowrap;
+  font-family: var(--ds-text-segmented-control-filter-font-family);
+  font-size: var(--ds-text-segmented-control-filter-font-size);
+  font-weight: var(--ds-text-segmented-control-filter-font-weight);
+}
+
+.chipSelected {
+  background: var(--ds-color-segmented-control-chip-selected-background);
+  border-color: var(--ds-color-segmented-control-chip-selected-background);
+  color: var(--ds-color-segmented-control-chip-selected-text);
+  font-weight: var(--ds-font-weight-semibold);
+}
+
+.chipSelected .count {
+  color: var(--ds-color-segmented-control-chip-selected-count);
+}
