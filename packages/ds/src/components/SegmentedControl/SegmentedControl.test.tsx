@@ -311,6 +311,45 @@ describe('SegmentedControl variants', () => {
     expect(screen.getByRole('tablist')).not.toHaveClass('md');
   });
 
+  it('applies the filter-compact variant when asked', () => {
+    render(
+      <SegmentedControl
+        options={options}
+        value="write"
+        variant="filter-compact"
+        onValueChange={vi.fn()}
+        aria-label="Filter"
+      />,
+    );
+    const tab = screen.getByRole('tab', { name: 'Write' });
+    expect(tab).toHaveClass('chip');
+    expect(tab).not.toHaveClass('filter');
+    expect(tab).not.toHaveClass('toggle');
+  });
+
+  it('keeps counts and roving keys in the filter-compact variant', () => {
+    const onValueChange = vi.fn();
+    render(
+      <SegmentedControl
+        options={[
+          { value: 'all', label: 'All', count: 28 },
+          { value: 'comments', label: 'Comments', count: 4 },
+          { value: 'system', label: 'System', count: 24 },
+        ]}
+        value="all"
+        variant="filter-compact"
+        onValueChange={onValueChange}
+        aria-label="Filter activity"
+      />,
+    );
+    expect(screen.getByRole('tab', { name: /All/ })).toHaveTextContent('28');
+
+    fireEvent.keyDown(screen.getByRole('tab', { name: /All/ }), {
+      key: 'ArrowRight',
+    });
+    expect(onValueChange).toHaveBeenLastCalledWith('comments');
+  });
+
   it('applies the filter variant when asked', () => {
     render(
       <SegmentedControl

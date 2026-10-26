@@ -184,6 +184,10 @@ export const spacing = {
     filterPadding: '3px',
     filterSegmentHeight: '30px',
     filterSegmentPaddingX: '13px',
+    chipGap: '6px',
+    chipSegmentHeight: '32px',
+    chipSegmentPaddingX: '12px',
+    chipFadeWidth: '16px',
   },
   breadcrumb: {
     gap: '8px',

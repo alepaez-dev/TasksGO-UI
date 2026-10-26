@@ -290,3 +290,74 @@ describe('useActivityState — pinning a row inside a group', () => {
     expect(result.current.visibleIds).toContain('c1');
   });
 });
+
+describe('useActivityState — grouping can be turned off', () => {
+  it('groups consecutive updates by default', () => {
+    const { result } = setup();
+    expect(result.current.grouped).toBe(true);
+    expect(result.current.feed.some((node) => node.type === 'group')).toBe(
+      true,
+    );
+  });
+
+  it('shows every update on its own row once grouping is off', () => {
+    const { result } = setup();
+    act(() => result.current.setGrouped(false));
+
+    expect(result.current.feed.some((node) => node.type === 'group')).toBe(
+      false,
+    );
+    for (const id of ['e1', 'e1b', 'e1c']) {
+      expect(result.current.visibleIds).toContain(id);
+    }
+  });
+
+  it('keeps every item visible either way', () => {
+    const { result } = setup();
+    const grouped = [...result.current.visibleIds].sort();
+    act(() => result.current.setGrouped(false));
+    expect([...result.current.visibleIds].sort()).toEqual(grouped);
+  });
+
+  it('still searches with grouping off', () => {
+    const { result } = setup();
+    act(() => result.current.setGrouped(false));
+    act(() => result.current.setQuery('description'));
+    expect(result.current.visibleIds).toEqual(['e1b']);
+  });
+});
+
+describe('useActivityState — a pinned row survives a grouping change', () => {
+  it('opens the group that gains the pinned row when grouping comes back on', () => {
+    const { result } = setup();
+    act(() => result.current.setGrouped(false));
+    act(() => result.current.setQuery('description'));
+    act(() => result.current.pin('e1b'));
+
+    act(() => result.current.setGrouped(true));
+
+    expect(result.current.isGroupOpen('group-e1')).toBe(true);
+    expect(result.current.visibleIds).toContain('e1b');
+  });
+
+  it('closes again when the pin is cleared', () => {
+    const { result } = setup();
+    act(() => result.current.setGrouped(false));
+    act(() => result.current.pin('e1b'));
+    act(() => result.current.setGrouped(true));
+    expect(result.current.isGroupOpen('group-e1')).toBe(true);
+
+    act(() => result.current.clearPin());
+    expect(result.current.isGroupOpen('group-e1')).toBe(false);
+  });
+
+  it('still lets the viewer close a group that holds the pin', () => {
+    const { result } = setup();
+    act(() => result.current.setQuery('description'));
+    act(() => result.current.pin('e1b'));
+    expect(result.current.isGroupOpen('group-e1')).toBe(true);
+
+    act(() => result.current.toggleGroup('group-e1'));
+    expect(result.current.isGroupOpen('group-e1')).toBe(false);
+  });
+});

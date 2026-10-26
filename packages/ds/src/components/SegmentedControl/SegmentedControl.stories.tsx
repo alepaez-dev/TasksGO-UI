@@ -22,7 +22,10 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     size: { control: 'inline-radio', options: ['sm', 'md'] },
-    variant: { control: 'inline-radio', options: ['toggle', 'filter'] },
+    variant: {
+      control: 'inline-radio',
+      options: ['toggle', 'filter', 'filter-compact'],
+    },
     value: { control: false },
     onValueChange: { control: false },
   },
@@ -37,7 +40,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A controlled pill toggle for switching between two views of the same content (e.g. Write/Preview). Built on the WAI-ARIA tablist pattern with roving tabindex and arrow-key navigation. Pair it with tabpanels via `idPrefix` + `getSegmentPanelId`. The `filter` variant restyles it for a filter bar — sentence-case labels, an optional `count` per option, and one fixed height (`size` applies to the `toggle` variant only).',
+          'A controlled pill toggle for switching between two views of the same content (e.g. Write/Preview). Built on the WAI-ARIA tablist pattern with roving tabindex and arrow-key navigation. Pair it with tabpanels via `idPrefix` + `getSegmentPanelId`. The `filter` variant restyles it for a filter bar — sentence-case labels, an optional `count` per option, and one fixed height. The `filter-compact` variant is that same filter sized for a narrow screen — separate bordered chips that scroll horizontally instead of sitting on one track (`size` applies to the `toggle` variant only).',
       },
     },
   },
@@ -109,6 +112,32 @@ export const EmptyCounts: Story = {
       description: {
         story:
           'A zero shows as `0` and stays selectable — choosing an empty filter is how a consumer reaches its empty state.',
+      },
+    },
+  },
+};
+
+export const ActivityChips: Story = {
+  args: {
+    variant: 'filter-compact',
+    value: 'all',
+    'aria-label': 'Filter activity',
+    options: [
+      { value: 'all', label: 'All', count: 28 },
+      { value: 'comments', label: 'Comments', count: 4 },
+      { value: 'system', label: 'System', count: 24 },
+    ],
+  },
+  render: (args) => (
+    <div style={{ width: 280 }}>
+      <Controlled {...args} />
+    </div>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The mobile filter row — the same filter as `filter`, not a different control: same tablist semantics, same counts, same single selection. Each chip carries its own border instead of sitting on a shared track, the selection inverts to a solid fill, and the row scrolls horizontally with a fade when the chips outrun the screen.',
       },
     },
   },
