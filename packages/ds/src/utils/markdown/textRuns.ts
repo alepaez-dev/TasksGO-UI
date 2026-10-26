@@ -1,4 +1,4 @@
-import { type MarkdownToJSX } from 'markdown-to-jsx';
+import { RuleType, type MarkdownToJSX } from 'markdown-to-jsx';
 import {
   isTextNode,
   walkMarkdown,
@@ -59,13 +59,17 @@ export function textRunLayout(source: string): TextRunLayout {
     });
     return { runs, offsets, nodes, detached, joined, ast };
   } catch {
+    const fallback: MarkdownToJSX.TextNode = {
+      type: RuleType.text,
+      text: source,
+    };
     return {
       runs: [source],
       offsets: [0],
-      nodes: [],
+      nodes: [fallback],
       detached: [],
       joined: source,
-      ast: [],
+      ast: [fallback],
     };
   }
 }

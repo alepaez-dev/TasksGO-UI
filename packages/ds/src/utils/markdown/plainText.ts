@@ -12,7 +12,7 @@ export function plainText(source: string): string {
         out += '\n';
       },
       onDetached: (text) => {
-        out += `${text}\n`;
+        out += text;
       },
     });
   } catch {

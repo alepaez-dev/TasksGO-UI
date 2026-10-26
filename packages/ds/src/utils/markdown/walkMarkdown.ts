@@ -25,6 +25,11 @@ export const markdownParserOptions: MarkdownToJSX.Options = {
   disableParsingRawHTML: true,
 };
 
+const footnoteParserOptions: MarkdownToJSX.Options = {
+  forceInline: true,
+  disableParsingRawHTML: true,
+};
+
 export type MarkdownTextNode =
   | MarkdownToJSX.TextNode
   | MarkdownToJSX.CodeInlineNode
@@ -52,6 +57,12 @@ export function walkMarkdown(
   source: string,
   visitor: MarkdownVisitor,
 ): MarkdownToJSX.ASTNode[] {
+  let detached = false;
+  const emit = (node: object, text: string): void => {
+    if (detached) visitor.onDetached(text);
+    else visitor.onText(node, text);
+  };
+
   const walk = (node: unknown): void => {
     if (Array.isArray(node)) {
       node.forEach(walk);
@@ -67,13 +78,13 @@ export function walkMarkdown(
       if (type === RuleType.codeBlock) {
         if (isTextNode(astNode, visitor.includeScopeBlocks)) {
           visitor.onBlockBoundary();
-          visitor.onText(astNode, astNode.text);
+          emit(astNode, astNode.text);
           visitor.onBlockBoundary();
         }
         return;
       }
       if (isTextNode(astNode, visitor.includeScopeBlocks)) {
-        visitor.onText(astNode, astNode.text);
+        emit(astNode, astNode.text);
         return;
       }
     }
@@ -87,7 +98,7 @@ export function walkMarkdown(
     for (const key of ['items', 'header', 'cells']) {
       const rows = typed[key];
       if (Array.isArray(rows)) {
-        for (const row of rows) {
+        for (const row of key === 'cells' ? rows.flat() : rows) {
           visitor.onBlockBoundary();
           walk(row);
           visitor.onBlockBoundary();
@@ -96,11 +107,16 @@ export function walkMarkdown(
     }
     const refs = typed.refs;
     if (refs !== null && typeof refs === 'object') {
-      for (const ref of Object.values(refs as Record<string, unknown>)) {
+      for (const [key, ref] of Object.entries(
+        refs as Record<string, unknown>,
+      )) {
+        if (!key.startsWith('^')) continue;
         const target = (ref as { target?: unknown } | null)?.target;
         if (typeof target === 'string' && target !== '') {
           visitor.onBlockBoundary();
-          visitor.onDetached(target);
+          detached = true;
+          walk(parser(target, footnoteParserOptions));
+          detached = false;
           visitor.onBlockBoundary();
         }
       }

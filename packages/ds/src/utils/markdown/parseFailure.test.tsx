@@ -1,3 +1,4 @@
+import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('markdown-to-jsx', async (importOriginal) => ({
@@ -8,7 +9,8 @@ vi.mock('markdown-to-jsx', async (importOriginal) => ({
 }));
 
 const { plainText } = await import('./plainText');
-const { textRuns, textRunLayout } = await import('./textRuns');
+const { textRuns } = await import('./textRuns');
+const { Markdown } = await import('../../components/Markdown');
 
 const SOURCE = 'QA **needs** a number';
 
@@ -21,10 +23,16 @@ describe('when the parser throws', () => {
     expect(textRuns(SOURCE)).toEqual([SOURCE]);
   });
 
-  it('reports no nodes, so nothing is keyed for highlighting', () => {
-    const layout = textRunLayout(SOURCE);
-    expect(layout.nodes).toEqual([]);
-    expect(layout.joined).toBe(SOURCE);
-    expect(layout.offsets).toEqual([0]);
+  it('renders the raw source', () => {
+    const { container } = render(<Markdown source={SOURCE} />);
+    expect(container.textContent).toBe(SOURCE);
+  });
+
+  it('marks a query match in the raw source', () => {
+    const { container } = render(<Markdown source={SOURCE} query="needs" />);
+    const marks = [...container.querySelectorAll('mark')].map(
+      (mark) => mark.textContent,
+    );
+    expect(marks).toEqual(['needs']);
   });
 });

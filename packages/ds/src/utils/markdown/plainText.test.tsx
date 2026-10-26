@@ -52,10 +52,28 @@ describe('plainText', () => {
     expect(plainText('[needs doc](http://example.com)')).not.toContain('http');
   });
 
+  it('indexes each table cell separately', () => {
+    expect(plainText('| a | b |\n| --- | --- |\n| c | d |')).toBe('a\nb\nc\nd');
+  });
+
+  it('does not index a reference-link definition', () => {
+    expect(
+      plainText('See [the doc][doc].\n\n[doc]: http://internal.example.com'),
+    ).toBe('See the doc.');
+  });
+
   it('indexes footnote text, which is rendered in the footer', () => {
     expect(
       plainText('cheaper[^1].\n\n[^1]: we measured 40% fewer SQS calls'),
     ).toContain('SQS');
+  });
+
+  it('indexes footnote text without markdown syntax', () => {
+    const text = plainText(
+      'cheaper[^1].\n\n[^1]: we measured fewer **SQS** calls',
+    );
+    expect(text).toContain('fewer SQS calls');
+    expect(text).not.toContain('**');
   });
 
   it('indexes scope block text, which ScopeBlock shows but highlighting cannot mark', () => {

@@ -164,6 +164,7 @@ describe('Markdown query highlighting', () => {
     ['foo\n\nbar', 'oob'],
     ['# Head\n\nline', 'headl'],
     ['| a | b |\n| --- | --- |\n| c | d |', 'ab'],
+    ['| a | b |\n| --- | --- |\n| c | d |', 'cd'],
   ])('does not mark across a block boundary in %j', (source, query) => {
     const { container } = render(<Markdown source={source} query={query} />);
     expect(marks(container)).toEqual([]);
@@ -184,6 +185,12 @@ describe('Markdown query highlighting', () => {
     expect(container.querySelector('footer')).toHaveTextContent(
       'we measured 40% fewer SQS calls',
     );
+  });
+
+  it('marks a formatted word in a footnote', () => {
+    const source = 'cheaper[^1].\n\n[^1]: we measured fewer **SQS** calls';
+    const { container } = render(<Markdown source={source} query="sqs" />);
+    expect(marks(container)).toEqual(['SQS']);
   });
 
   it('does not mark across the boundary into footnote text', () => {
