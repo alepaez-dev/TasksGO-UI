@@ -40,6 +40,7 @@ const meta = {
   tags: ['autodocs'],
   argTypes: {
     source: { control: 'text' },
+    query: { control: 'text' },
   },
   args: {
     source: kitchenSink,
@@ -48,7 +49,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Renders a markdown string to styled React elements through a stable in-house seam over `markdown-to-jsx`. Output is React elements (never `dangerouslySetInnerHTML`); raw embedded HTML is disabled and link/image URLs are routed through the design system `sanitizeHref`. All styling comes from design tokens — the library ships no CSS. GFM tables and task lists are supported.',
+          'Renders a markdown string to styled React elements. Raw embedded HTML is disabled and link/image URLs are routed through `sanitizeHref`. All styling comes from design tokens — the library ships no CSS. GFM tables and task lists are supported. Pass `query` to mark matching terms in the body. Fenced code blocks are marked; scope blocks are not.',
       },
     },
   },
@@ -158,6 +159,29 @@ export const MaliciousInput: Story = {
       description: {
         story:
           'Security posture: raw HTML never becomes live DOM and dangerous link protocols are stripped via sanitizeHref.',
+      },
+    },
+  },
+};
+
+export const WithSearchHighlight: Story = {
+  args: {
+    source: [
+      'QA **needs** a number before we ship. The edge-**cache** rollout is next.',
+      '',
+      'Staged behind `edge_cache_v1`, see [the needs doc](https://example.com).',
+      '',
+      '```ts',
+      'const retries = 3;',
+      '```',
+    ].join('\n'),
+    query: 'needs edge-cache retri',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Marks every term of `query` across body text, emphasis, link text and code spans. A term split by formatting, like `edge-**cache**`, is marked on both sides of the boundary.',
       },
     },
   },

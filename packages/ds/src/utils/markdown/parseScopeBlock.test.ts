@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseScopeBlock } from './parseScopeBlock';
+import { parseScopeBlock, parseScopeFence } from './parseScopeBlock';
 
 describe('parseScopeBlock', () => {
   it('parses included and excluded sections with dash markers', () => {
@@ -50,5 +50,25 @@ describe('parseScopeBlock', () => {
     const result = parseScopeBlock(['included:', '- only this'].join('\n'));
     expect(result.included).toEqual(['only this']);
     expect(result.excluded).toEqual([]);
+  });
+});
+
+describe('parseScopeFence', () => {
+  const body = ['included:', '- login flow'].join('\n');
+
+  it('returns the scope so the caller renders a card without parsing again', () => {
+    expect(parseScopeFence('scope', body)).toEqual({
+      included: ['login flow'],
+      excluded: [],
+    });
+  });
+
+  it('is not a scope fence under another language', () => {
+    expect(parseScopeFence('ts', body)).toBeNull();
+    expect(parseScopeFence(undefined, body)).toBeNull();
+  });
+
+  it('is not a scope fence when both sections are empty, so it stays code', () => {
+    expect(parseScopeFence('scope', 'just some text')).toBeNull();
   });
 });

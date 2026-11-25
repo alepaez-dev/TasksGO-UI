@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildSearchIndex, searchItems } from './searchItems';
+import { buildSearchIndex, matchesQuery, searchItems } from './searchItems';
 import { ALEX, CI, JORDAN, ask, comment, event } from './testFixtures';
 
 describe('buildSearchIndex — the three searchable families', () => {
@@ -105,5 +105,37 @@ describe('searchItems', () => {
     const item = comment(JORDAN, 0, { id: 'c', body: 'ship it' });
 
     expect([...searchItems([item], 'jordan ship')]).toEqual(['c']);
+  });
+});
+
+describe('buildSearchIndex — markdown bodies', () => {
+  it('finds a term that formatting splits in the source', () => {
+    const item = comment(JORDAN, 0, { body: 'edge-**cache** is the plan' });
+    expect(matchesQuery(buildSearchIndex(item), 'edge-cache')).toBe(true);
+  });
+
+  it('finds a term inside a code span', () => {
+    const item = comment(JORDAN, 0, { body: 'use `needs-qa` please' });
+    expect(matchesQuery(buildSearchIndex(item), 'needs-qa')).toBe(true);
+  });
+
+  it('finds a term inside a fenced block', () => {
+    const item = comment(JORDAN, 0, { body: '```js\nconst retries = 3\n```' });
+    expect(matchesQuery(buildSearchIndex(item), 'retries')).toBe(true);
+  });
+
+  it('does not match the emphasis markers themselves', () => {
+    const item = comment(JORDAN, 0, { body: 'edge-**cache** is the plan' });
+    expect(matchesQuery(buildSearchIndex(item), '**')).toBe(false);
+  });
+
+  it('does not match a link href the reader never sees', () => {
+    const item = comment(JORDAN, 0, {
+      body: 'see [the doc](http://internal.example.com)',
+    });
+    expect(matchesQuery(buildSearchIndex(item), 'internal.example.com')).toBe(
+      false,
+    );
+    expect(matchesQuery(buildSearchIndex(item), 'the doc')).toBe(true);
   });
 });

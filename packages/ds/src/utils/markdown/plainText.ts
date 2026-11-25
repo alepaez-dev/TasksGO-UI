@@ -1,0 +1,28 @@
+import { walkMarkdown } from './walkMarkdown';
+
+export function plainText(source: string): string {
+  let out = '';
+  try {
+    walkMarkdown(source, {
+      includeScopeBlocks: true,
+      onText: (_node, text) => {
+        out += text;
+      },
+      onBlockBoundary: () => {
+        out += '\n';
+      },
+      onDetached: (text) => {
+        out += text;
+      },
+      onFootnoteLabel: (text) => {
+        out += text;
+      },
+    });
+  } catch {
+    return source;
+  }
+  return out
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n+/g, '\n')
+    .trim();
+}
