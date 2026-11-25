@@ -19,6 +19,7 @@ export interface TextRunLayout {
   offsets: number[];
   nodes: object[];
   detached: DetachedRun[];
+  labels: DetachedRun[];
   joined: string;
   ast: MarkdownToJSX.ASTNode[];
 }
@@ -34,6 +35,7 @@ export function textRunLayout(source: string): TextRunLayout {
   const offsets: number[] = [];
   const nodes: object[] = [];
   const detached: DetachedRun[] = [];
+  const labels: DetachedRun[] = [];
   let joined = '';
 
   const separate = (): void => {
@@ -56,8 +58,12 @@ export function textRunLayout(source: string): TextRunLayout {
         detached.push({ text, offset: joined.length });
         joined += text;
       },
+      onFootnoteLabel: (text) => {
+        labels.push({ text, offset: joined.length });
+        joined += text;
+      },
     });
-    return { runs, offsets, nodes, detached, joined, ast };
+    return { runs, offsets, nodes, detached, labels, joined, ast };
   } catch {
     const fallback: MarkdownToJSX.TextNode = {
       type: RuleType.text,
@@ -68,6 +74,7 @@ export function textRunLayout(source: string): TextRunLayout {
       offsets: [0],
       nodes: [fallback],
       detached: [],
+      labels: [],
       joined: source,
       ast: [fallback],
     };

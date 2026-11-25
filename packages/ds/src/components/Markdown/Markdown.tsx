@@ -9,6 +9,7 @@ import {
   type HighlightPlan,
 } from '../../utils/markdown/highlightPlan';
 import { parseScopeFence } from '../../utils/markdown/parseScopeBlock';
+import { FootnoteFooter } from './blocks/FootnoteFooter';
 import { ScopeBlock } from './blocks/ScopeBlock';
 import styles from './Markdown.module.css';
 
@@ -21,17 +22,24 @@ export interface MarkdownProps extends Omit<
 }
 
 function buildOptions(plan: HighlightPlan): MarkdownToJSX.Options {
+  const seen = new Map<string, number>();
   return {
     forceBlock: true,
     disableParsingRawHTML: true,
     wrapper: Fragment,
+    overrides: {
+      footer: {
+        component: FootnoteFooter,
+        props: { labelRanges: plan.byLabel },
+      },
+    },
     sanitizer: (value) => (sanitizeHref(value) === '#' ? null : value),
     renderRule(next, node, renderChildren, state) {
       if (node.type === RuleType.codeBlock) {
         const scope = parseScopeFence(node.lang, node.text);
         if (scope) return <ScopeBlock key={state.key} {...scope} />;
       }
-      const highlighted = highlightRenderRule(next, node, state, plan);
+      const highlighted = highlightRenderRule(next, node, state, plan, seen);
       if (highlighted) return highlighted;
       const link = linkRenderRule(node, renderChildren, state);
       if (link) return link;
@@ -57,10 +65,9 @@ export const Markdown = forwardRef<HTMLDivElement, MarkdownProps>(
       () => buildHighlightPlan(source, query),
       [source, query],
     );
-    const options = useMemo(() => buildOptions(plan), [plan]);
     const rendered = useMemo(
-      () => astToJSX(ast as MarkdownToJSX.ASTNode[], options),
-      [ast, options],
+      () => astToJSX(ast as MarkdownToJSX.ASTNode[], buildOptions(plan)),
+      [ast, plan],
     );
     return (
       <div ref={ref} className={cn(styles.prose, className)} {...rest}>

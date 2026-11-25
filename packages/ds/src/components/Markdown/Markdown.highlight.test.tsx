@@ -1,3 +1,4 @@
+import { StrictMode } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { Markdown } from './Markdown';
@@ -5,6 +6,12 @@ import { Markdown } from './Markdown';
 function marks(container: HTMLElement): string[] {
   return [...container.querySelectorAll('mark')].map(
     (m) => m.textContent ?? '',
+  );
+}
+
+function footnoteMarks(container: HTMLElement): string[][] {
+  return [...container.querySelectorAll<HTMLElement>('footer > div')].map(
+    marks,
   );
 }
 
@@ -205,6 +212,55 @@ describe('Markdown query highlighting', () => {
     }
     expect(marks(body)).toEqual([]);
     expect(marks(footer)).toEqual(['edge-', 'cache']);
+  });
+
+  it.each([
+    [
+      'a[^1] b[^2]\n\n[^1]: edge-**cache**\n\n[^2]: the **cache**',
+      'edge-cache',
+      [['edge-', 'cache'], []],
+    ],
+    [
+      'a[^1] b[^2]\n\n[^1]: x**ab**\n\n[^2]: **ab**y',
+      'xa by',
+      [
+        ['x', 'a'],
+        ['b', 'y'],
+      ],
+    ],
+  ])(
+    'marks each footnote by its own match in %j',
+    (source, query, expected) => {
+      const { container } = render(<Markdown source={source} query={query} />);
+      expect(footnoteMarks(container)).toEqual(expected);
+    },
+  );
+
+  it('marks each footnote by its own match under StrictMode', () => {
+    const source = 'a[^1] b[^2]\n\n[^1]: edge-**cache**\n\n[^2]: the **cache**';
+    const { container } = render(
+      <StrictMode>
+        <Markdown source={source} query="edge-cache" />
+      </StrictMode>,
+    );
+    expect(footnoteMarks(container)).toEqual([['edge-', 'cache'], []]);
+  });
+
+  it('marks a footnote label in the marker and the footer', () => {
+    const { container } = render(
+      <Markdown
+        source={'see note[^perf].\n\n[^perf]: we measured'}
+        query="perf"
+      />,
+    );
+    const marker = container.querySelector('sup');
+    const footer = container.querySelector('footer');
+    if (!(marker instanceof HTMLElement) || !(footer instanceof HTMLElement)) {
+      throw new Error('expected a footnote marker and a footnote footer');
+    }
+    expect(marks(marker)).toEqual(['perf']);
+    expect(marks(footer)).toEqual(['perf']);
+    expect(footer).toHaveTextContent('perf: we measured');
   });
 
   it('does not mark across the boundary into footnote text', () => {

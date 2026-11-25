@@ -14,6 +14,9 @@ export function plainText(source: string): string {
       onDetached: (text) => {
         out += text;
       },
+      onFootnoteLabel: (text) => {
+        out += text;
+      },
     });
   } catch {
     return source;

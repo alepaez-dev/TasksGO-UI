@@ -76,6 +76,12 @@ describe('plainText', () => {
     expect(text).not.toContain('**');
   });
 
+  it('indexes footnote labels in the marker and the footer', () => {
+    const text = plainText('see note[^perf].\n\n[^perf]: we measured');
+    expect(text).toContain('see noteperf.');
+    expect(text).toContain('perf: ');
+  });
+
   it('indexes scope block text, which ScopeBlock shows but highlighting cannot mark', () => {
     const source =
       '```scope\nIncluded:\n- login flow\nExcluded:\n- billing\n```';

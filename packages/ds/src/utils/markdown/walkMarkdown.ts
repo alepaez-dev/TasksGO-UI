@@ -5,6 +5,7 @@ const TEXT_TYPES = new Set<number>([
   RuleType.text,
   RuleType.codeInline,
   RuleType.codeBlock,
+  RuleType.footnoteReference,
 ]);
 
 const BLOCK_TYPES = new Set<number>([
@@ -33,13 +34,15 @@ const footnoteParserOptions: MarkdownToJSX.Options = {
 export type MarkdownTextNode =
   | MarkdownToJSX.TextNode
   | MarkdownToJSX.CodeInlineNode
-  | MarkdownToJSX.CodeBlockNode;
+  | MarkdownToJSX.CodeBlockNode
+  | MarkdownToJSX.FootnoteReferenceNode;
 
 export interface MarkdownVisitor {
   includeScopeBlocks: boolean;
   onText(node: object, text: string): void;
   onBlockBoundary(): void;
   onDetached(text: string): void;
+  onFootnoteLabel(text: string): void;
 }
 
 export function isTextNode(
@@ -114,6 +117,7 @@ export function walkMarkdown(
         const target = (ref as { target?: unknown } | null)?.target;
         if (typeof target === 'string' && target !== '') {
           visitor.onBlockBoundary();
+          visitor.onFootnoteLabel(`${key.slice(1)}: `);
           detached = true;
           walk(parser(target, footnoteParserOptions));
           detached = false;
